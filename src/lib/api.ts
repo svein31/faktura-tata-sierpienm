@@ -69,6 +69,6 @@ export function handleApiError(e: unknown): NextResponse {
       { status: 409 }
     );
   }
-  console.error("[api-error]", e);
+  console.error("[api-error]", e instanceof Error ? (e.stack || e.message) : JSON.stringify(e));
   return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL" }, { status: 500 });
 }
