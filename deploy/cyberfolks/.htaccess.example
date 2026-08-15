@@ -1,0 +1,29 @@
+# ── Fakturo — przykład .htaccess dla subdomeny (Node.js + reverse proxy) ──
+#
+# W panelu Node.js cyber_Folks aplikacja nasłuchuje na 127.0.0.1:PORT
+# (PORT pochodzi z panelu — zakres zależnie od panelu: 35100–35599 albo 54xxx).
+# Ten plik przekazuje ruch z subdomeny do aplikacji Node.
+#
+# ⚠️ ZASTĄP  __PANEL_PORT__  portem z panelu Node.js (np. 35100, 35412, 54001…).
+#    Można też zostawić pusty port 80/443, jeśli korzystasz z wbudowanego
+#    reverse proxy panelu — wtedy ten plik nie jest potrzebny (patrz DEPLOY.md).
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Główna ścieżka subdomeny
+  RewriteRule ^$ http://127.0.0.1:__PANEL_PORT__/ [P,L]
+
+  # Pozostałe ścieżki (poza istniejącymi plikami statycznymi)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ http://127.0.0.1:__PANEL_PORT__/$1 [P,L]
+</IfModule>
+
+# ── Bezpieczeństwo: blokada wrażliwych plików ──
+<FilesMatch "\.(env|env\.example|db|sqlite|sqlite3|p12|pfx)$">
+  Require all denied
+</FilesMatch>
+
+# Wyłącz listing katalogów
+Options -Indexes

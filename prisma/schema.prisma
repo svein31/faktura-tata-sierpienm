@@ -1,0 +1,165 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Fakturo — schema Prisma (SQLite, cyber_Folks compatible)
+//
+// DATABASE_URL=file:./data/prod.db  — ścieżka względna jest rozwiązywana
+// względem katalogu prisma/ → plik bazy: <app>/prisma/data/prod.db
+// Katalog data/ jest tworzony automatycznie przy starcie aplikacji
+// (patrz src/lib/db.ts) i musi być zapisywalny dla użytkownika Node.
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String                 @id @default(cuid())
+  email         String                 @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  sessions      Session[]
+  company       CompanySettings?
+  ksef          KsefSettings?
+  contractors   Contractor[]
+  products      Product[]
+  invoices      Invoice[]
+  notifications Notification[]
+  preferences   NotificationPreference?
+}
+
+/// Losowy, nieprzezroczysty token sesji — w bazie przechowywany jest WYŁĄCZNIE
+/// hash SHA-256 tokena (nigdy sam token).
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CompanySettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @default("")
+  nip       String   @default("")
+  regon     String   @default("")
+  street    String   @default("")
+  city      String   @default("")
+  postal    String   @default("")
+  country   String   @default("PL")
+  iban      String   @default("")
+  bankName  String   @default("")
+  email     String   @default("")
+  phone     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+/// Ustawienia KSeF. Pełny token NIGDY nie jest zwracany przez API — zapisywane
+/// są tylko flagi tokenSet + tokenMask (ostatnie 4 znaki). Produkcyjny token
+/// powinien pochodzić ze zmiennej środowiskowej po stronie serwera (README).
+model KsefSettings {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  environment  String   @default("demo")
+  tokenSet     Boolean  @default(false)
+  tokenMask    String   @default("")
+  certName     String   @default("")
+  autoValidate Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+model Contractor {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  nip        String
+  regon      String?
+  address    Json
+  email      String?
+  phone      String?
+  iban       String?
+  bankName   String?
+  isVatPayer Boolean  @default(true)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  sku         String?
+  unit        String   @default("szt.")
+  netPrice    Float    @default(0)
+  vatRate     String   @default("23")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+/// Faktura. Pola strukturalne (lines, ksef) trzymane jako JSON, aby zachować
+/// istniejące typy frontendu bez migracji danych.
+model Invoice {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number          String
+  type            String
+  status          String   @default("draft")
+  contractorId    String
+  issueDate       String
+  saleDate        String
+  dueDate         String
+  currency        String   @default("PLN")
+  language        String   @default("PL")
+  paymentMethod   String   @default("transfer")
+  paymentTermDays Int      @default(14)
+  notes           String?
+  lines           Json
+  ksef            Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String   @default("system")
+  title     String
+  body      String?
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
+
+model NotificationPreference {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  browserEnabled Boolean  @default(false)
+  soundEnabled   Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+}

@@ -1,0 +1,113 @@
+import type { Currency, Invoice, InvoiceLine, VatRate } from "./types";
+
+const fmtCache = new Map<string, Intl.NumberFormat>();
+
+function getFmt(currency: Currency) {
+  const key = currency;
+  if (!fmtCache.has(key)) {
+    fmtCache.set(
+      key,
+      new Intl.NumberFormat("pl-PL", { style: "currency", currency, minimumFractionDigits: 2 })
+    );
+  }
+  return fmtCache.get(key)!;
+}
+
+export function formatMoney(amount: number, currency: Currency = "PLN"): string {
+  return getFmt(currency).format(amount);
+}
+
+export function formatNumber(n: number, maxFrac = 2): string {
+  return new Intl.NumberFormat("pl-PL", { maximumFractionDigits: maxFrac }).format(n);
+}
+
+export function formatCompact(amount: number, currency: Currency = "PLN"): string {
+  const abs = Math.abs(amount);
+  const symbol = currency === "PLN" ? "zł" : currency;
+  if (abs >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} mln ${symbol}`;
+  if (abs >= 1_000) return `${(amount / 1_000).toFixed(0)} tys. ${symbol}`;
+  return `${amount.toFixed(0)} ${symbol}`;
+}
+
+export function formatDate(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("pl-PL", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+export function formatDateTime(iso: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleString("pl-PL", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export const VAT_RATES: VatRate[] = ["23", "8", "5", "0", "zw", "np"];
+
+export function vatPercent(rate: VatRate): number {
+  if (rate === "23" || rate === "8" || rate === "5" || rate === "0") return Number(rate);
+  return 0;
+}
+
+export function vatRateLabel(rate: VatRate): string {
+  switch (rate) {
+    case "zw":
+      return "zw.";
+    case "np":
+      return "np.";
+    default:
+      return `${rate}%`;
+  }
+}
+
+export function round2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+export function lineNet(line: InvoiceLine): number {
+  return round2(line.quantity * line.netPrice);
+}
+
+export function lineVat(line: InvoiceLine): number {
+  return round2((lineNet(line) * vatPercent(line.vatRate)) / 100);
+}
+
+export function lineGross(line: InvoiceLine): number {
+  return round2(lineNet(line) + lineVat(line));
+}
+
+export interface InvoiceTotals {
+  net: number;
+  vat: number;
+  gross: number;
+  vatByRate: Partial<Record<VatRate, number>>;
+}
+
+export function invoiceTotals(invoice: Pick<Invoice, "lines">): InvoiceTotals {
+  const totals: InvoiceTotals = { net: 0, vat: 0, gross: 0, vatByRate: {} };
+  for (const line of invoice.lines) {
+    const n = lineNet(line);
+    const v = lineVat(line);
+    totals.net = round2(totals.net + n);
+    totals.vat = round2(totals.vat + v);
+    totals.gross = round2(totals.gross + n + v);
+    totals.vatByRate[line.vatRate] = round2((totals.vatByRate[line.vatRate] ?? 0) + v);
+  }
+  return totals;
+}
+
+export function monthKey(iso: string): string {
+  return iso.slice(0, 7);
+}
+
+export function monthLabel(key: string): string {
+  const [y, m] = key.split("-").map(Number);
+  const d = new Date(y, m - 1, 1);
+  return d.toLocaleDateString("pl-PL", { month: "short", year: "2-digit" });
+}

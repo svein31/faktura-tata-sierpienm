@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.env
+.DS_Store
+*.log
+
+# Bazy danych SQLite (dane użytkowników)
+prisma/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

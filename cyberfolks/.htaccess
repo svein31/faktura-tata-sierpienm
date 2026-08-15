@@ -1,0 +1,19 @@
+# ── Fakturo — .htaccess dla cyber_Folks (Port: 35100) ──
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Przekierowanie ruchu z subdomeny/katalogu do lokalnego serwera Node.js
+  RewriteRule ^$ http://127.0.0.1:35100/ [P,L,QSA]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ http://127.0.0.1:35100/$1 [P,L,QSA]
+</IfModule>
+
+# Blokada dostępu do wrażliwych plików
+<FilesMatch "\.(env|env\.example|db|sqlite|sqlite3|p12|pfx)$">
+  Require all denied
+</FilesMatch>
+
+# Wyłącz listing katalogów (zapobiega błędowi 403 gdy reverse proxy nie odpowiada)
+Options -Indexes
