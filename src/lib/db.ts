@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { mkdirSync, accessSync, constants } from "fs";
 import path from "path";
 
@@ -11,7 +12,7 @@ const INIT_SQL = [
     "nip" TEXT DEFAULT '',
     "companyName" TEXT DEFAULT '',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE TABLE IF NOT EXISTS "Session" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -38,7 +39,7 @@ const INIT_SQL = [
     "bankName" TEXT NOT NULL DEFAULT '',
     "email" TEXT NOT NULL DEFAULT '',
     "phone" TEXT NOT NULL DEFAULT '',
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "CompanySettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "CompanyProfile" (
@@ -66,7 +67,7 @@ const INIT_SQL = [
     "tokenMask" TEXT NOT NULL DEFAULT '',
     "certName" TEXT NOT NULL DEFAULT '',
     "autoValidate" BOOLEAN NOT NULL DEFAULT true,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "KsefSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "KsefSession" (
@@ -81,7 +82,7 @@ const INIT_SQL = [
     "validUntil" DATETIME,
     "status" TEXT NOT NULL DEFAULT 'ACTIVE',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "KsefSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "Contractor" (
@@ -98,7 +99,7 @@ const INIT_SQL = [
     "isVatPayer" BOOLEAN NOT NULL DEFAULT true,
     "notes" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Contractor_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "Product" (
@@ -111,7 +112,7 @@ const INIT_SQL = [
     "vatRate" TEXT NOT NULL DEFAULT '23',
     "description" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Product_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "Invoice" (
@@ -138,8 +139,11 @@ const INIT_SQL = [
     "referenceNumber" TEXT,
     "upoXml" TEXT,
     "ksefSessionId" TEXT,
+    "sentAt" DATETIME,
+    "sentToEmail" TEXT,
+    "emailStatus" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Invoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Invoice_sellerCompanyId_fkey" FOREIGN KEY ("sellerCompanyId") REFERENCES "CompanyProfile" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Invoice_ksefSessionId_fkey" FOREIGN KEY ("ksefSessionId") REFERENCES "KsefSession" ("id") ON DELETE SET NULL ON UPDATE CASCADE
@@ -160,7 +164,7 @@ const INIT_SQL = [
     "userId" TEXT NOT NULL,
     "browserEnabled" BOOLEAN NOT NULL DEFAULT false,
     "soundEnabled" BOOLEAN NOT NULL DEFAULT true,
-    "updatedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "NotificationPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");`,
@@ -183,9 +187,20 @@ const INIT_SQL = [
   `CREATE UNIQUE INDEX IF NOT EXISTS "NotificationPreference_userId_key" ON "NotificationPreference"("userId");`,
 ];
 
-function setupDatabaseUrl(): void {
-  let url = process.env.DATABASE_URL;
+function createPrismaClient(): PrismaClient {
+  const tursoUrl = process.env.TURSO_DATABASE_URL || (process.env.DATABASE_URL?.startsWith("libsql://") ? process.env.DATABASE_URL : undefined);
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN;
 
+  if (tursoUrl) {
+    const adapter = new PrismaLibSql({
+      url: tursoUrl,
+      authToken: tursoAuthToken,
+    });
+    return new PrismaClient({ adapter, log: ["error"] });
+  }
+
+  // Fallback: lokalny plik SQLite
+  let url = process.env.DATABASE_URL;
   const isServerless =
     Boolean(process.env.NETLIFY) ||
     Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
@@ -203,23 +218,21 @@ function setupDatabaseUrl(): void {
         mkdirSync(targetDir, { recursive: true });
         accessSync(targetDir, constants.W_OK);
       } catch {
-        // Fallback do /tmp jeśli bieżący katalog jest tylko do odczytu (np. Netlify AWS Lambda)
         url = "file:/tmp/prod.db";
       }
     }
   }
 
   process.env.DATABASE_URL = url;
+  return new PrismaClient({ log: ["error"] });
 }
-
-setupDatabaseUrl();
 
 const globalForPrisma = globalThis as unknown as {
   prismaRaw?: PrismaClient;
   isInitialized?: boolean;
 };
 
-const rawPrisma = globalForPrisma.prismaRaw ?? new PrismaClient();
+const rawPrisma = globalForPrisma.prismaRaw ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaRaw = rawPrisma;
@@ -238,20 +251,36 @@ export async function ensureTablesExist(): Promise<void> {
           // ignore already existing or unsupported statement
         }
       }
+      // Migracje przyrostowe dla istniejących baz
       try {
-        await rawPrisma.$executeRawUnsafe(
-          `ALTER TABLE "Session" ADD COLUMN "sessionToken" TEXT`
-        );
+        const sessionCols = await rawPrisma.$queryRawUnsafe<{ name: string }[]>(`PRAGMA table_info("Session")`);
+        const sessionColNames = new Set(sessionCols.map((c) => c.name));
+        if (!sessionColNames.has("sessionToken")) {
+          await rawPrisma.$executeRawUnsafe(`ALTER TABLE "Session" ADD COLUMN "sessionToken" TEXT`);
+        }
       } catch {
-        // column already exists
+        // ignore
       }
+
       try {
-        await rawPrisma.$executeRawUnsafe(
-          `ALTER TABLE "Invoice" ADD COLUMN "sellerCompanyId" TEXT`
-        );
+        const invoiceCols = await rawPrisma.$queryRawUnsafe<{ name: string }[]>(`PRAGMA table_info("Invoice")`);
+        const invoiceColNames = new Set(invoiceCols.map((c) => c.name));
+        if (!invoiceColNames.has("sellerCompanyId")) {
+          await rawPrisma.$executeRawUnsafe(`ALTER TABLE "Invoice" ADD COLUMN "sellerCompanyId" TEXT`);
+        }
+        if (!invoiceColNames.has("sentAt")) {
+          await rawPrisma.$executeRawUnsafe(`ALTER TABLE "Invoice" ADD COLUMN "sentAt" DATETIME`);
+        }
+        if (!invoiceColNames.has("sentToEmail")) {
+          await rawPrisma.$executeRawUnsafe(`ALTER TABLE "Invoice" ADD COLUMN "sentToEmail" TEXT`);
+        }
+        if (!invoiceColNames.has("emailStatus")) {
+          await rawPrisma.$executeRawUnsafe(`ALTER TABLE "Invoice" ADD COLUMN "emailStatus" TEXT`);
+        }
       } catch {
-        // column already exists
+        // ignore
       }
+
       globalForPrisma.isInitialized = true;
     })();
   }
