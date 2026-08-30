@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, UserPlus, User } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -15,7 +15,6 @@ const MIN_PASSWORD_LENGTH = 8;
 function RegisterForm() {
   const router = useRouter();
   const toast = useToast();
-  const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
@@ -26,10 +25,6 @@ function RegisterForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (name.trim().length < 2) {
-      setError("Podaj nazwę użytkownika (min. 2 znaki).");
-      return;
-    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
       setError("Podaj prawidłowy adres e-mail.");
       return;
@@ -48,7 +43,7 @@ function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = (await res.json()) as { error?: string; user?: { name: string } };
       if (!res.ok) {
@@ -83,21 +78,6 @@ function RegisterForm() {
         </div>
 
         <form onSubmit={submit} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Nazwa użytkownika</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="np. Jan Kowalski"
-                className="pl-9"
-                autoComplete="name"
-                required
-              />
-            </div>
-          </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="email">Adres e-mail</Label>
