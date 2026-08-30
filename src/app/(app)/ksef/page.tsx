@@ -42,12 +42,12 @@ const ENV_INFO: Record<KsefEnv, { label: string; desc: string; tone: "accent" | 
   },
   test: {
     label: "Test (MF)",
-    desc: "Środowisko testowe KSeF (ksef-test.mf.gov.pl) — wymaga konta MF i certyfikatu testowego.",
+    desc: "Środowisko testowe KSeF (ksef-test.mf.gov.pl) — wymaga tokena KSeF.",
     tone: "warning",
   },
   production: {
     label: "Produkcja",
-    desc: "Krajowy System e-Faktur (ksef.mf.gov.pl) — wymaga certyfikatu kwalifikowanego i tokena sesji.",
+    desc: "Krajowy System e-Faktur (ksef.mf.gov.pl) — wymaga tokena produkcyjnego MF.",
     tone: "danger",
   },
 };
@@ -180,13 +180,13 @@ function KsefPageInner() {
           });
         }
       }
-      if (r.ok) toast("success", "Wysłano do KSeF (demo)", data.ksefNumber);
+      if (r.ok) toast("success", "Wysłano do KSeF", data.ksefNumber);
       else toast("error", "KSeF: odrzucono", data.message);
     } catch {
       setSendResult({
         success: false,
-        demo: true,
-        message: "Błąd sieci podczas wysyłki do KSeF (demo).",
+        demo: false,
+        message: "Błąd sieci podczas wysyłki do KSeF.",
       });
       toast("error", "Błąd sieci", "Nie udało się wysłać dokumentu.");
     } finally {
@@ -214,7 +214,7 @@ function KsefPageInner() {
     <div>
       <PageHeader
         title="Ustawienia KSeF"
-        description="Krajowy System e-Faktur: środowisko, token i certyfikat, walidacja FA(2), wysyłka demo oraz statusy dokumentów."
+        description="Krajowy System e-Faktur: środowisko, token, walidacja FA(2) oraz wysyłka faktur."
         actions={
           <Badge tone={ENV_INFO[ksefSafe.environment].tone}>
             <FlaskConical className="h-3 w-3" /> środowisko: {ksefSafe.environment}
@@ -248,8 +248,8 @@ function KsefPageInner() {
               <CardHeader>
                 <CardTitle>Środowisko i poświadczenia</CardTitle>
                 <CardDescription>
-                  W trybie demo wysyłka jest symulowana. Test/produkcja wymagają prawdziwej
-                  integracji (backend) — patrz README.
+                  Wybierz środowisko KSeF i podaj token autoryzacyjny.
+                  W trybie Test/Produkcja wysyłka trafia bezpośrednio do API MF.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -342,13 +342,13 @@ function KsefPageInner() {
                   Zapisz ustawienia KSeF
                 </Button>
 
-                {envDraft !== "demo" && (
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
+                {envDraft === "production" && (
+                  <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-[12.5px] text-red-700 dark:text-red-400">
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>
-                      Wybrano środowisko <b>{envDraft}</b>. W tej wersji aplikacji wysyłka do KSeF{" "}
-                      <b>zawsze działa w trybie demo</b> — przełączenie środowiska nie wywołuje
-                      prawdziwej wysyłki (brak integracji backendowej).
+                      Wybrano środowisko <b>Produkcja</b>. Faktury będą wysyłane bezpośrednio do
+                      oficjalnego API KSeF Ministerstwa Finansów (<b>ksef.mf.gov.pl</b>).
+                      Upewnij się, że token jest poprawny i NIP sprzedawcy jest prawidłowy.
                     </span>
                   </div>
                 )}
@@ -414,43 +414,43 @@ function KsefPageInner() {
               </CardContent>
             </Card>
 
-            {/* Co jest mockiem */}
+            {/* Status integracji */}
             <Card className="xl:col-span-2 border-dashed">
               <CardHeader>
-                <CardTitle>Zakres integracji (demo)</CardTitle>
-                <CardDescription>Co działa w tej wersji, a co wymaga backendu</CardDescription>
+                <CardTitle>Status integracji KSeF</CardTitle>
+                <CardDescription>Backend podłączony do oficjalnego API Ministerstwa Finansów</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3.5">
                   <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" /> Działa lokalnie
+                    <CheckCircle2 className="h-4 w-4" /> Produkcyjny backend
                   </p>
                   <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li>Walidacja FA(2) (strukturalna, klient)</li>
-                    <li>Generowanie XML FA(2) i JSON</li>
-                    <li>Lookup NIP (adapter demo GUS)</li>
+                    <li>Wysyłka e-Faktur do KSeF (AES-256-CBC + RSA)</li>
+                    <li>Autoryzacja tokenem (Challenge → InitSession)</li>
+                    <li>Sprawdzanie statusu i pobieranie UPO</li>
+                    <li>Lookup NIP (Biała Lista MF + GUS)</li>
+                  </ul>
+                </div>
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3.5">
+                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" /> Walidacja i szyfrowanie
+                  </p>
+                  <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
+                    <li>Walidacja strukturalna FA(3)</li>
+                    <li>Generowanie XML FA(3)</li>
+                    <li>SHA-256 + AES-256-CBC + RSA-OAEP</li>
                     <li>QR do płatności (SPL)</li>
                   </ul>
                 </div>
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-amber-600 dark:text-amber-400">
-                    <FlaskConical className="h-4 w-4" /> Symulowane (mock)
+                <div className="rounded-lg border border-accent/30 bg-accent/5 p-3.5">
+                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-accent">
+                    <ShieldCheck className="h-4 w-4" /> Środowiska
                   </p>
                   <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li>Wysyłka do KSeF — generuje numer demo</li>
-                    <li>Statusy dokumentów (QUEUED/SENT/ACTIVE)</li>
-                    <li>Token i certyfikat — maska + nazwa pliku</li>
-                  </ul>
-                </div>
-                <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-red-600 dark:text-red-400">
-                    <ShieldAlert className="h-4 w-4" /> Wymaga backendu
-                  </p>
-                  <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li>API GUS BIR (SOAP + klucz)</li>
-                    <li>KSeF: sesja, token, podpis XML (p12)</li>
-                    <li>Weryfikacja XSD pełnego schematu MF</li>
-                    <li>Wykaz VAT (biała lista) MF</li>
+                    <li><b>Demo</b> — symulacja lokalna (bez API)</li>
+                    <li><b>Test</b> → ksef-test.mf.gov.pl</li>
+                    <li><b>Produkcja</b> → ksef.mf.gov.pl</li>
                   </ul>
                 </div>
               </CardContent>
@@ -472,7 +472,7 @@ function KsefPageInner() {
                 <CardTitle>Dokument FA(2)</CardTitle>
                 <CardDescription>
                   Wygeneruj XML z faktury, wklej własny lub użyj szablonu. Następnie zwaliduj i
-                  wyślij do KSeF (demo).
+                  wyślij do KSeF.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -513,7 +513,7 @@ function KsefPageInner() {
                   </Button>
                   <Button onClick={runSend} loading={sending} disabled={!xml.trim()}>
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    Wyślij do KSeF (demo)
+                    Wyślij do KSeF
                   </Button>
                 </div>
               </CardContent>
@@ -562,7 +562,7 @@ function KsefPageInner() {
                 <Card className={sendResult.success ? "border-accent/40" : "border-red-500/40"}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <FlaskConical className="h-4 w-4 text-accent" /> Odpowiedź API KSeF (demo)
+                      <ShieldCheck className="h-4 w-4 text-accent" /> Odpowiedź API KSeF
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2 text-[12.5px]">
@@ -604,8 +604,11 @@ function KsefPageInner() {
                     <Badge tone={ENV_INFO[ksefSafe.environment].tone}>{ksefSafe.environment}</Badge>
                   </div>
                   <p className="text-[11.5px] text-muted-foreground">
-                    Jeśli wybrano <b>test</b> lub <b>produkcja</b>, wysyłka zakończy się komunikatem o
-                    braku integracji — przełącz na <b>demo</b>, aby przetestować przepływ.
+                    {ksefSafe.environment === "demo" 
+                      ? "Tryb demo — wysyłka symulowana lokalnie."
+                      : ksefSafe.environment === "test"
+                        ? "Wysyłka trafia bezpośrednio do ksef-test.mf.gov.pl (środowisko testowe MF)."
+                        : "Wysyłka trafia bezpośrednio do ksef.mf.gov.pl (produkcja MF)."}
                   </p>
                 </CardContent>
               </Card>

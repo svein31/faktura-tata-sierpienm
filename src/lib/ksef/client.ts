@@ -146,13 +146,6 @@ export class KsefClient {
   public async getAuthorisationChallenge(nip: string): Promise<KsefChallengeResponse> {
     const cleanNip = nip.replace(/[^0-9]/g, "").trim();
 
-    if (this.environment === "demo") {
-      const now = new Date();
-      return {
-        challenge: `DEMO-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${Math.random().toString(36).slice(2, 12)}`,
-        timestamp: now.toISOString(),
-      };
-    }
 
     try {
       // API v2 endpoint dla wyzwania autoryzacji
@@ -199,19 +192,6 @@ export class KsefClient {
     const cleanNip = nip.replace(/[^0-9]/g, "").trim();
     const pubKey = publicKeyPem || getKsefPublicKey(this.environment);
 
-    if (this.environment === "demo") {
-      const now = new Date();
-      const validUntil = new Date(now.getTime() + 2 * 3600 * 1000).toISOString();
-      const ref = `DEMO-SESSION-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`;
-      const jwtDemo = `demo.jwt.token.${Buffer.from(JSON.stringify({ nip: cleanNip, exp: Math.floor(Date.now() / 1000) + 7200 })).toString("base64")}`;
-
-      return {
-        referenceNumber: ref,
-        authenticationToken: `auth-${ref}`,
-        accessToken: jwtDemo,
-        validUntil,
-      };
-    }
 
     // 1. Pobieramy Challenge
     const challengeRes = await this.getAuthorisationChallenge(cleanNip);
@@ -288,20 +268,6 @@ export class KsefClient {
     const pubKey = publicKeyPem || getKsefPublicKey(this.environment);
     const encPackage: EncryptedInvoicePackage = encryptInvoicePayload(xmlContent, pubKey);
 
-    if (this.environment === "demo") {
-      const now = new Date();
-      const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-      const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-      const elRef = `${ymd}-EE-${rand}-01`;
-      const ref = `DEMO-SEND-${Date.now()}`;
-
-      return {
-        referenceNumber: ref,
-        elementReferenceNumber: elRef,
-        timestamp: now.toISOString(),
-        status: "PENDING",
-      };
-    }
 
     const sendPayload = {
       invoiceHash: {
@@ -363,21 +329,6 @@ export class KsefClient {
     sessionToken: string,
     elementReferenceNumber: string
   ): Promise<KsefInvoiceStatusResult> {
-    if (this.environment === "demo") {
-      const now = new Date();
-      const ksefRef = `5260301706-${now.toISOString().slice(0, 10).replace(/-/g, "")}-DEMO123456-A1`;
-      const upoDemoXml = generateDemoUpoXml(elementReferenceNumber, ksefRef);
-
-      return {
-        processingCode: 200,
-        processingDescription: KSEF_PROCESSING_STATUS[200],
-        ksefReferenceNumber: ksefRef,
-        acquisitionTimestamp: now.toISOString(),
-        upoXml: upoDemoXml,
-        status: "ACCEPTED",
-        raw: { code: 200, demo: true },
-      };
-    }
 
     let statusRes: any;
     try {
@@ -436,16 +387,6 @@ export class KsefClient {
     sessionToken: string,
     ksefReferenceNumber: string
   ): Promise<string> {
-    if (this.environment === "demo") {
-      return `<?xml version="1.0" encoding="UTF-8"?>
-<Faktura xmlns="http://crd.gov.pl/wzor/2025/06/25/13775/">
-  <!-- Demo faktura pobrana z KSeF: ${ksefReferenceNumber} -->
-  <Naglowek>
-    <KodFormularza kodSystemowy="FA (3)" wersjaSchemy="1-0E">FA</KodFormularza>
-    <WariantFormularza>3</WariantFormularza>
-  </Naglowek>
-</Faktura>`;
-    }
 
     const xml = await this.request<string>(`/online/Invoice/Get/${encodeURIComponent(ksefReferenceNumber)}`, {
       method: "GET",

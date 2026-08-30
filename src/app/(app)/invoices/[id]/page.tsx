@@ -97,12 +97,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             environment: ksefEnv,
           });
         }
-        toast("success", "Wysłano do KSeF (demo)", `${invoice.number} → ${data.ksefNumber}`);
+        toast("success", "Wysłano do KSeF", `${invoice.number} → ${data.ksefNumber}`);
       } else {
-        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd API demo.");
+        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
       }
     } catch {
-      toast("error", "Błąd sieci", "Nie udało się wysłać do KSeF (demo).");
+      toast("error", "Błąd sieci", "Nie udało się wysłać do KSeF.");
     } finally {
       setSending(false);
     }

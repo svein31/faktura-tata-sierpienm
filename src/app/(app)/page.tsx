@@ -229,8 +229,10 @@ export default function DashboardPage() {
                 </p>
                 <p className="text-[12px] text-muted-foreground">
                   {ksefSafe.environment === "demo"
-                    ? "Tryb demo — wysyłka symulowana, bez certyfikatu i tokena."
-                    : `Skonfigurowano: ${ksefSafe.environment}${ksefSafe.certName ? ` · certyfikat: ${ksefSafe.certName}` : ""}`}
+                    ? "Tryb demo — symulacja lokalna."
+                    : ksefSafe.environment === "test"
+                      ? "Połączono z API MF Test (ksef-test.mf.gov.pl)"
+                      : "Połączono z API MF Produkcja (ksef.mf.gov.pl)"}
                 </p>
               </div>
             </div>
@@ -486,8 +488,10 @@ export default function DashboardPage() {
               </p>
               <p className="text-[12px] text-muted-foreground">
                 {ksefSafe.environment === "demo"
-                  ? "Tryb demo — wysyłka symulowana, bez certyfikatu i tokena."
-                  : `Skonfigurowano: ${ksefSafe.environment}${ksefSafe.certName ? ` · certyfikat: ${ksefSafe.certName}` : ""}`}
+                  ? "Tryb demo — symulacja lokalna."
+                  : ksefSafe.environment === "test"
+                    ? "Połączono z API MF Test (ksef-test.mf.gov.pl)"
+                    : "Połączono z API MF Produkcja (ksef.mf.gov.pl)"}
               </p>
             </div>
           </div>

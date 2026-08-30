@@ -124,9 +124,9 @@ export default function InvoicesPage() {
           environment: state.ksef?.environment ?? "demo",
         });
       }
-      toast("success", "Wysłano do KSeF (demo)", `${inv.number} → ${data.ksefNumber}`);
+      toast("success", "Wysłano do KSeF", `${inv.number} → ${data.ksefNumber}`);
     } else {
-      toast("error", "KSeF: odrzucono", data.message ?? "Błąd API.");
+      toast("error", "KSeF: odrzucono", data.message ?? "Błąd API KSeF.");
     }
     setConfirmKsef(null);
   };

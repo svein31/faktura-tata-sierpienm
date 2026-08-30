@@ -354,11 +354,11 @@ export function InvoiceCreator() {
             environment: ksefEnv,
           });
         }
-        toast("success", "Wysłano do KSeF (demo)", `${saved.number} → numer KSeF: ${data.ksefNumber}`);
+        toast("success", "Wysłano do KSeF", `${saved.number} → numer: ${data.ksefNumber}`);
         store.setDraft(null, true);
         router.push("/invoices");
       } else {
-        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd API demo.");
+        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
         setSaving(null);
       }
     } catch (e) {
