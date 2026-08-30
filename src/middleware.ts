@@ -1,57 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-/**
- * Middleware (edge) — szybka brama dostępu.
- *
- * - Obecność cookie sesji = warunek wstępny; pełna weryfikacja (hash w bazie,
- *   expiry) odbywa się po stronie serwera: API routes (requireUser) oraz
- *   layout (app)/layout.tsx (getSessionUser + redirect).
- * - Publiczne: /login, /register, /api/auth/*, /api/health.
- * - Zalogowany użytkownik wchodzący na /login lub /register → redirect na /.
- */
+export const SESSION_COOKIE = "fakturo_session";
+export const ALT_SESSION_COOKIE = "auth_session";
 
-const SESSION_COOKIE = "fakturo_session";
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-function isPublic(pathname: string): boolean {
-  if (pathname === "/login" || pathname === "/register") return true;
-  if (pathname === "/api/health" || pathname.startsWith("/api/health")) return true;
-  if (pathname.startsWith("/api/auth/")) return true;
-  return false;
-}
-
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const hasSession = req.cookies.has(SESSION_COOKIE);
-
-  if (isPublic(pathname)) {
-    if (hasSession && (pathname === "/login" || pathname === "/register")) {
-      const url = new URL("/", req.url);
-      url.searchParams.set("already", "1");
-      return NextResponse.redirect(url);
-    }
+  // 1. Zezwól na dostęp do plików statycznych, zasobów Next.js, ikon i endpointów API
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.includes(".") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/icon.svg" ||
+    pathname === "/sw.js"
+  ) {
     return NextResponse.next();
   }
 
-  if (!hasSession) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Nieautoryzowany.", code: "UNAUTHENTICATED" },
-        { status: 401, headers: { "Cache-Control": "no-store" } }
-      );
+  // 2. Pobierz token sesji z ciasteczka (obsługa obu nazw ciasteczek)
+  const token =
+    request.cookies.get(SESSION_COOKIE)?.value ||
+    request.cookies.get(ALT_SESSION_COOKIE)?.value;
+
+  // 3. Definicja ścieżek publicznych autoryzacji
+  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  // 4. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
+  if (!token && !isAuthPage) {
+    const loginUrl = new URL("/login", request.url);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("next", pathname);
     }
-    const url = new URL("/login", req.url);
-    if (pathname !== "/") url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(loginUrl);
   }
 
+  // 5. Jeśli użytkownik jest na /login lub /register, pozwól na wyświetlenie strony
+  // (NIGDY nie wykonuj ślepego przekierowania z /login na /, aby wyeliminować pętle ERR_TOO_MANY_REDIRECTS
+  // w przypadku nieaktywnego lub wygasłego tokenu w bazie danych)
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Wszystko poza assetami statycznymi i obrazami.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

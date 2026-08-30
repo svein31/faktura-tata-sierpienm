@@ -14,6 +14,7 @@ import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prism
 import { prisma } from "./db";
 
 export const SESSION_COOKIE = "fakturo_session";
+export const ALT_SESSION_COOKIE = "auth_session";
 
 /** Domyślny czas trwania sesji: 10 lat (trwała sesja do ręcznego wylogowania) */
 export const SESSION_MAX_AGE_SECONDS = 315360000; // 10 lat w sekundach (10 * 365 * 24 * 3600)
@@ -210,7 +211,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
   if (!token) {
     try {
       const store = cookies();
-      token = store.get(SESSION_COOKIE)?.value;
+      token = store.get(SESSION_COOKIE)?.value || store.get(ALT_SESSION_COOKIE)?.value;
     } catch {
       token = undefined;
     }

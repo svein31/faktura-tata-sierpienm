@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession, SESSION_COOKIE } from "@/lib/auth";
+import { getSession, SESSION_COOKIE, ALT_SESSION_COOKIE } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,13 +20,16 @@ export async function POST() {
     { headers: { "Cache-Control": "no-store" } }
   );
 
-  res.cookies.set(SESSION_COOKIE, "", {
+  const cookieClearOpts = {
     path: "/",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     maxAge: 0,
-  });
+  };
+
+  res.cookies.set(SESSION_COOKIE, "", cookieClearOpts);
+  res.cookies.set(ALT_SESSION_COOKIE, "", cookieClearOpts);
 
   return res;
 }
