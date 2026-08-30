@@ -11,6 +11,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
+import { PageGuide } from "@/components/ui/page-guide";
 import { formatMoney, vatRateLabel, VAT_RATES } from "@/lib/format";
 import type { Product, VatRate } from "@/lib/types";
 
@@ -108,6 +109,28 @@ export default function ProductsPage() {
             <Plus className="h-4 w-4" /> Dodaj pozycję
           </Button>
         }
+      />
+
+      <PageGuide
+        title="Katalog Produktów i Usług"
+        description="Zdefiniuj swój cennik towarów i usług, aby błyskawicznie wypełniać pozycje na wystawianych fakturach."
+        variant="default"
+        badge="Wskazówki"
+        storageKey="products_guide"
+        steps={[
+          {
+            title: "1. Dodaj Produkt / Usługę",
+            description: "Wpisz nazwę, cenę netto, domyślną stawkę VAT oraz jednostkę miary (np. szt., godz., usł.).",
+          },
+          {
+            title: "2. Automatyczne Podpowiedzi",
+            description: "W kreatorze faktury wystarczy zacząć wpisywać nazwę lub wybrać z listy, a cena i stawka VAT uzupełnią się same.",
+          },
+          {
+            title: "3. Spójność z KSeF",
+            description: "Wszystkie kwoty są automatycznie zaokrąglane do groszy zgodnie z wymogami schematu FA(3).",
+          },
+        ]}
       />
 
       <div className="relative mb-4 max-w-md">

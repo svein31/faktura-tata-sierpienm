@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Package,
   ShieldCheck,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const NAV = [
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
+  { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
   { href: "/analytics", label: "Analityka", icon: BarChart3 },
   { href: "/ksef", label: "Ustawienia KSeF", icon: ShieldCheck },
 ];
@@ -92,20 +94,16 @@ export function SidebarContent({
         })}
 
         <div className="pt-4">
-          <div className="mx-3 mb-2 flex items-center gap-1.5">
-            <FlaskConical className="h-3.5 w-3.5 text-accent" />
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Tryb demo
-            </span>
-          </div>
-          <div className="mx-3 rounded-lg border border-dashed border-border bg-muted/40 p-3">
-            <p className="text-[12px] leading-snug text-muted-foreground">
-              Integracje GUS i KSeF działają w trybie demo. Zobacz README, aby
-              podpiąć prawdziwe API.
+          <div className="mx-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.05] to-accent/[0.05] p-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <span className="text-[12px] font-semibold text-foreground">
+                GUS & KSeF Aktywne
+              </span>
+            </div>
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+              Automatyczne pobieranie danych z Bazy REGON i wysyłka do KSeF API 2.0.
             </p>
-            <Badge tone="accent" className="mt-2">
-              <FlaskConical className="h-3 w-3" /> demo
-            </Badge>
           </div>
         </div>
       </nav>

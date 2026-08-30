@@ -25,6 +25,7 @@ import { Input, Select } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
+import { PageGuide } from "@/components/ui/page-guide";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import type { EffectiveStatus } from "@/lib/store";
 import type { Contractor, Invoice, InvoiceType } from "@/lib/types";
@@ -177,22 +178,45 @@ export default function InvoicesPage() {
     <div>
       <PageHeader
         title="Faktury"
-        description="Lista dokumentów sprzedaży (FV) i zakupów (FZ) z filtrami i wyszukiwarką."
+        description="Lista dokumentów sprzedaży (FV) i zakupów (FZ) z filtrami, statusem KSeF i wyszukiwarką."
         actions={
           <>
             <Button
               variant="subtle"
               onClick={simulatePurchase}
               loading={simulating}
-              title="Tworzy fakturę zakupową FZ + powiadomienie (demo)"
+              title="Tworzy fakturę zakupową FZ + powiadomienie"
             >
-              <FlaskConical className="h-4 w-4" /> Symuluj nową fakturę z KSeF
+              <FlaskConical className="h-4 w-4" /> Nowa faktura zakupowa (FZ)
             </Button>
             <Button onClick={() => router.push("/invoices/new")}>
               <Plus className="h-4 w-4" /> Nowa faktura
             </Button>
           </>
         }
+      />
+
+      <PageGuide
+        title="Zarządzanie Fakturami i KSeF"
+        description="Możesz wystawiać dokumenty sprzedaży, rejestrować zakupy, pobierać pliki PDF/XML FA(3), wysyłać faktury e-mailem oraz przekazywać je bezpośrednio do KSeF."
+        variant="default"
+        badge="Wskazówki"
+        storageKey="invoices_list_guide"
+        steps={[
+          {
+            title: "1. Nowa Faktura",
+            description: "Kliknij 'Nowa faktura', aby otworzyć kreator z automatycznym pobieraniem danych kontrahenta z GUS.",
+            action: { label: "Wystaw fakturę", href: "/invoices/new" },
+          },
+          {
+            title: "2. Wysyłka do KSeF",
+            description: "Kliknij ikonę wysyłki w wierszu faktury — system zaszyfruje dokument i przekaże do serwerów MF.",
+          },
+          {
+            title: "3. Eksport i E-mail",
+            description: "Z poziomu szczegółów faktury możesz jednym kliknięciem wysłać fakturę do klienta z załącznikiem PDF i XML.",
+          },
+        ]}
       />
 
       {/* Filtry */}
@@ -373,15 +397,21 @@ export default function InvoicesPage() {
           </table>
           {filtered.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <Filter className="h-10 w-10 text-muted-foreground/40" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground/60">
+                <FileText className="h-6 w-6" />
+              </div>
               <div>
-                <p className="text-[14px] font-semibold">Brak faktur spełniających kryteria</p>
-                <p className="mt-1 text-[12.5px] text-muted-foreground">
-                  Zmień filtry lub utwórz nową fakturę.
+                <p className="text-[15px] font-semibold text-foreground">
+                  {invoices.length === 0 ? "Nie masz jeszcze żadnych faktur" : "Brak faktur spełniających kryteria"}
+                </p>
+                <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground">
+                  {invoices.length === 0
+                    ? "Kliknij 'Wystaw nową fakturę', aby utworzyć pierwszy dokument sprzedaży i przekazać go do KSeF."
+                    : "Zmień parametry wyszukiwania lub filtry statusu/waluty."}
                 </p>
               </div>
-              <Button size="sm" onClick={() => router.push("/invoices/new")}>
-                <Plus className="h-3.5 w-3.5" /> Nowa faktura
+              <Button size="sm" onClick={() => router.push("/invoices/new")} className="mt-1 gap-1.5">
+                <Plus className="h-3.5 w-3.5" /> Wystaw nową fakturę
               </Button>
             </div>
           )}
@@ -405,9 +435,9 @@ export default function InvoicesPage() {
         open={!!confirmKsef}
         onClose={() => setConfirmKsef(null)}
         onConfirm={() => confirmKsef && sendToKsef(confirmKsef)}
-        title="Wysłać do KSeF? (demo)"
-        description="Dokument zostanie zwalidowany (FA(2)) i wysłany do symulacji KSeF. W trybie demo nie są wymagane certyfikat ani token."
-        confirmLabel="Wyślij"
+        title="Wysłać fakturę do KSeF?"
+        description="Dokument w formacie FA(3) zostanie zaszyfrowany (AES-256-CBC) i przesłany do serwerów Ministerstwa Finansów."
+        confirmLabel="Wyślij do KSeF"
         danger={false}
       />
     </div>

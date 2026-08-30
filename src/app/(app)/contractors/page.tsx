@@ -11,6 +11,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
+import { PageGuide } from "@/components/ui/page-guide";
 import { formatNip, isValidNipFormat, normalizeNip } from "@/lib/validation";
 import type { Address, Contractor } from "@/lib/types";
 import { NipLookup } from "@/components/invoice/nip-lookup";
@@ -126,12 +127,34 @@ export default function ContractorsPage() {
     <div>
       <PageHeader
         title="Kontrahenci"
-        description="Baza kontrahentów z walidacją NIP (suma kontrolna) i lookupem GUS (tryb demo)."
+        description="Baza kontrahentów z automatycznym pobieraniem danych z Bazy REGON (GUS) oraz Białej Listy MF."
         actions={
           <Button onClick={openNew}>
             <Plus className="h-4 w-4" /> Dodaj kontrahenta
           </Button>
         }
+      />
+
+      <PageGuide
+        title="Baza Kontrahentów i Pobieranie z GUS"
+        description="Dodawaj klientów i dostawców w kilka sekund. Wystarczy wpisać NIP kontrahenta — system sam pobierze nazwę, adres, status podatnika VAT oraz rachunki bankowe."
+        variant="info"
+        badge="Wskazówki"
+        storageKey="contractors_guide"
+        steps={[
+          {
+            title: "1. Szybkie dodawanie NIP",
+            description: "Kliknij 'Dodaj kontrahenta', wpisz 10-cyfrowy NIP i wybierz 'Pobierz z GUS'.",
+          },
+          {
+            title: "2. Weryfikacja Statusu VAT",
+            description: "System automatycznie oznacza podmioty jako 'Czynny podatnik VAT' na podstawie Białej Listy MF.",
+          },
+          {
+            title: "3. Użycie na Fakturach",
+            description: "Zapisani kontrahenci są natychmiast dostępni w liście rozwijanej kreatora nowej faktury.",
+          },
+        ]}
       />
 
       <div className="relative mb-4 max-w-md">

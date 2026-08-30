@@ -20,6 +20,7 @@ import {
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OnboardingBanner, PageGuide } from "@/components/ui/page-guide";
 import { formatDate, formatMoney, invoiceTotals, monthKey, monthLabel } from "@/lib/format";
 import { RevenueAreaChart, StatusPieChart, TopContractorsBar, CHART_COLORS } from "@/components/charts";
 import { todayISO } from "@/lib/utils";
@@ -206,15 +207,52 @@ function Onboarding() {
 }
 
 export default function DashboardPage() {
-  const { invoices, contractors, company, ksef } = useAppStore();
+  const { invoices, contractors, company, companies, ksef } = useAppStore();
   const today = todayISO();
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefSafe = ksef ?? { environment: "demo" as const, tokenSet: false, tokenMask: "", certName: "", autoValidate: true };
 
+  const hasCompany = Boolean(
+    companies.length > 0 ||
+    (companySafe.companyName || companySafe.name)?.trim().length
+  );
+  const hasKsef = Boolean(ksefSafe.tokenSet || ksefSafe.environment === "production" || ksefSafe.environment === "test");
+  const hasInvoices = invoices.length > 0;
+
   if (invoices.length === 0) {
     return (
       <div className="space-y-6">
-        <Onboarding />
+        <OnboardingBanner
+          hasCompany={hasCompany}
+          hasKsef={hasKsef}
+          hasInvoices={hasInvoices}
+        />
+
+        <PageGuide
+          title="Przewodnik szybkiego startu"
+          description="Aplikacja umożliwia natychmiastowe fakturowanie, automatyczne pobieranie danych kontrahentów z GUS (BIR 1.1) oraz bezpieczną wysyłkę e-Faktur do Krajowego Systemu e-Faktur (KSeF API 2.0)."
+          variant="info"
+          badge="Centrum Pomocy"
+          storageKey="dashboard_help"
+          steps={[
+            {
+              title: "1. Profil Firmy",
+              description: "W zakładce 'Moje Firmy / NIP' podaj swój NIP — adres i nazwa zostaną pobrane z rejestru państwowego.",
+              action: { label: "Skonfiguruj firmę", href: "/settings/companies" },
+            },
+            {
+              title: "2. Integracja z KSeF",
+              description: "Wklej swój Token KSeF w zakładce 'Ustawienia KSeF', aby dokumenty były natychmiast szyfrowane i wysyłane.",
+              action: { label: "Ustawienia KSeF", href: "/ksef" },
+            },
+            {
+              title: "3. Wystawianie Faktur",
+              description: "Kreator faktury automatycznie liczy stawki VAT, generuje kody QR do szybkich płatności bankowych oraz pliki FA(3).",
+              action: { label: "Wystaw fakturę", href: "/invoices/new" },
+            },
+          ]}
+        />
+
         {/* Środowisko KSeF */}
         <Card className="border-dashed">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
@@ -320,6 +358,38 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Baner konfiguracji konta i przewodnik */}
+      <OnboardingBanner
+        hasCompany={hasCompany}
+        hasKsef={hasKsef}
+        hasInvoices={hasInvoices}
+      />
+
+      <PageGuide
+        title="Centrum Operacyjne Fakturo"
+        description="Twój pulpit nawigacyjny prezentuje bieżące przychody, stan rozliczeń z kontrahentami oraz statusy e-Faktur w KSeF."
+        variant="default"
+        badge="Wskazówki"
+        storageKey="dashboard_main_guide"
+        steps={[
+          {
+            title: "Wystawianie i KSeF",
+            description: "Kliknij 'Nowa faktura', aby wygenerować dokument FA(3) i wysłać go bezpośrednio do KSeF.",
+            action: { label: "Nowa faktura", href: "/invoices/new" },
+          },
+          {
+            title: "Zarządzanie Spółkami / NIP",
+            description: "Możesz prowadzić rozliczenia dla wielu firm lub jednoosobowych działalności z jednego konta.",
+            action: { label: "Moje Firmy", href: "/settings/companies" },
+          },
+          {
+            title: "Ustawienia i Bezpieczeństwo",
+            description: "Zmień hasło, preferencje walutowe i zarządzaj sesjami w Ustawieniach Konta.",
+            action: { label: "Ustawienia Konta", href: "/settings/account" },
+          },
+        ]}
+      />
+
       {/* Karty */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard

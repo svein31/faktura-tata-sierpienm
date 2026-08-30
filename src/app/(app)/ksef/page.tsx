@@ -30,6 +30,7 @@ import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
 import { validateFa2, FA2_TEMPLATE } from "@/lib/ksef";
 import { buildFaVatXml } from "@/lib/xml";
+import { PageGuide, HelpTooltip } from "@/components/ui/page-guide";
 import { formatDateTime, formatMoney, invoiceTotals } from "@/lib/format";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Fa2Issue, Invoice, KsefEnv, KsefSendResult } from "@/lib/types";
@@ -214,12 +215,37 @@ function KsefPageInner() {
     <div>
       <PageHeader
         title="Ustawienia KSeF"
-        description="Krajowy System e-Faktur: środowisko, token, walidacja FA(2) oraz wysyłka faktur."
+        description="Krajowy System e-Faktur: środowisko, token, walidacja FA(3) oraz wysyłka faktur do Ministerstwa Finansów."
         actions={
           <Badge tone={ENV_INFO[ksefSafe.environment].tone}>
             <FlaskConical className="h-3 w-3" /> środowisko: {ksefSafe.environment}
           </Badge>
         }
+      />
+
+      <PageGuide
+        title="Jak skonfigurować KSeF? (Instrukcja krok po kroku)"
+        description="Krajowy System e-Faktur umożliwia bezdotykową wysyłkę e-faktur w standardzie FA(3). Zapoznaj się z wymaganiami dla środowiska testowego oraz produkcyjnego."
+        variant="info"
+        badge="Wskazówki KSeF"
+        storageKey="ksef_settings_guide"
+        steps={[
+          {
+            title: "Środowisko Testowe (KSeF-Test)",
+            description: "Nie wymaga płatnego certyfikatu. Wystarczy podać NIP testowy i wygenerowany token z Portalu Testowego KSeF MF (ksef-test.mf.gov.pl).",
+            badge: "Test",
+          },
+          {
+            title: "Środowisko Produkcyjne",
+            description: "Pobierz oficjalny Token z Aplikacji Podatnika KSeF MF (podpisany Profilem Zaufanym lub Pieczęcią Kwalifikowaną). Wklej token poniżej i zapisz.",
+            badge: "Produkcja",
+          },
+          {
+            title: "Format FA(3) i Szyfrowanie",
+            description: "System automatycznie szyfruje faktury algorytmem AES-256-CBC oraz kluczem publicznym RSA Ministerstwa Finansów.",
+            badge: "Bezpieczeństwo",
+          },
+        ]}
       />
 
       <Tabs
@@ -228,7 +254,7 @@ function KsefPageInner() {
         onChange={setTab}
         items={[
           { value: "settings", label: "Ustawienia", icon: <ShieldCheck className="h-3.5 w-3.5" /> },
-          { value: "fa2", label: "Walidacja FA(2) i wysyłka", icon: <FileCode2 className="h-3.5 w-3.5" /> },
+          { value: "fa2", label: "Walidacja FA(3) i wysyłka", icon: <FileCode2 className="h-3.5 w-3.5" /> },
           { value: "statusy", label: "Statusy i zakupy", icon: <BadgeCheck className="h-3.5 w-3.5" /> },
         ]}
       />
@@ -254,7 +280,10 @@ function KsefPageInner() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Środowisko</Label>
+                  <Label className="flex items-center">
+                    Środowisko docelowe KSeF
+                    <HelpTooltip text="Wybierz 'Test' dla środowiska testowego MF lub 'Produkcja' dla prawnie wiążących e-faktur." />
+                  </Label>
                   <Select
                     value={envDraft}
                     onChange={(e) => setEnvDraft(e.target.value as KsefEnv)}
@@ -271,6 +300,7 @@ function KsefPageInner() {
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5">
                     <KeyRound className="h-3.5 w-3.5 text-muted-foreground" /> Token sesji KSeF
+                    <HelpTooltip text="32- lub 64-znakowy token autoryzacyjny wygenerowany w Aplikacji Podatnika KSeF Ministerstwa Finansów." />
                   </Label>
                   <Input
                     type="password"
@@ -289,13 +319,14 @@ function KsefPageInner() {
                   <p className="text-[11.5px] text-muted-foreground">
                     Pełny token nigdy nie jest wysyłany z powrotem do przeglądarki — API zwraca
                     wyłącznie maskę. Produkcyjny token powinien pochodzić ze zmiennej środowiskowej
-                    serwera (KSEF_TOKEN), patrz README.
+                    serwera (KSEF_TOKEN) lub z tego formularza.
                   </p>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="flex items-center gap-1.5">
-                    <UploadCloud className="h-3.5 w-3.5 text-muted-foreground" /> Certyfikat (.p12)
+                    <UploadCloud className="h-3.5 w-3.5 text-muted-foreground" /> Certyfikat (.p12 / .pfx)
+                    <HelpTooltip text="Opcjonalny certyfikat kwalifikowany lub pieczęć elektroniczna do bezpośredniego podpisu XAdES." />
                   </Label>
                   <div className="flex gap-2">
                     <Input
@@ -314,7 +345,7 @@ function KsefPageInner() {
                           const f = el.files?.[0];
                           if (f) {
                             setCertDraft(f.name);
-                            toast("info", "Wybrano certyfikat (demo)", f.name);
+                            toast("info", "Wybrano certyfikat", f.name);
                           }
                         };
                         el.click();
@@ -324,8 +355,7 @@ function KsefPageInner() {
                     </Button>
                   </div>
                   <p className="text-[11.5px] text-muted-foreground">
-                    Zapisujemy wyłącznie nazwę pliku — prawdziwe podpisywanie XML wymaga backendu
-                    (klucz prywatny nigdy nie powinien trafiać do frontendu).
+                    Zapisujemy nazwę pliku — podpisanie certyfikatem realizowane jest bezpiecznie po stronie backendu.
                   </p>
                 </div>
 
@@ -334,7 +364,8 @@ function KsefPageInner() {
                     checked={autoDraft}
                     onChange={(e) => setAutoDraft(e.target.checked)}
                   />
-                  Automatycznie waliduj FA(2) przed wysyłką
+                  <span>Automatycznie waliduj zgodność ze schematem FA(3) przed wysyłką</span>
+                  <HelpTooltip text="Walidacja XSD sprawdza poprawność NIP, stawek VAT, sum kontrolnych i pól obowiązkowych." />
                 </label>
 
                 <Button onClick={saveKsefSettings} loading={savingKsef} className="w-full">

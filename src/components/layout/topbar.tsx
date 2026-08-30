@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Menu, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -71,22 +72,24 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">
-        <Badge tone="accent" className="hidden sm:inline-flex">
-          <FlaskConical className="h-3 w-3" />
-          Tryb demo
-        </Badge>
         <NotificationBell />
         <ThemeToggle />
 
-        {/* Profil użytkownika + wylogowanie */}
-        <div className="ml-1 flex items-center gap-2 rounded-full border border-border/70 py-1 pl-1 pr-1.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10.5px] font-bold text-white">
-            {initials || "?"}
-          </div>
-          <div className="hidden leading-tight md:block">
-            <p className="max-w-[140px] truncate text-[12px] font-semibold">{user.name}</p>
-            <p className="max-w-[140px] truncate text-[10.5px] text-muted-foreground">{user.email}</p>
-          </div>
+        {/* Profil użytkownika + przejście do Ustawień Konta + wylogowanie */}
+        <div className="ml-1 flex items-center gap-1 rounded-full border border-border/70 py-1 pl-1 pr-1.5 bg-card/60 shadow-2xs">
+          <Link
+            href="/settings/account"
+            title="Przejdź do Ustawień Konta"
+            className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-2 transition-colors hover:bg-muted/70"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10.5px] font-bold text-white shadow-xs">
+              {initials || "?"}
+            </div>
+            <div className="hidden leading-tight md:block text-left">
+              <p className="max-w-[130px] truncate text-[12px] font-semibold">{user.name}</p>
+              <p className="max-w-[130px] truncate text-[10.5px] text-muted-foreground">{user.email}</p>
+            </div>
+          </Link>
           <button
             onClick={logout}
             title="Wyloguj się"

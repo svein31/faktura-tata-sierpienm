@@ -43,6 +43,7 @@ import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
 import { SendInvoiceEmailCard } from "./send-invoice-email-card";
+import { PageGuide, HelpTooltip } from "@/components/ui/page-guide";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
 interface NewContractorDraft {
@@ -371,6 +372,28 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
+        <PageGuide
+          title="Jak poprawnie wystawić fakturę? (Wskazówki)"
+          description="Kreator faktury automatycznie formatuje dane do urzędowego schematu FA(3), generuje kod QR do płatności bankowych (SPL) i umożliwia bezpośrednią wysyłkę do KSeF."
+          variant="default"
+          badge="Kreator e-Faktur"
+          storageKey="invoice_creator_guide"
+          steps={[
+            {
+              title: "1. Sprzedawca",
+              description: "Wybierz firmę z listy (skonfigurowaną w 'Moje Firmy / NIP').",
+            },
+            {
+              title: "2. Nabywca",
+              description: "Wpisz NIP klienta i kliknij 'GUS', aby automatycznie pobrać dane kontrahenta z Bazy REGON.",
+            },
+            {
+              title: "3. Płatność i KSeF",
+              description: "Po kliknięciu 'Wystaw i Wyślij' faktura zostanie zaszyfrowana (AES-256-CBC) i przekazana do serwerów Ministerstwa Finansów.",
+            },
+          ]}
+        />
+
         {companies.length === 0 && !effectiveSellerCompany?.companyName && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -383,7 +406,7 @@ export function InvoiceCreator() {
               >
                 Dodaj firmę teraz
               </button>
-              , aby Twoje dane pojawiły się na fakturze i w pliku XML FA(2)/FA(3).
+              , aby Twoje dane pojawiły się na fakturze i w pliku XML FA(3).
             </span>
           </div>
         )}
@@ -394,6 +417,7 @@ export function InvoiceCreator() {
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
                 <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca)
+                <HelpTooltip text="Wybierz firmę z listy (skonfigurowaną w 'Moje Firmy')." />
               </CardTitle>
               <CardDescription>
                 Wybierz profil spółki / NIP, z którego wystawiasz ten dokument
@@ -504,7 +528,10 @@ export function InvoiceCreator() {
         {/* Kontrahent */}
         <Card>
           <CardHeader>
-            <CardTitle>Kontrahent</CardTitle>
+            <CardTitle className="flex items-center">
+              Kontrahent ({form.type === "sale" ? "Nabywca" : "Sprzedawca"})
+              <HelpTooltip text="Wpisz NIP klienta i kliknij 'GUS', aby automatycznie pobrać dane kontrahenta z Bazy REGON / Białej Listy MF." />
+            </CardTitle>
             <CardDescription>
               {form.type === "sale" ? "Nabywca" : "Sprzedawca"} — wybierz z bazy lub dodaj nowego
             </CardDescription>
@@ -796,8 +823,8 @@ export function InvoiceCreator() {
           <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
             <CheckCircle2 className="h-4 w-4" /> Zapisz fakturę {invoiceNumber}
           </Button>
-          <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1">
-            <Send className="h-4 w-4" /> Wyślij do KSeF (demo)
+          <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
+            <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
           </Button>
         </div>
 
