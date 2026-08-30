@@ -162,6 +162,9 @@ export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile |
     notes: i.notes ?? undefined,
     lines: (Array.isArray(i.lines) ? i.lines : []) as unknown as Invoice["lines"],
     ksef: ksefInfoFrom(i.ksef),
+    sentAt: i.sentAt ? i.sentAt.toISOString() : null,
+    sentToEmail: i.sentToEmail ?? null,
+    emailStatus: i.emailStatus ?? null,
     createdAt: i.createdAt.toISOString(),
   };
 }

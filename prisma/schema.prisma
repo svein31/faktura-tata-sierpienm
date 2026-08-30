@@ -194,6 +194,9 @@ model Invoice {
   upoXml          String?
   ksefSessionId   String?
   ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id], onDelete: SetNull)
+  sentAt          DateTime?
+  sentToEmail     String?
+  emailStatus     String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 

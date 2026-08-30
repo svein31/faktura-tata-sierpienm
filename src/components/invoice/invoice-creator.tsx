@@ -15,6 +15,7 @@ import {
   Send,
   ShieldCheck,
   UserPlus,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -41,6 +42,7 @@ import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
+import { SendInvoiceEmailCard } from "./send-invoice-email-card";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
 interface NewContractorDraft {
@@ -797,6 +799,16 @@ export function InvoiceCreator() {
           <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1">
             <Send className="h-4 w-4" /> Wyślij do KSeF (demo)
           </Button>
+        </div>
+
+        {/* Wysyłka faktury e-mailem */}
+        <div className="no-print mt-4">
+          <SendInvoiceEmailCard
+            invoice={previewInvoice}
+            contractor={effectiveContractor}
+            company={effectiveSellerCompany}
+            defaultExpanded={false}
+          />
         </div>
 
         {errors.length > 0 && (

@@ -99,6 +99,9 @@ export interface Invoice {
   notes?: string;
   lines: InvoiceLine[];
   ksef?: KsefInfo;
+  sentAt?: string | null;
+  sentToEmail?: string | null;
+  emailStatus?: string | null;
   createdAt: string;
 }
 
