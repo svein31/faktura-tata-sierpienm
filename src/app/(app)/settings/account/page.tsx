@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
-import { PageGuide, HelpTooltip } from "@/components/ui/page-guide";
+import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 
 export default function AccountSettingsPage() {
   const toast = useToast();
@@ -252,35 +252,13 @@ export default function AccountSettingsPage() {
     <div className="max-w-5xl space-y-6">
       <PageHeader
         title="Ustawienia Konta"
-        description="Zarządzaj bezpieczeństwem, danymi logowania, preferencjami fakturowania oraz aktywnymi sesjami."
+        description="Bezpieczeństwo konta, dane logowania, preferencje fakturowania oraz aktywne sesje."
         actions={
           <Badge tone="accent" className="gap-1.5 py-1">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Konto aktywne ({sessionUser.email})
+            {sessionUser.email}
           </Badge>
         }
-      />
-
-      <PageGuide
-        title="Instrukcja bezpieczeństwa konta"
-        description="W tym panelu możesz zmienić hasło, zaktualizować adres e-mail, ustawić domyślne parametry dla nowych faktur oraz zarządzać aktywnymi sesjami na urządzeniach."
-        variant="info"
-        badge="Pomoc"
-        storageKey="account_settings"
-        steps={[
-          {
-            title: "Hasło i Bezpieczeństwo",
-            description: "Używaj unikalnego hasła o długości min. 8 znaków ze znakami specjalnymi i cyframi.",
-          },
-          {
-            title: "Preferencje Fakturowania",
-            description: "Domyślna waluta, stawka VAT i termin płatności przyspieszą wystawianie nowych dokumentów.",
-          },
-          {
-            title: "Zarządzanie Sesjami",
-            description: "W razie potrzeby możesz jednym kliknięciem wylogować wszystkie pozostałe komputery i telefony.",
-          },
-        ]}
       />
 
       <Tabs

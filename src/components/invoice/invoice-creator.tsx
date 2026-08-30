@@ -43,7 +43,7 @@ import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
 import { SendInvoiceEmailCard } from "./send-invoice-email-card";
-import { PageGuide, HelpTooltip } from "@/components/ui/page-guide";
+import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
 interface NewContractorDraft {
@@ -372,28 +372,6 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
-        <PageGuide
-          title="Jak poprawnie wystawić fakturę? (Wskazówki)"
-          description="Kreator faktury automatycznie formatuje dane do urzędowego schematu FA(3), generuje kod QR do płatności bankowych (SPL) i umożliwia bezpośrednią wysyłkę do KSeF."
-          variant="default"
-          badge="Kreator e-Faktur"
-          storageKey="invoice_creator_guide"
-          steps={[
-            {
-              title: "1. Sprzedawca",
-              description: "Wybierz firmę z listy (skonfigurowaną w 'Moje Firmy / NIP').",
-            },
-            {
-              title: "2. Nabywca",
-              description: "Wpisz NIP klienta i kliknij 'GUS', aby automatycznie pobrać dane kontrahenta z Bazy REGON.",
-            },
-            {
-              title: "3. Płatność i KSeF",
-              description: "Po kliknięciu 'Wystaw i Wyślij' faktura zostanie zaszyfrowana (AES-256-CBC) i przekazana do serwerów Ministerstwa Finansów.",
-            },
-          ]}
-        />
-
         {companies.length === 0 && !effectiveSellerCompany?.companyName && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { CompanyModal } from "@/components/company/company-modal";
-import { PageGuide } from "@/components/ui/page-guide";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatNip } from "@/lib/validation";
@@ -85,8 +85,8 @@ export default function CompaniesSettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Moje Firmy / Spółki (Multi-Company)"
-        description="Zarządzaj swoimi profilami firmowymi i numerami NIP. Wybieraj spółkę wystawiającą na fakturze oraz konfiguruj dedykowane tokeny KSeF i konta bankowe."
+        title="Moje Firmy / NIP"
+        description="Profile wystawców, rachunki bankowe i integracja KSeF dla podmiotów gospodarczych."
         actions={
           <Button
             onClick={() => {
@@ -95,31 +95,9 @@ export default function CompaniesSettingsPage() {
             }}
             className="font-medium"
           >
-            <Plus className="h-4 w-4" /> Dodaj nową firmę / NIP
+            <Plus className="h-4 w-4" /> Dodaj firmę
           </Button>
         }
-      />
-
-      <PageGuide
-        title="Co musisz zrobić? (Instrukcja)"
-        description="Wpisz sam NIP i kliknij 'Pobierz dane z GUS'. System sam uzupełni oficjalny adres, kod pocztowy i pełną nazwę z Bazy REGON / Białej Listy MF. Zapisz profil, aby móc wybrać tę firmę jako sprzedawcę na fakturze."
-        variant="info"
-        badge="Wskazówka"
-        storageKey="companies_guide"
-        steps={[
-          {
-            title: "1. Wpisz NIP",
-            description: "Wprowadź 10-cyfrowy NIP firmy (jednoosobowej działalności lub spółki z o.o.).",
-          },
-          {
-            title: "2. Pobierz z GUS",
-            description: "Kliknij przycisk 'Pobierz dane z GUS' — formularz uzupełni się automatycznie danymi z rejestru państwowego.",
-          },
-          {
-            title: "3. Ustaw jako Domyślną",
-            description: "Oznacz firmę gwiazdką, aby była automatycznie wybierana jako sprzedawca na nowych fakturach.",
-          },
-        ]}
       />
 
       {/* Karty podsumowania */}

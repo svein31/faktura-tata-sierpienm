@@ -21,7 +21,7 @@ import dynamic from "next/dynamic";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { OnboardingBanner, PageGuide } from "@/components/ui/page-guide";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatMoney, invoiceTotals, monthKey, monthLabel } from "@/lib/format";
 import { CHART_COLORS } from "@/components/charts";
@@ -60,6 +60,7 @@ function StatCard({
   icon,
   tone,
   delay,
+  tooltip,
 }: {
   label: string;
   value: string;
@@ -67,6 +68,7 @@ function StatCard({
   icon: React.ReactNode;
   tone: "indigo" | "emerald" | "red" | "sky" | "amber";
   delay: number;
+  tooltip?: string;
 }) {
   const tones = {
     indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
@@ -81,153 +83,23 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay * 0.06, duration: 0.35 }}
     >
-      <Card>
+      <Card className="border-border/50 bg-card/60 backdrop-blur-md rounded-2xl shadow-xs">
         <CardContent className="p-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
-              <p className="mt-1.5 text-[22px] font-bold tracking-tight tabular-nums">{value}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
+                {tooltip && <InfoTooltip text={tooltip} />}
+              </div>
+              <p className="mt-1.5 text-[22px] font-bold tracking-tight tabular-nums text-foreground">{value}</p>
               {sub && <p className="mt-1 text-[11.5px] text-muted-foreground">{sub}</p>}
             </div>
-            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tones[tone]}`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${tones[tone]}`}>
               {icon}
             </div>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
-  );
-}
-
-/** Elegancki onboarding dla nowego użytkownika (pusty dashboard). */
-function Onboarding() {
-  const { company, companies, ksef, contractors, products } = useAppStore();
-
-  const activeComp = companies.find((c) => c.isDefault) ?? companies[0] ?? company;
-  const companyDone = Boolean(
-    (activeComp && (activeComp.companyName || activeComp.name)?.trim().length) ||
-    companies.length > 0
-  );
-  const ksefDone = !!ksef && ksef.environment !== "demo";
-  const steps = [
-    {
-      done: companyDone,
-      icon: <Building2 className="h-4 w-4" />,
-      title: "Uzupełnij profil firmy / spółki",
-      desc: "Nazwa, NIP z bazy GUS, adres i numer konta bankowego dla wystawianych faktur.",
-      cta: { href: "/settings/companies", label: "Zarządzaj firmami" },
-    },
-    {
-      done: ksefDone,
-      icon: <ShieldCheck className="h-4 w-4" />,
-      title: "Skonfiguruj KSeF",
-      desc: "Wybierz środowisko (demo/test/produkcja). W tej wersji wysyłka działa w trybie demo.",
-      cta: { href: "/ksef", label: "Ustawienia KSeF" },
-    },
-    {
-      done: false,
-      icon: <Receipt className="h-4 w-4" />,
-      title: "Wystaw pierwszą fakturę",
-      desc: `Dodaj kontrahenta (lub utwórz go w kreatorze) i zapisz fakturę ${
-        contractors.length === 0 ? "— możesz też dodać go od razu w kreatorze" : ""
-      }.`,
-      cta: { href: "/invoices/new", label: "Nowa faktura" },
-    },
-  ];
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-      <Card className="overflow-hidden border-primary/20">
-        <div className="bg-gradient-to-br from-indigo-500/10 via-transparent to-emerald-500/10 p-6 sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold tracking-tight">Witaj w Fakturo! 👋</h2>
-              <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
-                Twoje konto jest gotowe i w pełni izolowane — na start nie zawiera żadnych danych.
-                Wykonaj trzy kroki, aby przygotować je do wystawiania faktur i wysyłki do KSeF.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-3 md:grid-cols-3">
-            {steps.map((s, i) => (
-              <div
-                key={i}
-                className={`rounded-xl border p-4 ${
-                  s.done ? "border-emerald-500/30 bg-emerald-500/5" : "border-border bg-card/60"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                      s.done ? "bg-emerald-500/15 text-emerald-500" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s.done ? <CheckCircle2 className="h-4 w-4" /> : s.icon}
-                  </span>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Krok {i + 1}
-                  </span>
-                </div>
-                <p className="mt-3 text-[13.5px] font-semibold">{s.title}</p>
-                <p className="mt-1 text-[12px] leading-snug text-muted-foreground">{s.desc}</p>
-                <Link
-                  href={s.cta.href}
-                  className={`mt-3 inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[12px] font-medium transition-colors ${
-                    s.done
-                      ? "text-muted-foreground"
-                      : "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-                  }`}
-                >
-                  {s.done ? "Ukończono" : s.cta.label}
-                  {!s.done && <ArrowRight className="h-3.5 w-3.5" />}
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-border/70 bg-background/50 px-4 py-3 text-[12px] text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Circle className="h-2.5 w-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
-              Kontrahenci: <b className="text-foreground">{contractors.length}</b>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Circle className="h-2.5 w-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
-              Produkty/usługi: <b className="text-foreground">{products.length}</b>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Circle className="h-2.5 w-2.5 fill-muted-foreground/40 text-muted-foreground/40" />
-              Faktury: <b className="text-foreground">0</b> — wszystko, co dodasz, zapisywane jest
-              bezpiecznie na Twoim koncie.
-            </span>
-          </div>
-        </div>
-      </Card>
-
-      {/* Quick actions */}
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Link
-          href="/invoices/new"
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> Nowa faktura
-        </Link>
-        <Link
-          href="/contractors"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
-        >
-          <Building2 className="h-4 w-4" /> Dodaj kontrahenta
-        </Link>
-        <Link
-          href="/ksef"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
-        >
-          <ShieldCheck className="h-4 w-4" /> Ustawienia KSeF
-        </Link>
-      </div>
     </motion.div>
   );
 }
@@ -248,65 +120,49 @@ export default function DashboardPage() {
   if (invoices.length === 0) {
     return (
       <div className="space-y-6">
-        <OnboardingBanner
-          hasCompany={hasCompany}
-          hasKsef={hasKsef}
-          hasInvoices={hasInvoices}
-        />
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Pulpit</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Podsumowanie finansowe i status e-Faktur</p>
+          </div>
+          <Link
+            href="/invoices/new"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
+          >
+            <Plus className="h-4 w-4" /> Wystaw fakturę
+          </Link>
+        </div>
 
-        <PageGuide
-          title="Przewodnik szybkiego startu"
-          description="Aplikacja umożliwia natychmiastowe fakturowanie, automatyczne pobieranie danych kontrahentów z GUS (BIR 1.1) oraz bezpieczną wysyłkę e-Faktur do Krajowego Systemu e-Faktur (KSeF API 2.0)."
-          variant="info"
-          badge="Centrum Pomocy"
-          storageKey="dashboard_help"
-          steps={[
-            {
-              title: "1. Profil Firmy",
-              description: "W zakładce 'Moje Firmy / NIP' podaj swój NIP — adres i nazwa zostaną pobrane z rejestru państwowego.",
-              action: { label: "Skonfiguruj firmę", href: "/settings/companies" },
-            },
-            {
-              title: "2. Integracja z KSeF",
-              description: "Wklej swój Token KSeF w zakładce 'Ustawienia KSeF', aby dokumenty były natychmiast szyfrowane i wysyłane.",
-              action: { label: "Ustawienia KSeF", href: "/ksef" },
-            },
-            {
-              title: "3. Wystawianie Faktur",
-              description: "Kreator faktury automatycznie liczy stawki VAT, generuje kody QR do szybkich płatności bankowych oraz pliki FA(3).",
-              action: { label: "Wystaw fakturę", href: "/invoices/new" },
-            },
-          ]}
-        />
+        {/* Minimalist Apple Empty State */}
+        <Card className="border-border/50 bg-card/60 backdrop-blur-md p-8 sm:p-12 text-center rounded-2xl shadow-xs">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Receipt className="h-7 w-7" />
+          </div>
+          <h2 className="mt-4 text-lg font-semibold text-foreground">Witaj w Fakturo</h2>
+          <p className="mx-auto mt-1.5 max-w-md text-[13px] text-muted-foreground leading-relaxed">
+            Wystawiaj dokumenty w formacie FA(3), pobieraj dane z GUS w 1 kliknięcie i wysyłaj faktury bezpośrednio do KSeF.
+          </p>
 
-        {/* Środowisko KSeF */}
-        <Card className="border-dashed">
-          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[14px] font-semibold">
-                  Środowisko KSeF:{" "}
-                  <span className="uppercase text-accent">{ksefSafe.environment}</span>
-                </p>
-                <p className="text-[12px] text-muted-foreground">
-                  {ksefSafe.environment === "demo"
-                    ? "Tryb demo — symulacja lokalna."
-                    : ksefSafe.environment === "test"
-                      ? "Połączono z API MF Test (ksef-test.mf.gov.pl)"
-                      : "Połączono z API MF Produkcja (ksef.mf.gov.pl)"}
-                </p>
-              </div>
-            </div>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/invoices/new"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
+            >
+              <Plus className="h-4 w-4" /> Wystaw pierwszą fakturę
+            </Link>
+            <Link
+              href="/settings/companies"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-xs font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
+            >
+              <Building2 className="h-4 w-4 text-muted-foreground" /> Skonfiguruj firmę
+            </Link>
             <Link
               href="/ksef"
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-xs font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
             >
-              Ustawienia KSeF <ArrowRight className="h-3.5 w-3.5" />
+              <ShieldCheck className="h-4 w-4 text-emerald-500" /> KSeF
             </Link>
-          </CardContent>
+          </div>
         </Card>
       </div>
     );
@@ -384,60 +240,47 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Baner konfiguracji konta i przewodnik */}
-      <OnboardingBanner
-        hasCompany={hasCompany}
-        hasKsef={hasKsef}
-        hasInvoices={hasInvoices}
-      />
+      {/* Czysty nagłówek Dashboardu */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Pulpit</h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">Podsumowanie finansowe i status e-Faktur</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/invoices/new"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
+          >
+            <Plus className="h-4 w-4" /> Wystaw fakturę
+          </Link>
+        </div>
+      </div>
 
-      <PageGuide
-        title="Centrum Operacyjne Fakturo"
-        description="Twój pulpit nawigacyjny prezentuje bieżące przychody, stan rozliczeń z kontrahentami oraz statusy e-Faktur w KSeF."
-        variant="default"
-        badge="Wskazówki"
-        storageKey="dashboard_main_guide"
-        steps={[
-          {
-            title: "Wystawianie i KSeF",
-            description: "Kliknij 'Nowa faktura', aby wygenerować dokument FA(3) i wysłać go bezpośrednio do KSeF.",
-            action: { label: "Nowa faktura", href: "/invoices/new" },
-          },
-          {
-            title: "Zarządzanie Spółkami / NIP",
-            description: "Możesz prowadzić rozliczenia dla wielu firm lub jednoosobowych działalności z jednego konta.",
-            action: { label: "Moje Firmy", href: "/settings/companies" },
-          },
-          {
-            title: "Ustawienia i Bezpieczeństwo",
-            description: "Zmień hasło, preferencje walutowe i zarządzaj sesjami w Ustawieniach Konta.",
-            action: { label: "Ustawienia Konta", href: "/settings/account" },
-          },
-        ]}
-      />
-
-      {/* Karty */}
+      {/* Karty metryk */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           delay={0}
           tone="indigo"
-          label="Przychód (brutto) — ten miesiąc"
+          label="Przychód (brutto)"
+          tooltip="Łączna wartość brutto wystawionych faktur w bieżącym miesiącu."
           value={formatMoney(monthRevenue, "PLN")}
-          sub={`${salesIssued.filter((i) => monthKey(i.issueDate) === currentMonth).length} faktur`}
+          sub={`${salesIssued.filter((i) => monthKey(i.issueDate) === currentMonth).length} faktur w tym miesiącu`}
           icon={<TrendingUp className="h-4 w-4" />}
         />
         <StatCard
           delay={1}
           tone="emerald"
           label="Do zapłaty"
+          tooltip="Suma kwot z wystawionych faktur oczekujących na płatność."
           value={formatMoney(pendingTotal, "PLN")}
-          sub="faktury wystawione, nieopłacone"
+          sub="faktury nieopłacone"
           icon={<Wallet className="h-4 w-4" />}
         />
         <StatCard
           delay={2}
           tone="red"
           label="Przeterminowane"
+          tooltip="Faktury z przekroczonym terminem płatności."
           value={formatMoney(overdueTotal, "PLN")}
           sub="płatności po terminie"
           icon={<Banknote className="h-4 w-4" />}
@@ -445,9 +288,10 @@ export default function DashboardPage() {
         <StatCard
           delay={3}
           tone="sky"
-          label="VAT należny (brutto)"
+          label="VAT należny"
+          tooltip="Zarejestrowana kwota podatku VAT ze wszystkich wystawionych faktur."
           value={formatMoney(vatDue, "PLN")}
-          sub={`${ksefActive} dokumentów aktywnych w KSeF`}
+          sub={`${ksefActive} faktur w KSeF`}
           icon={<ShieldCheck className="h-4 w-4" />}
         />
       </div>

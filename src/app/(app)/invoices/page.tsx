@@ -25,7 +25,7 @@ import { Input, Select } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
-import { PageGuide } from "@/components/ui/page-guide";
+import { InfoTooltip } from "@/components/ui/tooltip";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import type { EffectiveStatus } from "@/lib/store";
 import type { Contractor, Invoice, InvoiceType } from "@/lib/types";
@@ -178,7 +178,7 @@ export default function InvoicesPage() {
     <div>
       <PageHeader
         title="Faktury"
-        description="Lista dokumentów sprzedaży (FV) i zakupów (FZ) z filtrami, statusem KSeF i wyszukiwarką."
+        description="Lista dokumentów sprzedaży (FV) i zakupów (FZ) z filtrami i statusem KSeF."
         actions={
           <>
             <Button
@@ -187,36 +187,13 @@ export default function InvoicesPage() {
               loading={simulating}
               title="Tworzy fakturę zakupową FZ + powiadomienie"
             >
-              <FlaskConical className="h-4 w-4" /> Nowa faktura zakupowa (FZ)
+              <FlaskConical className="h-4 w-4" /> Faktura zakupowa (FZ)
             </Button>
             <Button onClick={() => router.push("/invoices/new")}>
               <Plus className="h-4 w-4" /> Nowa faktura
             </Button>
           </>
         }
-      />
-
-      <PageGuide
-        title="Zarządzanie Fakturami i KSeF"
-        description="Możesz wystawiać dokumenty sprzedaży, rejestrować zakupy, pobierać pliki PDF/XML FA(3), wysyłać faktury e-mailem oraz przekazywać je bezpośrednio do KSeF."
-        variant="default"
-        badge="Wskazówki"
-        storageKey="invoices_list_guide"
-        steps={[
-          {
-            title: "1. Nowa Faktura",
-            description: "Kliknij 'Nowa faktura', aby otworzyć kreator z automatycznym pobieraniem danych kontrahenta z GUS.",
-            action: { label: "Wystaw fakturę", href: "/invoices/new" },
-          },
-          {
-            title: "2. Wysyłka do KSeF",
-            description: "Kliknij ikonę wysyłki w wierszu faktury — system zaszyfruje dokument i przekaże do serwerów MF.",
-          },
-          {
-            title: "3. Eksport i E-mail",
-            description: "Z poziomu szczegółów faktury możesz jednym kliknięciem wysłać fakturę do klienta z załącznikiem PDF i XML.",
-          },
-        ]}
       />
 
       {/* Filtry */}

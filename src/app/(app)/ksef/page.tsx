@@ -30,7 +30,7 @@ import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
 import { validateFa2, FA2_TEMPLATE } from "@/lib/ksef";
 import { buildFaVatXml } from "@/lib/xml";
-import { PageGuide, HelpTooltip } from "@/components/ui/page-guide";
+import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { formatDateTime, formatMoney, invoiceTotals } from "@/lib/format";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Fa2Issue, Invoice, KsefEnv, KsefSendResult } from "@/lib/types";
@@ -215,37 +215,12 @@ function KsefPageInner() {
     <div>
       <PageHeader
         title="Ustawienia KSeF"
-        description="Krajowy System e-Faktur: środowisko, token, walidacja FA(3) oraz wysyłka faktur do Ministerstwa Finansów."
+        description="Środowisko, token autoryzacyjny oraz wysyłka dokumentów FA(3)."
         actions={
           <Badge tone={ENV_INFO[ksefSafe.environment].tone}>
             <FlaskConical className="h-3 w-3" /> środowisko: {ksefSafe.environment}
           </Badge>
         }
-      />
-
-      <PageGuide
-        title="Jak skonfigurować KSeF? (Instrukcja krok po kroku)"
-        description="Krajowy System e-Faktur umożliwia bezdotykową wysyłkę e-faktur w standardzie FA(3). Zapoznaj się z wymaganiami dla środowiska testowego oraz produkcyjnego."
-        variant="info"
-        badge="Wskazówki KSeF"
-        storageKey="ksef_settings_guide"
-        steps={[
-          {
-            title: "Środowisko Testowe (KSeF-Test)",
-            description: "Nie wymaga płatnego certyfikatu. Wystarczy podać NIP testowy i wygenerowany token z Portalu Testowego KSeF MF (ksef-test.mf.gov.pl).",
-            badge: "Test",
-          },
-          {
-            title: "Środowisko Produkcyjne",
-            description: "Pobierz oficjalny Token z Aplikacji Podatnika KSeF MF (podpisany Profilem Zaufanym lub Pieczęcią Kwalifikowaną). Wklej token poniżej i zapisz.",
-            badge: "Produkcja",
-          },
-          {
-            title: "Format FA(3) i Szyfrowanie",
-            description: "System automatycznie szyfruje faktury algorytmem AES-256-CBC oraz kluczem publicznym RSA Ministerstwa Finansów.",
-            badge: "Bezpieczeństwo",
-          },
-        ]}
       />
 
       <Tabs
