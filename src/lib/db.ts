@@ -15,7 +15,7 @@ const INIT_SQL = [
   );`,
   `CREATE TABLE IF NOT EXISTS "Session" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "tokenHash" TEXT NOT NULL,
+    "sessionToken" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "userAgent" TEXT,
     "ipAddress" TEXT,
@@ -164,7 +164,7 @@ const INIT_SQL = [
     CONSTRAINT "NotificationPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");`,
-  `CREATE UNIQUE INDEX IF NOT EXISTS "Session_tokenHash_key" ON "Session"("tokenHash");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Session_sessionToken_key" ON "Session"("sessionToken");`,
   `CREATE INDEX IF NOT EXISTS "Session_userId_idx" ON "Session"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "CompanySettings_userId_key" ON "CompanySettings"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "CompanyProfile_userId_nip_key" ON "CompanyProfile"("userId", "nip");`,
@@ -237,6 +237,13 @@ export async function ensureTablesExist(): Promise<void> {
         } catch {
           // ignore already existing or unsupported statement
         }
+      }
+      try {
+        await rawPrisma.$executeRawUnsafe(
+          `ALTER TABLE "Session" ADD COLUMN "sessionToken" TEXT`
+        );
+      } catch {
+        // column already exists
       }
       try {
         await rawPrisma.$executeRawUnsafe(

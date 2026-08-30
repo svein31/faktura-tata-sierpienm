@@ -1,15 +1,16 @@
 /**
- * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs), losowe tokeny sesji (32 bajty),
+ * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs), losowe tokeny sesji,
  * trwała sesja (10 lat / 315360000 sekund), bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax.
+ * Każda weryfikacja odbywa się bezpośrednio przez zapytanie do bazy danych (Prisma).
  */
 
 import "server-only";
 
-import { createHash, randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import type { CompanySettings, KsefSettings, User } from "@prisma/client";
+import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prisma/client";
 import { prisma } from "./db";
 
 export const SESSION_COOKIE = "fakturo_session";
@@ -23,6 +24,7 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 export interface FullUserWithRelations extends User {
   company?: CompanySettings | null;
+  companyProfiles?: CompanyProfile[];
   ksef?: KsefSettings | null;
 }
 
@@ -56,12 +58,14 @@ export type PublicUser = {
 };
 
 export function toPublicUser(u: FullUserWithRelations): PublicUser {
+  const defaultProfile = u.companyProfiles?.find((p) => p.isDefault) || u.companyProfiles?.[0];
+
   return {
     id: u.id,
     email: u.email,
     name: u.name,
-    nip: u.nip || u.company?.nip || "",
-    companyName: u.companyName || u.company?.name || "",
+    nip: u.nip || defaultProfile?.nip || u.company?.nip || "",
+    companyName: u.companyName || defaultProfile?.companyName || u.company?.name || "",
     createdAt: u.createdAt.toISOString(),
     company: u.company
       ? {
@@ -118,10 +122,6 @@ export function validateCredentials(email: string, password: string): { ok: bool
 
 /* ── Tokeny i Sesje ─────────────────────────────────────────────────────── */
 
-export function sha256Hex(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
-}
-
 export function generateSessionToken(): string {
   return randomBytes(32).toString("base64url");
 }
@@ -131,17 +131,19 @@ export interface CreateSessionMetadata {
   ipAddress?: string | null;
 }
 
+/**
+ * Tworzy nową trwałą sesję bezpośrednio w bazie danych Prisma.
+ */
 export async function createSession(
   userId: string,
   metadata?: CreateSessionMetadata
 ): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
   const token = generateSessionToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  const tokenHash = sha256Hex(token);
 
   const session = await prisma.session.create({
     data: {
-      tokenHash,
+      sessionToken: token,
       userId,
       expiresAt,
       userAgent: metadata?.userAgent || null,
@@ -202,18 +204,27 @@ export type SessionUser = { user: FullUserWithRelations; sessionId: string } | n
  * Odczyt sesji z cookie + weryfikacja w bazie Prisma.
  * React cache() zapewnia wykonanie tylko jednego zapytania DB na cykl żądania.
  */
-export const getSession = cache(async (): Promise<SessionUser> => {
-  const store = cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
+export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
+  let token = explicitToken;
+
+  if (!token) {
+    try {
+      const store = cookies();
+      token = store.get(SESSION_COOKIE)?.value;
+    } catch {
+      token = undefined;
+    }
+  }
+
   if (!token) return null;
 
-  const tokenHash = sha256Hex(token);
   const session = await prisma.session.findUnique({
-    where: { tokenHash },
+    where: { sessionToken: token },
     include: {
       user: {
         include: {
           company: true,
+          companyProfiles: true,
           ksef: true,
         },
       },

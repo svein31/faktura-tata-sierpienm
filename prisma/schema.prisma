@@ -37,20 +37,20 @@ model User {
   preferences   NotificationPreference?
 }
 
-/// Losowy, nieprzezroczysty token sesji — w bazie przechowywany jest WYŁĄCZNIE
-/// hash SHA-256 tokena (nigdy sam token). Ważność ustawiana na daleką przyszłość (trwała sesja).
+/// Trwała sesja użytkownika powiązana bezpośrednio z rekordem w bazie danych
 model Session {
-  id        String   @id @default(cuid())
-  tokenHash String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userAgent String?
-  ipAddress String?
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([userId])
+  @@index([sessionToken])
 }
 
 model CompanySettings {

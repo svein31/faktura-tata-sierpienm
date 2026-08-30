@@ -45,9 +45,7 @@ console.log("2. TEST GENEROWANIA TRWAŁEJ SESJI (10 LAT / 315360000s)");
 console.log("=========================================================");
 
 const token = generateSessionToken();
-const tokenHash = sha256Hex(token);
 console.log(`✓ Wygenerowano token sesji (32 bajty): ${token.slice(0, 20)}...`);
-console.log(`✓ Hash SHA-256 do bazy: ${tokenHash.slice(0, 20)}...`);
 console.log(`✓ Czas trwania sesji: ${SESSION_MAX_AGE_SECONDS} sekund (${SESSION_MAX_AGE_SECONDS / (365 * 24 * 3600)} lat)`);
 
 console.log("\n=========================================================");
@@ -91,7 +89,7 @@ assert.equal(user.companyName, "Kowalski IT Sp. z o.o.");
 const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
 const session = await prisma.session.create({
   data: {
-    tokenHash,
+    sessionToken: token,
     userId: user.id,
     userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
     ipAddress: "127.0.0.1",
@@ -101,9 +99,9 @@ const session = await prisma.session.create({
 
 console.log(`✓ Utworzono sesję w bazie: ID=${session.id}, Ważna do=${session.expiresAt.toISOString()}`);
 
-// Weryfikujemy odczyt sesji po hashu
+// Weryfikujemy odczyt sesji po tokenie
 const foundSession = await prisma.session.findUnique({
-  where: { tokenHash },
+  where: { sessionToken: token },
   include: { user: { include: { company: true, ksef: true } } },
 });
 

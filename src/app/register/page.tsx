@@ -57,8 +57,7 @@ function RegisterForm() {
         return;
       }
       toast("success", `Konto utworzone — witaj, ${data.user?.name ?? ""}`.trim(), "Zacznij od uzupełnienia danych firmy.");
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     } catch {
       setError("Błąd sieci — spróbuj ponownie.");
       setBusy(false);

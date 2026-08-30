@@ -50,8 +50,8 @@ function LoginForm() {
         return;
       }
       toast("success", `Witaj, ${data.user?.name ?? ""}`.trim(), "Logowanie powiodło się.");
-      router.push("/");
-      router.refresh();
+      const nextUrl = searchParams.get("next") || "/";
+      window.location.href = nextUrl;
     } catch {
       setError("Błąd sieci — spróbuj ponownie.");
       setBusy(false);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import {
   createSession,
@@ -127,6 +128,13 @@ export async function POST(req: Request) {
 
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
+    const cookieOpts = sessionCookieOptions();
+
+    try {
+      cookies().set(SESSION_COOKIE, token, cookieOpts);
+    } catch {
+      // ignore
+    }
 
     const res = NextResponse.json(
       {
@@ -137,7 +145,7 @@ export async function POST(req: Request) {
       { status: 201, headers: { "Cache-Control": "no-store" } }
     );
 
-    res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+    res.cookies.set(SESSION_COOKIE, token, cookieOpts);
     return res;
   } catch (e) {
     return handleApiError(e);
