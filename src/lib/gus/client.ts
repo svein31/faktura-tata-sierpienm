@@ -13,14 +13,21 @@ export interface GusClientOptions {
 }
 
 export class GusApiError extends Error {
+  public statusCode: number;
+  public errorCode?: string;
+  public details?: unknown;
+
   constructor(
     message: string,
-    public statusCode: number = 500,
-    public errorCode?: string,
-    public details?: unknown
+    statusCode: number = 500,
+    errorCode?: string,
+    details?: unknown
   ) {
     super(message);
     this.name = "GusApiError";
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
+    this.details = details;
   }
 }
 

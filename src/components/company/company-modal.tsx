@@ -119,6 +119,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         flatNumber: d.flatNumber || prev.flatNumber,
         city: d.city || prev.city,
         postalCode: d.postalCode || prev.postalCode,
+        bankAccount: d.bankAccount || prev.bankAccount,
       }));
 
       toast(

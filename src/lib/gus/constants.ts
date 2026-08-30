@@ -3,9 +3,9 @@
  */
 
 export const GUS_URLS = {
-  test: "https://wyszukiwarkaregontest.stat.gov.pl/wsBIR/UslugiBIRzewn.svc",
-  prod: "https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugiBIRzewn.svc",
-  production: "https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugiBIRzewn.svc",
+  test: "https://wyszukiwarkaregontest.stat.gov.pl/wsBIR/UslugaBIRzewnPubl.svc",
+  prod: "https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugaBIRzewnPubl.svc",
+  production: "https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugaBIRzewnPubl.svc",
 } as const;
 
 export type GusEnvironment = "test" | "prod" | "production";
@@ -14,10 +14,10 @@ export type GusEnvironment = "test" | "prod" | "production";
 export const GUS_TEST_KEY = "abcde12345abcde12345";
 
 export const GUS_ACTIONS = {
-  login: "http://CIS/BIR/PUBL/2014/07/IUslugiBIRzewn/Zaloguj",
-  search: "http://CIS/BIR/PUBL/2014/07/IUslugiBIRzewn/DaneSzukajPodmioty",
-  logout: "http://CIS/BIR/PUBL/2014/07/IUslugiBIRzewn/Wyloguj",
-  getValue: "http://CIS/BIR/PUBL/2014/07/IUslugiBIRzewn/GetValue",
+  login: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/Zaloguj",
+  search: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/DaneSzukajPodmioty",
+  logout: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/Wyloguj",
+  getValue: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/GetValue",
 } as const;
 
 export const GUS_ERROR_CODES: Record<string, string> = {
