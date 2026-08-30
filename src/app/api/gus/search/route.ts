@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { json, handleApiError, ApiError } from "@/lib/api";
 import { isValidNipFormat, normalizeNip } from "@/lib/validation";
-import { GusClient, GusApiError } from "@/lib/gus/index";
+import { GusClient, GusApiError, extractNameFromCompanyName } from "@/lib/gus/index";
 import { lookupDemoNip } from "@/lib/nip-demo";
 
 export const dynamic = "force-dynamic";
@@ -82,11 +82,18 @@ async function lookupWhiteListMf(nip: string) {
     const bankAccount = Array.isArray(subject.accountNumbers) && subject.accountNumbers.length > 0
       ? subject.accountNumbers[0]
       : "";
+    const isCompany = Boolean(subject.krs) || /sp\.\s*z\s*o\.\s*o\.|spółka|s\.a\./i.test(subject.name);
+    const names = !isCompany ? extractNameFromCompanyName(subject.name) : {};
 
     return {
       nip: subject.nip || nip,
       name: subject.name,
+      companyName: subject.name,
       regon: subject.regon || "",
+      krs: subject.krs || "",
+      type: isCompany ? "COMPANY" : "PERSONAL",
+      firstName: names.firstName || "",
+      lastName: names.lastName || "",
       street: parsedAddr.street,
       buildingNumber: parsedAddr.buildingNumber,
       flatNumber: parsedAddr.flatNumber,
@@ -105,10 +112,10 @@ async function lookupWhiteListMf(nip: string) {
 /**
  * GET /api/gus/search?nip=XXXXXXXXXX
  *
- * Pobranie danych kontrahenta z rejestru GUS BIR 1.1 oraz Białej Listy MF.
+ * Pobranie pełnych danych podmiotu z rejestru GUS BIR 1.1 (dwuetapowe) oraz Białej Listy MF.
  * 1. Walidacja formatu i sumy kontrolnej NIP (algorytm modulo 11).
- * 2. Próba pobrania danych z GUS BIR 1.1 (SOAP 1.2).
- * 3. Fallback do Białej Listy VAT Ministerstwa Finansów (REST API).
+ * 2. Dwuetapowe pobranie danych z GUS BIR 1.1 (SOAP 1.2: DaneSzukajPodmioty + DanePobierzPelnyRaport).
+ * 3. Fallback do Białej Listy VAT Ministerstwa Finansów (REST API z numerami kont IBAN).
  * 4. Fallback do bazy demonstracyjnej.
  */
 export async function GET(req: NextRequest) {
@@ -138,7 +145,7 @@ export async function GET(req: NextRequest) {
     let source = "gus-bir";
 
     if (!isDemoExplicit) {
-      // ── 1. Próba wyszukania w GUS BIR 1.1 ──
+      // ── 1. Próba wyszukania w GUS BIR 1.1 (Dwuetapowe) ──
       try {
         companyData = await GusClient.searchByNipAuto(cleanNip);
         if (companyData) {
@@ -165,6 +172,7 @@ export async function GET(req: NextRequest) {
         companyData = {
           nip: demoRes.company.nip,
           name: demoRes.company.name,
+          companyName: demoRes.company.name,
           regon: demoRes.company.regon,
           street: demoRes.company.address.street,
           buildingNumber: "",
@@ -173,6 +181,7 @@ export async function GET(req: NextRequest) {
           postalCode: demoRes.company.address.postal,
           fullAddress: `${demoRes.company.address.street}, ${demoRes.company.address.postal} ${demoRes.company.address.city}`,
           bankAccount: "",
+          type: "COMPANY",
           isActive: true,
         };
         source = isDemoExplicit ? "demo" : "demo-fallback";
@@ -187,25 +196,35 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const compName = companyData.companyName || companyData.name || "";
+    const province = companyData.province || companyData.voivodeship || "";
+    const district = companyData.district || companyData.county || "";
+
     return json({
       success: true,
       source,
       data: {
         nip: companyData.nip,
-        name: companyData.name,
         regon: companyData.regon || "",
+        krs: companyData.krs || "",
+        type: companyData.type || "COMPANY",
+        firstName: companyData.firstName || "",
+        lastName: companyData.lastName || "",
+        secondName: companyData.secondName || "",
+        name: compName,
+        companyName: compName,
         street: companyData.street || "",
         buildingNumber: companyData.buildingNumber || "",
         flatNumber: companyData.flatNumber || "",
         city: companyData.city || "",
         postalCode: companyData.postalCode || "",
+        province: province,
+        district: district,
+        voivodeship: province,
+        county: district,
+        commune: companyData.commune || "",
         fullAddress: companyData.fullAddress || "",
         bankAccount: companyData.bankAccount || "",
-        voivodeship: companyData.voivodeship || "",
-        county: companyData.county || "",
-        commune: companyData.commune || "",
-        type: companyData.type || "",
-        silosId: companyData.silosId || "",
         isActive: companyData.isActive ?? true,
       },
     });

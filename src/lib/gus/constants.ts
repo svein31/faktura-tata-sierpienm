@@ -16,6 +16,7 @@ export const GUS_TEST_KEY = "abcde12345abcde12345";
 export const GUS_ACTIONS = {
   login: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/Zaloguj",
   search: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/DaneSzukajPodmioty",
+  fullReport: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/DanePobierzPelnyRaport",
   logout: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/Wyloguj",
   getValue: "http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/GetValue",
 } as const;
@@ -52,20 +53,72 @@ export interface GusRawEntity {
   ErrorMessagePl?: string;
 }
 
+export interface GusFullReportRaw {
+  [key: string]: string | undefined;
+  // Pola osoby fizycznej (CEIDG / Dane Ogólne)
+  fiz_imie1?: string;
+  fiz_imie2?: string;
+  fiz_nazwisko?: string;
+  fiz_nazwiskoGrupowe?: string;
+  fiz_nip?: string;
+  fiz_regon9?: string;
+  fiz_nazwa?: string;
+  fiz_nazwaSkrocona?: string;
+  fiz_adSiedzWojewodztwo_Nazwa?: string;
+  fiz_adSiedzPowiat_Nazwa?: string;
+  fiz_adSiedzGmina_Nazwa?: string;
+  fiz_adSiedzMiejscowosc_Nazwa?: string;
+  fiz_adSiedzKodPocztowy?: string;
+  fiz_adSiedzUlica_Nazwa?: string;
+  fiz_adSiedzNrNieruchomosci?: string;
+  fiz_adSiedzNrLokalu?: string;
+  fiz_adSiedzNietypoweMiejsceLokalizacji?: string;
+  fiz_dataRozpoczeciaDzialalnosci?: string;
+  fiz_dataZakonczeniaDzialalnosci?: string;
+
+  // Pola osoby prawnej (KRS / Inna)
+  praw_nip?: string;
+  praw_regon9?: string;
+  praw_regon14?: string;
+  praw_krs?: string;
+  praw_nazwa?: string;
+  praw_nazwaSkrocona?: string;
+  praw_adSiedzWojewodztwo_Nazwa?: string;
+  praw_adSiedzPowiat_Nazwa?: string;
+  praw_adSiedzGmina_Nazwa?: string;
+  praw_adSiedzMiejscowosc_Nazwa?: string;
+  praw_adSiedzKodPocztowy?: string;
+  praw_adSiedzUlica_Nazwa?: string;
+  praw_adSiedzNrNieruchomosci?: string;
+  praw_adSiedzNrLokalu?: string;
+  praw_formaPrawna_Nazwa?: string;
+  praw_dataRozpoczeciaDzialalnosci?: string;
+  praw_dataZakonczeniaDzialalnosci?: string;
+}
+
 export interface GusNormalizedCompany {
   nip: string;
   name: string;
+  companyName: string;
   regon: string;
+  krs?: string;
+  type: "PERSONAL" | "COMPANY";
+  firstName?: string;
+  lastName?: string;
+  secondName?: string;
   street: string;
   buildingNumber: string;
   flatNumber: string;
   city: string;
   postalCode: string;
   fullAddress: string;
+  province?: string;
+  district?: string;
   voivodeship?: string;
   county?: string;
   commune?: string;
-  type?: "F" | "P" | string;
   silosId?: string;
+  rawType?: string;
+  bankAccount?: string;
   isActive: boolean;
 }

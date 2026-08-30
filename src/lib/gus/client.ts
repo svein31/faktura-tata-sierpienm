@@ -1,9 +1,23 @@
 /**
- * Klient API GUS BIR 1.1 (SOAP 1.2) zoptymalizowany dla środowisk Serverless (Netlify Functions)
+ * Klient API GUS BIR 1.1 (SOAP 1.2) z dwuetapowym pobieraniem pełnego raportu
  */
 
-import { GUS_ACTIONS, GUS_ERROR_CODES, GUS_TEST_KEY, GUS_URLS, type GusEnvironment, type GusNormalizedCompany } from "./constants";
-import { extractTagContent, normalizeGusCompany, parseRawGusEntities, unescapeXml } from "./parser";
+import {
+  GUS_ACTIONS,
+  GUS_ERROR_CODES,
+  GUS_TEST_KEY,
+  GUS_URLS,
+  type GusEnvironment,
+  type GusNormalizedCompany,
+  type GusRawEntity,
+} from "./constants";
+import {
+  extractTagContent,
+  mergeGusFullData,
+  parseRawGusEntities,
+  parseRawGusFullReport,
+  unescapeXml,
+} from "./parser";
 
 export interface GusClientOptions {
   environment?: GusEnvironment;
@@ -98,7 +112,6 @@ export class GusClient {
         );
       }
 
-      // Sprawdź czy odpowiedź zawiera SOAP Fault
       if (responseText.includes("<soap:Fault") || responseText.includes("<Fault")) {
         const faultText = extractTagContent(responseText, "Text") || extractTagContent(responseText, "faultstring") || "Błąd SOAP serwisu GUS";
         throw new GusApiError(`GUS SOAP Fault: ${faultText}`, 500, "SOAP_FAULT");
@@ -165,7 +178,36 @@ export class GusClient {
   }
 
   /**
-   * KROK 2: Wyszukiwanie podmiotu po numerze NIP (metoda DaneSzukajPodmioty)
+   * KROK 2: Pobiera pełny raport szczegółowy (metoda DanePobierzPelnyRaport)
+   */
+  public async getFullReport(regon: string, reportName: string): Promise<Record<string, string>> {
+    const cleanRegon = regon.replace(/[^0-9]/g, "").trim();
+    if (!cleanRegon) return {};
+
+    if (!this.sessionId) {
+      await this.login();
+    }
+
+    const bodyContent = `<ns:DanePobierzPelnyRaport>
+      <ns:pRegon>${cleanRegon}</ns:pRegon>
+      <ns:pNazwaRaportu>${reportName}</ns:pNazwaRaportu>
+    </ns:DanePobierzPelnyRaport>`;
+
+    try {
+      const response = await this.postSoap(GUS_ACTIONS.fullReport, bodyContent, true);
+      const resultXml = extractTagContent(response, "DanePobierzPelnyRaportResult");
+      if (!resultXml || resultXml.trim().length === 0) {
+        return {};
+      }
+      return parseRawGusFullReport(resultXml);
+    } catch (e) {
+      console.warn(`[GUS BIR getFullReport warning for ${reportName}]:`, e);
+      return {};
+    }
+  }
+
+  /**
+   * KROK 3: Wyszukiwanie podmiotu po NIP + dwuetapowe pobranie pełnych danych
    */
   public async searchByNip(nip: string): Promise<GusNormalizedCompany | null> {
     const cleanNip = nip.replace(/[^0-9]/g, "").trim();
@@ -174,11 +216,11 @@ export class GusClient {
       throw new GusApiError("Numer NIP musi składać się z dokładnie 10 cyfr.", 400, "INVALID_NIP_FORMAT");
     }
 
-    // Upewniamy się, że mamy aktywną sesję
     if (!this.sessionId) {
       await this.login();
     }
 
+    // 1. Etap 1: Wyszukanie podstawowych danych w rejestrze
     const bodyContent = `<ns:DaneSzukajPodmioty>
       <ns:pParametryWyszukiwania>
         <dat:Nip>${cleanNip}</dat:Nip>
@@ -188,7 +230,7 @@ export class GusClient {
     let response = await this.postSoap(GUS_ACTIONS.search, bodyContent, true);
     let searchResultXml = extractTagContent(response, "DaneSzukajPodmiotyResult");
 
-    // Jeśli sesja wygasła (kod 7), podejmij próbę jednokrotnego ponownego logowania
+    // Jeśli sesja wygasła (kod 7 lub 5), podejmij próbę ponownego zalogowania
     if (!searchResultXml || searchResultXml.includes("<ErrorCode>7</ErrorCode>") || searchResultXml.includes("<ErrorCode>5</ErrorCode>")) {
       await this.login();
       response = await this.postSoap(GUS_ACTIONS.search, bodyContent, true);
@@ -200,12 +242,9 @@ export class GusClient {
     }
 
     const unescaped = unescapeXml(searchResultXml);
-
-    // Sprawdź czy GUS zwrócił błąd wewnątrz struktury <dane>
     const errorCode = extractTagContent(unescaped, "ErrorCode");
     if (errorCode) {
       if (errorCode === "4" || errorCode === "1" || errorCode === "3") {
-        // Podmiot nie został znaleziony w bazie
         return null;
       }
       const errorMsg = extractTagContent(unescaped, "ErrorMessagePl") || GUS_ERROR_CODES[errorCode] || `Kod błędu GUS: ${errorCode}`;
@@ -217,16 +256,60 @@ export class GusClient {
       return null;
     }
 
-    const entity = entities[0];
-    if (!entity.Nazwa && !entity.Nip && !entity.Regon) {
+    const baseEntity: GusRawEntity = entities[0];
+    if (!baseEntity.Nazwa && !baseEntity.Nip && !baseEntity.Regon) {
       return null;
     }
 
-    return normalizeGusCompany(entity);
+    const regon = baseEntity.Regon || "";
+    let combinedReportData: Record<string, string> = {};
+
+    // 2. Etap 2: Pobranie pełnego raportu na podstawie typu podmiotu i SilosID
+    if (regon) {
+      const isPhysical = baseEntity.Typ === "F" || baseEntity.SilosID === "1" || baseEntity.SilosID === "6";
+
+      if (isPhysical) {
+        // Raport działalności CEIDG
+        const ceidgReport = await this.getFullReport(regon, "BIR11OsFizycznaDzialalnoscCeidg");
+        // Raport danych ogólnych (imię, nazwisko)
+        const generalReport = await this.getFullReport(regon, "BIR11OsFizycznaDaneOgolne");
+
+        // Fallback do nazw raportów PUB10 jeśli puste
+        let altCeidg: Record<string, string> = {};
+        if (Object.keys(ceidgReport).length === 0) {
+          altCeidg = await this.getFullReport(regon, "PUB10F_FizycznaDzialalnoscCeidg");
+        }
+        let altGeneral: Record<string, string> = {};
+        if (Object.keys(generalReport).length === 0) {
+          altGeneral = await this.getFullReport(regon, "PUB10F_FizycznaDaneOgolne");
+        }
+
+        combinedReportData = {
+          ...altCeidg,
+          ...altGeneral,
+          ...ceidgReport,
+          ...generalReport,
+        };
+      } else {
+        // Raport osoby prawnej (KRS / Spółka)
+        const legalReport = await this.getFullReport(regon, "BIR11OsPrawna");
+        let altLegal: Record<string, string> = {};
+        if (Object.keys(legalReport).length === 0) {
+          altLegal = await this.getFullReport(regon, "PUB10P_UczestnicySpolkiPrawnej");
+        }
+
+        combinedReportData = {
+          ...altLegal,
+          ...legalReport,
+        };
+      }
+    }
+
+    return mergeGusFullData(baseEntity, combinedReportData);
   }
 
   /**
-   * KROK 3: Wylogowanie z GUS BIR (metoda Wyloguj)
+   * KROK 4: Wylogowanie z GUS BIR (metoda Wyloguj)
    */
   public async logout(): Promise<boolean> {
     if (!this.sessionId) return true;
