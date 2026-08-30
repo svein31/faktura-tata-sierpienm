@@ -44,41 +44,49 @@ export function Dialog({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            transition={{ type: "spring", duration: 0.3, bounce: 0.2 }}
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className={cn(
-              "relative z-10 w-full rounded-xl border border-border bg-card p-5 shadow-2xl",
+              "relative z-10 w-full max-h-[92vh] flex flex-col rounded-t-3xl sm:rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xl backdrop-blur-xl",
               sizes[size],
               className
             )}
             role="dialog"
             aria-modal="true"
           >
+            {/* Apple Drag Handle (mobile only) */}
+            <div className="mx-auto -mt-2 mb-3 h-1.5 w-12 rounded-full bg-muted-foreground/30 sm:hidden" />
+
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                {title && <h2 className="text-[15px] font-semibold">{title}</h2>}
+                {title && <h2 className="text-[16px] font-semibold tracking-tight text-foreground">{title}</h2>}
                 {description && (
-                  <p className="mt-1 text-[13px] text-muted-foreground">{description}</p>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{description}</p>
                 )}
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Zamknij">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Zamknij"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground active:scale-90"
+              >
                 <X className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
-            <div className="max-h-[70vh] overflow-y-auto">{children}</div>
-            {footer && <div className="mt-5 flex justify-end gap-2">{footer}</div>}
+            <div className="flex-1 overflow-y-auto pr-1">{children}</div>
+            {footer && <div className="mt-5 flex flex-wrap justify-end gap-2 pt-2 border-t border-border/40">{footer}</div>}
           </motion.div>
         </div>
       )}

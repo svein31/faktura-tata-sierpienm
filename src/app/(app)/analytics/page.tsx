@@ -7,6 +7,7 @@ import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
+import dynamic from "next/dynamic";
 import {
   formatMoney,
   invoiceTotals,
@@ -15,13 +16,33 @@ import {
   round2,
   vatPercent,
 } from "@/lib/format";
-import {
-  RevenueAreaChart,
-  StatusPieChart,
-  VatStackedBarChart,
-  CHART_COLORS,
-} from "@/components/charts";
+import { CHART_COLORS } from "@/components/charts";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { EffectiveStatus } from "@/lib/store";
+
+const RevenueAreaChart = dynamic(
+  () => import("@/components/charts").then((m) => m.RevenueAreaChart),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[260px] w-full rounded-xl" />,
+  }
+);
+
+const StatusPieChart = dynamic(
+  () => import("@/components/charts").then((m) => m.StatusPieChart),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[240px] w-full rounded-xl" />,
+  }
+);
+
+const VatStackedBarChart = dynamic(
+  () => import("@/components/charts").then((m) => m.VatStackedBarChart),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[240px] w-full rounded-xl" />,
+  }
+);
 
 function MiniStat({
   label,

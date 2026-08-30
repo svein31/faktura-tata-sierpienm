@@ -49,11 +49,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="no-print sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-md sm:px-6">
+    <header className="no-print sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl dark:bg-slate-950/80 sm:px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenu}
-          className="rounded-md p-2 text-muted-foreground hover:bg-muted lg:hidden"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted active:scale-95 lg:hidden"
           aria-label="Otwórz menu"
         >
           <Menu className="h-5 w-5" />
@@ -76,11 +76,12 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <ThemeToggle />
 
         {/* Profil użytkownika + przejście do Ustawień Konta + wylogowanie */}
-        <div className="ml-1 flex items-center gap-1 rounded-full border border-border/70 py-1 pl-1 pr-1.5 bg-card/60 shadow-2xs">
+        <div className="ml-1 flex items-center gap-1 rounded-full border border-border/70 py-1 pl-1 pr-1.5 bg-card/60 shadow-2xs backdrop-blur-md">
           <Link
             href="/settings/account"
+            prefetch={true}
             title="Przejdź do Ustawień Konta"
-            className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-2 transition-colors hover:bg-muted/70"
+            className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-2 transition-all hover:bg-muted/70 active:scale-95"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10.5px] font-bold text-white shadow-xs">
               {initials || "?"}
@@ -94,7 +95,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             onClick={logout}
             title="Wyloguj się"
             aria-label="Wyloguj się"
-            className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:scale-90"
           >
             <LogOut className="h-3.5 w-3.5" />
           </button>

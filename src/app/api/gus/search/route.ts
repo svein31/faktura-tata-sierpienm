@@ -212,34 +212,42 @@ export async function GET(req: NextRequest) {
     const province = companyData.province || companyData.voivodeship || "";
     const district = companyData.district || companyData.county || "";
 
-    return json({
-      success: true,
-      source,
-      data: {
-        nip: companyData.nip,
-        regon: companyData.regon || "",
-        krs: companyData.krs || "",
-        type: companyData.type || "COMPANY",
-        firstName: companyData.firstName || "",
-        lastName: companyData.lastName || "",
-        secondName: companyData.secondName || "",
-        name: compName,
-        companyName: compName,
-        street: companyData.street || "",
-        buildingNumber: companyData.buildingNumber || "",
-        flatNumber: companyData.flatNumber || "",
-        city: companyData.city || "",
-        postalCode: companyData.postalCode || "",
-        province: province,
-        district: district,
-        voivodeship: province,
-        county: district,
-        commune: companyData.commune || "",
-        fullAddress: companyData.fullAddress || "",
-        bankAccount: companyData.bankAccount || "",
-        isActive: companyData.isActive ?? true,
+    return json(
+      {
+        success: true,
+        source,
+        data: {
+          nip: companyData.nip,
+          regon: companyData.regon || "",
+          krs: companyData.krs || "",
+          type: companyData.type || "COMPANY",
+          firstName: companyData.firstName || "",
+          lastName: companyData.lastName || "",
+          secondName: companyData.secondName || "",
+          name: compName,
+          companyName: compName,
+          street: companyData.street || "",
+          buildingNumber: companyData.buildingNumber || "",
+          flatNumber: companyData.flatNumber || "",
+          city: companyData.city || "",
+          postalCode: companyData.postalCode || "",
+          province: province,
+          district: district,
+          voivodeship: province,
+          county: district,
+          commune: companyData.commune || "",
+          fullAddress: companyData.fullAddress || "",
+          bankAccount: companyData.bankAccount || "",
+          isActive: companyData.isActive ?? true,
+        },
       },
-    });
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400",
+        },
+      }
+    );
   } catch (e) {
     return handleApiError(e);
   }

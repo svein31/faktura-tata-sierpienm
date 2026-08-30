@@ -69,24 +69,25 @@ export function SidebarContent({
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={onNavigate}
               className={cn(
-                "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
+                "group relative flex min-h-[44px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium transition-all active:scale-[0.98]",
                 active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                  ? "text-primary font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
               {active && (
                 <motion.span
                   layoutId={navLayoutId}
-                  className="absolute inset-0 rounded-lg bg-primary/10 ring-1 ring-inset ring-primary/15"
-                  transition={{ type: "spring", duration: 0.45, bounce: 0.18 }}
+                  className="absolute inset-0 rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/15"
+                  transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
                 />
               )}
               <item.icon
-                className={cn("relative z-10 h-[18px] w-[18px]", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}
-                strokeWidth={active ? 2.2 : 1.8}
+                className={cn("relative z-10 h-[19px] w-[19px] transition-transform group-hover:scale-105", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")}
+                strokeWidth={active ? 2.3 : 1.8}
               />
               <span className="relative z-10">{item.label}</span>
             </Link>
@@ -128,7 +129,7 @@ export function SidebarContent({
 
 export function Sidebar() {
   return (
-    <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border bg-card/60 backdrop-blur lg:block">
+    <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border/60 bg-card/75 backdrop-blur-2xl dark:bg-slate-950/75 lg:block">
       <SidebarContent />
     </aside>
   );

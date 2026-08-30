@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { EMPTY_COMPANY } from "./types";
 import type {
   AppNotification,
   CompanyProfile,
@@ -160,7 +161,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       draftInvoiceIsNew: true,
     }),
 
-  /* ── Zarządzanie spółkami (Multi-Company) ────────────────────────────── */
+  /* ── Zarządzanie spółkami (Multi-Company) — Optimistic UI ────────────────── */
 
   fetchCompanies: async () => {
     const res = await fetch("/api/companies", { cache: "no-store" });
@@ -176,73 +177,182 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addCompany: async (c) => {
-    const res = await fetch("/api/companies", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(c),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się dodać firmy.");
-    const data = (await res.json()) as { company: CompanyProfile };
-    const updatedList = data.company.isDefault
-      ? [data.company, ...get().companies.map((x) => ({ ...x, isDefault: false }))]
-      : [...get().companies, data.company];
+    // 0ms Optimistic update
+    const previousCompanies = get().companies;
+    const previousCompany = get().company;
+    const previousSelectedId = get().selectedCompanyId;
 
-    const defaultComp = updatedList.find((x) => x.isDefault) ?? updatedList[0] ?? data.company;
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const nowIso = new Date().toISOString();
+    const optimisticCompany: CompanyProfile = {
+      id: tempId,
+      userId: "",
+      nip: c.nip || "",
+      companyName: c.companyName || c.name || "",
+      street: c.street || null,
+      buildingNumber: c.buildingNumber || null,
+      flatNumber: c.flatNumber || null,
+      city: c.city || null,
+      postalCode: c.postalCode || c.postal || null,
+      bankAccount: c.bankAccount || c.iban || null,
+      ksefToken: c.ksefToken || null,
+      isDefault: c.isDefault ?? (previousCompanies.length === 0),
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      ...c,
+    };
+
+    const optimisticList = optimisticCompany.isDefault
+      ? [optimisticCompany, ...previousCompanies.map((x) => ({ ...x, isDefault: false }))]
+      : [...previousCompanies, optimisticCompany];
+
+    const optDefaultComp = optimisticList.find((x) => x.isDefault) ?? optimisticList[0] ?? optimisticCompany;
+
     set({
-      companies: updatedList,
-      company: defaultComp,
-      selectedCompanyId: data.company.id,
+      companies: optimisticList,
+      company: optDefaultComp,
+      selectedCompanyId: tempId,
     });
-    return data.company;
+
+    try {
+      const res = await fetch("/api/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(c),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się dodać firmy.");
+      const data = (await res.json()) as { company: CompanyProfile };
+
+      const finalList = get().companies.map((x) => (x.id === tempId ? data.company : x));
+      const finalDefault = finalList.find((x) => x.isDefault) ?? finalList[0] ?? data.company;
+
+      set({
+        companies: finalList,
+        company: finalDefault,
+        selectedCompanyId: get().selectedCompanyId === tempId ? data.company.id : get().selectedCompanyId,
+      });
+      return data.company;
+    } catch (err) {
+      // Rollback on error
+      set({
+        companies: previousCompanies,
+        company: previousCompany,
+        selectedCompanyId: previousSelectedId,
+      });
+      throw err;
+    }
   },
 
   updateCompanyProfile: async (id, patch) => {
-    const res = await fetch(`/api/companies/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować firmy.");
-    const data = (await res.json()) as { company: CompanyProfile };
-    const updatedList = get().companies.map((x) => {
-      if (x.id === id) return data.company;
-      if (data.company.isDefault) return { ...x, isDefault: false };
+    // 0ms Optimistic update
+    const previousCompanies = get().companies;
+    const previousCompany = get().company;
+
+    const optimisticList = previousCompanies.map((x) => {
+      if (x.id === id) {
+        const updated = { ...x, ...patch, updatedAt: new Date().toISOString() };
+        return updated;
+      }
+      if (patch.isDefault) return { ...x, isDefault: false };
       return x;
     });
-    const defaultComp = updatedList.find((x) => x.isDefault) ?? updatedList[0] ?? data.company;
+    const optDefaultComp = optimisticList.find((x) => x.isDefault) ?? optimisticList[0] ?? previousCompany;
+
     set({
-      companies: updatedList,
-      company: defaultComp,
+      companies: optimisticList,
+      company: optDefaultComp,
     });
-    return data.company;
+
+    try {
+      const res = await fetch(`/api/companies/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować firmy.");
+      const data = (await res.json()) as { company: CompanyProfile };
+
+      const finalList = get().companies.map((x) => (x.id === id ? data.company : x));
+      const finalDefault = finalList.find((x) => x.isDefault) ?? finalList[0] ?? data.company;
+
+      set({
+        companies: finalList,
+        company: finalDefault,
+      });
+      return data.company;
+    } catch (err) {
+      // Rollback on error
+      set({
+        companies: previousCompanies,
+        company: previousCompany,
+      });
+      throw err;
+    }
   },
 
   deleteCompanyProfile: async (id) => {
-    const res = await fetch(`/api/companies/${id}`, { method: "DELETE" });
-    if (!res.ok) throw await apiError(res, "Nie udało się usunąć firmy.");
-    const updatedList = get().companies.filter((x) => x.id !== id);
-    const defaultComp = updatedList.find((x) => x.isDefault) ?? updatedList[0] ?? null;
+    // 0ms Optimistic update
+    const previousCompanies = get().companies;
+    const previousCompany = get().company;
+    const previousSelectedId = get().selectedCompanyId;
+
+    const optimisticList = previousCompanies.filter((x) => x.id !== id);
+    const optDefaultComp = optimisticList.find((x) => x.isDefault) ?? optimisticList[0] ?? null;
+
     set({
-      companies: updatedList,
-      company: defaultComp,
-      selectedCompanyId: get().selectedCompanyId === id ? defaultComp?.id ?? null : get().selectedCompanyId,
+      companies: optimisticList,
+      company: optDefaultComp,
+      selectedCompanyId: previousSelectedId === id ? optDefaultComp?.id ?? null : previousSelectedId,
     });
+
+    try {
+      const res = await fetch(`/api/companies/${id}`, { method: "DELETE" });
+      if (!res.ok) throw await apiError(res, "Nie udało się usunąć firmy.");
+    } catch (err) {
+      // Rollback on error
+      set({
+        companies: previousCompanies,
+        company: previousCompany,
+        selectedCompanyId: previousSelectedId,
+      });
+      throw err;
+    }
   },
 
   setDefaultCompanyProfile: async (id) => {
-    const res = await fetch(`/api/companies/${id}/set-default`, { method: "PATCH" });
-    if (!res.ok) throw await apiError(res, "Nie udało się ustawić firmy jako domyślnej.");
-    const data = (await res.json()) as { company: CompanyProfile };
-    const updatedList = get().companies.map((x) => ({
+    // 0ms Optimistic update
+    const previousCompanies = get().companies;
+    const previousCompany = get().company;
+
+    const optimisticList = previousCompanies.map((x) => ({
       ...x,
       isDefault: x.id === id,
     }));
+    const optDefaultComp = optimisticList.find((x) => x.id === id) ?? previousCompany;
+
     set({
-      companies: updatedList,
-      company: data.company,
+      companies: optimisticList,
+      company: optDefaultComp,
       selectedCompanyId: id,
     });
-    return data.company;
+
+    try {
+      const res = await fetch(`/api/companies/${id}/set-default`, { method: "PATCH" });
+      if (!res.ok) throw await apiError(res, "Nie udało się ustawić firmy jako domyślnej.");
+      const data = (await res.json()) as { company: CompanyProfile };
+
+      set({
+        company: data.company,
+      });
+      return data.company;
+    } catch (err) {
+      // Rollback on error
+      set({
+        companies: previousCompanies,
+        company: previousCompany,
+      });
+      throw err;
+    }
   },
 
   setSelectedCompanyId: (id) => set({ selectedCompanyId: id }),
@@ -250,28 +360,28 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Ustawienia ─────────────────────────────────────────────────────── */
 
   updateCompany: async (patch) => {
-    const current = get().company ?? {
-      name: "",
-      nip: "",
-      regon: "",
-      street: "",
-      city: "",
-      postal: "",
-      country: "PL",
-      iban: "",
-      bankName: "",
-      email: "",
-      phone: "",
+    const current = get().company ?? EMPTY_COMPANY;
+    const optimistic: CompanyProfile = {
+      ...current,
+      ...patch,
+      updatedAt: new Date().toISOString(),
     };
-    const res = await fetch("/api/company", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...current, ...patch }),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się zapisać profilu firmy.");
-    const data = (await res.json()) as { company: CompanyProfile };
-    set({ company: data.company });
-    return data.company;
+    set({ company: optimistic });
+
+    try {
+      const res = await fetch("/api/company", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(optimistic),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zapisać profilu firmy.");
+      const data = (await res.json()) as { company: CompanyProfile };
+      set({ company: data.company });
+      return data.company;
+    } catch (err) {
+      set({ company: current });
+      throw err;
+    }
   },
 
   updateKsef: async (patch) => {
@@ -282,113 +392,216 @@ export const useAppStore = create<AppState>((set, get) => ({
       certName: "",
       autoValidate: true,
     };
-    const res = await fetch("/api/ksef", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...current, ...patch }),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się zapisać ustawień KSeF.");
-    const data = (await res.json()) as { ksef: KsefSettings };
-    set({ ksef: data.ksef });
-    return data.ksef;
+    const optimistic = { ...current, ...patch };
+    set({ ksef: optimistic });
+
+    try {
+      const res = await fetch("/api/ksef", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(optimistic),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zapisać ustawień KSeF.");
+      const data = (await res.json()) as { ksef: KsefSettings };
+      set({ ksef: data.ksef });
+      return data.ksef;
+    } catch (err) {
+      set({ ksef: current });
+      throw err;
+    }
   },
 
-  /* ── Kontrahenci ────────────────────────────────────────────────────── */
+  /* ── Kontrahenci — Optimistic UI ─────────────────────────────────────── */
 
   addContractor: async (c) => {
-    const res = await fetch("/api/contractors", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(c),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się dodać kontrahenta.");
-    const data = (await res.json()) as { contractor: Contractor };
-    set({ contractors: [data.contractor, ...get().contractors] });
-    return data.contractor;
+    const previousContractors = get().contractors;
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const optimisticContractor: Contractor = {
+      id: tempId,
+      createdAt: new Date().toISOString(),
+      ...c,
+    };
+    set({ contractors: [optimisticContractor, ...previousContractors] });
+
+    try {
+      const res = await fetch("/api/contractors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(c),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się dodać kontrahenta.");
+      const data = (await res.json()) as { contractor: Contractor };
+      set({
+        contractors: get().contractors.map((x) => (x.id === tempId ? data.contractor : x)),
+      });
+      return data.contractor;
+    } catch (err) {
+      set({ contractors: previousContractors });
+      throw err;
+    }
   },
 
   updateContractor: async (id, patch) => {
-    const res = await fetch(`/api/contractors/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
+    const previousContractors = get().contractors;
+    set({
+      contractors: previousContractors.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     });
-    if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować kontrahenta.");
-    const data = (await res.json()) as { contractor: Contractor };
-    set({ contractors: get().contractors.map((c) => (c.id === id ? data.contractor : c)) });
-    return data.contractor;
+
+    try {
+      const res = await fetch(`/api/contractors/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować kontrahenta.");
+      const data = (await res.json()) as { contractor: Contractor };
+      set({ contractors: get().contractors.map((c) => (c.id === id ? data.contractor : c)) });
+      return data.contractor;
+    } catch (err) {
+      set({ contractors: previousContractors });
+      throw err;
+    }
   },
 
   deleteContractor: async (id) => {
-    const res = await fetch(`/api/contractors/${id}`, { method: "DELETE" });
-    if (!res.ok) throw await apiError(res, "Nie udało się usunąć kontrahenta.");
-    set({ contractors: get().contractors.filter((c) => c.id !== id) });
+    const previousContractors = get().contractors;
+    set({ contractors: previousContractors.filter((c) => c.id !== id) });
+
+    try {
+      const res = await fetch(`/api/contractors/${id}`, { method: "DELETE" });
+      if (!res.ok) throw await apiError(res, "Nie udało się usunąć kontrahenta.");
+    } catch (err) {
+      set({ contractors: previousContractors });
+      throw err;
+    }
   },
 
-  /* ── Produkty ───────────────────────────────────────────────────────── */
+  /* ── Produkty — Optimistic UI ───────────────────────────────────────── */
 
   addProduct: async (p) => {
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(p),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się dodać pozycji.");
-    const data = (await res.json()) as { product: Product };
-    set({ products: [data.product, ...get().products] });
-    return data.product;
+    const previousProducts = get().products;
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const optimisticProduct: Product = {
+      id: tempId,
+      ...p,
+    };
+    set({ products: [optimisticProduct, ...previousProducts] });
+
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(p),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się dodać pozycji.");
+      const data = (await res.json()) as { product: Product };
+      set({ products: get().products.map((x) => (x.id === tempId ? data.product : x)) });
+      return data.product;
+    } catch (err) {
+      set({ products: previousProducts });
+      throw err;
+    }
   },
 
   updateProduct: async (id, patch) => {
-    const res = await fetch(`/api/products/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
+    const previousProducts = get().products;
+    set({
+      products: previousProducts.map((p) => (p.id === id ? { ...p, ...patch } : p)),
     });
-    if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować pozycji.");
-    const data = (await res.json()) as { product: Product };
-    set({ products: get().products.map((p) => (p.id === id ? data.product : p)) });
-    return data.product;
+
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować pozycji.");
+      const data = (await res.json()) as { product: Product };
+      set({ products: get().products.map((p) => (p.id === id ? data.product : p)) });
+      return data.product;
+    } catch (err) {
+      set({ products: previousProducts });
+      throw err;
+    }
   },
 
   deleteProduct: async (id) => {
-    const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
-    if (!res.ok) throw await apiError(res, "Nie udało się usunąć pozycji.");
-    set({ products: get().products.filter((p) => p.id !== id) });
+    const previousProducts = get().products;
+    set({ products: previousProducts.filter((p) => p.id !== id) });
+
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (!res.ok) throw await apiError(res, "Nie udało się usunąć pozycji.");
+    } catch (err) {
+      set({ products: previousProducts });
+      throw err;
+    }
   },
 
-  /* ── Faktury ────────────────────────────────────────────────────────── */
+  /* ── Faktury — Optimistic UI ────────────────────────────────────────── */
 
   addInvoice: async (inv) => {
-    const res = await fetch("/api/invoices", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(inv),
-    });
-    if (!res.ok) throw await apiError(res, "Nie udało się zapisać faktury.");
-    const data = (await res.json()) as { invoice: Invoice };
-    set({ invoices: [data.invoice, ...get().invoices] });
-    return data.invoice;
+    const previousInvoices = get().invoices;
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const optimisticInvoice: Invoice = {
+      id: tempId,
+      createdAt: new Date().toISOString(),
+      ...inv,
+    };
+    set({ invoices: [optimisticInvoice, ...previousInvoices] });
+
+    try {
+      const res = await fetch("/api/invoices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inv),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zapisać faktury.");
+      const data = (await res.json()) as { invoice: Invoice };
+      set({ invoices: get().invoices.map((x) => (x.id === tempId ? data.invoice : x)) });
+      return data.invoice;
+    } catch (err) {
+      set({ invoices: previousInvoices });
+      throw err;
+    }
   },
 
   updateInvoice: async (id, patch) => {
-    const existing = get().invoices.find((i) => i.id === id);
+    const previousInvoices = get().invoices;
+    const existing = previousInvoices.find((i) => i.id === id);
     if (!existing) throw new Error("Nie znaleziono faktury.");
-    const res = await fetch(`/api/invoices/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...existing, ...patch }),
+
+    set({
+      invoices: previousInvoices.map((i) => (i.id === id ? { ...i, ...patch } : i)),
     });
-    if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować faktury.");
-    const data = (await res.json()) as { invoice: Invoice };
-    set({ invoices: get().invoices.map((i) => (i.id === id ? data.invoice : i)) });
-    return data.invoice;
+
+    try {
+      const res = await fetch(`/api/invoices/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...existing, ...patch }),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować faktury.");
+      const data = (await res.json()) as { invoice: Invoice };
+      set({ invoices: get().invoices.map((i) => (i.id === id ? data.invoice : i)) });
+      return data.invoice;
+    } catch (err) {
+      set({ invoices: previousInvoices });
+      throw err;
+    }
   },
 
   deleteInvoice: async (id) => {
-    const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
-    if (!res.ok) throw await apiError(res, "Nie udało się usunąć faktury.");
-    set({ invoices: get().invoices.filter((i) => i.id !== id) });
+    const previousInvoices = get().invoices;
+    set({ invoices: previousInvoices.filter((i) => i.id !== id) });
+
+    try {
+      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
+      if (!res.ok) throw await apiError(res, "Nie udało się usunąć faktury.");
+    } catch (err) {
+      set({ invoices: previousInvoices });
+      throw err;
+    }
   },
 
   /** Lokalne odświeżenie po wysyłce do KSeF (backend już zapisał status). */

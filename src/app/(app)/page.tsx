@@ -17,15 +17,41 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { OnboardingBanner, PageGuide } from "@/components/ui/page-guide";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate, formatMoney, invoiceTotals, monthKey, monthLabel } from "@/lib/format";
-import { RevenueAreaChart, StatusPieChart, TopContractorsBar, CHART_COLORS } from "@/components/charts";
+import { CHART_COLORS } from "@/components/charts";
 import { todayISO } from "@/lib/utils";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { EffectiveStatus } from "@/lib/store";
+
+const RevenueAreaChart = dynamic(
+  () => import("@/components/charts").then((m) => m.RevenueAreaChart),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[260px] w-full rounded-xl" />,
+  }
+);
+
+const StatusPieChart = dynamic(
+  () => import("@/components/charts").then((m) => m.StatusPieChart),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[240px] w-full rounded-xl" />,
+  }
+);
+
+const TopContractorsBar = dynamic(
+  () => import("@/components/charts").then((m) => m.TopContractorsBar),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[240px] w-full rounded-xl" />,
+  }
+);
 
 function StatCard({
   label,
