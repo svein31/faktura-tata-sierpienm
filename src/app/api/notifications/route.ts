@@ -3,8 +3,8 @@ import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json } from "@/lib/api";
 import { notificationToDto } from "@/lib/dto";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /** GET /api/notifications?limit=50 — powiadomienia bieżącego użytkownika (najnowsze pierwsze). */
 export async function GET(req: Request) {

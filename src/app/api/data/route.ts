@@ -11,8 +11,8 @@ import {
   productToDto,
 } from "@/lib/dto";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /**
  * GET /api/data — bootstrap całego stanu zalogowanego użytkownika.

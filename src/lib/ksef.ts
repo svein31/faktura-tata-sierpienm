@@ -4,6 +4,7 @@
  */
 
 import type { Fa2Issue, Fa2ValidationResult } from "./types";
+export type { KsefEnvironment } from "./ksef/constants";
 
 export function validateFa2(xml: string): Fa2ValidationResult {
   const issues: Fa2Issue[] = [];

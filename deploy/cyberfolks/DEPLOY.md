@@ -119,21 +119,7 @@ Powstanie katalog `.next` (wymagany do startu). Build wykonuj na serwerze
   ```
   i **Restart** aplikacji w panelu Node.js.
 
-## 9. Rozwiązywanie problemu: Error 403 Stop!
-
-Jeśli w przeglądarce pojawia się **Error 403 Stop! (Web hosting service provided by cyber_Folks)**, oznacza to jeden z poniższych powodów:
-
-1. **Brak lub niezskonfigurowany `.htaccess`**: Apache próbuje wyświetlić zawartość katalogu `public_html`, w którym nie ma plików `index.html`/`index.php`.
-   - **Rozwiązanie**: Uruchom `node cyberfolks/generate-htaccess.js <PORT_Z_PANELU>` (np. `node cyberfolks/generate-htaccess.js 35100`), a powstały plik `.htaccess` skopiuj do katalogu `public_html` subdomeny (lub `public_html/faktura`).
-2. **Niewymieniony port `__PANEL_PORT__`**: Plik `.htaccess` zawiera frazę `__PANEL_PORT__` zamiast rzeczywistego portu przydzielonego w panelu Node.js.
-3. **Aplikacja Node.js jest zatrzymana**: Sprawdź w panelu cyber_Folks (Node.js), czy aplikacja ma status **Uruchomiona / Running**. Jeśli zgasła, sprawdź czy wykonano `npm run build` (musi istnieć plik `.next/BUILD_ID`).
-4. **Wdrożenie pod podścieżką (np. `/faktura/`)**: Jeśli aplikacja działa pod adresem typu `wojtek.wyczalek.pl/faktura/`, w `.env` ustaw zmienną:
-   ```env
-   NEXT_PUBLIC_BASE_PATH=/faktura
-   ```
-   i ponownie wykonaj `npm run build` oraz zrestartuj aplikację.
-
-## 10. Ograniczenia / uwagi produkcyjne
+## 9. Ograniczenia / uwagi produkcyjne
 
 - **Powiadomienia przeglądarki**: działają tylko przy otwartej karcie aplikacji
   (polling co 20 s) i wymagają HTTPS. Powiadomienia przy zamkniętej aplikacji
@@ -146,4 +132,3 @@ Jeśli w przeglądarce pojawia się **Error 403 Stop! (Web hosting service provi
 - Subdomena w DEPLOY.md jest placeholderem — **nie hardcodujemy domen**: w
   kodzie nie ma żadnej domeny; panel/subdomena konfigurowane są w panelu
   (w razie potrzeby zamień `twojadomena.pl` na własną).
-

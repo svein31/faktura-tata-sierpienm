@@ -36,14 +36,10 @@ katalogu projektu.
 
    Oczekiwana odpowiedź ma `ok: true`.
 
-Jeżeli panel nie ma wbudowanego mapowania domeny do aplikacji Node.js (i w przeglądarce widnieje **Error 403 Stop!**):
-1. Sprawdź przydzielony port w panelu Node.js (np. 35100).
-2. Wykonaj skrypt generujący plik `.htaccess`:
-   ```bash
-   node cyberfolks/generate-htaccess.js PORT_Z_PANELU
-   ```
-3. Skopiuj wygenerowany plik `cyberfolks/.htaccess` do katalogu `public_html` (lub `public_html/faktura`) subdomeny na serwerze i zrestartuj aplikację w panelu.
-
+Jeżeli panel nie ma mapowania domeny do aplikacji Node.js, skopiuj
+`cyberfolks/.htaccess.example` do katalogu `public_html` tej subdomeny,
+zamień `__PANEL_PORT__` na port pokazany w panelu i dopiero wtedy zrestartuj
+aplikację.
 
 ## Aktualizacja
 

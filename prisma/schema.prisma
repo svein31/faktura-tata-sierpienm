@@ -29,6 +29,7 @@ model User {
   contractors   Contractor[]
   products      Product[]
   invoices      Invoice[]
+  ksefSessions  KsefSession[]
   notifications Notification[]
   preferences   NotificationPreference?
 }
@@ -79,6 +80,27 @@ model KsefSettings {
   updatedAt    DateTime @updatedAt
 }
 
+/// Sesja uwierzytelniona KSeF API 2.0 (JWT Access Token)
+model KsefSession {
+  id                  String    @id @default(cuid())
+  userId              String?
+  user                User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nip                 String
+  environment         String    @default("test") // demo | test | production
+  referenceNumber     String    @unique
+  authenticationToken String?
+  accessToken         String?
+  refreshToken        String?
+  validUntil          DateTime?
+  status              String    @default("ACTIVE") // ACTIVE | EXPIRED | TERMINATED
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  invoices            Invoice[]
+
+  @@index([nip])
+  @@index([userId])
+}
+
 model Contractor {
   id         String   @id @default(cuid())
   userId     String
@@ -118,27 +140,36 @@ model Product {
 /// Faktura. Pola strukturalne (lines, ksef) trzymane jako JSON, aby zachować
 /// istniejące typy frontendu bez migracji danych.
 model Invoice {
-  id              String   @id @default(cuid())
+  id              String       @id @default(cuid())
   userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   number          String
   type            String
-  status          String   @default("draft")
+  status          String       @default("draft")
   contractorId    String
   issueDate       String
   saleDate        String
   dueDate         String
-  currency        String   @default("PLN")
-  language        String   @default("PL")
-  paymentMethod   String   @default("transfer")
-  paymentTermDays Int      @default(14)
+  currency        String       @default("PLN")
+  language        String       @default("PL")
+  paymentMethod   String       @default("transfer")
+  paymentTermDays Int          @default(14)
   notes           String?
   lines           Json
   ksef            Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  nip             String?      @default("")
+  totalGross      Float?       @default(0)
+  ksefNumber      String?
+  referenceNumber String?
+  upoXml          String?
+  ksefSessionId   String?
+  ksefSession     KsefSession? @relation(fields: [ksefSessionId], references: [id], onDelete: SetNull)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([userId])
+  @@index([referenceNumber])
+  @@index([ksefNumber])
 }
 
 model Notification {

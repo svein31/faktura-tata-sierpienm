@@ -47,6 +47,21 @@ const INIT_SQL = [
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "KsefSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
+  `CREATE TABLE IF NOT EXISTS "KsefSession" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT,
+    "nip" TEXT NOT NULL,
+    "environment" TEXT NOT NULL DEFAULT 'test',
+    "referenceNumber" TEXT NOT NULL,
+    "authenticationToken" TEXT,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "validUntil" DATETIME,
+    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "KsefSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
   `CREATE TABLE IF NOT EXISTS "Contractor" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -94,9 +109,16 @@ const INIT_SQL = [
     "notes" TEXT,
     "lines" JSONB NOT NULL,
     "ksef" JSONB,
+    "nip" TEXT DEFAULT '',
+    "totalGross" REAL DEFAULT 0,
+    "ksefNumber" TEXT,
+    "referenceNumber" TEXT,
+    "upoXml" TEXT,
+    "ksefSessionId" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    CONSTRAINT "Invoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Invoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Invoice_ksefSessionId_fkey" FOREIGN KEY ("ksefSessionId") REFERENCES "KsefSession" ("id") ON DELETE SET NULL ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "Notification" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -122,9 +144,14 @@ const INIT_SQL = [
   `CREATE INDEX IF NOT EXISTS "Session_userId_idx" ON "Session"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "CompanySettings_userId_key" ON "CompanySettings"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "KsefSettings_userId_key" ON "KsefSettings"("userId");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "KsefSession_referenceNumber_key" ON "KsefSession"("referenceNumber");`,
+  `CREATE INDEX IF NOT EXISTS "KsefSession_nip_idx" ON "KsefSession"("nip");`,
+  `CREATE INDEX IF NOT EXISTS "KsefSession_userId_idx" ON "KsefSession"("userId");`,
   `CREATE INDEX IF NOT EXISTS "Contractor_userId_idx" ON "Contractor"("userId");`,
   `CREATE INDEX IF NOT EXISTS "Product_userId_idx" ON "Product"("userId");`,
   `CREATE INDEX IF NOT EXISTS "Invoice_userId_idx" ON "Invoice"("userId");`,
+  `CREATE INDEX IF NOT EXISTS "Invoice_referenceNumber_idx" ON "Invoice"("referenceNumber");`,
+  `CREATE INDEX IF NOT EXISTS "Invoice_ksefNumber_idx" ON "Invoice"("ksefNumber");`,
   `CREATE INDEX IF NOT EXISTS "Notification_userId_read_idx" ON "Notification"("userId", "read");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "NotificationPreference_userId_key" ON "NotificationPreference"("userId");`,
 ];
@@ -149,7 +176,7 @@ function setupDatabaseUrl(): void {
         mkdirSync(targetDir, { recursive: true });
         accessSync(targetDir, constants.W_OK);
       } catch {
-        // Fallback to /tmp if current directory is read-only (e.g. Netlify AWS Lambda)
+        // Fallback do /tmp jeśli bieżący katalog jest tylko do odczytu (np. Netlify AWS Lambda)
         url = "file:/tmp/prod.db";
       }
     }
@@ -194,10 +221,10 @@ export async function ensureTablesExist(): Promise<void> {
   await initPromise;
 }
 
-// Start async initialization in background
+// Inicjalizacja asynchroniczna w tle
 ensureTablesExist().catch((err) => console.error("[db-init-error]", err));
 
-// Proxy object wrapping PrismaClient to ensure tables exist before any query execution
+// Obiekt Proxy opakowujący PrismaClient dla pewności istnienia tabel przed zapytaniem
 export const prisma = new Proxy(rawPrisma, {
   get(target, prop, receiver) {
     const value = Reflect.get(target, prop, receiver);
