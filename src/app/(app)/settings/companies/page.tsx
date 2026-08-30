@@ -100,71 +100,75 @@ export default function CompaniesSettingsPage() {
         }
       />
 
-      {/* Karty podsumowania */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-              <Building2 className="h-5 w-5" />
+      {/* Karty podsumowania (tylko gdy dodano firmy) */}
+      {companies.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">Podpięte firmy / NIP-y</p>
+                <p className="text-xl font-bold tracking-tight">{companies.length}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground">Podpięte firmy / NIP-y</p>
-              <p className="text-xl font-bold tracking-tight">{companies.length}</p>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <Star className="h-5 w-5 fill-emerald-500/20" />
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <Star className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">Domyślna spółka</p>
+                <p className="text-[13.5px] font-semibold truncate max-w-[180px]">
+                  {defaultCompany?.companyName || defaultCompany?.name || "Brak"}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[12px] font-medium text-muted-foreground">Główna firma domyślna</p>
-              <p className="truncate text-[14px] font-semibold">
-                {defaultCompany ? defaultCompany.companyName : "Brak"}
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
-              <KeyRound className="h-5 w-5" />
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[12px] font-medium text-muted-foreground">Dedykowane tokeny KSeF</p>
+                <p className="text-xl font-bold tracking-tight">
+                  {companiesWithKsef} <span className="text-[12px] font-normal text-muted-foreground">/ {companies.length}</span>
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground">Dedykowane tokeny KSeF</p>
-              <p className="text-xl font-bold tracking-tight">
-                {companiesWithKsef} <span className="text-[12px] font-normal text-muted-foreground">/ {companies.length}</span>
-              </p>
-            </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      )}
 
       {/* Lista firm */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-semibold tracking-tight">Lista zapisanych spółek i działalności</h2>
-          <span className="text-[12px] text-muted-foreground">{companies.length} {companies.length === 1 ? "profil" : "profile"}</span>
-        </div>
+        {companies.length > 0 && (
+          <div className="flex items-center justify-between">
+            <h2 className="text-[16px] font-semibold tracking-tight">Lista zapisanych spółek i działalności</h2>
+            <span className="text-[12px] text-muted-foreground">{companies.length} {companies.length === 1 ? "profil" : "profile"}</span>
+          </div>
+        )}
 
         {companies.length === 0 ? (
-          <Card className="border-dashed p-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Building2 className="h-6 w-6 text-muted-foreground" />
+          <Card className="border-border/60 bg-card/60 backdrop-blur-md p-10 sm:p-14 text-center rounded-2xl shadow-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Building2 className="h-6 w-6" />
             </div>
-            <h3 className="mt-3 text-[15px] font-semibold">Brak zapisanych profili firm</h3>
-            <p className="mx-auto mt-1 max-w-sm text-[13px] text-muted-foreground">
-              Dodaj swoją pierwszą firmę wpisując NIP i pobierając dane bezpośrednio z bazy rejestru GUS.
+            <h3 className="mt-4 text-base font-semibold text-foreground">Nie dodano jeszcze żadnej firmy</h3>
+            <p className="mx-auto mt-1.5 max-w-sm text-[13px] text-muted-foreground leading-relaxed">
+              Wpisz NIP swojej działalności lub spółki — nazwa, adres i rachunek bankowy zostaną pobrane z rejestru GUS.
             </p>
             <Button
               onClick={() => {
                 setEditingCompany(null);
                 setModalOpen(true);
               }}
-              className="mt-4"
+              className="mt-5 gap-2 rounded-xl"
             >
               <Plus className="h-4 w-4" /> Dodaj pierwszą firmę
             </Button>

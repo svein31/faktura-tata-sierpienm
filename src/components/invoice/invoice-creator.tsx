@@ -230,6 +230,9 @@ export function InvoiceCreator() {
     } else if (!form.contractorId) {
       errs.push("Wybierz kontrahenta (lub dodaj nowego).");
     }
+    if (companies.length === 0 && !effectiveSellerCompany?.companyName && !effectiveSellerCompany?.nip) {
+      errs.push("Dodaj profil firmy Sprzedawcy (w 'Moje Firmy'), aby Twoje dane pojawiły się na fakturze.");
+    }
     const validLines = form.lines.filter((l) => l.name.trim() && l.quantity > 0);
     if (validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
     if (form.lines.some((l) => l.quantity < 0 || l.netPrice < 0)) errs.push("Ilość i cena nie mogą być ujemne.");

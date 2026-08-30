@@ -374,21 +374,21 @@ export default function InvoicesPage() {
           </table>
           {filtered.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground/60">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <FileText className="h-6 w-6" />
               </div>
               <div>
                 <p className="text-[15px] font-semibold text-foreground">
-                  {invoices.length === 0 ? "Nie masz jeszcze żadnych faktur" : "Brak faktur spełniających kryteria"}
+                  {invoices.length === 0 ? "Brak wystawionych faktur" : "Brak faktur spełniających kryteria"}
                 </p>
-                <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground">
+                <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
                   {invoices.length === 0
-                    ? "Kliknij 'Wystaw nową fakturę', aby utworzyć pierwszy dokument sprzedaży i przekazać go do KSeF."
+                    ? "Wystaw pierwszy dokument sprzedaży w formacie FA(3) z bezpośrednią wysyłką do KSeF."
                     : "Zmień parametry wyszukiwania lub filtry statusu/waluty."}
                 </p>
               </div>
-              <Button size="sm" onClick={() => router.push("/invoices/new")} className="mt-1 gap-1.5">
-                <Plus className="h-3.5 w-3.5" /> Wystaw nową fakturę
+              <Button size="sm" onClick={() => router.push("/invoices/new")} className="mt-2 gap-1.5 rounded-xl">
+                <Plus className="h-3.5 w-3.5" /> Wystaw pierwszą fakturę
               </Button>
             </div>
           )}

@@ -208,17 +208,21 @@ export default function ContractorsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <Card className="py-16 text-center">
-          <Users className="mx-auto h-10 w-10 text-muted-foreground/40" />
-          <p className="mt-3 text-[14px] font-semibold">Brak kontrahentów</p>
-          <p className="mt-1 text-[12.5px] text-muted-foreground">
-            Dodaj pierwszego kontrahenta lub zmień kryteria wyszukiwania.
+        <Card className="border-border/60 bg-card/60 backdrop-blur-md py-16 text-center rounded-2xl shadow-xs">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Users className="h-6 w-6" />
+          </div>
+          <p className="mt-4 text-[15px] font-semibold text-foreground">
+            {contractors.length === 0 ? "Brak zapisanych kontrahentów" : "Brak kontrahentów spełniających kryteria"}
           </p>
-          {contractors.length === 0 && (
-            <Button size="sm" className="mt-4" onClick={openNew}>
-              <Plus className="h-3.5 w-3.5" /> Dodaj kontrahenta
-            </Button>
-          )}
+          <p className="mx-auto mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
+            {contractors.length === 0
+              ? "Wpisz NIP kontrahenta, a dane firmy i status VAT zostaną automatycznie pobrane z rejestru GUS."
+              : "Zmień parametry wyszukiwania."}
+          </p>
+          <Button size="sm" className="mt-4 gap-1.5 rounded-xl" onClick={openNew}>
+            <Plus className="h-3.5 w-3.5" /> Dodaj kontrahenta
+          </Button>
         </Card>
       )}
 

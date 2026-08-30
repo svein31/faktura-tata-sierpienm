@@ -195,11 +195,20 @@ export default function ProductsPage() {
           </table>
           {filtered.length === 0 && (
             <div className="py-16 text-center">
-              <Package className="mx-auto h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-3 text-[14px] font-semibold">Brak pozycji w katalogu</p>
-              <p className="mt-1 text-[12.5px] text-muted-foreground">
-                Dodaj produkt lub usługę, aby szybko wstawiać go do faktur.
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Package className="h-6 w-6" />
+              </div>
+              <p className="mt-4 text-[15px] font-semibold text-foreground">
+                {products.length === 0 ? "Brak pozycji w katalogu" : "Brak pozycji spełniających kryteria"}
               </p>
+              <p className="mx-auto mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
+                {products.length === 0
+                  ? "Zdefiniuj swoje towary i usługi ze stawkami VAT, aby błyskawicznie wypełniać pozycje faktur."
+                  : "Zmień parametry wyszukiwania."}
+              </p>
+              <Button size="sm" className="mt-4 gap-1.5 rounded-xl" onClick={openNew}>
+                <Plus className="h-3.5 w-3.5" /> Dodaj pozycję
+              </Button>
             </div>
           )}
         </div>

@@ -70,54 +70,32 @@ export async function POST(req: Request) {
     const passwordHash = await hashPassword(password);
     const companyBody = (body.company as Record<string, unknown>) || {};
 
+    const hasExplicitCompany = Boolean(nip && (companyName || rawName));
+
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
-        name,
+        name: rawName || email.split("@")[0] || "Użytkownik",
         nip: nip || null,
         companyName: companyName || null,
-        company: {
-          create: {
-            name: companyName || name,
-            nip: nip || "",
-            regon: str(companyBody.regon),
-            street: str(companyBody.street),
-            city: str(companyBody.city),
-            postal: str(companyBody.postal),
-            country: str(companyBody.country) || "PL",
-            iban: str(companyBody.iban),
-            bankName: str(companyBody.bankName),
-            email: str(companyBody.email) || email,
-            phone: str(companyBody.phone),
-          },
-        },
-        companyProfiles: {
-          create: {
-            nip: nip || "",
-            companyName: companyName || name,
-            street: str(companyBody.street) || null,
-            buildingNumber: str(companyBody.buildingNumber) || null,
-            flatNumber: str(companyBody.flatNumber) || null,
-            city: str(companyBody.city) || null,
-            postalCode: str(companyBody.postal) || str(companyBody.postalCode) || null,
-            bankAccount: str(companyBody.iban) || str(companyBody.bankAccount) || null,
-            isDefault: true,
-          },
-        },
-        ksef: {
-          create: {
-            environment: "demo",
-            tokenSet: false,
-            autoValidate: true,
-          },
-        },
-        preferences: {
-          create: {
-            browserEnabled: false,
-            soundEnabled: true,
-          },
-        },
+        ...(hasExplicitCompany
+          ? {
+              companyProfiles: {
+                create: {
+                  nip: nip || "",
+                  companyName: companyName || rawName,
+                  street: str(companyBody.street) || null,
+                  buildingNumber: str(companyBody.buildingNumber) || null,
+                  flatNumber: str(companyBody.flatNumber) || null,
+                  city: str(companyBody.city) || null,
+                  postalCode: str(companyBody.postal) || str(companyBody.postalCode) || null,
+                  bankAccount: str(companyBody.iban) || str(companyBody.bankAccount) || null,
+                  isDefault: true,
+                },
+              },
+            }
+          : {}),
       },
       include: {
         company: true,
