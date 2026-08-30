@@ -1,14 +1,27 @@
 import { NextRequest } from "next/server";
 import { json, handleApiError, ApiError } from "@/lib/api";
 import { isValidNipFormat, normalizeNip } from "@/lib/validation";
-import { GusClient, GusApiError, extractNameFromCompanyName } from "@/lib/gus/index";
-import { lookupDemoNip } from "@/lib/nip-demo";
+import { GusClient, extractNameFromCompanyName } from "@/lib/gus/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Parsuje adres z formatu Białej Listy MF (np. "UL. MARSZAŁKOWSKA 10A/4, 00-001 WARSZAWA")
+ * Zamienia ciąg wielkich liter na czytelną wielkość liter (Title Case)
+ */
+function toTitleCase(str: string): string {
+  if (!str) return "";
+  return str
+    .split(/\s+/)
+    .map((w) => {
+      if (w.length <= 2) return w.toUpperCase();
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+/**
+ * Parsuje adres z formatu Białej Listy MF (np. "OGÓRKOWA 63S, 04-998 WARSZAWA" lub "UL. KRUCZA 24/2, 61-546 POZNAŃ")
  */
 function parseWhiteListAddress(rawAddress: string | null | undefined) {
   if (!rawAddress) {
@@ -18,29 +31,37 @@ function parseWhiteListAddress(rawAddress: string | null | undefined) {
   const trimmed = rawAddress.trim();
   const postalMatch = trimmed.match(/(\d{2}-\d{3})\s+([^,]+)$/i);
   let postalCode = "";
-  let city = "";
+  let rawCity = "";
   let streetPart = trimmed;
 
   if (postalMatch) {
     postalCode = postalMatch[1];
-    city = postalMatch[2].trim();
+    rawCity = postalMatch[2].trim();
     streetPart = trimmed.substring(0, postalMatch.index).replace(/,\s*$/, "").trim();
   }
 
-  let street = streetPart;
+  let rawStreet = streetPart;
   let buildingNumber = "";
   let flatNumber = "";
 
-  // Wyciągamy numer budynku / lokalu z końcówki ulicy (np. "MARSZAŁKOWSKA 10A/4" lub "UL. KRUCZA 1")
+  // Wyciągamy numer budynku / lokalu z końcówki ulicy (np. "OGÓRKOWA 63S" lub "KRUCZA 24/2")
   const numberMatch = streetPart.match(/\s+(\d+[a-zA-Z]?)(\/(\d+[a-zA-Z]?))?$/);
   if (numberMatch) {
     buildingNumber = numberMatch[1] || "";
     flatNumber = numberMatch[3] || "";
-    street = streetPart.substring(0, numberMatch.index).trim();
+    rawStreet = streetPart.substring(0, numberMatch.index).trim();
   }
 
-  // Usunięcie prefiksu "UL. "
-  street = street.replace(/^ul\.\s+/i, "");
+  // Usunięcie zbędnych przedrostków
+  rawStreet = rawStreet
+    .replace(/^ul\.\s+/i, "")
+    .replace(/^al\.\s+/i, "Al. ")
+    .replace(/^pl\.\s+/i, "Pl. ");
+
+  const city = rawCity.length > 2 && rawCity === rawCity.toUpperCase() ? toTitleCase(rawCity) : rawCity;
+  const street = rawStreet.length > 2 && rawStreet === rawStreet.toUpperCase() ? toTitleCase(rawStreet) : rawStreet;
+
+  const fullAddress = (street ? `${street} ${buildingNumber}${flatNumber ? "/" + flatNumber : ""}, ` : "") + `${postalCode} ${city}`;
 
   return {
     street,
@@ -48,25 +69,24 @@ function parseWhiteListAddress(rawAddress: string | null | undefined) {
     flatNumber,
     city,
     postalCode,
-    fullAddress: trimmed,
+    fullAddress,
   };
 }
 
 /**
  * Pobiera dane podmiotu z oficjalnego API Białej Listy Podatników VAT Ministerstwa Finansów (MF).
- * Działa bezpłatnie dla każdego aktywnego polskiego podmiotu gospodarczego.
+ * Działa bezpłatnie w czasie rzeczywistym dla każdego aktywnego polskiego podmiotu gospodarczego.
  */
 async function lookupWhiteListMf(nip: string) {
   try {
     const today = new Date();
-    // Bezpieczna data bieżąca (format RRRR-MM-DD)
     const dateStr = today.toISOString().slice(0, 10);
     const url = `https://wl-api.mf.gov.pl/api/search/nip/${nip}?date=${dateStr}`;
 
     const res = await fetch(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "Fakturo-KSeF-Client/2.0",
+        "User-Agent": "Fakturo-App/2.0",
       },
       next: { revalidate: 3600 },
     });
@@ -82,6 +102,7 @@ async function lookupWhiteListMf(nip: string) {
     const bankAccount = Array.isArray(subject.accountNumbers) && subject.accountNumbers.length > 0
       ? subject.accountNumbers[0]
       : "";
+
     const isCompany = Boolean(subject.krs) || /sp\.\s*z\s*o\.\s*o\.|spółka|s\.a\./i.test(subject.name);
     const names = !isCompany ? extractNameFromCompanyName(subject.name) : {};
 
@@ -112,11 +133,8 @@ async function lookupWhiteListMf(nip: string) {
 /**
  * GET /api/gus/search?nip=XXXXXXXXXX
  *
- * Pobranie pełnych danych podmiotu z rejestru GUS BIR 1.1 (dwuetapowe) oraz Białej Listy MF.
- * 1. Walidacja formatu i sumy kontrolnej NIP (algorytm modulo 11).
- * 2. Dwuetapowe pobranie danych z GUS BIR 1.1 (SOAP 1.2: DaneSzukajPodmioty + DanePobierzPelnyRaport).
- * 3. Fallback do Białej Listy VAT Ministerstwa Finansów (REST API z numerami kont IBAN).
- * 4. Fallback do bazy demonstracyjnej.
+ * Pobranie autentycznych danych podmiotu z rejestru GUS BIR 1.1 oraz Białej Listy VAT Ministerstwa Finansów.
+ * Zero sztucznych mocków / danych testowych.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -132,66 +150,60 @@ export async function GET(req: NextRequest) {
       throw new ApiError(400, "Numer NIP musi składać się z dokładnie 10 cyfr.", "INVALID_NIP_FORMAT");
     }
 
-    // Walidacja sumy kontrolnej NIP (modulo 11)
     if (!isValidNipFormat(cleanNip)) {
       throw new ApiError(400, "Nieprawidłowa suma kontrolna numeru NIP.", "INVALID_NIP_CHECKSUM");
     }
 
-    // Środowisko GUS: test / prod
-    const env = (process.env.GUS_ENV || "test").toLowerCase();
-    const isDemoExplicit = env === "demo";
-
     let companyData: any = null;
-    let source = "gus-bir";
+    let source = "mf-whitelist";
 
-    if (!isDemoExplicit) {
-      // ── 1. Próba wyszukania w GUS BIR 1.1 (Dwuetapowe) ──
-      try {
-        companyData = await GusClient.searchByNipAuto(cleanNip);
-        if (companyData) {
-          source = "gus-bir";
-        }
-      } catch (err: any) {
-        console.warn(`[GUS BIR Warning for NIP ${cleanNip}]:`, err?.message || err);
-      }
-
-      // ── 2. Jeśli GUS nie znalazł (lub tryb testowy z nowym NIP), odpytujemy Białą Listę MF ──
-      if (!companyData) {
-        const mfData = await lookupWhiteListMf(cleanNip);
-        if (mfData) {
-          companyData = mfData;
-          source = "mf-whitelist";
-        }
-      }
+    // ── 1. Zapytanie do oficjalnego API Białej Listy Podatników VAT (Ministerstwo Finansów) ──
+    const mfData = await lookupWhiteListMf(cleanNip);
+    if (mfData) {
+      companyData = mfData;
+      source = "mf-whitelist";
     }
 
-    // ── 3. Fallback do bazy DEMO ──
-    if (!companyData) {
-      const demoRes = lookupDemoNip(cleanNip);
-      if (demoRes.company) {
-        companyData = {
-          nip: demoRes.company.nip,
-          name: demoRes.company.name,
-          companyName: demoRes.company.name,
-          regon: demoRes.company.regon,
-          street: demoRes.company.address.street,
-          buildingNumber: "",
-          flatNumber: "",
-          city: demoRes.company.address.city,
-          postalCode: demoRes.company.address.postal,
-          fullAddress: `${demoRes.company.address.street}, ${demoRes.company.address.postal} ${demoRes.company.address.city}`,
-          bankAccount: "",
-          type: "COMPANY",
-          isActive: true,
-        };
-        source = isDemoExplicit ? "demo" : "demo-fallback";
+    // ── 2. Zapytanie do GUS BIR 1.1 (jeśli skonfigurowano lub jako uzupełnienie) ──
+    try {
+      const gusCompany = await GusClient.searchByNipAuto(cleanNip);
+      // Odrzucamy ewentualne sztuczne mocki ze środowiska testowego GUS (np. z prefiksem "Test-")
+      const isTestMock = Boolean(gusCompany?.street?.startsWith("Test-") || gusCompany?.name?.includes("Test-"));
+
+      if (gusCompany && !isTestMock) {
+        if (!companyData) {
+          companyData = gusCompany;
+          source = "gus-bir";
+        } else {
+          // Wzbogacamy dane o szczegóły z raportu GUS (nazwa handlowa, dokładne imię i nazwisko)
+          companyData = {
+            ...companyData,
+            companyName: gusCompany.companyName || gusCompany.name || companyData.companyName,
+            name: gusCompany.companyName || gusCompany.name || companyData.name,
+            firstName: gusCompany.firstName || companyData.firstName,
+            lastName: gusCompany.lastName || companyData.lastName,
+            secondName: gusCompany.secondName || companyData.secondName,
+            regon: gusCompany.regon || companyData.regon,
+            krs: gusCompany.krs || companyData.krs,
+            street: gusCompany.street || companyData.street,
+            buildingNumber: gusCompany.buildingNumber || companyData.buildingNumber,
+            flatNumber: gusCompany.flatNumber || companyData.flatNumber,
+            city: gusCompany.city || companyData.city,
+            postalCode: gusCompany.postalCode || companyData.postalCode,
+            province: gusCompany.province || companyData.province,
+            district: gusCompany.district || companyData.district,
+          };
+          source = "gus-bir+mf";
+        }
       }
+    } catch (err: any) {
+      console.warn(`[GUS BIR Lookup for NIP ${cleanNip}]:`, err?.message || err);
     }
 
     if (!companyData) {
       throw new ApiError(
         404,
-        `Nie znaleziono podmiotu w bazie rejestrów (GUS BIR / Biała Lista MF) dla podanego numeru NIP (${cleanNip}).`,
+        `Nie znaleziono podmiotu w oficjalnych rejestrach państwowych (Biała Lista VAT MF / GUS REGON) dla podanego numeru NIP (${cleanNip}).`,
         "NOT_FOUND"
       );
     }
