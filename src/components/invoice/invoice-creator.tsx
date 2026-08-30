@@ -4,13 +4,16 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  Building2,
   CheckCircle2,
   Eye,
   FileCode2,
   FileJson2,
+  Plus,
   Printer,
   Save,
   Send,
+  ShieldCheck,
   UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +29,7 @@ import { currencyNames } from "@/lib/i18n";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type {
+  CompanyProfile,
   Contractor,
   Currency,
   Invoice,
@@ -36,6 +40,7 @@ import type {
 import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
+import { CompanyModal } from "@/components/company/company-modal";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
 interface NewContractorDraft {
@@ -64,6 +69,7 @@ const emptyNewContractor: NewContractorDraft = {
 
 interface FormState {
   type: InvoiceType;
+  sellerCompanyId: string;
   contractorId: string;
   useNewContractor: boolean;
   newContractor: NewContractorDraft;
@@ -79,9 +85,10 @@ interface FormState {
   lines: ReturnType<typeof newLine>[];
 }
 
-function formFromInvoice(inv: Invoice): FormState {
+function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState {
   return {
     type: inv.type,
+    sellerCompanyId: inv.sellerCompanyId || defaultCompanyId,
     contractorId: inv.contractorId,
     useNewContractor: false,
     newContractor: emptyNewContractor,
@@ -98,10 +105,11 @@ function formFromInvoice(inv: Invoice): FormState {
   };
 }
 
-function freshForm(): FormState {
+function freshForm(defaultCompanyId: string = ""): FormState {
   const today = todayISO();
   return {
     type: "sale",
+    sellerCompanyId: defaultCompanyId,
     contractorId: "",
     useNewContractor: false,
     newContractor: emptyNewContractor,
@@ -125,17 +133,33 @@ export function InvoiceCreator() {
   const router = useRouter();
   const toast = useToast();
   const store = useAppStore();
-  const { contractors, products, company, invoices, draftInvoice, draftInvoiceIsNew, ksef } = store;
-  const companySafe = company ?? EMPTY_COMPANY;
+  const { contractors, products, company, companies, invoices, draftInvoice, draftInvoiceIsNew, ksef } = store;
   const ksefEnv = ksef?.environment ?? "demo";
 
+  const defaultCompany =
+    companies.find((c) => c.isDefault) ??
+    companies[0] ??
+    company ??
+    EMPTY_COMPANY;
+
   const [form, setForm] = React.useState<FormState>(() =>
-    draftInvoice ? formFromInvoice(draftInvoice) : freshForm()
+    draftInvoice ? formFromInvoice(draftInvoice, defaultCompany.id) : freshForm(defaultCompany.id)
   );
   const [saving, setSaving] = React.useState<"save" | "ksef" | null>(null);
   const [errors, setErrors] = React.useState<string[]>([]);
+  const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
 
   const set = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Synchronizacja firmy domyślnej po załadowaniu danych
+  React.useEffect(() => {
+    if (!form.sellerCompanyId && defaultCompany.id) {
+      setForm((f) => ({ ...f, sellerCompanyId: defaultCompany.id }));
+    }
+  }, [form.sellerCompanyId, defaultCompany.id]);
+
+  const effectiveSellerCompany: CompanyProfile =
+    companies.find((c) => c.id === form.sellerCompanyId) ?? defaultCompany ?? EMPTY_COMPANY;
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
   const invoiceNumber = draftInvoice?.number ?? nextInvoiceNumber(invoices, form.type);
@@ -167,6 +191,8 @@ export function InvoiceCreator() {
     number: invoiceNumber,
     type: form.type,
     status: "draft",
+    sellerCompanyId: form.sellerCompanyId || undefined,
+    sellerCompany: effectiveSellerCompany,
     contractorId: form.contractorId,
     issueDate: form.issueDate,
     saleDate: form.saleDate,
@@ -180,7 +206,7 @@ export function InvoiceCreator() {
     createdAt: new Date().toISOString(),
   };
 
-  const exports = useInvoiceExports(previewInvoice, effectiveContractor, companySafe);
+  const exports = useInvoiceExports(previewInvoice, effectiveContractor, effectiveSellerCompany);
   const totals = invoiceTotals(previewInvoice);
 
   const onTermChange = (days: number) => {
@@ -233,6 +259,7 @@ export function InvoiceCreator() {
       number: invoiceNumber,
       type: form.type,
       status,
+      sellerCompanyId: form.sellerCompanyId || undefined,
       contractorId,
       issueDate: form.issueDate || todayISO(),
       saleDate: form.saleDate || form.issueDate || todayISO(),
@@ -307,7 +334,7 @@ export function InvoiceCreator() {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
       const xmlRes = await import("@/lib/xml");
-      const xml = xmlRes.buildFaVatXml(saved, companySafe);
+      const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany);
       const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -342,21 +369,103 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
-        {!company?.name && (
+        {companies.length === 0 && !effectiveSellerCompany?.companyName && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
-              Nie uzupełniłeś jeszcze danych firmy. Uzupełnij je w{" "}
+              Nie dodałeś jeszcze profilu firmy sprzedawcy.{" "}
               <button
-                onClick={() => router.push("/ksef")}
+                type="button"
+                onClick={() => setCompanyModalOpen(true)}
                 className="font-semibold underline underline-offset-2"
               >
-                ustawieniach KSeF → Profil firmy
+                Dodaj firmę teraz
               </button>
-              , aby Twoje dane jako sprzedawcy pojawiły się na fakturze i w XML FA(2).
+              , aby Twoje dane pojawiły się na fakturze i w pliku XML FA(2)/FA(3).
             </span>
           </div>
         )}
+
+        {/* Sprzedawca (Wystawca faktury) - Wybór firmy / spółki */}
+        <Card className="border-primary/25 bg-card">
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-[15px]">
+                <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca)
+              </CardTitle>
+              <CardDescription>
+                Wybierz profil spółki / NIP, z którego wystawiasz ten dokument
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCompanyModalOpen(true)}
+              className="gap-1.5 font-medium text-[12px] h-8"
+            >
+              <Plus className="h-3.5 w-3.5 text-primary" /> + Szybkie dodanie nowej firmy/NIP
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Select
+              value={form.sellerCompanyId}
+              onChange={(e) => {
+                if (e.target.value === "__new_company__") {
+                  setCompanyModalOpen(true);
+                } else {
+                  set({ sellerCompanyId: e.target.value });
+                }
+              }}
+            >
+              <option value="">— wybierz spółkę / NIP wystawcy —</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.companyName} · NIP: {formatNip(c.nip)} {c.isDefault ? "★ [Domyślna]" : ""}
+                </option>
+              ))}
+              <option value="__new_company__">➕ Dodaj nowy profil firmy / NIP…</option>
+            </Select>
+
+            {effectiveSellerCompany && (effectiveSellerCompany.companyName || effectiveSellerCompany.nip) && (
+              <div className="rounded-lg border border-border/80 bg-muted/20 p-3 text-[12.5px] grid gap-2 sm:grid-cols-2">
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {effectiveSellerCompany.companyName || effectiveSellerCompany.name}
+                  </p>
+                  <p className="font-mono text-muted-foreground text-[12px]">
+                    NIP: {formatNip(effectiveSellerCompany.nip)}
+                  </p>
+                  <p className="text-muted-foreground text-[12px]">
+                    {[
+                      [effectiveSellerCompany.street, effectiveSellerCompany.buildingNumber].filter(Boolean).join(" ") +
+                        (effectiveSellerCompany.flatNumber ? `/${effectiveSellerCompany.flatNumber}` : ""),
+                      `${effectiveSellerCompany.postalCode || effectiveSellerCompany.postal || ""} ${effectiveSellerCompany.city || ""}`.trim(),
+                    ].filter(Boolean).join(", ")}
+                  </p>
+                </div>
+                <div className="sm:text-right space-y-1">
+                  {(effectiveSellerCompany.bankAccount || effectiveSellerCompany.iban) && (
+                    <p className="font-mono text-[11.5px] text-muted-foreground truncate">
+                      IBAN: {effectiveSellerCompany.bankAccount || effectiveSellerCompany.iban}
+                    </p>
+                  )}
+                  <div className="flex sm:justify-end gap-1 pt-1">
+                    {effectiveSellerCompany.ksefToken ? (
+                      <Badge tone="success" className="text-[10.5px]">
+                        <ShieldCheck className="h-3 w-3 mr-1" /> Dedykowany token KSeF
+                      </Badge>
+                    ) : (
+                      <Badge tone="outline" className="text-[10.5px] text-muted-foreground">
+                        Domyślny KSeF konta
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Typ faktury */}
         <Card>
@@ -676,7 +785,7 @@ export function InvoiceCreator() {
           </div>
         </div>
 
-        <InvoicePreview invoice={previewInvoice} contractor={effectiveContractor} company={companySafe} />
+        <InvoicePreview invoice={previewInvoice} contractor={effectiveContractor} company={effectiveSellerCompany} />
 
         <div className="no-print mt-4 hidden flex-wrap items-center gap-2 xl:flex">
           <Button onClick={handleSaveDraft} variant="outline">
@@ -701,6 +810,13 @@ export function InvoiceCreator() {
           </div>
         )}
       </div>
+
+      {/* Szybkie dodanie nowej firmy / NIP */}
+      <CompanyModal
+        open={companyModalOpen}
+        onClose={() => setCompanyModalOpen(false)}
+        onSaved={(c) => set({ sellerCompanyId: c.id })}
+      />
     </div>
   );
 }

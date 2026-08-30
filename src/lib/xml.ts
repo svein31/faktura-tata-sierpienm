@@ -17,6 +17,15 @@ function esc(s: string | number | undefined | null): string {
     .replace(/'/g, "&apos;");
 }
 
+function getCompanyAddress(c: CompanyProfile): string {
+  const streetPart = [c.street, c.buildingNumber].filter(Boolean).join(" ");
+  const streetFull = c.flatNumber ? `${streetPart}/${c.flatNumber}` : (streetPart || c.street || "");
+  const postal = c.postalCode || c.postal || "";
+  const city = c.city || "";
+  const country = c.country || "PL";
+  return [streetFull, `${postal} ${city}`.trim(), country].filter(Boolean).join(", ");
+}
+
 export function buildFaVatXml(invoice: Invoice, company: CompanyProfile): string {
   const t = invoiceTotals(invoice);
   const vatCode = (rate: string) => (rate === "zw" || rate === "np" ? "0" : rate);
@@ -45,13 +54,15 @@ export function buildFaVatXml(invoice: Invoice, company: CompanyProfile): string
     })
     .join("\n");
 
-  const sellerName = invoice.type === "sale" ? company.name : "—";
+  const compName = company.companyName || company.name || "—";
+  const compAddr = getCompanyAddress(company);
+  const sellerName = invoice.type === "sale" ? compName : "—";
   const sellerNip = invoice.type === "sale" ? company.nip : "—";
-  const buyerName = invoice.type === "sale" ? "—" : company.name;
+  const buyerName = invoice.type === "sale" ? "—" : compName;
   const buyerNip = invoice.type === "sale" ? "—" : company.nip;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<!-- Faktura w strukturze FA(2) (uproszczony eksport demo, nie jest pełną implementacją XSD MF) -->
+<!-- Faktura w strukturze FA(2) / FA(3) (uproszczony eksport, struktura e-Faktury KSeF) -->
 <Faktura xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2024/01/17/eD/DefinicjeTypy/"
          xmlns:ksef="http://ksef.mf.gov.pl/schema/gtw/schematy/2024/01/17/0001/Faktura"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -60,10 +71,10 @@ ${buyerLines ?? ""}  <KodFormularza kodSystemowy="FA (2)" wersjaSchemy="1-0E">FA
   <CelZlozenia>1</CelZlozenia>
   <DataWystawienia>${invoice.issueDate}</DataWystawienia>
   <NazwaSprzedawcy>${esc(sellerName)}</NazwaSprzedawcy>
-  <AdresSprzedawcy>${esc(`${company.street ?? ""}, ${company.postal ?? ""} ${company.city ?? ""}, ${company.country ?? ""}`)}</AdresSprzedawcy>
+  <AdresSprzedawcy>${esc(compAddr)}</AdresSprzedawcy>
   <NIPSprzedawcy>${esc(sellerNip)}</NIPSprzedawcy>
   <NazwaNabywcy>${esc(invoice.type === "sale" ? buyerName : sellerName)}</NazwaNabywcy>
-  <AdresNabywcy>${esc(`${company.street ?? ""}, ${company.postal ?? ""} ${company.city ?? ""}, ${company.country ?? ""}`)}</AdresNabywcy>
+  <AdresNabywcy>${esc(compAddr)}</AdresNabywcy>
   <NIPNabywcy>${esc(buyerNip)}</NIPNabywcy>
   <DowodSprzedazy>${esc(invoice.number)}</DowodSprzedazy>
   <P_1>${invoice.saleDate || invoice.issueDate}</P_1>
@@ -89,7 +100,7 @@ export function invoiceToJson(invoice: Invoice, company: CompanyProfile): string
   const payload = {
     meta: {
       app: "Fakturo",
-      version: "1.0.0",
+      version: "2.0.0",
       exportDate: new Date().toISOString(),
       demo: true,
     },
@@ -108,17 +119,19 @@ export function invoiceToJson(invoice: Invoice, company: CompanyProfile): string
       ksef: invoice.ksef ?? null,
       totals: { net: t.net, vat: t.vat, gross: t.gross },
       seller: {
-        name: company.name,
+        name: company.companyName || company.name,
         nip: company.nip,
-        regon: company.regon,
+        regon: company.regon || "",
         address: {
-          street: company.street,
-          city: company.city,
-          postal: company.postal,
-          country: company.country,
+          street: company.street || "",
+          buildingNumber: company.buildingNumber || "",
+          flatNumber: company.flatNumber || "",
+          city: company.city || "",
+          postal: company.postalCode || company.postal || "",
+          country: company.country || "PL",
         },
-        iban: company.iban,
-        bankName: company.bankName,
+        iban: company.bankAccount || company.iban || "",
+        bankName: company.bankName || "",
       },
       contractorId: invoice.contractorId,
       lines: invoice.lines.map((l) => ({

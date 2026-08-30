@@ -17,6 +17,8 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/invoices/, title: "Faktury" },
   { re: /^\/contractors/, title: "Kontrahenci" },
   { re: /^\/products/, title: "Produkty / Usługi" },
+  { re: /^\/settings\/companies/, title: "Moje Firmy / Spółki" },
+  { re: /^\/settings/, title: "Ustawienia" },
   { re: /^\/analytics/, title: "Analityka" },
   { re: /^\/ksef/, title: "Ustawienia KSeF" },
 ];

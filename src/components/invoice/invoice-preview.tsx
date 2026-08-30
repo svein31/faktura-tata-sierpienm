@@ -17,8 +17,8 @@ import { QRCodeSVG } from "qrcode.react";
 
 export function buildQrPayload(invoice: Invoice, contractor: Contractor | undefined, company: CompanyProfile): string {
   const t = invoiceTotals(invoice);
-  const iban = (invoice.type === "sale" ? company.iban : contractor?.iban) ?? "";
-  const recipient = invoice.type === "sale" ? company.name : contractor?.name ?? "";
+  const iban = (invoice.type === "sale" ? (company.bankAccount || company.iban) : contractor?.iban) ?? "";
+  const recipient = invoice.type === "sale" ? (company.companyName || company.name || "") : (contractor?.name ?? "");
   return [
     "SPL",
     "PL",
@@ -44,26 +44,35 @@ export function InvoicePreview({
 }) {
   const L = invoiceLabels[invoice.language];
   const t = invoiceTotals(invoice);
+
+  const compName = company.companyName || company.name || "—";
   const seller = invoice.type === "sale" ? company : contractor;
   const buyer = invoice.type === "sale" ? contractor : company;
-  const sellerName = invoice.type === "sale" ? company.name : (contractor?.name ?? "—");
-  const buyerName = invoice.type === "sale" ? (contractor?.name ?? "—") : company.name;
+  const streetPart = [company.street, company.buildingNumber].filter(Boolean).join(" ");
+  const compStreet = company.flatNumber ? `${streetPart}/${company.flatNumber}` : (streetPart || company.street || "");
+  const compCity = company.city || "";
+  const compPostal = company.postalCode || company.postal || "";
+  const compCountry = company.country || "PL";
+  const compIban = company.bankAccount || company.iban || "";
+
+  const sellerName = invoice.type === "sale" ? compName : (contractor?.name ?? "—");
+  const buyerName = invoice.type === "sale" ? (contractor?.name ?? "—") : compName;
   const sellerAddr =
     invoice.type === "sale"
-      ? { street: company.street, city: company.city, postal: company.postal, country: company.country }
+      ? { street: compStreet, city: compCity, postal: compPostal, country: compCountry }
       : contractor?.address;
   const buyerAddr =
     invoice.type === "sale"
       ? contractor?.address
-      : { street: company.street, city: company.city, postal: company.postal, country: company.country };
+      : { street: compStreet, city: compCity, postal: compPostal, country: compCountry };
   const sellerNip = invoice.type === "sale" ? company.nip : (contractor?.nip ?? "—");
   const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : company.nip;
-  const sellerRegon = invoice.type === "sale" ? company.regon : (contractor?.regon ?? "");
-  const buyerRegon = invoice.type === "sale" ? (contractor?.regon ?? "") : company.regon;
+  const sellerRegon = invoice.type === "sale" ? (company.regon ?? "") : (contractor?.regon ?? "");
+  const buyerRegon = invoice.type === "sale" ? (contractor?.regon ?? "") : (company.regon ?? "");
 
   const showQr =
     invoice.paymentMethod === "transfer" &&
-    (invoice.type === "sale" ? company.iban : contractor?.iban);
+    (invoice.type === "sale" ? compIban : contractor?.iban);
 
   return (
     <div className={cn("invoice-paper overflow-hidden p-6 sm:p-8", className)}>
@@ -195,7 +204,7 @@ export function InvoicePreview({
             {invoice.paymentMethod === "transfer" && (
               <>
                 <p>
-                  {L.account}: <span className="font-mono font-medium">{invoice.type === "sale" ? company.iban : (contractor?.iban ?? "—")}</span>
+                  {L.account}: <span className="font-mono font-medium">{invoice.type === "sale" ? compIban : (contractor?.iban ?? "—")}</span>
                 </p>
                 {invoice.type === "sale" && (
                   <p className="text-muted-foreground">

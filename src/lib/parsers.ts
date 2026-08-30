@@ -111,9 +111,39 @@ function parseLines(v: unknown): Line[] {
   });
 }
 
+/* ── Profil Spółki / Firmy ─────────────────────────────────────────────── */
+
+export function parseCompanyProfileBody(body: Record<string, unknown>) {
+  const companyName = cleanStr(body.companyName ?? body.name, 250, "companyName");
+  if (!companyName) {
+    throw new ApiError(400, "Podaj nazwę firmy / spółki.");
+  }
+  const nipRaw = cleanStr(body.nip, 20, "nip");
+  const nip = normalizeNip(nipRaw);
+  if (!isValidNipFormat(nip)) {
+    throw new ApiError(400, "NIP ma nieprawidłowy format lub sumę kontrolną.");
+  }
+
+  return {
+    nip,
+    companyName,
+    street: cleanStr(body.street, 200, "street") || null,
+    buildingNumber: cleanStr(body.buildingNumber, 30, "buildingNumber") || null,
+    flatNumber: cleanStr(body.flatNumber, 30, "flatNumber") || null,
+    city: cleanStr(body.city, 100, "city") || null,
+    postalCode: cleanStr(body.postalCode ?? body.postal, 20, "postalCode") || null,
+    bankAccount: cleanStr(body.bankAccount ?? body.iban, 60, "bankAccount") || null,
+    ksefToken: cleanStr(body.ksefToken, 500, "ksefToken") || null,
+    isDefault: Boolean(body.isDefault),
+  };
+}
+
 export async function parseInvoiceBody(
   body: Record<string, unknown>,
-  opts: { contractorOwnedBy: (id: string) => Promise<boolean> }
+  opts: {
+    contractorOwnedBy: (id: string) => Promise<boolean>;
+    companyOwnedBy?: (id: string) => Promise<boolean>;
+  }
 ) {
   const type = cleanStr(body.type, 10, "type") as (typeof TYPES)[number];
   if (!TYPES.includes(type)) throw new ApiError(400, "Nieprawidłowy typ faktury.");
@@ -124,6 +154,15 @@ export async function parseInvoiceBody(
   const contractorId = cleanStr(body.contractorId, 100, "contractorId");
   if (!contractorId || !(await opts.contractorOwnedBy(contractorId))) {
     throw new ApiError(400, "Wybierz kontrahenta należącego do Twojego konta.");
+  }
+
+  const sellerCompanyIdRaw = cleanStr(body.sellerCompanyId, 100, "sellerCompanyId");
+  let sellerCompanyId: string | null = null;
+  if (sellerCompanyIdRaw) {
+    if (opts.companyOwnedBy && !(await opts.companyOwnedBy(sellerCompanyIdRaw))) {
+      throw new ApiError(400, "Wybrany profil firmy nie należy do Twojego konta.");
+    }
+    sellerCompanyId = sellerCompanyIdRaw;
   }
 
   const number = cleanStr(body.number, 50, "number");
@@ -149,6 +188,7 @@ export async function parseInvoiceBody(
     type,
     status,
     contractorId,
+    sellerCompanyId,
     issueDate: body.issueDate as string,
     saleDate: body.saleDate as string,
     dueDate: body.dueDate as string,

@@ -63,6 +63,7 @@ export async function POST(req: Request) {
         status: "ksef_sent",
         ksef: { number: ksefNumber, status: "ACTIVE", sentAt, environment: "demo" },
       },
+      include: { sellerCompany: true },
     });
 
     await prisma.notification.create({

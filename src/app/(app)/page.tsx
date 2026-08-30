@@ -74,17 +74,21 @@ function StatCard({
 
 /** Elegancki onboarding dla nowego użytkownika (pusty dashboard). */
 function Onboarding() {
-  const { company, ksef, contractors, products } = useAppStore();
+  const { company, companies, ksef, contractors, products } = useAppStore();
 
-  const companyDone = !!company && company.name.trim().length > 0;
+  const activeComp = companies.find((c) => c.isDefault) ?? companies[0] ?? company;
+  const companyDone = Boolean(
+    (activeComp && (activeComp.companyName || activeComp.name)?.trim().length) ||
+    companies.length > 0
+  );
   const ksefDone = !!ksef && ksef.environment !== "demo";
   const steps = [
     {
       done: companyDone,
       icon: <Building2 className="h-4 w-4" />,
-      title: "Uzupełnij dane firmy",
-      desc: "Nazwa, NIP, adres i konto — pojawią się na fakturach, w XML FA(2) i QR do płatności.",
-      cta: { href: "/ksef?tab=settings", label: "Skonfiguruj firmę" },
+      title: "Uzupełnij profil firmy / spółki",
+      desc: "Nazwa, NIP z bazy GUS, adres i numer konta bankowego dla wystawianych faktur.",
+      cta: { href: "/settings/companies", label: "Zarządzaj firmami" },
     },
     {
       done: ksefDone,

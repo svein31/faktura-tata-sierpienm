@@ -14,7 +14,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const existing = await prisma.invoice.findFirst({ where: { id: params.id, userId: user.id } });
+    const existing = await prisma.invoice.findFirst({
+      where: { id: params.id, userId: user.id },
+      include: { sellerCompany: true },
+    });
     if (!existing) return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
 
     return json({ invoice: invoiceToDto(existing) });
@@ -36,9 +39,15 @@ export async function PUT(req: Request, { params }: Ctx) {
     const data = await parseInvoiceBody(body, {
       contractorOwnedBy: async (id) =>
         (await prisma.contractor.count({ where: { id, userId: user.id } })) > 0,
+      companyOwnedBy: async (id) =>
+        (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
 
-    const invoice = await prisma.invoice.update({ where: { id: existing.id }, data });
+    const invoice = await prisma.invoice.update({
+      where: { id: existing.id },
+      data,
+      include: { sellerCompany: true },
+    });
     return json({ invoice: invoiceToDto(invoice) });
   } catch (e) {
     return handleApiError(e);

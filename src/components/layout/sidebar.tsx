@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BarChart3,
+  Building2,
   FileText,
   FlaskConical,
   LayoutDashboard,
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/invoices", label: "Faktury", icon: FileText },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },
+  { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
   { href: "/analytics", label: "Analityka", icon: BarChart3 },
   { href: "/ksef", label: "Ustawienia KSeF", icon: ShieldCheck },
 ];

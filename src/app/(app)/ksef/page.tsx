@@ -357,49 +357,54 @@ function KsefPageInner() {
 
             {/* Profil firmy (sprzedawca) */}
             <Card>
-              <CardHeader>
-                <CardTitle>Profil firmy (sprzedawca)</CardTitle>
-                <CardDescription>
-                  Dane widoczne na fakturach i w plikach XML FA(2) oraz w QR do płatności.
-                </CardDescription>
+              <CardHeader className="flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Profil firmy (sprzedawca)</CardTitle>
+                  <CardDescription>
+                    Główne dane firmy. Aby zarządzać wieloma spółkami i NIP-ami, przejdź do{" "}
+                    <a href="/settings/companies" className="font-semibold text-primary underline underline-offset-2">
+                      Moje Firmy / NIP
+                    </a>.
+                  </CardDescription>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label>Nazwa firmy</Label>
-                    <Input value={companyDraft.name} onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value })} />
+                    <Input value={companyDraft.name ?? companyDraft.companyName ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value, companyName: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>NIP</Label>
-                    <Input value={companyDraft.nip} onChange={(e) => setCompanyDraft({ ...companyDraft, nip: e.target.value })} className="font-mono" />
+                    <Input value={companyDraft.nip ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, nip: e.target.value })} className="font-mono" />
                   </div>
                   <div className="space-y-1.5">
                     <Label>REGON</Label>
-                    <Input value={companyDraft.regon} onChange={(e) => setCompanyDraft({ ...companyDraft, regon: e.target.value })} className="font-mono" />
+                    <Input value={companyDraft.regon ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, regon: e.target.value })} className="font-mono" />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label>Ulica i numer</Label>
-                    <Input value={companyDraft.street} onChange={(e) => setCompanyDraft({ ...companyDraft, street: e.target.value })} />
+                    <Input value={companyDraft.street ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, street: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Kod pocztowy</Label>
-                    <Input value={companyDraft.postal} onChange={(e) => setCompanyDraft({ ...companyDraft, postal: e.target.value })} />
+                    <Input value={companyDraft.postal ?? companyDraft.postalCode ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, postal: e.target.value, postalCode: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Miasto</Label>
-                    <Input value={companyDraft.city} onChange={(e) => setCompanyDraft({ ...companyDraft, city: e.target.value })} />
+                    <Input value={companyDraft.city ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, city: e.target.value })} />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label>Nr konta (IBAN) — do QR płatności</Label>
-                    <Input value={companyDraft.iban} onChange={(e) => setCompanyDraft({ ...companyDraft, iban: e.target.value })} className="font-mono text-[12px]" />
+                    <Input value={companyDraft.iban ?? companyDraft.bankAccount ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, iban: e.target.value, bankAccount: e.target.value })} className="font-mono text-[12px]" />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Bank</Label>
-                    <Input value={companyDraft.bankName} onChange={(e) => setCompanyDraft({ ...companyDraft, bankName: e.target.value })} />
+                    <Input value={companyDraft.bankName ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, bankName: e.target.value })} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>E-mail</Label>
-                    <Input value={companyDraft.email} onChange={(e) => setCompanyDraft({ ...companyDraft, email: e.target.value })} />
+                    <Input value={companyDraft.email ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, email: e.target.value })} />
                   </div>
                 </div>
                 <Button onClick={saveCompany} className="w-full">

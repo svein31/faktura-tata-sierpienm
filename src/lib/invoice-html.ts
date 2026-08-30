@@ -17,16 +17,26 @@ export function buildInvoiceHtmlString(
 ): string {
   const L = invoiceLabels[invoice.language];
   const t = invoiceTotals(invoice);
-  const sellerName = invoice.type === "sale" ? company.name : (contractor?.name ?? "—");
-  const buyerName = invoice.type === "sale" ? (contractor?.name ?? "—") : company.name;
+
+  const compName = company.companyName || company.name || "—";
+  const sellerName = invoice.type === "sale" ? compName : (contractor?.name ?? "—");
+  const buyerName = invoice.type === "sale" ? (contractor?.name ?? "—") : compName;
+
+  const streetPart = [company.street, company.buildingNumber].filter(Boolean).join(" ");
+  const compStreet = company.flatNumber ? `${streetPart}/${company.flatNumber}` : (streetPart || company.street || "");
+  const compCity = company.city || "";
+  const compPostal = company.postalCode || company.postal || "";
+  const compCountry = company.country || "PL";
+  const compIban = company.bankAccount || company.iban || "";
+
   const sellerAddr =
     invoice.type === "sale"
-      ? { street: company.street, city: company.city, postal: company.postal, country: company.country }
+      ? { street: compStreet, city: compCity, postal: compPostal, country: compCountry }
       : contractor?.address;
   const buyerAddr =
     invoice.type === "sale"
       ? contractor?.address
-      : { street: company.street, city: company.city, postal: company.postal, country: company.country };
+      : { street: compStreet, city: compCity, postal: compPostal, country: compCountry };
   const sellerNip = invoice.type === "sale" ? company.nip : (contractor?.nip ?? "—");
   const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : company.nip;
 
@@ -138,7 +148,7 @@ export function buildInvoiceHtmlString(
 
   <div class="pay-info">
     <b>${esc(L.paymentMethod)}:</b> ${esc(paymentMethodLabel(invoice.paymentMethod, invoice.language))}
-    ${invoice.paymentMethod === "transfer" ? `<br/>${esc(L.account)}: <b>${esc(invoice.type === "sale" ? company.iban : (contractor?.iban ?? "—"))}</b>` : ""}
+    ${invoice.paymentMethod === "transfer" ? `<br/>${esc(L.account)}: <b>${esc(invoice.type === "sale" ? compIban : (contractor?.iban ?? "—"))}</b>` : ""}
     <br/>${esc(L.invoiceNo)}: ${esc(invoice.number)} · ${esc(L.dueDate)}: ${formatDate(invoice.dueDate)}
   </div>
 

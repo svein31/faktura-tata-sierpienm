@@ -4,6 +4,7 @@
  */
 
 import type {
+  CompanyProfile as DbCompanyProfile,
   CompanySettings,
   Contractor as DbContractor,
   Invoice as DbInvoice,
@@ -34,13 +35,54 @@ export function addressFrom(v: unknown): Address {
   };
 }
 
+export function companyProfileToDto(cp: DbCompanyProfile): CompanyProfile {
+  return {
+    id: cp.id,
+    userId: cp.userId,
+    nip: cp.nip,
+    companyName: cp.companyName,
+    street: cp.street ?? "",
+    buildingNumber: cp.buildingNumber ?? "",
+    flatNumber: cp.flatNumber ?? "",
+    city: cp.city ?? "",
+    postalCode: cp.postalCode ?? "",
+    bankAccount: cp.bankAccount ?? "",
+    ksefToken: cp.ksefToken ?? null,
+    isDefault: cp.isDefault,
+    createdAt: cp.createdAt.toISOString(),
+    updatedAt: cp.updatedAt.toISOString(),
+
+    // Aliasy / wsteczna kompatybilność
+    name: cp.companyName,
+    postal: cp.postalCode ?? "",
+    country: "PL",
+    iban: cp.bankAccount ?? "",
+    bankName: "",
+    email: "",
+    phone: "",
+    regon: "",
+  };
+}
+
 export function companyToDto(c: CompanySettings): CompanyProfile {
   return {
-    name: c.name,
+    id: c.id,
+    userId: c.userId,
     nip: c.nip,
-    regon: c.regon,
+    companyName: c.name,
     street: c.street,
+    buildingNumber: "",
+    flatNumber: "",
     city: c.city,
+    postalCode: c.postal,
+    bankAccount: c.iban,
+    ksefToken: null,
+    isDefault: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+
+    name: c.name,
+    regon: c.regon,
     postal: c.postal,
     country: c.country,
     iban: c.iban,
@@ -101,13 +143,15 @@ export function ksefInfoFrom(v: unknown): KsefInfo | undefined {
   };
 }
 
-export function invoiceToDto(i: DbInvoice): Invoice {
+export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile | null }): Invoice {
   return {
     id: i.id,
     number: i.number,
     type: (i.type === "purchase" ? "purchase" : "sale") as Invoice["type"],
     status: i.status as Invoice["status"],
     contractorId: i.contractorId,
+    sellerCompanyId: i.sellerCompanyId ?? undefined,
+    sellerCompany: i.sellerCompany ? companyProfileToDto(i.sellerCompany) : undefined,
     issueDate: i.issueDate,
     saleDate: i.saleDate,
     dueDate: i.dueDate,

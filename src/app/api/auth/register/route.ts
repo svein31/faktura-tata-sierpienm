@@ -91,6 +91,19 @@ export async function POST(req: Request) {
             phone: str(companyBody.phone),
           },
         },
+        companyProfiles: {
+          create: {
+            nip: nip || "",
+            companyName: companyName || name,
+            street: str(companyBody.street) || null,
+            buildingNumber: str(companyBody.buildingNumber) || null,
+            flatNumber: str(companyBody.flatNumber) || null,
+            city: str(companyBody.city) || null,
+            postalCode: str(companyBody.postal) || str(companyBody.postalCode) || null,
+            bankAccount: str(companyBody.iban) || str(companyBody.bankAccount) || null,
+            isDefault: true,
+          },
+        },
         ksef: {
           create: {
             environment: "demo",
@@ -107,6 +120,7 @@ export async function POST(req: Request) {
       },
       include: {
         company: true,
+        companyProfiles: true,
         ksef: true,
       },
     });

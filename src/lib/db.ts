@@ -41,6 +41,23 @@ const INIT_SQL = [
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "CompanySettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   );`,
+  `CREATE TABLE IF NOT EXISTS "CompanyProfile" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "nip" TEXT NOT NULL,
+    "companyName" TEXT NOT NULL,
+    "street" TEXT,
+    "buildingNumber" TEXT,
+    "flatNumber" TEXT,
+    "city" TEXT,
+    "postalCode" TEXT,
+    "bankAccount" TEXT,
+    "ksefToken" TEXT,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "CompanyProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+  );`,
   `CREATE TABLE IF NOT EXISTS "KsefSettings" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -104,6 +121,7 @@ const INIT_SQL = [
     "type" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'draft',
     "contractorId" TEXT NOT NULL,
+    "sellerCompanyId" TEXT,
     "issueDate" TEXT NOT NULL,
     "saleDate" TEXT NOT NULL,
     "dueDate" TEXT NOT NULL,
@@ -123,6 +141,7 @@ const INIT_SQL = [
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "Invoice_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Invoice_sellerCompanyId_fkey" FOREIGN KEY ("sellerCompanyId") REFERENCES "CompanyProfile" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Invoice_ksefSessionId_fkey" FOREIGN KEY ("ksefSessionId") REFERENCES "KsefSession" ("id") ON DELETE SET NULL ON UPDATE CASCADE
   );`,
   `CREATE TABLE IF NOT EXISTS "Notification" (
@@ -148,6 +167,8 @@ const INIT_SQL = [
   `CREATE UNIQUE INDEX IF NOT EXISTS "Session_tokenHash_key" ON "Session"("tokenHash");`,
   `CREATE INDEX IF NOT EXISTS "Session_userId_idx" ON "Session"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "CompanySettings_userId_key" ON "CompanySettings"("userId");`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "CompanyProfile_userId_nip_key" ON "CompanyProfile"("userId", "nip");`,
+  `CREATE INDEX IF NOT EXISTS "CompanyProfile_userId_idx" ON "CompanyProfile"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "KsefSettings_userId_key" ON "KsefSettings"("userId");`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "KsefSession_referenceNumber_key" ON "KsefSession"("referenceNumber");`,
   `CREATE INDEX IF NOT EXISTS "KsefSession_nip_idx" ON "KsefSession"("nip");`,
@@ -155,6 +176,7 @@ const INIT_SQL = [
   `CREATE INDEX IF NOT EXISTS "Contractor_userId_idx" ON "Contractor"("userId");`,
   `CREATE INDEX IF NOT EXISTS "Product_userId_idx" ON "Product"("userId");`,
   `CREATE INDEX IF NOT EXISTS "Invoice_userId_idx" ON "Invoice"("userId");`,
+  `CREATE INDEX IF NOT EXISTS "Invoice_sellerCompanyId_idx" ON "Invoice"("sellerCompanyId");`,
   `CREATE INDEX IF NOT EXISTS "Invoice_referenceNumber_idx" ON "Invoice"("referenceNumber");`,
   `CREATE INDEX IF NOT EXISTS "Invoice_ksefNumber_idx" ON "Invoice"("ksefNumber");`,
   `CREATE INDEX IF NOT EXISTS "Notification_userId_read_idx" ON "Notification"("userId", "read");`,
@@ -209,16 +231,19 @@ export async function ensureTablesExist(): Promise<void> {
   if (globalForPrisma.isInitialized) return;
   if (!initPromise) {
     initPromise = (async () => {
-      try {
-        await rawPrisma.$queryRawUnsafe(`SELECT 1 FROM "User" LIMIT 1`);
-      } catch {
-        for (const statement of INIT_SQL) {
-          try {
-            await rawPrisma.$executeRawUnsafe(statement);
-          } catch (err) {
-            console.error("[db-init-sql-error]", err);
-          }
+      for (const statement of INIT_SQL) {
+        try {
+          await rawPrisma.$executeRawUnsafe(statement);
+        } catch {
+          // ignore already existing or unsupported statement
         }
+      }
+      try {
+        await rawPrisma.$executeRawUnsafe(
+          `ALTER TABLE "Invoice" ADD COLUMN "sellerCompanyId" TEXT`
+        );
+      } catch {
+        // column already exists
       }
       globalForPrisma.isInitialized = true;
     })();

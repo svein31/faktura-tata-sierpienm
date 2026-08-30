@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { buildFa3Xml, validateFa3Xml, KsefClient, type KsefEnvironment, calculateFa3Totals } from "@/lib/ksef/index";
+import { companyProfileToDto, companyToDto } from "@/lib/dto";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -55,24 +56,29 @@ export async function POST(req: Request) {
         throw new ApiError(404, "Nie znaleziono wskazanej faktury w bazie danych.");
       }
 
-      // Pobieramy dane sprzedawcy
-      const company = await prisma.companySettings.findUnique({
-        where: { userId: invoiceRecord.userId },
-      });
+      // Pobieramy dane profilu spółki sprzedawcy
+      let comp = null;
+      if (invoiceRecord.sellerCompanyId) {
+        comp = await prisma.companyProfile.findUnique({
+          where: { id: invoiceRecord.sellerCompanyId },
+        });
+      }
+      if (!comp) {
+        comp = await prisma.companyProfile.findFirst({
+          where: { userId: invoiceRecord.userId, isDefault: true },
+        }) || await prisma.companyProfile.findFirst({
+          where: { userId: invoiceRecord.userId },
+        });
+      }
 
-      sellerProfile = company ? {
-        name: company.name,
-        nip: company.nip,
-        regon: company.regon,
-        street: company.street,
-        city: company.city,
-        postal: company.postal,
-        country: company.country,
-        iban: company.iban,
-        bankName: company.bankName,
-        email: company.email,
-        phone: company.phone,
-      } : null;
+      if (comp) {
+        sellerProfile = companyProfileToDto(comp);
+      } else {
+        const legacy = await prisma.companySettings.findUnique({
+          where: { userId: invoiceRecord.userId },
+        });
+        sellerProfile = legacy ? companyToDto(legacy) : null;
+      }
 
       // Pobieramy kontrahenta
       if (invoiceRecord.contractorId) {

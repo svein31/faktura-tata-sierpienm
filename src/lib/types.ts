@@ -13,14 +13,31 @@ export interface Address {
   country: string;
 }
 
-export interface CompanyProfile extends Address {
-  name: string;
+export interface CompanyProfile {
+  id: string;
+  userId: string;
   nip: string;
-  regon: string;
-  iban: string;
-  bankName: string;
-  email: string;
-  phone: string;
+  companyName: string;
+  street?: string | null;
+  buildingNumber?: string | null;
+  flatNumber?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  bankAccount?: string | null;
+  ksefToken?: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+
+  // Aliasy / kompatybilność
+  name?: string;
+  postal?: string;
+  country?: string;
+  iban?: string;
+  bankName?: string;
+  email?: string;
+  phone?: string;
+  regon?: string;
 }
 
 export interface Contractor {
@@ -70,6 +87,8 @@ export interface Invoice {
   type: InvoiceType;
   status: InvoiceStatus;
   contractorId: string;
+  sellerCompanyId?: string | null;
+  sellerCompany?: CompanyProfile | null;
   issueDate: string;
   saleDate: string;
   dueDate: string;
@@ -154,11 +173,22 @@ export interface SessionUser {
 
 /** Fallback dla podglądów/eksportów, gdy nowy użytkownik nie uzupełnił jeszcze profilu firmy. */
 export const EMPTY_COMPANY: CompanyProfile = {
-  name: "",
+  id: "",
+  userId: "",
   nip: "",
-  regon: "",
+  companyName: "",
   street: "",
+  buildingNumber: "",
+  flatNumber: "",
   city: "",
+  postalCode: "",
+  bankAccount: "",
+  ksefToken: null,
+  isDefault: false,
+  createdAt: "",
+  updatedAt: "",
+  name: "",
+  regon: "",
   postal: "",
   country: "PL",
   iban: "",
