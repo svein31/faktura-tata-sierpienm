@@ -78,8 +78,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const handleSendKsef = async () => {
     setSending(true);
     try {
-      const { buildFaVatXml } = await import("@/lib/xml");
-      const xml = buildFaVatXml(invoice, companySafe);
+      const { buildFa3Xml } = await import("@/lib/ksef/index");
+      const xml = buildFa3Xml({ invoice, seller: companySafe, buyer: contractor });
       const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,7 +97,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             environment: ksefEnv,
           });
         }
-        toast("success", "Wysłano do KSeF", `${invoice.number} → ${data.ksefNumber}`);
+        toast("success", "Wysłano do KSeF (FA(3))", `${invoice.number} → ${data.ksefNumber}`);
       } else {
         toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
       }
