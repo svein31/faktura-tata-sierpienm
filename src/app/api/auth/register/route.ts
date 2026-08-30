@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import {
   createSession,
+  extractRequestMetadata,
   hashPassword,
   normalizeEmail,
   sessionCookieOptions,
@@ -13,13 +14,16 @@ import {
 import { handleApiError, json, readJson, str } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
  * POST /api/auth/register
- * Rejestracja: e-mail unikalny (normalizacja), hasło min. 8 znaków (bcrypt 12 rounds).
- * Tworzy użytkownika + PUSTE ustawienia firmy/KSeF/preferencje — bez faktur,
- * kontrahentów i produktów. Brak enumeracji użytkowników (ogólny komunikat błędu).
+ * Rejestracja użytkownika:
+ * - Przyjmuje: email, password, name, opcjonalnie nip i dane firmy (companyName, adres)
+ * - Bezpieczne haszowanie hasła (bcrypt 12 rounds)
+ * - Utworzenie użytkownika oraz profilu firmy w bazie Prisma
+ * - Utworzenie trwałej sesji (10 lat) i ustawienie ciasteczka HttpOnly
  */
 export async function POST(req: Request) {
   try {
@@ -34,7 +38,10 @@ export async function POST(req: Request) {
     const body = await readJson(req);
     const email = normalizeEmail(str(body.email));
     const password = str(body.password);
-    const name = str(body.name).trim();
+    const rawName = str(body.name).trim();
+    const nip = str(body.nip).replace(/[^0-9]/g, "").trim();
+    const companyName = str(body.companyName).trim();
+    const name = rawName || companyName || email.split("@")[0] || "Użytkownik";
 
     const v = validateCredentials(email, password);
     if (!v.ok) {
@@ -49,25 +56,73 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (name.length < 2 || name.length > 100) {
-      return json({ error: "Podaj nazwę użytkownika (2–100 znaków).", code: "INVALID_INPUT" }, { status: 400 });
+
+    // Sprawdź czy e-mail jest już zajęty
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return json(
+        { error: "Użytkownik o podanym adresie e-mail już istnieje.", code: "USER_EXISTS" },
+        { status: 409 }
+      );
     }
 
     const passwordHash = await hashPassword(password);
+    const companyBody = (body.company as Record<string, unknown>) || {};
 
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
-        company: { create: {} },
-        ksef: { create: {} },
-        preferences: { create: {} },
+        nip: nip || null,
+        companyName: companyName || null,
+        company: {
+          create: {
+            name: companyName || name,
+            nip: nip || "",
+            regon: str(companyBody.regon),
+            street: str(companyBody.street),
+            city: str(companyBody.city),
+            postal: str(companyBody.postal),
+            country: str(companyBody.country) || "PL",
+            iban: str(companyBody.iban),
+            bankName: str(companyBody.bankName),
+            email: str(companyBody.email) || email,
+            phone: str(companyBody.phone),
+          },
+        },
+        ksef: {
+          create: {
+            environment: "demo",
+            tokenSet: false,
+            autoValidate: true,
+          },
+        },
+        preferences: {
+          create: {
+            browserEnabled: false,
+            soundEnabled: true,
+          },
+        },
+      },
+      include: {
+        company: true,
+        ksef: true,
       },
     });
 
-    const { token } = await createSession(user.id);
-    const res = NextResponse.json({ user: toPublicUser(user) }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    const metadata = extractRequestMetadata(req);
+    const { token } = await createSession(user.id, metadata);
+
+    const res = NextResponse.json(
+      {
+        success: true,
+        user: toPublicUser(user),
+        message: "Rejestracja zakończona sukcesem.",
+      },
+      { status: 201, headers: { "Cache-Control": "no-store" } }
+    );
+
     res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
     return res;
   } catch (e) {

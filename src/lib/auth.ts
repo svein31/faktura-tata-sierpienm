@@ -1,9 +1,6 @@
 /**
- * Auth: bcryptjs (>=12 rounds), losowe nieprzezroczyste tokeny sesji,
- * w bazie wyłącznie hash SHA-256 tokena, cookie HttpOnly Secure SameSite=Lax.
- *
- * Brak SESSION_SECRET: przy opaque tokenach nie jest potrzebny — token to
- * 32 losowe bajty, weryfikowany przez porównanie hashy w bazie.
+ * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs), losowe tokeny sesji (32 bajty),
+ * trwała sesja (10 lat / 315360000 sekund), bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax.
  */
 
 import "server-only";
@@ -12,23 +9,85 @@ import { createHash, randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import type { User } from "@prisma/client";
+import type { CompanySettings, KsefSettings, User } from "@prisma/client";
 import { prisma } from "./db";
 
 export const SESSION_COOKIE = "fakturo_session";
-export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 dni
+
+/** Domyślny czas trwania sesji: 10 lat (trwała sesja do ręcznego wylogowania) */
+export const SESSION_MAX_AGE_SECONDS = 315360000; // 10 lat w sekundach (10 * 365 * 24 * 3600)
+export const SESSION_TTL_MS = SESSION_MAX_AGE_SECONDS * 1000; // 10 lat w milisekundach
+
 const BCRYPT_ROUNDS = 12;
 export const MIN_PASSWORD_LENGTH = 8;
+
+export interface FullUserWithRelations extends User {
+  company?: CompanySettings | null;
+  ksef?: KsefSettings | null;
+}
 
 export type PublicUser = {
   id: string;
   email: string;
   name: string;
+  nip?: string | null;
+  companyName?: string | null;
   createdAt: string;
+  company?: {
+    name: string;
+    nip: string;
+    regon: string;
+    street: string;
+    city: string;
+    postal: string;
+    country: string;
+    iban: string;
+    bankName: string;
+    email: string;
+    phone: string;
+  } | null;
+  ksef?: {
+    environment: string;
+    tokenSet: boolean;
+    tokenMask: string;
+    certName: string;
+    autoValidate: boolean;
+  } | null;
 };
 
-export function toPublicUser(u: User): PublicUser {
-  return { id: u.id, email: u.email, name: u.name, createdAt: u.createdAt.toISOString() };
+export function toPublicUser(u: FullUserWithRelations): PublicUser {
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    nip: u.nip || u.company?.nip || "",
+    companyName: u.companyName || u.company?.name || "",
+    createdAt: u.createdAt.toISOString(),
+    company: u.company
+      ? {
+          name: u.company.name,
+          nip: u.company.nip,
+          regon: u.company.regon,
+          street: u.company.street,
+          city: u.company.city,
+          postal: u.company.postal,
+          country: u.company.country,
+          iban: u.company.iban,
+          bankName: u.company.bankName,
+          email: u.company.email,
+          phone: u.company.phone,
+        }
+      : null,
+    ksef: u.ksef
+      ? {
+          environment: u.ksef.environment,
+          tokenSet: u.ksef.tokenSet,
+          tokenMask: u.ksef.tokenMask,
+          certName: u.ksef.certName,
+          autoValidate: u.ksef.autoValidate,
+        }
+      : null,
+  };
 }
 
 /* ── Hasła ─────────────────────────────────────────────────────────────── */
@@ -45,7 +104,7 @@ export function normalizeEmail(raw: string): string {
   return raw.trim().toLowerCase();
 }
 
-/** Walidacja formatu e-mail + minimalnej długości hasła (bez zdradzania szczegółów). */
+/** Walidacja formatu e-mail + minimalnej długości hasła */
 export function validateCredentials(email: string, password: string): { ok: boolean; reason?: string } {
   const e = normalizeEmail(email);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) || e.length > 254) {
@@ -57,7 +116,7 @@ export function validateCredentials(email: string, password: string): { ok: bool
   return { ok: true };
 }
 
-/* ── Tokeny sesji ───────────────────────────────────────────────────────── */
+/* ── Tokeny i Sesje ─────────────────────────────────────────────────────── */
 
 export function sha256Hex(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -67,16 +126,33 @@ export function generateSessionToken(): string {
   return randomBytes(32).toString("base64url");
 }
 
-export async function createSession(userId: string): Promise<{ token: string; expiresAt: Date }> {
-  const token = generateSessionToken();
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  await prisma.session.create({
-    data: { tokenHash: sha256Hex(token), userId, expiresAt },
-  });
-  return { token, expiresAt };
+export interface CreateSessionMetadata {
+  userAgent?: string | null;
+  ipAddress?: string | null;
 }
 
-/* ── Cookie ─────────────────────────────────────────────────────────────── */
+export async function createSession(
+  userId: string,
+  metadata?: CreateSessionMetadata
+): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
+  const token = generateSessionToken();
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  const tokenHash = sha256Hex(token);
+
+  const session = await prisma.session.create({
+    data: {
+      tokenHash,
+      userId,
+      expiresAt,
+      userAgent: metadata?.userAgent || null,
+      ipAddress: metadata?.ipAddress || null,
+    },
+  });
+
+  return { token, expiresAt, sessionId: session.id };
+}
+
+/* ── Cookie Options ─────────────────────────────────────────────────────── */
 
 export interface SessionCookieOptions {
   maxAge?: number;
@@ -96,21 +172,35 @@ export function sessionCookieOptions(overrides?: SessionCookieOptions): {
     secure: prod && (overrides?.secure ?? true),
     sameSite: "lax",
     path: "/",
-    maxAge: overrides?.maxAge ?? SESSION_TTL_MS / 1000,
+    maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS,
   };
 }
 
 export function clearSessionCookieValue(): string {
-  return `fakturo_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+}
+
+/**
+ * Pomocnicza funkcja wyciągająca User-Agent oraz adres IP z obiektu Request
+ */
+export function extractRequestMetadata(req: Request): CreateSessionMetadata {
+  const userAgent = req.headers.get("user-agent");
+  const ipAddress =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("x-real-ip") ||
+    req.headers.get("cf-connecting-ip") ||
+    null;
+
+  return { userAgent, ipAddress };
 }
 
 /* ── Bieżący użytkownik ─────────────────────────────────────────────────── */
 
-type SessionUser = { user: User; sessionId: string } | null;
+export type SessionUser = { user: FullUserWithRelations; sessionId: string } | null;
 
 /**
- * Odczyt sesji z cookie + weryfikacja w bazie (hash tokena, expiry).
- * Użycie React `cache()` — jedna weryfikacja na request (page + komponenty).
+ * Odczyt sesji z cookie + weryfikacja w bazie Prisma.
+ * React cache() zapewnia wykonanie tylko jednego zapytania DB na cykl żądania.
  */
 export const getSession = cache(async (): Promise<SessionUser> => {
   const store = cookies();
@@ -120,23 +210,33 @@ export const getSession = cache(async (): Promise<SessionUser> => {
   const tokenHash = sha256Hex(token);
   const session = await prisma.session.findUnique({
     where: { tokenHash },
-    include: { user: true },
+    include: {
+      user: {
+        include: {
+          company: true,
+          ksef: true,
+        },
+      },
+    },
   });
+
   if (!session) return null;
+
   if (session.expiresAt.getTime() < Date.now()) {
-    // Wygasła sesja — posprzątaj.
+    // Wygasła sesja — posprzątaj w bazie
     await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
     return null;
   }
+
   return { user: session.user, sessionId: session.id };
 });
 
-export const getSessionUser = cache(async (): Promise<User | null> => {
+export const getSessionUser = cache(async (): Promise<FullUserWithRelations | null> => {
   const s = await getSession();
   return s?.user ?? null;
 });
 
-/** Dla API routes: zwraca user lub null — caller decyduje o statusie 401. */
-export async function requireApiUser(): Promise<{ user: User; sessionId: string } | null> {
+/** Dla API routes: zwraca user lub null */
+export async function requireApiUser(): Promise<SessionUser> {
   return getSession();
 }

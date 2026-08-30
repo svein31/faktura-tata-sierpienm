@@ -1,13 +1,21 @@
 import { getSessionUser, toPublicUser } from "@/lib/auth";
 import { json } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** GET /api/auth/me — bieżący użytkownik (lub 401). */
+/**
+ * GET /api/auth/me
+ * Zwraca dane zalogowanego użytkownika (wraz z konfiguracją KSeF i firmy)
+ */
 export async function GET() {
   const user = await getSessionUser();
   if (!user) {
     return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
   }
-  return json({ user: toPublicUser(user) });
+
+  return json({
+    success: true,
+    user: toPublicUser(user),
+  });
 }

@@ -21,6 +21,8 @@ model User {
   email         String                 @unique
   passwordHash  String
   name          String
+  nip           String?                @default("")
+  companyName   String?                @default("")
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
   sessions      Session[]
@@ -35,14 +37,17 @@ model User {
 }
 
 /// Losowy, nieprzezroczysty token sesji — w bazie przechowywany jest WYŁĄCZNIE
-/// hash SHA-256 tokena (nigdy sam token).
+/// hash SHA-256 tokena (nigdy sam token). Ważność ustawiana na daleką przyszłość (trwała sesja).
 model Session {
   id        String   @id @default(cuid())
   tokenHash String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipAddress String?
   expiresAt DateTime
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
