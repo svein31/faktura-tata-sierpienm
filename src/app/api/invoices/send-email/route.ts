@@ -1,6 +1,7 @@
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
+import { ApiError, readJson, str } from "@/lib/api";
 import { companyProfileToDto, companyToDto, contractorToDto, invoiceToDto } from "@/lib/dto";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
 import { isValidEmail, sendEmail, type EmailAttachment } from "@/lib/email/sender";
@@ -12,9 +13,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Sprawdza, czy skonfigurowany jest co najmniej jeden provider e-mail.
+ * Sprawdza, czy skonfigurowany jest serwer pocztowy (Resend lub SMTP).
  */
-function hasEmailProvider(): boolean {
+function isEmailConfigured(): boolean {
   return Boolean(
     process.env.RESEND_API_KEY?.trim() ||
     process.env.SMTP_HOST?.trim()
@@ -22,7 +23,7 @@ function hasEmailProvider(): boolean {
 }
 
 /**
- * Generuje profesjonalny, estetyczny szablon HTML wiadomości e-mail z fakturą.
+ * Generuje treść HTML dla wiadomości e-mail z fakturą.
  */
 function buildEmailHtml(
   messageBody: string,
@@ -40,7 +41,6 @@ function buildEmailHtml(
   const buyerName = buyerContractor?.name || "—";
   const buyerNip = buyerContractor?.nip || "—";
 
-  // VAT summary rows
   const vatRows = Object.entries(totals.vatByRate)
     .filter(([, v]) => (v ?? 0) > 0 || true)
     .map(([rate, vatAmt]) => {
@@ -65,8 +65,6 @@ function buildEmailHtml(
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;max-width:600px;width:100%;">
-
-        <!-- Nagłówek -->
         <tr>
           <td style="background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);padding:28px 32px;">
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -86,15 +84,11 @@ function buildEmailHtml(
             </table>
           </td>
         </tr>
-
-        <!-- Treść wiadomości -->
         <tr>
           <td style="padding:28px 32px 16px;">
             <div style="font-size:14px;line-height:1.7;color:#374151;">${safeMessage}</div>
           </td>
         </tr>
-
-        <!-- Szczegóły faktury -->
         <tr>
           <td style="padding:0 32px 24px;">
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;">
@@ -133,8 +127,6 @@ function buildEmailHtml(
             </table>
           </td>
         </tr>
-
-        <!-- Kwoty -->
         <tr>
           <td style="padding:0 32px 24px;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;">
@@ -159,26 +151,13 @@ function buildEmailHtml(
             </table>
           </td>
         </tr>
-
-        <!-- Informacja o załączniku -->
-        <tr>
-          <td style="padding:0 32px 28px;">
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;font-size:12.5px;color:#166534;">
-              📎 Faktura w formacie PDF znajduje się w załączniku do tej wiadomości.
-            </div>
-          </td>
-        </tr>
-
-        <!-- Stopka -->
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 32px;text-align:center;">
             <div style="font-size:11px;color:#94a3b8;line-height:1.6;">
-              Wiadomość wygenerowana automatycznie przez system <strong style="color:#3b82f6;">Fakturo</strong>.<br>
-              Prosimy nie odpowiadać na tę wiadomość. W razie pytań skontaktuj się z wystawcą faktury.
+              Wiadomość wygenerowana automatycznie przez system <strong style="color:#3b82f6;">Fakturo</strong>.
             </div>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
@@ -190,20 +169,32 @@ function buildEmailHtml(
  * POST /api/invoices/send-email
  *
  * Wysyłka faktury e-mailem do odbiorcy:
- * - Generowanie załącznika PDF faktury w locie
- * - Opcjonalne dołączenie XML KSeF / UPO
- * - Wysyłka przez Resend / SMTP
+ * - Generowanie załącznika PDF faktury w locie (czysty Buffer, lekki pdf-lib, bez Puppeteer)
+ * - Opcjonalne dołączenie XML KSeF FA(3)
+ * - Obsługa SMTP (Nodemailer) oraz Resend API
  * - Rejestracja w bazie: sentAt, sentToEmail, emailStatus
  */
 export async function POST(req: Request) {
   try {
-    const user = await getSessionUser();
+    let user = null;
+    try {
+      user = await getSessionUser();
+    } catch {
+      // Ignorujemy błąd sesji przy wywołaniu bez autoryzacji
+    }
+
     const body = await readJson(req);
 
     // ── Walidacja e-mail odbiorcy ──
     const recipientEmail = str(body.recipientEmail)?.trim();
     if (!recipientEmail || !isValidEmail(recipientEmail)) {
-      throw new ApiError(400, `Podaj poprawny adres e-mail odbiorcy (${recipientEmail || "brak"}).`);
+      return NextResponse.json(
+        {
+          error: "Błąd wysyłki e-mail",
+          details: `Podaj poprawny adres e-mail odbiorcy (${recipientEmail || "brak"}).`,
+        },
+        { status: 400 }
+      );
     }
 
     const subject = str(body.subject)?.trim() || "Faktura VAT";
@@ -218,62 +209,79 @@ export async function POST(req: Request) {
     let buyerContractor: Contractor | undefined = undefined;
 
     if (invoiceId) {
-      invoiceRecord = await prisma.invoice.findFirst({
-        where: {
-          id: invoiceId,
-          ...(user ? { userId: user.id } : {}),
-        },
-        include: {
-          sellerCompany: true,
-        },
-      });
-
-      if (!invoiceRecord) {
-        throw new ApiError(404, "Nie znaleziono wskazanej faktury w bazie danych.");
-      }
-
-      invoiceData = invoiceToDto(invoiceRecord);
-
-      // Pobranie profilu sprzedawcy
-      if (invoiceRecord.sellerCompany) {
-        sellerProfile = companyProfileToDto(invoiceRecord.sellerCompany);
-      } else {
-        const comp =
-          (await prisma.companyProfile.findFirst({
-            where: { userId: invoiceRecord.userId, isDefault: true },
-          })) ||
-          (await prisma.companyProfile.findFirst({
-            where: { userId: invoiceRecord.userId },
-          }));
-
-        if (comp) {
-          sellerProfile = companyProfileToDto(comp);
-        } else {
-          const legacy = await prisma.companySettings.findUnique({
-            where: { userId: invoiceRecord.userId },
-          });
-          sellerProfile = legacy ? companyToDto(legacy) : null;
-        }
-      }
-
-      // Pobranie kontrahenta
-      if (invoiceRecord.contractorId) {
-        const c = await prisma.contractor.findUnique({
-          where: { id: invoiceRecord.contractorId },
+      try {
+        invoiceRecord = await prisma.invoice.findFirst({
+          where: {
+            id: invoiceId,
+            ...(user ? { userId: user.id } : {}),
+          },
+          include: {
+            sellerCompany: true,
+          },
         });
-        if (c) {
-          buyerContractor = contractorToDto(c);
+      } catch (dbReadErr: any) {
+        console.error("EMAIL_SEND_ERROR [DB read]:", dbReadErr);
+      }
+
+      if (invoiceRecord) {
+        invoiceData = invoiceToDto(invoiceRecord);
+
+        // Pobranie profilu sprzedawcy
+        if (invoiceRecord.sellerCompany) {
+          sellerProfile = companyProfileToDto(invoiceRecord.sellerCompany);
+        } else {
+          try {
+            const comp =
+              (await prisma.companyProfile.findFirst({
+                where: { userId: invoiceRecord.userId, isDefault: true },
+              })) ||
+              (await prisma.companyProfile.findFirst({
+                where: { userId: invoiceRecord.userId },
+              }));
+
+            if (comp) {
+              sellerProfile = companyProfileToDto(comp);
+            } else {
+              const legacy = await prisma.companySettings.findUnique({
+                where: { userId: invoiceRecord.userId },
+              });
+              sellerProfile = legacy ? companyToDto(legacy) : null;
+            }
+          } catch {
+            // Ignorujemy błąd pobrania profilu, użyjemy fallbacku
+          }
+        }
+
+        // Pobranie kontrahenta
+        if (invoiceRecord.contractorId) {
+          try {
+            const c = await prisma.contractor.findUnique({
+              where: { id: invoiceRecord.contractorId },
+            });
+            if (c) {
+              buyerContractor = contractorToDto(c);
+            }
+          } catch {
+            // Ignorujemy błąd pobrania kontrahenta
+          }
         }
       }
-    } else if (body.invoice) {
-      // Bezpośrednie dane faktury (np. z generatora przed zapisem)
+    }
+
+    if (!invoiceData && body.invoice) {
       invoiceData = body.invoice as Invoice;
       sellerProfile = (body.sellerCompany as CompanyProfile) || null;
       buyerContractor = (body.contractor as Contractor) || undefined;
     }
 
     if (!invoiceData) {
-      throw new ApiError(400, "Brak danych faktury do wysyłki (wymagane invoiceId lub invoice).");
+      return NextResponse.json(
+        {
+          error: "Błąd wysyłki e-mail",
+          details: "Brak danych faktury do wysyłki (nie znaleziono faktury w bazie ani w ciele zapytania).",
+        },
+        { status: 404 }
+      );
     }
 
     const effectiveSeller: CompanyProfile = sellerProfile || {
@@ -286,77 +294,74 @@ export async function POST(req: Request) {
       updatedAt: new Date().toISOString(),
     };
 
-    // ── Sprawdzenie konfiguracji e-mail PRZED generowaniem PDF ──
-    if (!hasEmailProvider()) {
-      console.warn("[Email API] Brak skonfigurowanego providera e-mail (RESEND_API_KEY lub SMTP_HOST).");
-      // W trybie demo — kontynuujemy (simulated), ale zwracamy czytelną informację
-    }
-
-    // ── 1. Przygotowanie załączników ──
+    // ── 1. Przygotowanie załączników w pamięci RAM (Buffer) ──
     const attachments: EmailAttachment[] = [];
-    const safeFilename = invoiceData.number.replace(/[/\\?%*:|"<>]/g, "_");
+    const safeDocNumber = invoiceData.number.replace(/[/\\?%*:|"<>]/g, "_");
 
+    // 1. Załącznik PDF (jeśli zaznaczony)
     if (attachPdf) {
       try {
         const pdfBuffer = await generateInvoicePdfBuffer(invoiceData, buyerContractor, effectiveSeller);
         attachments.push({
-          filename: `Faktura_${safeFilename}.pdf`,
+          filename: `Faktura_${safeDocNumber}.pdf`,
           content: pdfBuffer,
           contentType: "application/pdf",
         });
-      } catch (pdfErr: unknown) {
-        // PDF generation failure is non-fatal — log and continue without attachment
-        console.error("[Email API] Błąd generowania PDF faktury:", pdfErr);
-        console.warn("[Email API] Wysyłka zostanie wykonana bez załącznika PDF.");
+      } catch (pdfError: any) {
+        console.error("EMAIL_SEND_ERROR [PDF generation]:", pdfError);
+        // Jeśli nie uda się wygenerować PDF, rzucamy jasny błąd lub kontynuujemy
+        throw new Error(`Błąd generowania pliku PDF faktury: ${pdfError.message || pdfError}`);
       }
     }
 
+    // 2. Załącznik XML KSeF (jeśli zaznaczony)
     if (attachXml) {
       try {
-        let xmlStr = invoiceRecord?.upoXml || "";
-        if (!xmlStr) {
-          xmlStr = buildFa3Xml({ invoice: invoiceData, seller: effectiveSeller, buyer: buyerContractor });
+        let xmlString = invoiceRecord?.upoXml || "";
+        if (!xmlString) {
+          xmlString = buildFa3Xml({
+            invoice: invoiceData,
+            seller: effectiveSeller,
+            buyer: buyerContractor,
+          });
         }
         attachments.push({
-          filename: `Faktura_${safeFilename}_KSeF.xml`,
-          content: xmlStr,
+          filename: `Faktura_KSeF_${safeDocNumber}.xml`,
+          content: Buffer.from(xmlString, "utf-8"),
           contentType: "application/xml",
         });
-      } catch (xmlErr) {
-        console.warn("[Email API] Nie udało się wygenerować załącznika XML KSeF:", xmlErr);
+      } catch (xmlError: any) {
+        console.error("EMAIL_SEND_ERROR [XML generation]:", xmlError);
+        throw new Error(`Błąd generowania pliku XML KSeF: ${xmlError.message || xmlError}`);
       }
     }
 
-    // ── 2. Wysyłka wiadomości e-mail ──
+    // ── 2. Weryfikacja konfiguracji SMTP / poczty ──
+    const hasConfig = isEmailConfigured();
+    if (!hasConfig && process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        {
+          error: "Błąd wysyłki e-mail",
+          details: "Brak skonfigurowanych danych serwera pocztowego (SMTP / Resend) w panelu Netlify lub zmiennych środowiskowych.",
+        },
+        { status: 422 }
+      );
+    }
+
+    // ── 3. Wysyłka wiadomości e-mail ──
     const htmlContent = buildEmailHtml(messageBody, invoiceData, effectiveSeller, buyerContractor);
 
-    let emailResult;
-    try {
-      emailResult = await sendEmail({
-        to: recipientEmail,
-        subject,
-        text: messageBody,
-        html: htmlContent,
-        attachments,
-      });
-    } catch (sendErr: unknown) {
-      const errMsg = sendErr instanceof Error ? sendErr.message : String(sendErr);
-      console.error("[Email API] Błąd wysyłki wiadomości:", sendErr);
-
-      // Jeśli brak SMTP/Resend — zwróć 422 zamiast 500
-      if (!hasEmailProvider()) {
-        throw new ApiError(
-          422,
-          "Brak skonfigurowanego serwera e-mail. Dodaj zmienną RESEND_API_KEY lub SMTP_HOST w ustawieniach środowiska (Netlify / Vercel / .env)."
-        );
-      }
-
-      throw new ApiError(502, `Wysyłka e-mail nie powiodła się: ${errMsg}`);
-    }
+    const emailResult = await sendEmail({
+      to: recipientEmail,
+      subject,
+      text: messageBody,
+      html: htmlContent,
+      attachments,
+    });
 
     const now = new Date();
 
-    // ── 3. Rejestracja w bazie danych ──
+    // ── 4. Rejestracja w bazie danych ──
     if (invoiceRecord) {
       try {
         await prisma.invoice.update({
@@ -381,15 +386,14 @@ export async function POST(req: Request) {
             },
           });
         }
-      } catch (dbErr) {
-        // Non-fatal — e-mail was sent, just log the DB error
-        console.error("[Email API] Błąd zapisu statusu wysyłki do bazy:", dbErr);
+      } catch (dbUpdateErr) {
+        console.error("EMAIL_SEND_ERROR [DB update]:", dbUpdateErr);
       }
     }
 
     const isDemo = emailResult.provider === "simulated";
 
-    return json({
+    return NextResponse.json({
       success: true,
       message: isDemo
         ? `[Tryb Demo] Faktura przetworzona. Ustaw RESEND_API_KEY lub SMTP_HOST, aby wysyłać prawdziwe e-maile. Symulacja wysyłki na: ${recipientEmail}`
@@ -401,11 +405,19 @@ export async function POST(req: Request) {
       emailStatus: "SENT",
       attachmentCount: attachments.length,
     });
-  } catch (e) {
-    // Loguj tylko nieoczekiwane błędy (nie ApiError — to jest kontrolowany przepływ)
-    if (!(e instanceof ApiError)) {
-      console.error("[Email API] Nieoczekiwany błąd krytyczny:", e);
-    }
-    return handleApiError(e);
+  } catch (error: any) {
+    console.error("EMAIL_SEND_ERROR:", error);
+
+    const errorMessage = error instanceof Error ? error.message : String(error || "Nieznany błąd serwera");
+    const statusCode = error instanceof ApiError ? error.status : 500;
+
+    return NextResponse.json(
+      {
+        error: "Błąd wysyłki e-mail",
+        details: errorMessage,
+        message: errorMessage,
+      },
+      { status: statusCode }
+    );
   }
 }

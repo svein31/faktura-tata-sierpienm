@@ -29,12 +29,22 @@ function cleanText(text: string | number | undefined | null): string {
  */
 export async function generateInvoicePdfBuffer(
   invoice: Invoice,
-  contractor: Contractor | undefined,
-  company: CompanyProfile
+  contractor?: Contractor | undefined,
+  company?: CompanyProfile | undefined
 ): Promise<Buffer> {
+  const effectiveCompany: CompanyProfile = company || {
+    id: "default",
+    userId: "default",
+    nip: "",
+    companyName: "Moja Firma",
+    isDefault: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(`Faktura ${invoice.number}`);
-  pdfDoc.setAuthor(company.companyName || company.name || "Fakturo");
+  pdfDoc.setAuthor(effectiveCompany.companyName || effectiveCompany.name || "Fakturo");
 
   const page = pdfDoc.addPage([595.28, 841.89]); // A4 (points)
   const { width, height } = page.getSize();
@@ -108,18 +118,18 @@ export async function generateInvoicePdfBuffer(
 
   // ── Sprzedawca i Nabywca ──
   const colWidth = (width - 95) / 2;
-  const compName = company.companyName || company.name || "—";
+  const compName = effectiveCompany.companyName || effectiveCompany.name || "—";
   const sellerName = invoice.type === "sale" ? compName : (contractor?.name ?? "—");
   const buyerName = invoice.type === "sale" ? (contractor?.name ?? "—") : compName;
 
-  const streetPart = [company.street, company.buildingNumber].filter(Boolean).join(" ");
-  const compStreet = company.flatNumber ? `${streetPart}/${company.flatNumber}` : (streetPart || company.street || "");
-  const compCity = company.city || "";
-  const compPostal = company.postalCode || company.postal || "";
-  const compIban = company.bankAccount || company.iban || "";
+  const streetPart = [effectiveCompany.street, effectiveCompany.buildingNumber].filter(Boolean).join(" ");
+  const compStreet = effectiveCompany.flatNumber ? `${streetPart}/${effectiveCompany.flatNumber}` : (streetPart || effectiveCompany.street || "");
+  const compCity = effectiveCompany.city || "";
+  const compPostal = effectiveCompany.postalCode || effectiveCompany.postal || "";
+  const compIban = effectiveCompany.bankAccount || effectiveCompany.iban || "";
 
-  const sellerNip = invoice.type === "sale" ? (company.nip || "—") : (contractor?.nip ?? "—");
-  const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : (company.nip || "—");
+  const sellerNip = invoice.type === "sale" ? (effectiveCompany.nip || "—") : (contractor?.nip ?? "—");
+  const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : (effectiveCompany.nip || "—");
 
   const sellerAddrStr = invoice.type === "sale" 
     ? `${compStreet}, ${compPostal} ${compCity}`

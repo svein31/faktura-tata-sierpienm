@@ -45,6 +45,7 @@ export interface Fa3TotalsBreakdown {
   rate0: Fa3RateTotals;
   rateZw: Fa3RateTotals;
   rateNp: Fa3RateTotals;
+  rateOo: Fa3RateTotals;
   totalNet: number;
   totalVat: number;
   totalGross: number;
@@ -63,6 +64,7 @@ export function calculateFa3Totals(lines: InvoiceLine[]): Fa3TotalsBreakdown {
     rate0: initRate(),
     rateZw: initRate(),
     rateNp: initRate(),
+    rateOo: initRate(),
     totalNet: 0,
     totalVat: 0,
     totalGross: 0,
@@ -104,6 +106,10 @@ export function calculateFa3Totals(lines: InvoiceLine[]): Fa3TotalsBreakdown {
       case "np":
         totals.rateNp.net = round2(totals.rateNp.net + net);
         totals.rateNp.gross = round2(totals.rateNp.gross + gross);
+        break;
+      case "oo":
+        totals.rateOo.net = round2(totals.rateOo.net + net);
+        totals.rateOo.gross = round2(totals.rateOo.gross + gross);
         break;
     }
   }
@@ -234,7 +240,7 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
     <PrefiksPodatnika>PL</PrefiksPodatnika>
     <DaneIdentyfikacyjne>
       <NIP>${sellerNip}</NIP>
-      <Nazwa>${esc(seller.name)}</Nazwa>
+      <Nazwa>${esc(seller.companyName || seller.name || "Wystawca")}</Nazwa>
     </DaneIdentyfikacyjne>
     <Adres>
       <KodKraju>${esc(sellerCountry)}</KodKraju>

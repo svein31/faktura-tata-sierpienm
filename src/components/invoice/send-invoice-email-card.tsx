@@ -102,7 +102,7 @@ export function SendInvoiceEmailCard({
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        const errMsg = data.message || data.error || "Wystąpił błąd podczas wysyłki.";
+        const errMsg = data.details || data.message || data.error || "Wystąpił błąd podczas wysyłki.";
         throw new Error(errMsg);
       }
 
