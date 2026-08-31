@@ -402,7 +402,10 @@ export async function POST(req: Request) {
       attachmentCount: attachments.length,
     });
   } catch (e) {
-    console.error("[Email API] Nieobsłużony błąd:", e);
+    // Loguj tylko nieoczekiwane błędy (nie ApiError — to jest kontrolowany przepływ)
+    if (!(e instanceof ApiError)) {
+      console.error("[Email API] Nieoczekiwany błąd krytyczny:", e);
+    }
     return handleApiError(e);
   }
 }
