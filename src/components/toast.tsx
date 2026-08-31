@@ -25,8 +25,14 @@ export function useToast() {
 
 const icons: Record<ToastKind, React.ReactNode> = {
   success: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-  error: <XCircle className="h-4 w-4 text-red-500" />,
+  error: <XCircle className="h-4 w-4 text-rose-500" />,
   info: <Info className="h-4 w-4 text-sky-500" />,
+};
+
+const kindStyles: Record<ToastKind, string> = {
+  success: "border-emerald-500/30 bg-card/90 shadow-emerald-500/5",
+  error: "border-rose-500/30 bg-card/90 shadow-rose-500/5",
+  info: "border-sky-500/30 bg-card/90 shadow-sky-500/5",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -43,28 +49,26 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="no-print pointer-events-none fixed bottom-4 right-4 z-[60] flex w-[min(92vw,360px)] flex-col gap-2">
+      <div className="no-print pointer-events-none fixed bottom-5 right-5 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
         <AnimatePresence>
           {toasts.map((t) => (
             <motion.div
               key={t.id}
               layout
-              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 24, scale: 0.97 }}
-              transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
+              exit={{ opacity: 0, x: 20, scale: 0.95 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
               className={cn(
-                "pointer-events-auto flex items-start gap-3 rounded-lg border bg-card p-3 shadow-lg",
-                t.kind === "success" && "border-emerald-500/30",
-                t.kind === "error" && "border-red-500/30",
-                t.kind === "info" && "border-sky-500/30"
+                "pointer-events-auto flex items-start gap-3 rounded-2xl border p-3.5 shadow-xl backdrop-blur-xl",
+                kindStyles[t.kind]
               )}
             >
-              <div className="mt-0.5 shrink-0">{icons[t.kind]}</div>
+              <div className="mt-0.5 shrink-0 rounded-lg p-1 bg-muted/50">{icons[t.kind]}</div>
               <div className="min-w-0">
-                <p className="text-[13px] font-semibold leading-tight">{t.title}</p>
+                <p className="text-[13px] font-semibold leading-tight text-foreground">{t.title}</p>
                 {t.description && (
-                  <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
+                  <p className="mt-1 text-[12px] leading-snug text-muted-foreground">
                     {t.description}
                   </p>
                 )}

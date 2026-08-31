@@ -56,15 +56,17 @@ function MiniStat({
   icon: React.ReactNode;
 }) {
   return (
-    <Card>
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-[12px] text-muted-foreground">{label}</p>
-          <p className="text-[17px] font-bold tabular-nums leading-tight">{value}</p>
-          {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
+    <Card className="rounded-2xl border border-indigo-500/20 bg-card/70 backdrop-blur-md shadow-sm">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="mt-2 text-[22px] font-bold tabular-nums leading-none text-foreground">{value}</p>
+            {sub && <p className="mt-1.5 text-[11px] text-muted-foreground truncate">{sub}</p>}
+          </div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/12 text-indigo-500 ring-1 ring-inset ring-indigo-500/20">
+            {icon}
+          </div>
         </div>
       </CardContent>
     </Card>

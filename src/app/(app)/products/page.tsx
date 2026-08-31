@@ -112,16 +112,16 @@ export default function ProductsPage() {
       />
 
       <div className="relative mb-4 max-w-md">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Szukaj: nazwa, SKU, opis…"
-          className="pl-8"
+          className="pl-9 h-9"
         />
       </div>
 
-      <Card>
+      <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-[13px]">
             <thead>
@@ -147,7 +147,7 @@ export default function ProductsPage() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
                           <Package className="h-4 w-4" />
                         </div>
                         <div>
@@ -212,7 +212,7 @@ export default function ProductsPage() {
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       <Dialog
         open={dialogOpen}

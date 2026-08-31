@@ -197,21 +197,21 @@ export default function InvoicesPage() {
       />
 
       {/* Filtry */}
-      <Card className="mb-4 p-3">
+      <div className="mb-4 rounded-2xl border border-border/60 bg-card/70 p-3 backdrop-blur-md shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[220px] flex-1">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Szukaj: numer, kontrahent, NIP, uwagi…"
-              className="pl-8"
+              placeholder="Szukaj: numer, kontrahent, NIP…"
+              className="pl-9 h-9"
             />
           </div>
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | EffectiveStatus)}
-            className="w-auto min-w-[150px]"
+            className="w-auto min-w-[150px] h-9"
             aria-label="Filtr statusu"
           >
             {STATUS_FILTERS.map((s) => (
@@ -223,7 +223,7 @@ export default function InvoicesPage() {
           <Select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as "all" | InvoiceType)}
-            className="w-auto"
+            className="w-auto h-9"
             aria-label="Filtr typu"
           >
             <option value="all">Sprzedaż + zakup</option>
@@ -233,7 +233,7 @@ export default function InvoicesPage() {
           <Select
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
-            className="w-auto"
+            className="w-auto h-9"
             aria-label="Filtr waluty"
           >
             <option value="all">Wszystkie waluty</option>
@@ -256,12 +256,13 @@ export default function InvoicesPage() {
             </Button>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Lista */}
-      <Card>
-        <div className="flex items-center justify-between border-b border-border px-4 py-2.5 text-[11.5px] text-muted-foreground">
-          <span>
+      <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5 text-[11.5px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Filter className="h-3.5 w-3.5" />
             Znaleziono: <b className="text-foreground">{filtered.length}</b>{" "}
             {filtered.length === 1 ? "dokument" : "dokumentów"}
           </span>
@@ -374,8 +375,11 @@ export default function InvoicesPage() {
           </table>
           {filtered.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <FileText className="h-6 w-6" />
+              <div className="relative flex h-14 w-14 items-center justify-center">
+                <div className="absolute inset-0 rounded-2xl bg-primary/8 blur-xl" />
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                  <FileText className="h-6 w-6" />
+                </div>
               </div>
               <div>
                 <p className="text-[15px] font-semibold text-foreground">
@@ -383,7 +387,7 @@ export default function InvoicesPage() {
                 </p>
                 <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
                   {invoices.length === 0
-                    ? "Wystaw pierwszy dokument sprzedaży w formacie FA(3) z bezpośrednią wysyłką do KSeF."
+                    ? "Wystaw pierwszy dokument sprzedaży w formacie FA(3) z bezpośredną wysyłką do KSeF."
                     : "Zmień parametry wyszukiwania lub filtry statusu/waluty."}
                 </p>
               </div>
@@ -393,7 +397,7 @@ export default function InvoicesPage() {
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       <ConfirmDialog
         open={!!toDelete}

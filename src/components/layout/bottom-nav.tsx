@@ -9,8 +9,6 @@ import {
   FileText,
   LayoutDashboard,
   Plus,
-  Receipt,
-  ShieldCheck,
   UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,7 +34,7 @@ export function BottomNav() {
       aria-label="Nawigacja mobilna"
       className="no-print fixed inset-x-0 bottom-0 z-40 block md:hidden"
     >
-      <div className="mx-auto border-t border-border/60 bg-background/85 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl dark:bg-slate-950/85">
+      <div className="border-t border-border/60 bg-background/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl">
         <div className="flex items-center justify-around">
           {NAV_ITEMS.map((item) => {
             const active = item.exact
@@ -48,17 +46,18 @@ export function BottomNav() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="group relative -mt-4 flex min-h-[48px] min-w-[48px] flex-col items-center justify-center"
+                  className="group relative -mt-5 flex min-h-[48px] min-w-[48px] flex-col items-center justify-center"
                   aria-label="Wystaw nową fakturę"
                 >
                   <motion.div
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.88 }}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-4 ring-background"
+                    className="flex h-13 w-13 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background"
+                    style={{ width: "3.25rem", height: "3.25rem" }}
                   >
                     <Plus className="h-6 w-6 stroke-[2.5]" />
                   </motion.div>
-                  <span className="mt-0.5 text-[10px] font-semibold text-primary">
+                  <span className="mt-0.5 text-[9.5px] font-semibold text-primary">
                     {item.label}
                   </span>
                 </Link>
@@ -72,7 +71,7 @@ export function BottomNav() {
                 className={cn(
                   "relative flex min-h-[44px] min-w-[48px] flex-1 flex-col items-center justify-center py-1 text-center transition-colors active:scale-95",
                   active
-                    ? "text-primary font-semibold"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -80,7 +79,7 @@ export function BottomNav() {
                   {active && (
                     <motion.div
                       layoutId="bottom-nav-active"
-                      className="absolute inset-0 -m-1 rounded-full bg-primary/10"
+                      className="absolute inset-0 -m-1.5 rounded-xl bg-primary/10"
                       transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
                     />
                   )}
@@ -89,7 +88,7 @@ export function BottomNav() {
                     strokeWidth={active ? 2.4 : 1.8}
                   />
                 </div>
-                <span className="relative z-10 mt-1 text-[10px] leading-none tracking-tight">
+                <span className="relative z-10 mt-1 text-[9.5px] font-medium leading-none tracking-tight">
                   {item.label}
                 </span>
               </Link>

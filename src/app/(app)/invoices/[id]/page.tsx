@@ -117,39 +117,49 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     <div>
       <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.push("/invoices")} aria-label="Wróć">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/invoices")}
+            aria-label="Wróć"
+            className="rounded-xl hover:bg-muted/60"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold tracking-tight">{invoice.number}</h2>
-              <Badge className={STATUS_META[status].color}>{STATUS_META[status].label}</Badge>
+              <h2 className="text-[18px] font-bold tracking-tight text-foreground">{invoice.number}</h2>
+              <Badge className={STATUS_META[status].color}>
+                <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[status].dot}`} />
+                {STATUS_META[status].label}
+              </Badge>
             </div>
-            <p className="text-[12px] text-muted-foreground">
+            <p className="text-[11.5px] text-muted-foreground">
               {invoice.type === "sale" ? "Faktura sprzedaży" : "Faktura zakupowa"} ·{" "}
               {formatDateTime(invoice.createdAt)}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <Button variant="outline" size="sm" onClick={exports.exportPdf}>
+          <Button variant="outline" size="sm" onClick={exports.exportPdf} className="rounded-xl">
             <Printer className="h-3.5 w-3.5" /> PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportHtml}>
+          <Button variant="outline" size="sm" onClick={exports.exportHtml} className="rounded-xl">
             <FileDown className="h-3.5 w-3.5" /> HTML
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportXml}>
+          <Button variant="outline" size="sm" onClick={exports.exportXml} className="rounded-xl">
             <FileCode2 className="h-3.5 w-3.5" /> XML FA(2)
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportJson}>
+          <Button variant="outline" size="sm" onClick={exports.exportJson} className="rounded-xl">
             <FileJson2 className="h-3.5 w-3.5" /> JSON
           </Button>
-          <Button variant="outline" size="sm" onClick={handleEdit}>
+          <Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl">
             <Pencil className="h-3.5 w-3.5" /> Edytuj
           </Button>
           <Button
             variant="outline"
             size="sm"
+            className="rounded-xl"
             onClick={() => {
               const el = document.getElementById("send-email-section");
               if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -158,12 +168,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             <Mail className="h-3.5 w-3.5" /> Wyślij e-mail
           </Button>
           {status !== "paid" && status !== "draft" && (
-            <Button variant="subtle" size="sm" onClick={handleMarkPaid}>
+            <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl">
               <CheckCircle2 className="h-3.5 w-3.5" /> Oznacz opłaconą
             </Button>
           )}
           {!invoice.ksef && (
-            <Button variant="subtle" size="sm" onClick={handleSendKsef} loading={sending}>
+            <Button variant="subtle" size="sm" onClick={handleSendKsef} loading={sending} className="rounded-xl">
               <Send className="h-3.5 w-3.5" /> Wyślij do KSeF (demo)
             </Button>
           )}
@@ -171,7 +181,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             variant="ghost"
             size="sm"
             onClick={() => setConfirmDelete(true)}
-            className="text-muted-foreground hover:text-red-500"
+            className="rounded-xl text-muted-foreground hover:text-rose-500"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -181,22 +191,24 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       {/* KSeF info */}
       {invoice.ksef && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print mb-4">
-          <Card className="border-accent/30 bg-accent/5">
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                <BadgeCheck className="h-5 w-5 text-accent" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-500 ring-1 ring-emerald-500/20">
+                  <BadgeCheck className="h-5 w-5" />
+                </div>
                 <div>
-                  <p className="text-[13.5px] font-semibold">
+                  <p className="text-[13px] font-semibold text-foreground">
                     Dokument w KSeF · numer:{" "}
-                    <span className="font-mono text-accent">{invoice.ksef.number}</span>
+                    <span className="font-mono text-emerald-500">{invoice.ksef.number}</span>
                   </p>
-                  <p className="text-[11.5px] text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     Status: {invoice.ksef.status} · wysłano: {formatDateTime(invoice.ksef.sentAt)} ·{" "}
                     środowisko: {invoice.ksef.environment}
                   </p>
                 </div>
               </div>
-              <Badge tone="accent">KSeF {invoice.ksef.status}</Badge>
+              <Badge tone="success">KSeF {invoice.ksef.status}</Badge>
             </CardContent>
           </Card>
         </motion.div>
@@ -207,22 +219,22 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       </div>
 
       <div className="no-print mt-4 grid gap-3 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-[11px] text-muted-foreground">Netto</p>
-            <p className="text-[16px] font-bold tabular-nums">{formatMoney(totals.net, invoice.currency)}</p>
+        <Card className="rounded-2xl border border-border/60 bg-card/70">
+          <CardContent className="p-5 text-center">
+            <p className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">Netto</p>
+            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-foreground">{formatMoney(totals.net, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-[11px] text-muted-foreground">VAT</p>
-            <p className="text-[16px] font-bold tabular-nums">{formatMoney(totals.vat, invoice.currency)}</p>
+        <Card className="rounded-2xl border border-border/60 bg-card/70">
+          <CardContent className="p-5 text-center">
+            <p className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">VAT</p>
+            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-foreground">{formatMoney(totals.vat, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-[11px] text-primary">Brutto</p>
-            <p className="text-[16px] font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
+        <Card className="rounded-2xl border border-primary/30 bg-primary/5">
+          <CardContent className="p-5 text-center">
+            <p className="text-[10.5px] font-medium uppercase tracking-wider text-primary/70">Brutto</p>
+            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
           </CardContent>
         </Card>
       </div>

@@ -14,26 +14,27 @@ const ThemeContext = React.createContext<{
 const STORAGE_KEY = "fakturo-theme";
 
 export function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "system";
+  if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
   if (stored === "light" || stored === "dark" || stored === "system") return stored;
-  return "system";
+  return "dark";
 }
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;
   const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const dark = theme === "dark" || (theme === "system" && systemDark);
+  const dark = theme === "dark" || (theme === "system" ? systemDark : false);
   root.classList.toggle("dark", dark);
   root.style.colorScheme = dark ? "dark" : "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("system");
-  const [resolved, setResolved] = React.useState<"light" | "dark">("light");
+  const [theme, setThemeState] = React.useState<Theme>("dark");
+  const [resolved, setResolved] = React.useState<"light" | "dark">("dark");
 
   React.useEffect(() => {
-    setThemeState(getInitialTheme());
+    const init = getInitialTheme();
+    setThemeState(init);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const update = () => {
       const t = getInitialTheme();
@@ -56,9 +57,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggle = React.useCallback(() => {
     const cur = getInitialTheme();
-    const next: Theme = cur === "dark" || (cur === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ? "light"
-      : "dark";
+    const next: Theme = cur === "dark" ? "light" : "dark";
     setTheme(next);
   }, [setTheme]);
 

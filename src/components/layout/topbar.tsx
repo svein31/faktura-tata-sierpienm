@@ -4,15 +4,13 @@ import * as React from "react";
 import Link from "next/link";
 import { Menu, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { FlaskConical } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-center";
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 
 const TITLES: Array<{ re: RegExp; title: string }> = [
-  { re: /^\/$/, title: "Dashboard" },
+  { re: /^\/$/, title: "Pulpit" },
   { re: /^\/invoices\/new/, title: "Nowa faktura" },
   { re: /^\/invoices\/(?!new)/, title: "Faktura" },
   { re: /^\/invoices/, title: "Faktury" },
@@ -21,7 +19,7 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/settings\/companies/, title: "Moje Firmy / Spółki" },
   { re: /^\/settings/, title: "Ustawienia" },
   { re: /^\/analytics/, title: "Analityka" },
-  { re: /^\/ksef/, title: "Ustawienia KSeF" },
+  { re: /^\/ksef/, title: "Centrum KSeF" },
 ];
 
 export function Topbar({ onMenu }: { onMenu: () => void }) {
@@ -49,23 +47,24 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="no-print sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl dark:bg-slate-950/80 sm:px-6">
+    <header className="no-print sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-xl sm:px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenu}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted active:scale-95 lg:hidden"
+          className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted/60 active:scale-95 lg:hidden"
           aria-label="Otwórz menu"
         >
           <Menu className="h-5 w-5" />
         </button>
         <div className="leading-tight">
-          <h1 className="text-[15px] font-semibold tracking-tight sm:text-base">{title}</h1>
-          <p className="hidden text-[12px] text-muted-foreground sm:block">
+          <h1 className="text-[14px] font-semibold tracking-tight text-foreground sm:text-[15px]">
+            {title}
+          </h1>
+          <p className="hidden text-[11px] text-muted-foreground sm:block">
             {new Date().toLocaleDateString("pl-PL", {
               weekday: "long",
               day: "numeric",
               month: "long",
-              year: "numeric",
             })}
           </p>
         </div>
@@ -75,27 +74,31 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <NotificationBell />
         <ThemeToggle />
 
-        {/* Profil użytkownika + przejście do Ustawień Konta + wylogowanie */}
-        <div className="ml-1 flex items-center gap-1 rounded-full border border-border/70 py-1 pl-1 pr-1.5 bg-card/60 shadow-2xs backdrop-blur-md">
+        {/* Profil użytkownika + wylogowanie */}
+        <div className="ml-1 flex items-center gap-0.5 rounded-xl border border-border/60 bg-card/50 py-1 pl-1 pr-1 shadow-2xs backdrop-blur-md">
           <Link
             href="/settings/account"
             prefetch={true}
             title="Przejdź do Ustawień Konta"
-            className="flex items-center gap-2 rounded-full py-0.5 pl-0.5 pr-2 transition-all hover:bg-muted/70 active:scale-95"
+            className="flex items-center gap-2 rounded-lg px-1.5 py-0.5 transition-all hover:bg-muted/60 active:scale-95"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10.5px] font-bold text-white shadow-xs">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
               {initials || "?"}
             </div>
             <div className="hidden leading-tight md:block text-left">
-              <p className="max-w-[130px] truncate text-[12px] font-semibold">{user.name}</p>
-              <p className="max-w-[130px] truncate text-[10.5px] text-muted-foreground">{user.email}</p>
+              <p className="max-w-[120px] truncate text-[12px] font-semibold text-foreground">
+                {user.name}
+              </p>
+              <p className="max-w-[120px] truncate text-[10.5px] text-muted-foreground">
+                {user.email}
+              </p>
             </div>
           </Link>
           <button
             onClick={logout}
             title="Wyloguj się"
             aria-label="Wyloguj się"
-            className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:scale-90"
+            className="flex min-h-[36px] min-w-[32px] items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-rose-500/10 hover:text-rose-500 active:scale-90"
           >
             <LogOut className="h-3.5 w-3.5" />
           </button>

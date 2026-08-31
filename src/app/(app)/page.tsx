@@ -70,31 +70,32 @@ function StatCard({
   delay: number;
   tooltip?: string;
 }) {
-  const tones = {
-    indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    red: "bg-red-500/10 text-red-600 dark:text-red-400",
-    sky: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  const toneMap = {
+    indigo: { bg: "bg-indigo-500/12", text: "text-indigo-500", border: "border-indigo-500/20", glow: "shadow-indigo-500/10" },
+    emerald: { bg: "bg-emerald-500/12", text: "text-emerald-500", border: "border-emerald-500/20", glow: "shadow-emerald-500/10" },
+    red: { bg: "bg-rose-500/12", text: "text-rose-500", border: "border-rose-500/20", glow: "shadow-rose-500/10" },
+    sky: { bg: "bg-sky-500/12", text: "text-sky-500", border: "border-sky-500/20", glow: "shadow-sky-500/10" },
+    amber: { bg: "bg-amber-500/12", text: "text-amber-500", border: "border-amber-500/20", glow: "shadow-amber-500/10" },
   };
+  const t = toneMap[tone];
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.06, duration: 0.35 }}
+      transition={{ delay: delay * 0.07, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
-      <Card className="border-border/50 bg-card/60 backdrop-blur-md rounded-2xl shadow-xs">
+      <Card className={`group rounded-2xl border ${t.border} bg-card/70 backdrop-blur-md shadow-sm ${t.glow} hover:shadow-md transition-shadow`}>
         <CardContent className="p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-[12px] font-medium text-muted-foreground">{label}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <p className="text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
                 {tooltip && <InfoTooltip text={tooltip} />}
               </div>
-              <p className="mt-1.5 text-[22px] font-bold tracking-tight tabular-nums text-foreground">{value}</p>
-              {sub && <p className="mt-1 text-[11.5px] text-muted-foreground">{sub}</p>}
+              <p className="mt-2 text-[24px] font-bold tracking-tight tabular-nums leading-none text-foreground">{value}</p>
+              {sub && <p className="mt-2 text-[11px] text-muted-foreground truncate">{sub}</p>}
             </div>
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${tones[tone]}`}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${t.bg} ${t.text} ring-1 ring-inset ${t.border}`}>
               {icon}
             </div>
           </div>
@@ -133,34 +134,37 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Minimalist Apple Empty State */}
-        <Card className="border-border/50 bg-card/60 backdrop-blur-md p-8 sm:p-12 text-center rounded-2xl shadow-xs">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Receipt className="h-7 w-7" />
+        {/* Premium empty state */}
+        <Card className="border-border/60 bg-card/70 backdrop-blur-md p-10 sm:p-16 text-center rounded-2xl shadow-sm">
+          <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
+            <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-xl" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+              <Receipt className="h-8 w-8" />
+            </div>
           </div>
-          <h2 className="mt-4 text-lg font-semibold text-foreground">Witaj w Fakturo</h2>
-          <p className="mx-auto mt-1.5 max-w-md text-[13px] text-muted-foreground leading-relaxed">
+          <h2 className="text-xl font-bold tracking-tight text-foreground">Witaj w Fakturo</h2>
+          <p className="mx-auto mt-2.5 max-w-md text-[13px] leading-relaxed text-muted-foreground">
             Wystawiaj dokumenty w formacie FA(3), pobieraj dane z GUS w 1 kliknięcie i wysyłaj faktury bezpośrednio do KSeF.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/invoices/new"
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-[12.5px] font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
             >
               <Plus className="h-4 w-4" /> Wystaw pierwszą fakturę
             </Link>
             <Link
               href="/settings/companies"
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-xs font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-[12.5px] font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
             >
               <Building2 className="h-4 w-4 text-muted-foreground" /> Skonfiguruj firmę
             </Link>
             <Link
               href="/ksef"
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-xs font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/6 px-4 text-[12.5px] font-medium text-emerald-600 dark:text-emerald-400 transition-all hover:bg-emerald-500/10 active:scale-95"
             >
-              <ShieldCheck className="h-4 w-4 text-emerald-500" /> KSeF
+              <ShieldCheck className="h-4 w-4" /> KSeF
             </Link>
           </div>
         </Card>
@@ -296,24 +300,24 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Szybkie akcje */}
+      {/* Quick actions strip */}
       <div className="flex flex-wrap gap-2">
         <Link
           href="/invoices/new"
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90"
+          className="inline-flex h-9 items-center gap-2 rounded-xl bg-primary px-4 text-[12.5px] font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-95"
         >
           <Plus className="h-4 w-4" /> Nowa faktura
         </Link>
         <Link
           href="/invoices"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-[12.5px] font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
         >
           <Receipt className="h-4 w-4" /> Wszystkie faktury
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
         </Link>
         <Link
           href="/contractors"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-4 text-[12.5px] font-medium text-foreground transition-all hover:bg-muted/60 active:scale-95"
         >
           <FileText className="h-4 w-4" /> Kontrahenci
         </Link>
@@ -414,17 +418,17 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Środowisko KSeF */}
-      <Card className="border-dashed">
+      {/* KSeF Status Banner */}
+      <Card className="border-emerald-500/20 bg-emerald-500/4">
         <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-500 ring-1 ring-emerald-500/20">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[14px] font-semibold">
-                Środowisko KSeF:{" "}
-                <span className="uppercase text-accent">{ksefSafe.environment}</span>
+              <p className="text-[13.5px] font-semibold text-foreground">
+                KSeF — środowisko:{" "}
+                <span className="uppercase text-emerald-500">{ksefSafe.environment}</span>
               </p>
               <p className="text-[12px] text-muted-foreground">
                 {ksefSafe.environment === "demo"
@@ -437,9 +441,9 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/ksef"
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/60"
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 text-[12.5px] font-medium text-emerald-600 dark:text-emerald-400 transition-all hover:bg-emerald-500/14 active:scale-95"
           >
-            Ustawienia KSeF <ArrowRight className="h-3.5 w-3.5" />
+            Centrum KSeF <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </CardContent>
       </Card>

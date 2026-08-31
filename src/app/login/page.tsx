@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Lock, LogIn, Mail } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -28,7 +28,6 @@ function LoginForm() {
   const already = searchParams.get("already");
   const nextUrl = searchParams.get("next") || "/";
 
-  // Jeśli użytkownik ma już aktywną sesję, automatycznie przekieruj do aplikacji
   React.useEffect(() => {
     if (status === "authenticated" && !expired) {
       router.replace(nextUrl);
@@ -89,19 +88,21 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-sm">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="rounded-2xl border border-border bg-card/80 p-7 shadow-xl backdrop-blur"
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl"
       >
-        <div className="mb-6 text-center">
-          <div className="mb-3 flex justify-center">
-            <Logo />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">Zaloguj się</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground">
+        {/* Logo */}
+        <div className="mb-7 flex flex-col items-center text-center">
+          <Logo compact className="mb-4" />
+          <Logo />
+          <h1 className="mt-4 text-xl font-bold tracking-tight text-foreground">
+            Zaloguj się do Fakturo
+          </h1>
+          <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-relaxed">
             Faktury VAT, kontrahenci i KSeF w jednym miejscu.
           </p>
         </div>
@@ -110,7 +111,7 @@ function LoginForm() {
           <div className="space-y-1.5">
             <Label htmlFor="email">Adres e-mail</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -118,7 +119,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jan@firma.pl"
-                className="pl-9"
+                className="pl-10"
                 required
               />
             </div>
@@ -127,7 +128,7 @@ function LoginForm() {
           <div className="space-y-1.5">
             <Label htmlFor="password">Hasło</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPw ? "text" : "password"}
@@ -135,13 +136,13 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-9 pr-9"
+                className="pl-10 pr-10"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPw((v) => !v)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={showPw ? "Ukryj hasło" : "Pokaż hasło"}
               >
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -150,28 +151,33 @@ function LoginForm() {
           </div>
 
           {error && (
-            <p className="rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-[12.5px] text-red-600 dark:text-red-400">
+            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
               {error}
-            </p>
+            </div>
           )}
 
-          <Button type="submit" className="w-full" loading={busy}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            Zaloguj się
+          <Button type="submit" className="mt-2 h-10 w-full text-[13.5px] font-semibold" loading={busy}>
+            {!busy && <LogIn className="h-4 w-4" />}
+            {busy ? "Logowanie…" : "Zaloguj się"}
           </Button>
         </form>
 
-        <p className="mt-5 text-center text-[13px] text-muted-foreground">
-          Nie masz konta?{" "}
-          <Link href="/register" className="font-semibold text-primary underline-offset-4 hover:underline">
-            Zarejestruj się
-          </Link>
-        </p>
+        <div className="mt-6 border-t border-border/60 pt-5">
+          <p className="text-center text-[12.5px] text-muted-foreground">
+            Nie masz konta?{" "}
+            <Link
+              href="/register"
+              className="font-semibold text-primary underline-offset-4 hover:underline transition-colors"
+            >
+              Zarejestruj się
+            </Link>
+          </p>
+        </div>
       </motion.div>
 
-      <p className="mt-5 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-        Konta są izolowane — każdy użytkownik widzi wyłącznie własne faktury, kontrahentów
-        i produkty.
+      <p className="mt-5 text-center text-[11px] leading-relaxed text-muted-foreground/70 px-4">
+        Konta są izolowane — każdy użytkownik widzi wyłącznie własne faktury i dane.
       </p>
     </div>
   );
@@ -180,9 +186,10 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
-      {/* Dekoracyjne gradienty */}
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-indigo-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-20 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl" />
+      {/* Atmospheric gradients */}
+      <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/2 -left-24 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-violet-500/6 blur-3xl" />
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>

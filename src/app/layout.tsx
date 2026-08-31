@@ -6,24 +6,24 @@ import { SessionProvider } from "@/lib/session-context";
 
 export const metadata: Metadata = {
   title: {
-    default: "Fakturo — Faktury i KSeF",
+    default: "Fakturo — Faktury VAT & KSeF 2.0",
     template: "%s · Fakturo",
   },
   description:
-    "Premium SaaS do polskich faktur VAT i Krajowego Systemu e-Faktur (KSeF). Wieloużytkownikowe konto: faktury, kontrahenci, produkty, powiadomienia. Demo: GUS NIP, FA(2), eksport PDF/XML.",
+    "Fintech-grade platforma do wystawiania polskich faktur VAT, integracji z Krajowym Systemem e-Faktur (KSeF) i bazą GUS BIR.",
   icons: { icon: "/icon.svg" },
 };
 
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0d12" },
+    { media: "(prefers-color-scheme: dark)", color: "#07090e" },
   ],
 };
 
 const themeScript = `
 try {
-  var t = localStorage.getItem('fakturo-theme') || 'system';
+  var t = localStorage.getItem('fakturo-theme') || 'dark';
   var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
@@ -32,11 +32,11 @@ try {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl" suppressHydrationWarning>
+    <html lang="pl" suppressHydrationWarning className="dark">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="font-sans">
+      <body className="font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen">
         <ThemeProvider>
           <ToastProvider>
             <SessionProvider>{children}</SessionProvider>

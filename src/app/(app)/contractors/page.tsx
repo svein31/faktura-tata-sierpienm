@@ -136,12 +136,12 @@ export default function ContractorsPage() {
       />
 
       <div className="relative mb-4 max-w-md">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Szukaj: nazwa, NIP, miasto…"
-          className="pl-8"
+          className="pl-9 h-9"
         />
       </div>
 
@@ -157,35 +157,35 @@ export default function ContractorsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
               >
-                <Card className="flex h-full flex-col">
+                <Card className="group flex h-full flex-col rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm transition-shadow hover:shadow-md">
                   <div className="flex items-start justify-between gap-2 p-4 pb-2">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 ring-1 ring-inset ring-indigo-500/20 group-hover:bg-indigo-500/15 transition-colors">
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[14px] font-semibold">{c.name}</p>
-                        <p className="font-mono text-[12px] text-muted-foreground">{formatNip(c.nip)}</p>
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</p>
+                        <p className="font-mono text-[11.5px] text-muted-foreground">{formatNip(c.nip)}</p>
                       </div>
                     </div>
                     <Badge tone={nipOk ? (c.isVatPayer ? "success" : "warning") : "danger"}>
                       {nipOk ? (c.isVatPayer ? "płatnik VAT" : "zwolniony") : "zły NIP"}
                     </Badge>
                   </div>
-                  <div className="flex-1 px-4 pb-3 text-[12.5px] text-muted-foreground">
+                  <div className="flex-1 px-4 pb-3 text-[12px] text-muted-foreground space-y-0.5">
                     <p>{c.address.street}</p>
                     <p>
-                      {c.address.postal} {c.address.city} · {c.address.country}
+                      {c.address.postal} {c.address.city} &middot; {c.address.country}
                     </p>
                     {c.iban && (
-                      <p className="mt-1 truncate font-mono text-[11px]">{c.iban}</p>
+                      <p className="mt-1.5 truncate font-mono text-[10.5px] text-muted-foreground/70">{c.iban}</p>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1 border-t border-border/70 p-2">
-                    <span className="px-1 text-[11px] text-muted-foreground">
+                  <div className="flex items-center justify-between gap-1 rounded-b-2xl border-t border-border/60 bg-muted/30 p-2">
+                    <span className="px-1.5 text-[11px] text-muted-foreground">
                       {useAppStore.getState().invoices.filter((i) => i.contractorId === c.id).length} faktur
                     </span>
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edytuj">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -194,7 +194,7 @@ export default function ContractorsPage() {
                         size="icon"
                         onClick={() => setToDelete(c.id)}
                         title="Usuń"
-                        className="text-muted-foreground hover:text-red-500"
+                        className="text-muted-foreground hover:text-rose-500"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -208,22 +208,27 @@ export default function ContractorsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <Card className="border-border/60 bg-card/60 backdrop-blur-md py-16 text-center rounded-2xl shadow-xs">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Users className="h-6 w-6" />
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md py-16 text-center">
+          <div className="relative flex h-14 w-14 items-center justify-center">
+            <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl" />
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 ring-1 ring-indigo-500/20">
+              <Users className="h-6 w-6" />
+            </div>
           </div>
-          <p className="mt-4 text-[15px] font-semibold text-foreground">
-            {contractors.length === 0 ? "Brak zapisanych kontrahentów" : "Brak kontrahentów spełniających kryteria"}
-          </p>
-          <p className="mx-auto mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
-            {contractors.length === 0
-              ? "Wpisz NIP kontrahenta, a dane firmy i status VAT zostaną automatycznie pobrane z rejestru GUS."
-              : "Zmień parametry wyszukiwania."}
-          </p>
-          <Button size="sm" className="mt-4 gap-1.5 rounded-xl" onClick={openNew}>
+          <div>
+            <p className="text-[15px] font-semibold text-foreground">
+              {contractors.length === 0 ? "Brak zapisanych kontrahentów" : "Brak kontrahentów spełniających kryteria"}
+            </p>
+            <p className="mx-auto mt-1.5 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
+              {contractors.length === 0
+                ? "Wpisz NIP kontrahenta, a dane firmy i status VAT zostaną automatycznie pobrane z rejestru GUS."
+                : "Zmień parametry wyszukiwania."}
+            </p>
+          </div>
+          <Button size="sm" className="mt-2 gap-1.5 rounded-xl" onClick={openNew}>
             <Plus className="h-3.5 w-3.5" /> Dodaj kontrahenta
           </Button>
-        </Card>
+        </div>
       )}
 
       {/* Dialog dodawania/edycji */}
