@@ -1,15 +1,16 @@
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 /**
  * GET /api/health — publiczny endpoint kondycji (bez auth).
- * Używany przez monitorowanie cyber_Folks oraz testy integracyjne.
+ * Używany przez monitorowanie i testy integracyjne.
  */
 export async function GET() {
   const startedAt = process.uptime();
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    // Sprawdzenie dostępności bazy MongoDB
+    await prisma.user.count();
     return Response.json(
       {
         ok: true,

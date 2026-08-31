@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Fakturo — schema Prisma (PostgreSQL / Supabase / Neon / Cloud Postgres)
+// Fakturo — schema Prisma (MongoDB Atlas)
 //
-// DATABASE_URL=postgresql://user:password@host:port/database?sslmode=require
+// DATABASE_URL="mongodb+srv://<username>:<password>@cluster.mongodb.net/fakturo?retryWrites=true&w=majority"
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -9,12 +9,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id              String                 @id @default(cuid())
+  id              String                 @id @default(auto()) @map("_id") @db.ObjectId
   email           String                 @unique
   password        String                 // Zawsze zhashowane bcrypt (12 rund)
   name            String?                @default("")
@@ -36,10 +36,10 @@ model User {
 
 /// Trwała sesja użytkownika powiązana z bazą danych
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
   userAgent    String?
   ipAddress    String?
   expiresAt    DateTime
@@ -47,13 +47,12 @@ model Session {
   updatedAt    DateTime @updatedAt
 
   @@index([userId])
-  @@index([sessionToken])
 }
 
 model CompanySettings {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
   name      String   @default("")
   nip       String   @default("")
   regon     String   @default("")
@@ -68,12 +67,11 @@ model CompanySettings {
   updatedAt DateTime @updatedAt
 }
 
-/// Ustawienia KSeF. Pełny token NIGDY nie jest zwracany przez API — zapisywane
-/// są tylko flagi tokenSet + tokenMask (ostatnie 4 znaki).
+/// Ustawienia KSeF
 model KsefSettings {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @unique @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id])
   environment  String   @default("demo")
   tokenSet     Boolean  @default(false)
   tokenMask    String   @default("")
@@ -82,19 +80,19 @@ model KsefSettings {
   updatedAt    DateTime @updatedAt
 }
 
-/// Sesja uwierzytelniona KSeF API 2.0 (JWT Access Token)
+/// Sesja uwierzytelniona KSeF API 2.0
 model KsefSession {
-  id                  String    @id @default(cuid())
-  userId              String?
-  user                User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String?   @db.ObjectId
+  user                User?     @relation(fields: [userId], references: [id])
   nip                 String
-  environment         String    @default("test") // demo | test | production
+  environment         String    @default("test")
   referenceNumber     String    @unique
   authenticationToken String?
   accessToken         String?
   refreshToken        String?
   validUntil          DateTime?
-  status              String    @default("ACTIVE") // ACTIVE | EXPIRED | TERMINATED
+  status              String    @default("ACTIVE")
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   invoices            Invoice[]
@@ -104,9 +102,9 @@ model KsefSession {
 }
 
 model Contractor {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
   name       String
   nip        String
   regon      String?
@@ -124,9 +122,9 @@ model Contractor {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
   name        String
   sku         String?
   unit        String   @default("szt.")
@@ -140,9 +138,9 @@ model Product {
 }
 
 model CompanyProfile {
-  id             String    @id @default(uuid())
-  userId         String
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String    @db.ObjectId
+  user           User      @relation(fields: [userId], references: [id])
   nip            String
   companyName    String
   street         String?
@@ -161,17 +159,17 @@ model CompanyProfile {
   @@index([userId])
 }
 
-/// Faktura z obsługą pól JSON i relacji do profilu firmy oraz sesji KSeF
+/// Faktura
 model Invoice {
-  id              String          @id @default(cuid())
-  userId          String
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String          @db.ObjectId
+  user            User            @relation(fields: [userId], references: [id])
   number          String
   type            String
   status          String          @default("draft")
   contractorId    String
-  sellerCompanyId String?
-  sellerCompany   CompanyProfile? @relation(fields: [sellerCompanyId], references: [id], onDelete: SetNull)
+  sellerCompanyId String?         @db.ObjectId
+  sellerCompany   CompanyProfile? @relation(fields: [sellerCompanyId], references: [id])
   issueDate       String
   saleDate        String
   dueDate         String
@@ -187,8 +185,8 @@ model Invoice {
   ksefNumber      String?
   referenceNumber String?
   upoXml          String?
-  ksefSessionId   String?
-  ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id], onDelete: SetNull)
+  ksefSessionId   String?         @db.ObjectId
+  ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id])
   sentAt          DateTime?
   sentToEmail     String?
   emailStatus     String?
@@ -202,9 +200,9 @@ model Invoice {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
   kind      String   @default("system")
   title     String
   body      String?
@@ -216,9 +214,9 @@ model Notification {
 }
 
 model NotificationPreference {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @unique @db.ObjectId
+  user           User     @relation(fields: [userId], references: [id])
   browserEnabled Boolean  @default(false)
   soundEnabled   Boolean  @default(true)
   updatedAt      DateTime @updatedAt
