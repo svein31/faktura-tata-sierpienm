@@ -1,6 +1,6 @@
 /**
  * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs, 12 rund), trwałe tokeny JWT i sesje DB (30 dni),
- * bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax zgodne z NextAuth & produkcją Netlify.
+ * bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax (auth_session) zgodne z Netlify i Next.js.
  */
 
 import "server-only";
@@ -12,15 +12,21 @@ import { cache } from "react";
 import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prisma/client";
 import { prisma } from "./db";
 
-/** 30 dni w sekundach (30 * 24 * 3600) — sesja przetrwa zamknięcie okna i przeglądarki */
-export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 2592000 sekund
+/** 30 dni w sekundach (30 * 24 * 3600) = 2592000s */
+export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 export const SESSION_TTL_MS = SESSION_MAX_AGE_SECONDS * 1000;
 
+export const AUTH_SESSION_COOKIE = "auth_session";
 export const PROD_COOKIE_NAME = "__Secure-next-auth.session-token";
 export const DEV_COOKIE_NAME = "next-auth.session-token";
-export const SESSION_COOKIE = process.env.NODE_ENV === "production" ? PROD_COOKIE_NAME : DEV_COOKIE_NAME;
+export const SESSION_COOKIE = "auth_session";
 
-export const LEGACY_COOKIES = ["fakturo_session", "auth_session", DEV_COOKIE_NAME, PROD_COOKIE_NAME];
+export const LEGACY_COOKIES = [
+  "auth_session",
+  "fakturo_session",
+  DEV_COOKIE_NAME,
+  PROD_COOKIE_NAME,
+];
 
 const BCRYPT_ROUNDS = 12;
 export const MIN_PASSWORD_LENGTH = 8;
@@ -113,7 +119,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function normalizeEmail(raw: string): string {
-  return (raw || "").toLowerCase().trim();
+  return (raw || "").trim().toLowerCase();
 }
 
 /** Walidacja formatu e-mail + minimalnej długości hasła */
@@ -270,14 +276,13 @@ export function sessionCookieOptions(overrides?: SessionCookieOptions): {
     secure: prod,
     sameSite: "lax",
     path: "/",
-    maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS, // 30 dni
+    maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS, // 30 dni (2592000s)
   };
 }
 
 export function clearSessionCookieValue(): string {
   const prod = process.env.NODE_ENV === "production";
-  const cookieName = prod ? PROD_COOKIE_NAME : DEV_COOKIE_NAME;
-  return `${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${prod ? "; Secure" : ""}`;
+  return `auth_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${prod ? "; Secure" : ""}`;
 }
 
 export function extractRequestMetadata(req: Request): CreateSessionMetadata {
@@ -297,7 +302,7 @@ export type SessionUser = { user: FullUserWithRelations; sessionId: string } | n
 
 /**
  * Odczyt sesji z ciasteczka (JWT / DB session) + weryfikacja w bazie Prisma.
- * Obsługuje nazwy ciasteczek standardowe dla NextAuth i Netlify.
+ * Obsługuje nazwy ciasteczek standardowe: auth_session, fakturo_session, NextAuth.
  */
 export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
   let token = explicitToken;
@@ -305,7 +310,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
   if (!token) {
     try {
       const store = cookies();
-      for (const cookieName of [PROD_COOKIE_NAME, DEV_COOKIE_NAME, "fakturo_session", "auth_session"]) {
+      for (const cookieName of ["auth_session", "fakturo_session", PROD_COOKIE_NAME, DEV_COOKIE_NAME]) {
         const val = store.get(cookieName)?.value;
         if (val) {
           token = val;

@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
   createSession,
   extractRequestMetadata,
-  hashPassword,
-  normalizeEmail,
   sessionCookieOptions,
-  SESSION_COOKIE,
   toPublicUser,
   validateCredentials,
   MIN_PASSWORD_LENGTH,
@@ -20,30 +18,26 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/register
- * Rejestracja nowego użytkownika w PostgreSQL:
- * - Weryfikacja zmiennej środowiskowej DATABASE_URL
- * - Normalizacja i walidacja danych (email, hasło)
- * - Bezpieczne haszowanie hasła (bcryptjs, 12 rund)
- * - Utworzenie rekordu User w bazie PostgreSQL (Supabase / Neon / RDS)
- * - Utworzenie 30-dniowej sesji JWT i ustawienie ciasteczka HttpOnly
- * - Dokładna obsługa błędów z czytelnymi komunikatami
+ * 1. E-mail sprowadzaj do email.trim().toLowerCase()
+ * 2. Hasło hashuj przez await bcrypt.hash(password, 12)
+ * 3. Jeśli rejestracja się powiedzie, zwróć status 201 i automatycznie ustaw ciasteczko sesyjne auth_session z czasem ważności 30 dni.
  */
 export async function POST(req: Request) {
   try {
     // 1. Sprawdzenie konfiguracji bazy danych
     if (!process.env.DATABASE_URL) {
-      console.error("[Auth Register] Brak skonfigurowanej zmiennej środowiskowej DATABASE_URL w środowisku Netlify.");
+      console.error("[Auth Register] Brak zmiennej DATABASE_URL.");
       return json(
         {
-          error: "Brak skonfigurowanej bazy danych. Dodaj zmienną DATABASE_URL w panelu Netlify (Site configuration -> Environment variables).",
+          error: "Brak skonfigurowanej bazy danych. Dodaj zmienną DATABASE_URL w panelu Netlify / hostingu.",
           code: "DATABASE_URL_MISSING",
         },
         { status: 500 }
       );
     }
 
-    // 2. Rate limiting (ochrona przed atakami brute-force)
-    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 15 });
+    // 2. Rate limiting
+    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 25 });
     if (!rl.allowed) {
       return json(
         { error: "Zbyt wiele prób rejestracji. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
@@ -53,15 +47,15 @@ export async function POST(req: Request) {
 
     // 3. Odczyt i normalizacja danych
     const body = await readJson(req);
-    const email = normalizeEmail(str(body.email));
+    const rawEmail = str(body.email);
+    const cleanEmail = rawEmail.trim().toLowerCase();
     const password = str(body.password);
     const rawName = str(body.name).trim();
     const nip = str(body.nip).replace(/[^0-9]/g, "").trim();
     const companyName = str(body.companyName).trim();
-    const name = rawName || companyName || email.split("@")[0] || "Użytkownik";
 
-    // 4. Walidacja formatu e-mail i siły hasła
-    const v = validateCredentials(email, password);
+    // 4. Walidacja formatu e-mail i hasła
+    const v = validateCredentials(cleanEmail, password);
     if (!v.ok) {
       return json(
         {
@@ -76,7 +70,7 @@ export async function POST(req: Request) {
     }
 
     // 5. Sprawdzenie czy użytkownik już istnieje
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
       return json(
         { error: "Konto z podanym adresem e-mail już istnieje w systemie.", code: "USER_EXISTS" },
@@ -84,17 +78,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // 6. Haszowanie hasła (bcryptjs 12 rund)
-    const passwordHash = await hashPassword(password);
+    // 6. Haszowanie hasła przez await bcrypt.hash(password, 12)
+    const passwordHash = await bcrypt.hash(password, 12);
     const companyBody = (body.company as Record<string, unknown>) || {};
     const hasExplicitCompany = Boolean(nip && (companyName || rawName));
 
-    // 7. Utworzenie użytkownika w PostgreSQL
+    // 7. Utworzenie użytkownika w MongoDB Atlas
     const user = await prisma.user.create({
       data: {
-        email,
+        email: cleanEmail,
         password: passwordHash,
-        name: rawName || email.split("@")[0] || "Użytkownik",
+        name: rawName || cleanEmail.split("@")[0] || "Użytkownik",
         nip: nip || null,
         companyName: companyName || null,
         ...(hasExplicitCompany
@@ -122,14 +116,15 @@ export async function POST(req: Request) {
       },
     });
 
-    // 8. Utworzenie 30-dniowej sesji JWT
+    // 8. Utworzenie 30-dniowej sesji
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
-    const cookieOpts = sessionCookieOptions();
+    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
 
     try {
-      cookies().set(SESSION_COOKIE, token, cookieOpts);
+      cookies().set("auth_session", token, cookieOpts);
       cookies().set("fakturo_session", token, cookieOpts);
+      cookies().set("next-auth.session-token", token, { ...cookieOpts, secure: false });
     } catch {
       // ignore
     }
@@ -143,8 +138,9 @@ export async function POST(req: Request) {
       { status: 201, headers: { "Cache-Control": "no-store" } }
     );
 
-    res.cookies.set(SESSION_COOKIE, token, cookieOpts);
+    res.cookies.set("auth_session", token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
+    res.cookies.set("next-auth.session-token", token, { ...cookieOpts, secure: false });
     return res;
   } catch (error: unknown) {
     console.error("Błąd rejestracji:", error);
@@ -153,7 +149,6 @@ export async function POST(req: Request) {
       return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
     }
 
-    // Obsługa specyficznych kodów błędów Prisma
     const prismaError = error as { code?: string; message?: string; name?: string };
 
     if (prismaError.code === "P2002") {
@@ -163,33 +158,18 @@ export async function POST(req: Request) {
       );
     }
 
-    if (prismaError.code === "P1001" || prismaError.code === "P1000") {
+    if (
+      prismaError.code === "P1001" ||
+      prismaError.code === "P1000" ||
+      prismaError.code === "P1002" ||
+      prismaError.code === "P1017"
+    ) {
       return json(
         {
-          error: "Nie można połączyć się z serwerem bazy danych PostgreSQL. Upewnij się, że baza w chmurze (Supabase / Neon) jest aktywna i dostępna.",
+          error: "Nie można połączyć się z bazą danych MongoDB Atlas. Upewnij się, że w panelu MongoDB Atlas w Network Access dodano adres 0.0.0.0/0.",
           code: "DATABASE_CONNECTION_ERROR",
         },
         { status: 503 }
-      );
-    }
-
-    if (prismaError.code === "P2021") {
-      return json(
-        {
-          error: "Tabele w bazie danych nie zostały jeszcze utworzone. Uruchom migrację (npx prisma db push).",
-          code: "TABLES_NOT_FOUND",
-        },
-        { status: 500 }
-      );
-    }
-
-    if (prismaError.name === "PrismaClientInitializationError") {
-      return json(
-        {
-          error: "Błąd inicjalizacji bazy danych. Sprawdź poprawność ciągu połączeniowego DATABASE_URL.",
-          code: "DATABASE_INIT_ERROR",
-        },
-        { status: 500 }
       );
     }
 

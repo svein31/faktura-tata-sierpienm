@@ -5,7 +5,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -39,7 +40,7 @@ model Session {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
   userId       String   @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userAgent    String?
   ipAddress    String?
   expiresAt    DateTime
@@ -52,7 +53,7 @@ model Session {
 model CompanySettings {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @unique @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String   @default("")
   nip       String   @default("")
   regon     String   @default("")
@@ -71,7 +72,7 @@ model CompanySettings {
 model KsefSettings {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   userId       String   @unique @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   environment  String   @default("demo")
   tokenSet     Boolean  @default(false)
   tokenMask    String   @default("")
@@ -84,7 +85,7 @@ model KsefSettings {
 model KsefSession {
   id                  String    @id @default(auto()) @map("_id") @db.ObjectId
   userId              String?   @db.ObjectId
-  user                User?     @relation(fields: [userId], references: [id])
+  user                User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   nip                 String
   environment         String    @default("test")
   referenceNumber     String    @unique
@@ -104,7 +105,7 @@ model KsefSession {
 model Contractor {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name       String
   nip        String
   regon      String?
@@ -124,7 +125,7 @@ model Contractor {
 model Product {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   sku         String?
   unit        String   @default("szt.")
@@ -140,7 +141,7 @@ model Product {
 model CompanyProfile {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
   userId         String    @db.ObjectId
-  user           User      @relation(fields: [userId], references: [id])
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   nip            String
   companyName    String
   street         String?
@@ -163,13 +164,13 @@ model CompanyProfile {
 model Invoice {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
   userId          String          @db.ObjectId
-  user            User            @relation(fields: [userId], references: [id])
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   number          String
   type            String
   status          String          @default("draft")
   contractorId    String
   sellerCompanyId String?         @db.ObjectId
-  sellerCompany   CompanyProfile? @relation(fields: [sellerCompanyId], references: [id])
+  sellerCompany   CompanyProfile? @relation(fields: [sellerCompanyId], references: [id], onDelete: SetNull)
   issueDate       String
   saleDate        String
   dueDate         String
@@ -186,7 +187,7 @@ model Invoice {
   referenceNumber String?
   upoXml          String?
   ksefSessionId   String?         @db.ObjectId
-  ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id])
+  ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id], onDelete: SetNull)
   sentAt          DateTime?
   sentToEmail     String?
   emailStatus     String?
@@ -202,7 +203,7 @@ model Invoice {
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   kind      String   @default("system")
   title     String
   body      String?
@@ -216,7 +217,7 @@ model Notification {
 model NotificationPreference {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   userId         String   @unique @db.ObjectId
-  user           User     @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   browserEnabled Boolean  @default(false)
   soundEnabled   Boolean  @default(true)
   updatedAt      DateTime @updatedAt

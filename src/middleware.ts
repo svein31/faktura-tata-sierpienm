@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export const COOKIE_NAMES = [
+  "auth_session",
+  "fakturo_session",
   "__Secure-next-auth.session-token",
   "next-auth.session-token",
-  "fakturo_session",
-  "auth_session",
 ];
 
 export function middleware(request: NextRequest) {

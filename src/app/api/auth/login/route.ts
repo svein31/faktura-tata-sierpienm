@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
   createSession,
   extractRequestMetadata,
-  normalizeEmail,
   sessionCookieOptions,
-  SESSION_COOKIE,
   toPublicUser,
-  verifyPassword,
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
@@ -18,11 +16,9 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/login
- * Logowanie użytkownika z trwałą 30-dniową sesją JWT i bezpiecznymi ciasteczkami Netlify:
- * - Weryfikacja hasła (bcrypt.compare)
- * - Normalizacja adresu e-mail (lowercase & trim)
- * - Generowanie trwałego tokenu JWT i sesji DB z metadanymi klienta
- * - Ustawienie 30-dniowego ciasteczka HttpOnly
+ * 1. Szukaj użytkownika po prisma.user.findUnique({ where: { email: cleanEmail } })
+ * 2. Porównuj hasło przez await bcrypt.compare(password, user.password)
+ * 3. Po sukcesie ustaw ciasteczko auth_session z maxAge: 30 * 24 * 60 * 60 (30 dni).
  */
 export async function POST(req: Request) {
   try {
@@ -36,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 15 });
+    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 30 });
     if (!rl.allowed) {
       return json(
         { error: "Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
@@ -45,10 +41,11 @@ export async function POST(req: Request) {
     }
 
     const body = await readJson(req);
-    const email = normalizeEmail(str(body.email));
+    const rawEmail = str(body.email);
+    const cleanEmail = rawEmail.trim().toLowerCase();
     const password = str(body.password);
 
-    if (!email || !password) {
+    if (!cleanEmail || !password) {
       return json(
         { error: "Nieprawidłowy e-mail lub hasło.", code: "INVALID_CREDENTIALS" },
         { status: 401 }
@@ -56,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: cleanEmail },
       include: {
         company: true,
         companyProfiles: true,
@@ -64,7 +61,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const isValid = user ? await verifyPassword(password, user.password) : false;
+    const isValid = user ? await bcrypt.compare(password, user.password) : false;
     if (!user || !isValid) {
       return json(
         { error: "Nieprawidłowy e-mail lub hasło.", code: "INVALID_CREDENTIALS" },
@@ -74,11 +71,12 @@ export async function POST(req: Request) {
 
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
-    const cookieOpts = sessionCookieOptions();
+    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
 
     try {
-      cookies().set(SESSION_COOKIE, token, cookieOpts);
+      cookies().set("auth_session", token, cookieOpts);
       cookies().set("fakturo_session", token, cookieOpts);
+      cookies().set("next-auth.session-token", token, { ...cookieOpts, secure: false });
     } catch {
       // ignore
     }
@@ -92,8 +90,9 @@ export async function POST(req: Request) {
       { status: 200, headers: { "Cache-Control": "no-store" } }
     );
 
-    res.cookies.set(SESSION_COOKIE, token, cookieOpts);
+    res.cookies.set("auth_session", token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
+    res.cookies.set("next-auth.session-token", token, { ...cookieOpts, secure: false });
     return res;
   } catch (error: unknown) {
     console.error("Błąd logowania:", error);
@@ -103,10 +102,15 @@ export async function POST(req: Request) {
     }
 
     const prismaError = error as { code?: string; message?: string; name?: string };
-    if (prismaError.code === "P1001" || prismaError.code === "P1000") {
+    if (
+      prismaError.code === "P1001" ||
+      prismaError.code === "P1000" ||
+      prismaError.code === "P1002" ||
+      prismaError.code === "P1017"
+    ) {
       return json(
         {
-          error: "Nie można połączyć się z serwerem bazy danych PostgreSQL. Upewnij się, że baza jest aktywna.",
+          error: "Nie można połączyć się z bazą danych MongoDB Atlas. Upewnij się, że w MongoDB Atlas w Network Access dodano adres 0.0.0.0/0.",
           code: "DATABASE_CONNECTION_ERROR",
         },
         { status: 503 }

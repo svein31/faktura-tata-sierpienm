@@ -3,8 +3,10 @@
  */
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { prisma } from "../src/lib/db.ts";
+import { PrismaClient } from "@prisma/client";
 import { strict as assert } from "node:assert";
+
+const prisma = new PrismaClient();
 
 const SESSION_MAX_AGE_SECONDS = 315360000; // 10 lat
 const BCRYPT_ROUNDS = 12;
@@ -56,7 +58,7 @@ const testEmail = `test.user.${Date.now()}@fakturo-demo.pl`;
 const user = await prisma.user.create({
   data: {
     email: testEmail,
-    passwordHash: hash,
+    password: hash,
     name: "Jan Kowalski",
     nip: "5260301706",
     companyName: "Kowalski IT Sp. z o.o.",

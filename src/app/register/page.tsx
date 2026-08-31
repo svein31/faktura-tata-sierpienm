@@ -59,7 +59,12 @@ function RegisterForm() {
 
       let data: { error?: string; user?: { name: string } } = {};
       try {
-        data = (await res.json()) as { error?: string; user?: { name: string } };
+        const text = await res.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { error: text || `Błąd serwera (${res.status})` };
+        }
       } catch {
         // ignore
       }
@@ -77,8 +82,9 @@ function RegisterForm() {
         // ignore
       }
       window.location.href = "/";
-    } catch {
-      setError("Błąd sieci lub połączenia — spróbuj ponownie za chwilę.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "";
+      setError(msg ? `Błąd połączenia: ${msg}` : "Błąd sieci lub połączenia — spróbuj ponownie za chwilę.");
       setBusy(false);
     }
   };

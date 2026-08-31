@@ -63,6 +63,9 @@ export async function POST(req: Request) {
       });
 
       res.cookies.set(SESSION_COOKIE, token, cookieOpts);
+      res.cookies.set("fakturo_session", token, cookieOpts);
+      res.cookies.set("auth_session", token, cookieOpts);
+      res.cookies.set("next-auth.session-token", token, { ...cookieOpts, secure: false });
       return res;
     }
 
