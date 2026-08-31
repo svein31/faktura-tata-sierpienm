@@ -41,6 +41,8 @@ export interface AppState {
   draftInvoiceIsNew: boolean;
 
   bootstrap: () => Promise<void>;
+  /** SWR-style silent revalidation — refreshes data without resetting hydrated. */
+  revalidate: () => Promise<void>;
   resetData: () => void;
 
   fetchCompanies: () => Promise<CompanyProfile[]>;
@@ -142,6 +144,40 @@ export const useAppStore = create<AppState>((set, get) => ({
       hydrated: true,
       authError: false,
     });
+  },
+
+  revalidate: async () => {
+    if (!get().hydrated) return; // bootstrap not done yet
+    try {
+      const res = await fetch("/api/data", { cache: "no-store" });
+      if (!res.ok) return; // silently ignore errors during revalidation
+      const data = (await res.json()) as {
+        company: CompanyProfile | null;
+        companies?: CompanyProfile[];
+        ksef: KsefSettings | null;
+        contractors: Contractor[];
+        products: Product[];
+        invoices: Invoice[];
+        notifications: AppNotification[];
+        notificationPrefs: NotificationPrefs;
+      };
+      const companies = data.companies ?? (data.company ? [data.company] : []);
+      const defaultComp = companies.find((c) => c.isDefault) ?? companies[0] ?? data.company ?? null;
+
+      set({
+        company: defaultComp,
+        companies,
+        selectedCompanyId: get().selectedCompanyId || defaultComp?.id || null,
+        ksef: data.ksef,
+        contractors: data.contractors,
+        products: data.products,
+        invoices: data.invoices,
+        notifications: data.notifications,
+        notificationPrefs: data.notificationPrefs ?? EMPTY_PREFS,
+      });
+    } catch {
+      // Silently ignore — stale data is better than broken UI
+    }
   },
 
   resetData: () =>

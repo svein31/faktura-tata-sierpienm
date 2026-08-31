@@ -3,11 +3,15 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 
 /**
  * Jednorazowy bootstrap danych zalogowanego użytkownika (GET /api/data).
- * Renderuje skeleton do czasu zakończenia; przy 401 (wygasła sesja) kieruje
- * na /login. Wszystkie strony biznesowe żyją pod tym komponentem.
+ * Renderuje elegancki Apple-style skeleton do czasu zakończenia; przy 401
+ * (wygasła sesja) kieruje na /login.
+ *
+ * Po udanym boostrapie rewaliduje dane w tle przy powrocie na stronę
+ * (visibilitychange) — SWR-style, bez pokazywania loadera.
  */
 export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -36,6 +40,17 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // SWR-style: cicha rewalidacja w tle przy powrocie na stronę
+  React.useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void useAppStore.getState().revalidate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
   React.useEffect(() => {
     if (authError) {
       const url = new URL("/login", window.location.href);
@@ -46,14 +61,43 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="space-y-6" aria-busy="true">
-        <div className="h-9 w-64 animate-pulse rounded-lg bg-muted" />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-xl bg-muted/60" />
-          ))}
+      <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true">
+        {/* Nagłówek — natychmiast widoczna struktura */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Skeleton className="h-6 w-36 rounded-lg" />
+            <Skeleton className="h-3.5 w-56 rounded-lg" />
+          </div>
+          <Skeleton className="h-9 w-32 rounded-xl" />
         </div>
-        <div className="h-72 animate-pulse rounded-xl bg-muted/40" />
+
+        {/* Metryki — subtelne karty */}
+        <StatsSkeleton count={4} />
+
+        {/* Tabela — cienkie linie imitujące wiersze */}
+        <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
+          <div className="border-b border-border/30 bg-muted/20 px-4 py-3 flex items-center justify-between">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3.5 w-16" />
+          </div>
+          <div className="p-4 space-y-1">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/20 last:border-0">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-28" />
+                    <Skeleton className="h-2.5 w-20" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-3.5 w-20" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         <p className="sr-only">Ładowanie danych…</p>
       </div>
     );

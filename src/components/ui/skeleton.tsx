@@ -2,7 +2,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Apple-style pulsing shimmering skeleton block
+ * Apple-style shimmer skeleton — subtle, lightweight, text-imitating shapes.
+ * Uses a translucent gradient sweep instead of heavy dark blocks.
  */
 export function Skeleton({
   className,
@@ -11,8 +12,8 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-md bg-muted/60 dark:bg-slate-800/60",
-        "after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_1.8s_infinite] after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.04] after:to-transparent",
+        "relative overflow-hidden rounded-md bg-muted/40 dark:bg-slate-800/40",
+        "after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_ease-in-out_infinite] after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.06] after:to-transparent",
         className
       )}
       {...props}
@@ -21,20 +22,20 @@ export function Skeleton({
 }
 
 /**
- * Skeleton dla kafelków statystyk (Dashboard)
+ * Skeleton dla kafelków statystyk (Dashboard) — cienkie linie imitujące tekst
  */
 export function StatsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-border/70 bg-card p-5 shadow-xs">
+        <div key={i} className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5">
           <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-3.5 w-24" />
-              <Skeleton className="h-7 w-32" />
-              <Skeleton className="h-3 w-28" />
+            <div className="space-y-2.5">
+              <Skeleton className="h-3 w-20 rounded" />
+              <Skeleton className="h-6 w-28 rounded" />
+              <Skeleton className="h-2.5 w-24 rounded" />
             </div>
-            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-9 w-9 rounded-xl" />
           </div>
         </div>
       ))}
@@ -53,7 +54,7 @@ export function CardSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-xl border border-border/70 bg-card p-5 shadow-xs space-y-4", className)}>
+    <div className={cn("rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 space-y-4", className)}>
       <div className="flex items-center justify-between">
         <div className="space-y-1.5">
           <Skeleton className="h-4 w-36" />
@@ -63,7 +64,7 @@ export function CardSkeleton({
       </div>
       <div className="space-y-2.5 pt-2">
         {Array.from({ length: lines }).map((_, i) => (
-          <Skeleton key={i} className="h-3.5 w-full" style={{ width: `${100 - i * 15}%` }} />
+          <Skeleton key={i} className="h-3 rounded" style={{ width: `${100 - i * 15}%` }} />
         ))}
       </div>
     </div>
@@ -71,7 +72,7 @@ export function CardSkeleton({
 }
 
 /**
- * Skeleton dla tabel (Faktury, Kontrahenci, Produkty)
+ * Skeleton dla tabel (Faktury, Kontrahenci, Produkty) — cienkie linie
  */
 export function TableSkeleton({
   rows = 5,
@@ -83,14 +84,14 @@ export function TableSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-xl border border-border/70 bg-card overflow-hidden shadow-xs", className)}>
-      <div className="border-b border-border/60 bg-muted/30 p-3.5 flex items-center justify-between">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-4 w-24" />
+    <div className={cn("rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden", className)}>
+      <div className="border-b border-border/30 bg-muted/20 px-4 py-3 flex items-center justify-between">
+        <Skeleton className="h-3.5 w-28" />
+        <Skeleton className="h-3.5 w-20" />
       </div>
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-1">
         {Array.from({ length: rows }).map((_, r) => (
-          <div key={r} className="flex items-center justify-between gap-4 py-2 border-b border-border/40 last:border-0">
+          <div key={r} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/20 last:border-0">
             <div className="flex items-center gap-3">
               <Skeleton className="h-8 w-8 rounded-lg" />
               <div className="space-y-1.5">
@@ -99,12 +100,12 @@ export function TableSkeleton({
               </div>
             </div>
             <div className="hidden sm:flex items-center gap-4">
-              <Skeleton className="h-3.5 w-24" />
-              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-16" />
             </div>
             <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-7 w-7 rounded-md" />
+              <Skeleton className="h-5 w-14 rounded-full" />
+              <Skeleton className="h-6 w-6 rounded-md" />
             </div>
           </div>
         ))}
@@ -130,7 +131,7 @@ export function InvoiceDetailSkeleton() {
         </div>
       </div>
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+        <div className="rounded-2xl border border-border/40 bg-card/60 p-6 space-y-6">
           <div className="flex justify-between">
             <Skeleton className="h-10 w-36" />
             <Skeleton className="h-8 w-28" />
@@ -145,6 +146,66 @@ export function InvoiceDetailSkeleton() {
           <CardSkeleton lines={2} />
           <CardSkeleton lines={3} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton dla stron ustawień — imituje formularz
+ */
+export function SettingsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-1.5">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-3.5 w-64" />
+      </div>
+      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-9 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-9 w-28 rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton dla listy kart (Kontrahenci, Produkty) — imituje grid kart
+ */
+export function ListSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1.5">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-3.5 w-56" />
+        </div>
+        <Skeleton className="h-9 w-32 rounded-lg" />
+      </div>
+      <Skeleton className="h-9 w-64 rounded-lg" />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <Skeleton className="h-10 w-10 rounded-lg" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3.5 w-3/4" />
+                <Skeleton className="h-2.5 w-1/2" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Skeleton className="h-2.5 w-full" />
+              <Skeleton className="h-2.5 w-4/5" />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
