@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Weryfikacja hasła
-    const isValid = await verifyPassword(password, user.passwordHash);
+    const isValid = await verifyPassword(password, user.password);
     if (!isValid) {
       throw new ApiError(400, "Podane hasło jest nieprawidłowe.");
     }

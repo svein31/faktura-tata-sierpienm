@@ -1,27 +1,33 @@
 /**
- * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs), losowe tokeny sesji,
- * trwała sesja (10 lat / 315360000 sekund), bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax.
- * Każda weryfikacja odbywa się bezpośrednio przez zapytanie do bazy danych (Prisma).
+ * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs, 12 rund), trwałe tokeny JWT i sesje DB (30 dni),
+ * bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax zgodne z NextAuth & produkcją Netlify.
  */
 
 import "server-only";
 
-import { randomBytes } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prisma/client";
 import { prisma } from "./db";
 
-export const SESSION_COOKIE = "fakturo_session";
-export const ALT_SESSION_COOKIE = "auth_session";
+/** 30 dni w sekundach (30 * 24 * 3600) — sesja przetrwa zamknięcie okna i przeglądarki */
+export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60; // 2592000 sekund
+export const SESSION_TTL_MS = SESSION_MAX_AGE_SECONDS * 1000;
 
-/** Domyślny czas trwania sesji: 10 lat (trwała sesja do ręcznego wylogowania) */
-export const SESSION_MAX_AGE_SECONDS = 315360000; // 10 lat w sekundach (10 * 365 * 24 * 3600)
-export const SESSION_TTL_MS = SESSION_MAX_AGE_SECONDS * 1000; // 10 lat w milisekundach
+export const PROD_COOKIE_NAME = "__Secure-next-auth.session-token";
+export const DEV_COOKIE_NAME = "next-auth.session-token";
+export const SESSION_COOKIE = process.env.NODE_ENV === "production" ? PROD_COOKIE_NAME : DEV_COOKIE_NAME;
+
+export const LEGACY_COOKIES = ["fakturo_session", "auth_session", DEV_COOKIE_NAME, PROD_COOKIE_NAME];
 
 const BCRYPT_ROUNDS = 12;
 export const MIN_PASSWORD_LENGTH = 8;
+
+export function getAuthSecret(): string {
+  return process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "fakturo-ksef-jwt-secret-key-30d-session";
+}
 
 export interface FullUserWithRelations extends User {
   company?: CompanySettings | null;
@@ -64,7 +70,7 @@ export function toPublicUser(u: FullUserWithRelations): PublicUser {
   return {
     id: u.id,
     email: u.email,
-    name: u.name,
+    name: u.name || "",
     nip: u.nip || defaultProfile?.nip || u.company?.nip || "",
     companyName: u.companyName || defaultProfile?.companyName || u.company?.name || "",
     createdAt: u.createdAt.toISOString(),
@@ -95,18 +101,19 @@ export function toPublicUser(u: FullUserWithRelations): PublicUser {
   };
 }
 
-/* ── Hasła ─────────────────────────────────────────────────────────────── */
+/* ── Hasła (Bcrypt 12 rund) ─────────────────────────────────────────────── */
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  if (!password || !hash) return false;
   return bcrypt.compare(password, hash);
 }
 
 export function normalizeEmail(raw: string): string {
-  return raw.trim().toLowerCase();
+  return (raw || "").toLowerCase().trim();
 }
 
 /** Walidacja formatu e-mail + minimalnej długości hasła */
@@ -121,6 +128,79 @@ export function validateCredentials(email: string, password: string): { ok: bool
   return { ok: true };
 }
 
+/* ── JWT Token Signature & Verification ─────────────────────────────────── */
+
+interface JwtPayload {
+  userId: string;
+  email: string;
+  name?: string | null;
+  iat: number;
+  exp: number;
+}
+
+function base64UrlEncode(str: string): string {
+  return Buffer.from(str)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function base64UrlDecode(str: string): string {
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  return Buffer.from(base64, "base64").toString("utf8");
+}
+
+export function signJwt(payload: Omit<JwtPayload, "iat" | "exp">, expiresInSeconds = SESSION_MAX_AGE_SECONDS): string {
+  const secret = getAuthSecret();
+  const now = Math.floor(Date.now() / 1000);
+  const fullPayload: JwtPayload = {
+    ...payload,
+    iat: now,
+    exp: now + expiresInSeconds,
+  };
+
+  const header = { alg: "HS256", typ: "JWT" };
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
+  const dataToSign = `${encodedHeader}.${encodedPayload}`;
+
+  const signature = createHmac("sha256", secret).update(dataToSign).digest("base64url");
+  return `${dataToSign}.${signature}`;
+}
+
+export function verifyJwt(token: string): JwtPayload | null {
+  try {
+    if (!token || typeof token !== "string") return null;
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const [encodedHeader, encodedPayload, signature] = parts;
+    const secret = getAuthSecret();
+    const dataToSign = `${encodedHeader}.${encodedPayload}`;
+    const expectedSignature = createHmac("sha256", secret).update(dataToSign).digest("base64url");
+
+    if (signature !== expectedSignature) {
+      return null;
+    }
+
+    const payload = JSON.parse(base64UrlDecode(encodedPayload)) as JwtPayload;
+    if (!payload.userId || !payload.exp) return null;
+
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) {
+      return null;
+    }
+
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 /* ── Tokeny i Sesje ─────────────────────────────────────────────────────── */
 
 export function generateSessionToken(): string {
@@ -133,29 +213,44 @@ export interface CreateSessionMetadata {
 }
 
 /**
- * Tworzy nową trwałą sesję bezpośrednio w bazie danych Prisma.
+ * Tworzy nową trwałą sesję JWT (30 dni) oraz rejestruje sesję w bazie danych.
  */
 export async function createSession(
   userId: string,
   metadata?: CreateSessionMetadata
 ): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
-  const token = generateSessionToken();
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-
-  const session = await prisma.session.create({
-    data: {
-      sessionToken: token,
-      userId,
-      expiresAt,
-      userAgent: metadata?.userAgent || null,
-      ipAddress: metadata?.ipAddress || null,
-    },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true },
   });
 
-  return { token, expiresAt, sessionId: session.id };
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  const token = signJwt({
+    userId,
+    email: user?.email || "",
+    name: user?.name,
+  });
+
+  let sessionId = token;
+  try {
+    const session = await prisma.session.create({
+      data: {
+        sessionToken: token,
+        userId,
+        expiresAt,
+        userAgent: metadata?.userAgent || null,
+        ipAddress: metadata?.ipAddress || null,
+      },
+    });
+    sessionId = session.id;
+  } catch {
+    // Jeśli zapis w tabeli sesji z jakiegoś powodu się nie powiedzie, token JWT i tak zapewnia autoryzację
+  }
+
+  return { token, expiresAt, sessionId };
 }
 
-/* ── Cookie Options ─────────────────────────────────────────────────────── */
+/* ── Cookie Options dla Netlify i Localhost ──────────────────────────────── */
 
 export interface SessionCookieOptions {
   maxAge?: number;
@@ -172,20 +267,19 @@ export function sessionCookieOptions(overrides?: SessionCookieOptions): {
   const prod = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: prod && (overrides?.secure ?? true),
+    secure: prod,
     sameSite: "lax",
     path: "/",
-    maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS,
+    maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS, // 30 dni
   };
 }
 
 export function clearSessionCookieValue(): string {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  const prod = process.env.NODE_ENV === "production";
+  const cookieName = prod ? PROD_COOKIE_NAME : DEV_COOKIE_NAME;
+  return `${cookieName}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${prod ? "; Secure" : ""}`;
 }
 
-/**
- * Pomocnicza funkcja wyciągająca User-Agent oraz adres IP z obiektu Request
- */
 export function extractRequestMetadata(req: Request): CreateSessionMetadata {
   const userAgent = req.headers.get("user-agent");
   const ipAddress =
@@ -202,8 +296,8 @@ export function extractRequestMetadata(req: Request): CreateSessionMetadata {
 export type SessionUser = { user: FullUserWithRelations; sessionId: string } | null;
 
 /**
- * Odczyt sesji z cookie + weryfikacja w bazie Prisma.
- * React cache() zapewnia wykonanie tylko jednego zapytania DB na cykl żądania.
+ * Odczyt sesji z ciasteczka (JWT / DB session) + weryfikacja w bazie Prisma.
+ * Obsługuje nazwy ciasteczek standardowe dla NextAuth i Netlify.
  */
 export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
   let token = explicitToken;
@@ -211,7 +305,13 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
   if (!token) {
     try {
       const store = cookies();
-      token = store.get(SESSION_COOKIE)?.value || store.get(ALT_SESSION_COOKIE)?.value;
+      for (const cookieName of [PROD_COOKIE_NAME, DEV_COOKIE_NAME, "fakturo_session", "auth_session"]) {
+        const val = store.get(cookieName)?.value;
+        if (val) {
+          token = val;
+          break;
+        }
+      }
     } catch {
       token = undefined;
     }
@@ -219,28 +319,50 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
 
   if (!token) return null;
 
-  const session = await prisma.session.findUnique({
-    where: { sessionToken: token },
-    include: {
-      user: {
-        include: {
-          company: true,
-          companyProfiles: true,
-          ksef: true,
-        },
+  // 1. Sprawdź czy to podpisany token JWT
+  const jwtPayload = verifyJwt(token);
+  if (jwtPayload?.userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: jwtPayload.userId },
+      include: {
+        company: true,
+        companyProfiles: true,
+        ksef: true,
       },
-    },
-  });
+    });
 
-  if (!session) return null;
-
-  if (session.expiresAt.getTime() < Date.now()) {
-    // Wygasła sesja — posprzątaj w bazie
-    await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
-    return null;
+    if (user) {
+      return { user, sessionId: token };
+    }
   }
 
-  return { user: session.user, sessionId: session.id };
+  // 2. Fallback: wyszukaj w tabeli Session w bazie danych
+  try {
+    const session = await prisma.session.findUnique({
+      where: { sessionToken: token },
+      include: {
+        user: {
+          include: {
+            company: true,
+            companyProfiles: true,
+            ksef: true,
+          },
+        },
+      },
+    });
+
+    if (session) {
+      if (session.expiresAt.getTime() < Date.now()) {
+        await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
+        return null;
+      }
+      return { user: session.user, sessionId: session.id };
+    }
+  } catch {
+    // ignore db error on transient query
+  }
+
+  return null;
 });
 
 export const getSessionUser = cache(async (): Promise<FullUserWithRelations | null> => {
@@ -248,7 +370,6 @@ export const getSessionUser = cache(async (): Promise<FullUserWithRelations | nu
   return s?.user ?? null;
 });
 
-/** Dla API routes: zwraca user lub null */
 export async function requireApiUser(): Promise<SessionUser> {
   return getSession();
 }

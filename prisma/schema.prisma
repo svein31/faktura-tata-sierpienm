@@ -1,44 +1,40 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Fakturo — schema Prisma (SQLite, cyber_Folks compatible)
+// Fakturo — schema Prisma (PostgreSQL / Supabase / Neon / Cloud Postgres)
 //
-// DATABASE_URL=file:./data/prod.db  — ścieżka względna jest rozwiązywana
-// względem katalogu prisma/ → plik bazy: <app>/prisma/data/prod.db
-// Katalog data/ jest tworzony automatycznie przy starcie aplikacji
-// (patrz src/lib/db.ts) i musi być zapisywalny dla użytkownika Node.
+// DATABASE_URL=postgresql://user:password@host:port/database?sslmode=require
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String                 @id @default(cuid())
-  email         String                 @unique
-  passwordHash  String
-  name          String
-  nip           String?                @default("")
-  companyName   String?                @default("")
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @updatedAt
-  sessions      Session[]
-  company       CompanySettings?
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  password        String                 // Zawsze zhashowane bcrypt (12 rund)
+  name            String?                @default("")
+  nip             String?                @default("")
+  companyName     String?                @default("")
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  sessions        Session[]
+  company         CompanySettings?
   companyProfiles CompanyProfile[]
-  ksef          KsefSettings?
-  contractors   Contractor[]
-  products      Product[]
-  invoices      Invoice[]
-  ksefSessions  KsefSession[]
-  notifications Notification[]
-  preferences   NotificationPreference?
+  ksef            KsefSettings?
+  contractors     Contractor[]
+  products        Product[]
+  invoices        Invoice[]
+  ksefSessions    KsefSession[]
+  notifications   Notification[]
+  preferences     NotificationPreference?
 }
 
-/// Trwała sesja użytkownika powiązana bezpośrednio z rekordem w bazie danych
+/// Trwała sesja użytkownika powiązana z bazą danych
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -73,12 +69,11 @@ model CompanySettings {
 }
 
 /// Ustawienia KSeF. Pełny token NIGDY nie jest zwracany przez API — zapisywane
-/// są tylko flagi tokenSet + tokenMask (ostatnie 4 znaki). Produkcyjny token
-/// powinien pochodzić ze zmiennej środowiskowej po stronie serwera (README).
+/// są tylko flagi tokenSet + tokenMask (ostatnie 4 znaki).
 model KsefSettings {
   id           String   @id @default(cuid())
   userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   environment  String   @default("demo")
   tokenSet     Boolean  @default(false)
   tokenMask    String   @default("")
@@ -166,8 +161,7 @@ model CompanyProfile {
   @@index([userId])
 }
 
-/// Faktura. Pola strukturalne (lines, ksef) trzymane jako JSON, aby zachować
-/// istniejące typy frontendu bez migracji danych.
+/// Faktura z obsługą pól JSON i relacji do profilu firmy oraz sesji KSeF
 model Invoice {
   id              String          @id @default(cuid())
   userId          String

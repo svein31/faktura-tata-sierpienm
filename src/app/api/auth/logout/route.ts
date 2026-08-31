@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession, SESSION_COOKIE, ALT_SESSION_COOKIE } from "@/lib/auth";
+import { getSession, LEGACY_COOKIES } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
  * POST /api/auth/logout
- * Usuwa sesję z bazy danych Prisma oraz czyści ciasteczko sesyjne w przeglądarce.
+ * Usuwa sesję z bazy danych Prisma oraz czyści ciasteczka sesyjne w przeglądarce.
  */
 export async function POST() {
   const session = await getSession();
@@ -28,8 +28,9 @@ export async function POST() {
     maxAge: 0,
   };
 
-  res.cookies.set(SESSION_COOKIE, "", cookieClearOpts);
-  res.cookies.set(ALT_SESSION_COOKIE, "", cookieClearOpts);
+  for (const cookieName of LEGACY_COOKIES) {
+    res.cookies.set(cookieName, "", cookieClearOpts);
+  }
 
   return res;
 }

@@ -20,11 +20,11 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/register
- * Rejestracja użytkownika:
- * - Przyjmuje: email, password, name, opcjonalnie nip i dane firmy (companyName, adres)
+ * Rejestracja użytkownika w PostgreSQL:
+ * - Przyjmuje: email, password, name, opcjonalnie nip i dane firmy
  * - Bezpieczne haszowanie hasła (bcrypt 12 rounds)
- * - Utworzenie użytkownika oraz profilu firmy w bazie Prisma
- * - Utworzenie trwałej sesji (10 lat) i ustawienie ciasteczka HttpOnly
+ * - Utworzenie użytkownika oraz profilu firmy w bazie Prisma (PostgreSQL / Supabase / Neon)
+ * - Utworzenie trwałej sesji JWT (30 dni) i ustawienie bezpiecznego ciasteczka HttpOnly
  */
 export async function POST(req: Request) {
   try {
@@ -69,13 +69,12 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
     const companyBody = (body.company as Record<string, unknown>) || {};
-
     const hasExplicitCompany = Boolean(nip && (companyName || rawName));
 
     const user = await prisma.user.create({
       data: {
         email,
-        passwordHash,
+        password: passwordHash,
         name: rawName || email.split("@")[0] || "Użytkownik",
         nip: nip || null,
         companyName: companyName || null,
@@ -110,6 +109,7 @@ export async function POST(req: Request) {
 
     try {
       cookies().set(SESSION_COOKIE, token, cookieOpts);
+      cookies().set("fakturo_session", token, cookieOpts);
     } catch {
       // ignore
     }
@@ -124,6 +124,7 @@ export async function POST(req: Request) {
     );
 
     res.cookies.set(SESSION_COOKIE, token, cookieOpts);
+    res.cookies.set("fakturo_session", token, cookieOpts);
     return res;
   } catch (e) {
     return handleApiError(e);

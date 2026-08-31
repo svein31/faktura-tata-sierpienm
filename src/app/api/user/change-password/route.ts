@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Weryfikacja aktualnego hasła
-    const isValid = await verifyPassword(currentPassword, user.passwordHash);
+    const isValid = await verifyPassword(currentPassword, user.password);
     if (!isValid) {
       throw new ApiError(400, "Podane aktualne hasło jest nieprawidłowe.");
     }
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     const newHash = await hashPassword(newPassword);
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: newHash },
+      data: { password: newHash },
     });
 
     return json({

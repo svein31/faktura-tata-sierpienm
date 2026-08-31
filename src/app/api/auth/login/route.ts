@@ -18,10 +18,11 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/login
- * Logowanie użytkownika z trwałą sesją (10 lat):
- * - Weryfikacja hasła (bcrypt)
- * - Generowanie nowej sesji w bazie danych Prisma z metadanymi klienta (IP, User-Agent)
- * - Ustawienie trwałego ciasteczka HttpOnly
+ * Logowanie użytkownika z trwałą 30-dniową sesją JWT i bezpiecznymi ciasteczkami Netlify:
+ * - Weryfikacja hasła (bcrypt.compare)
+ * - Normalizacja adresu e-mail (lowercase & trim)
+ * - Generowanie trwałego tokenu JWT i sesji DB z metadanymi klienta
+ * - Ustawienie 30-dniowego ciasteczka HttpOnly
  */
 export async function POST(req: Request) {
   try {
@@ -48,12 +49,13 @@ export async function POST(req: Request) {
       where: { email },
       include: {
         company: true,
+        companyProfiles: true,
         ksef: true,
       },
     });
 
-    const ok = user ? await verifyPassword(password, user.passwordHash) : false;
-    if (!user || !ok) {
+    const isValid = user ? await verifyPassword(password, user.password) : false;
+    if (!user || !isValid) {
       return json(
         { error: "Nieprawidłowy e-mail lub hasło.", code: "INVALID_CREDENTIALS" },
         { status: 401 }
@@ -66,6 +68,7 @@ export async function POST(req: Request) {
 
     try {
       cookies().set(SESSION_COOKIE, token, cookieOpts);
+      cookies().set("fakturo_session", token, cookieOpts);
     } catch {
       // ignore
     }
@@ -80,6 +83,7 @@ export async function POST(req: Request) {
     );
 
     res.cookies.set(SESSION_COOKIE, token, cookieOpts);
+    res.cookies.set("fakturo_session", token, cookieOpts);
     return res;
   } catch (e) {
     return handleApiError(e);

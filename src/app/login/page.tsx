@@ -10,11 +10,14 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
+import { useSession } from "@/lib/session-context";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
+  const { status, refresh } = useSession();
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPw, setShowPw] = React.useState(false);
@@ -23,6 +26,14 @@ function LoginForm() {
 
   const expired = searchParams.get("expired");
   const already = searchParams.get("already");
+  const nextUrl = searchParams.get("next") || "/";
+
+  // Jeśli użytkownik ma już aktywną sesję, automatycznie przekieruj do aplikacji
+  React.useEffect(() => {
+    if (status === "authenticated" && !expired) {
+      router.replace(nextUrl);
+    }
+  }, [status, expired, nextUrl, router]);
 
   React.useEffect(() => {
     if (expired === "1") toast("info", "Sesja wygasła", "Zaloguj się ponownie.");
@@ -32,7 +43,8 @@ function LoginForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email.trim() || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !password) {
       setError("Podaj e-mail i hasło.");
       return;
     }
@@ -41,16 +53,16 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
       const data = (await res.json()) as { error?: string; user?: { name: string } };
       if (!res.ok) {
-        setError(data.error ?? "Nie udało się zalogować.");
+        setError(data.error ?? "Nieprawidłowy e-mail lub hasło.");
         setBusy(false);
         return;
       }
       toast("success", `Witaj, ${data.user?.name ?? ""}`.trim(), "Logowanie powiodło się.");
-      const nextUrl = searchParams.get("next") || "/";
+      await refresh();
       window.location.href = nextUrl;
     } catch {
       setError("Błąd sieci — spróbuj ponownie.");
@@ -141,7 +153,7 @@ function LoginForm() {
 
       <p className="mt-5 text-center text-[11.5px] leading-relaxed text-muted-foreground">
         Konta są izolowane — każdy użytkownik widzi wyłącznie własne faktury, kontrahentów
-        i produkty. Integracje GUS/KSeF działają w trybie demo.
+        i produkty.
       </p>
     </div>
   );

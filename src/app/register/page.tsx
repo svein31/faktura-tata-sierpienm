@@ -4,17 +4,20 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
+import { useSession } from "@/lib/session-context";
 
 const MIN_PASSWORD_LENGTH = 8;
 
 function RegisterForm() {
   const router = useRouter();
   const toast = useToast();
+  const { status, refresh } = useSession();
+
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
@@ -22,10 +25,18 @@ function RegisterForm() {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  // Jeśli użytkownik ma już aktywną sesję, przekieruj do aplikacji
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cleanEmail)) {
       setError("Podaj prawidłowy adres e-mail.");
       return;
     }
@@ -43,7 +54,7 @@ function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
       const data = (await res.json()) as { error?: string; user?: { name: string } };
       if (!res.ok) {
@@ -52,6 +63,7 @@ function RegisterForm() {
         return;
       }
       toast("success", `Konto utworzone — witaj, ${data.user?.name ?? ""}`.trim(), "Zacznij od uzupełnienia danych firmy.");
+      await refresh();
       window.location.href = "/";
     } catch {
       setError("Błąd sieci — spróbuj ponownie.");
@@ -73,12 +85,11 @@ function RegisterForm() {
           </div>
           <h1 className="text-xl font-bold tracking-tight">Załóż konto</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            Bezpłatny start — Twoje dane są prywatne i izolowane.
+            Bezpłatny start — Twoje dane są prywatne i bezpiecznie zapisane w chmurze.
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-4" noValidate>
-
           <div className="space-y-1.5">
             <Label htmlFor="email">Adres e-mail</Label>
             <div className="relative">
@@ -152,8 +163,7 @@ function RegisterForm() {
           <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-[11.5px] leading-snug text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
             <span>
-              Hasła szyfrowane bcrypt (12 rund). Nowe konto startuje z pustymi danymi — bez przykładowych
-              faktur i kontrahentów.
+              Hasła szyfrowane bcrypt (12 rund). Sesja pozostaje aktywna przez 30 dni.
             </span>
           </div>
         </form>
@@ -165,11 +175,6 @@ function RegisterForm() {
           </Link>
         </p>
       </motion.div>
-
-      <p className="mt-5 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-        Po zalogowaniu zobaczysz pusty pulpit z przewodnikiem konfiguracji: dane firmy,
-        KSeF i pierwsza faktura.
-      </p>
     </div>
   );
 }

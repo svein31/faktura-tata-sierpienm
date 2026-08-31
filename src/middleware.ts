@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export const SESSION_COOKIE = "fakturo_session";
-export const ALT_SESSION_COOKIE = "auth_session";
+export const COOKIE_NAMES = [
+  "__Secure-next-auth.session-token",
+  "next-auth.session-token",
+  "fakturo_session",
+  "auth_session",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -19,10 +23,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Pobierz token sesji z ciasteczka (obsługa obu nazw ciasteczek)
-  const token =
-    request.cookies.get(SESSION_COOKIE)?.value ||
-    request.cookies.get(ALT_SESSION_COOKIE)?.value;
+  // 2. Pobierz token sesji z ciasteczek (obsługa NextAuth, secure oraz legacy)
+  let token: string | undefined;
+  for (const cookieName of COOKIE_NAMES) {
+    const val = request.cookies.get(cookieName)?.value;
+    if (val) {
+      token = val;
+      break;
+    }
+  }
 
   // 3. Definicja ścieżek publicznych autoryzacji
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
@@ -36,9 +45,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 5. Jeśli użytkownik jest na /login lub /register, pozwól na wyświetlenie strony
-  // (NIGDY nie wykonuj ślepego przekierowania z /login na /, aby wyeliminować pętle ERR_TOO_MANY_REDIRECTS
-  // w przypadku nieaktywnego lub wygasłego tokenu w bazie danych)
+  // 5. Jeśli użytkownik wchodzi na /dashboard, przekieruj na główny pulpit /
+  if (pathname === "/dashboard") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   return NextResponse.next();
 }
 
