@@ -15,7 +15,6 @@ import {
   Send,
   Trash2,
   FileDown,
-  Mail,
 } from "lucide-react";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
-import { SendInvoiceEmailCard } from "@/components/invoice/send-invoice-email-card";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
 import { EMPTY_COMPANY } from "@/lib/types";
@@ -156,17 +154,6 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           <Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl">
             <Pencil className="h-3.5 w-3.5" /> Edytuj
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl"
-            onClick={() => {
-              const el = document.getElementById("send-email-section");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            <Mail className="h-3.5 w-3.5" /> Wyślij e-mail
-          </Button>
           {status !== "paid" && status !== "draft" && (
             <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl">
               <CheckCircle2 className="h-3.5 w-3.5" /> Oznacz opłaconą
@@ -237,23 +224,6 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             <p className="mt-1.5 text-[18px] font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Sekcja wysyłki faktury e-mailem */}
-      <div id="send-email-section" className="no-print mt-6">
-        <SendInvoiceEmailCard
-          invoice={invoice}
-          contractor={contractor}
-          company={companySafe}
-          onSent={(info) => {
-            updateInvoice(invoice.id, {
-              sentAt: info.sentAt,
-              sentToEmail: info.sentToEmail,
-              emailStatus: "SENT",
-              status: invoice.status === "draft" ? "sent" : invoice.status,
-            });
-          }}
-        />
       </div>
 
       <p className="no-print mt-6 text-center text-[12px] text-muted-foreground">

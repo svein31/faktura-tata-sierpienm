@@ -42,7 +42,6 @@ import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
-import { SendInvoiceEmailCard } from "./send-invoice-email-card";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
@@ -807,16 +806,6 @@ export function InvoiceCreator() {
           <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
             <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
           </Button>
-        </div>
-
-        {/* Wysyłka faktury e-mailem */}
-        <div className="no-print mt-4">
-          <SendInvoiceEmailCard
-            invoice={previewInvoice}
-            contractor={effectiveContractor}
-            company={effectiveSellerCompany}
-            defaultExpanded={false}
-          />
         </div>
 
         {errors.length > 0 && (
