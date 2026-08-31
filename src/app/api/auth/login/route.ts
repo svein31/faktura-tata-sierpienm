@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import {
   createSession,
   extractRequestMetadata,
@@ -10,7 +10,7 @@ import {
   toPublicUser,
   verifyPassword,
 } from "@/lib/auth";
-import { handleApiError, json, readJson, str } from "@/lib/api";
+import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +26,16 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
+    if (!process.env.DATABASE_URL) {
+      return json(
+        {
+          error: "Brak skonfigurowanej bazy danych (DATABASE_URL) na serwerze.",
+          code: "DATABASE_URL_MISSING",
+        },
+        { status: 500 }
+      );
+    }
+
     const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 15 });
     if (!rl.allowed) {
       return json(
@@ -85,7 +95,24 @@ export async function POST(req: Request) {
     res.cookies.set(SESSION_COOKIE, token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
     return res;
-  } catch (e) {
-    return handleApiError(e);
+  } catch (error: unknown) {
+    console.error("Błąd logowania:", error);
+
+    if (error instanceof ApiError) {
+      return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
+    }
+
+    const prismaError = error as { code?: string; message?: string; name?: string };
+    if (prismaError.code === "P1001" || prismaError.code === "P1000") {
+      return json(
+        {
+          error: "Nie można połączyć się z serwerem bazy danych PostgreSQL. Upewnij się, że baza jest aktywna.",
+          code: "DATABASE_CONNECTION_ERROR",
+        },
+        { status: 503 }
+      );
+    }
+
+    return json({ error: "Błąd serwera podczas logowania.", code: "INTERNAL" }, { status: 500 });
   }
 }

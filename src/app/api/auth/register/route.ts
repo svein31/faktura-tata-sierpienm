@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import {
   createSession,
   extractRequestMetadata,
@@ -12,7 +12,7 @@ import {
   validateCredentials,
   MIN_PASSWORD_LENGTH,
 } from "@/lib/auth";
-import { handleApiError, json, readJson, str } from "@/lib/api";
+import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -20,22 +20,38 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/auth/register
- * Rejestracja użytkownika w PostgreSQL:
- * - Przyjmuje: email, password, name, opcjonalnie nip i dane firmy
- * - Bezpieczne haszowanie hasła (bcrypt 12 rounds)
- * - Utworzenie użytkownika oraz profilu firmy w bazie Prisma (PostgreSQL / Supabase / Neon)
- * - Utworzenie trwałej sesji JWT (30 dni) i ustawienie bezpiecznego ciasteczka HttpOnly
+ * Rejestracja nowego użytkownika w PostgreSQL:
+ * - Weryfikacja zmiennej środowiskowej DATABASE_URL
+ * - Normalizacja i walidacja danych (email, hasło)
+ * - Bezpieczne haszowanie hasła (bcryptjs, 12 rund)
+ * - Utworzenie rekordu User w bazie PostgreSQL (Supabase / Neon / RDS)
+ * - Utworzenie 30-dniowej sesji JWT i ustawienie ciasteczka HttpOnly
+ * - Dokładna obsługa błędów z czytelnymi komunikatami
  */
 export async function POST(req: Request) {
   try {
-    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 10 });
+    // 1. Sprawdzenie konfiguracji bazy danych
+    if (!process.env.DATABASE_URL) {
+      console.error("[Auth Register] Brak skonfigurowanej zmiennej środowiskowej DATABASE_URL w środowisku Netlify.");
+      return json(
+        {
+          error: "Brak skonfigurowanej bazy danych. Dodaj zmienną DATABASE_URL w panelu Netlify (Site configuration -> Environment variables).",
+          code: "DATABASE_URL_MISSING",
+        },
+        { status: 500 }
+      );
+    }
+
+    // 2. Rate limiting (ochrona przed atakami brute-force)
+    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 15 });
     if (!rl.allowed) {
       return json(
-        { error: "Zbyt wiele prób. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
+        { error: "Zbyt wiele prób rejestracji. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
         { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds ?? 60) } }
       );
     }
 
+    // 3. Odczyt i normalizacja danych
     const body = await readJson(req);
     const email = normalizeEmail(str(body.email));
     const password = str(body.password);
@@ -44,6 +60,7 @@ export async function POST(req: Request) {
     const companyName = str(body.companyName).trim();
     const name = rawName || companyName || email.split("@")[0] || "Użytkownik";
 
+    // 4. Walidacja formatu e-mail i siły hasła
     const v = validateCredentials(email, password);
     if (!v.ok) {
       return json(
@@ -58,19 +75,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Sprawdź czy e-mail jest już zajęty
+    // 5. Sprawdzenie czy użytkownik już istnieje
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return json(
-        { error: "Użytkownik o podanym adresie e-mail już istnieje.", code: "USER_EXISTS" },
+        { error: "Konto z podanym adresem e-mail już istnieje w systemie.", code: "USER_EXISTS" },
         { status: 409 }
       );
     }
 
+    // 6. Haszowanie hasła (bcryptjs 12 rund)
     const passwordHash = await hashPassword(password);
     const companyBody = (body.company as Record<string, unknown>) || {};
     const hasExplicitCompany = Boolean(nip && (companyName || rawName));
 
+    // 7. Utworzenie użytkownika w PostgreSQL
     const user = await prisma.user.create({
       data: {
         email,
@@ -103,6 +122,7 @@ export async function POST(req: Request) {
       },
     });
 
+    // 8. Utworzenie 30-dniowej sesji JWT
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
     const cookieOpts = sessionCookieOptions();
@@ -126,7 +146,60 @@ export async function POST(req: Request) {
     res.cookies.set(SESSION_COOKIE, token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
     return res;
-  } catch (e) {
-    return handleApiError(e);
+  } catch (error: unknown) {
+    console.error("Błąd rejestracji:", error);
+
+    if (error instanceof ApiError) {
+      return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
+    }
+
+    // Obsługa specyficznych kodów błędów Prisma
+    const prismaError = error as { code?: string; message?: string; name?: string };
+
+    if (prismaError.code === "P2002") {
+      return json(
+        { error: "Konto z podanym adresem e-mail już istnieje w systemie.", code: "USER_EXISTS" },
+        { status: 409 }
+      );
+    }
+
+    if (prismaError.code === "P1001" || prismaError.code === "P1000") {
+      return json(
+        {
+          error: "Nie można połączyć się z serwerem bazy danych PostgreSQL. Upewnij się, że baza w chmurze (Supabase / Neon) jest aktywna i dostępna.",
+          code: "DATABASE_CONNECTION_ERROR",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (prismaError.code === "P2021") {
+      return json(
+        {
+          error: "Tabele w bazie danych nie zostały jeszcze utworzone. Uruchom migrację (npx prisma db push).",
+          code: "TABLES_NOT_FOUND",
+        },
+        { status: 500 }
+      );
+    }
+
+    if (prismaError.name === "PrismaClientInitializationError") {
+      return json(
+        {
+          error: "Błąd inicjalizacji bazy danych. Sprawdź poprawność ciągu połączeniowego DATABASE_URL.",
+          code: "DATABASE_INIT_ERROR",
+        },
+        { status: 500 }
+      );
+    }
+
+    const message = error instanceof Error ? error.message : "Nieznany błąd serwera.";
+    return json(
+      {
+        error: `Wystąpił błąd podczas rejestracji: ${message}`,
+        code: "REGISTRATION_FAILED",
+      },
+      { status: 500 }
+    );
   }
 }
