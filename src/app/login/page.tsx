@@ -55,17 +55,29 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: cleanEmail, password }),
       });
-      const data = (await res.json()) as { error?: string; user?: { name: string } };
+
+      let data: { error?: string; user?: { name: string } } = {};
+      try {
+        data = (await res.json()) as { error?: string; user?: { name: string } };
+      } catch {
+        // ignore
+      }
+
       if (!res.ok) {
-        setError(data.error ?? "Nieprawidłowy e-mail lub hasło.");
+        setError(data.error || "Nieprawidłowy e-mail lub hasło.");
         setBusy(false);
         return;
       }
+
       toast("success", `Witaj, ${data.user?.name ?? ""}`.trim(), "Logowanie powiodło się.");
-      await refresh();
+      try {
+        await refresh();
+      } catch {
+        // ignore
+      }
       window.location.href = nextUrl;
     } catch {
-      setError("Błąd sieci — spróbuj ponownie.");
+      setError("Błąd sieci lub połączenia — spróbuj ponownie.");
       setBusy(false);
     }
   };

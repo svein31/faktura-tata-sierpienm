@@ -56,17 +56,29 @@ function RegisterForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: cleanEmail, password }),
       });
-      const data = (await res.json()) as { error?: string; user?: { name: string } };
+
+      let data: { error?: string; user?: { name: string } } = {};
+      try {
+        data = (await res.json()) as { error?: string; user?: { name: string } };
+      } catch {
+        // ignore
+      }
+
       if (!res.ok) {
-        setError(data.error ?? "Nie udało się utworzyć konta.");
+        setError(data.error || "Nie udało się utworzyć konta. Sprawdź czy podany e-mail nie jest zajęty.");
         setBusy(false);
         return;
       }
+
       toast("success", `Konto utworzone — witaj, ${data.user?.name ?? ""}`.trim(), "Zacznij od uzupełnienia danych firmy.");
-      await refresh();
+      try {
+        await refresh();
+      } catch {
+        // ignore
+      }
       window.location.href = "/";
     } catch {
-      setError("Błąd sieci — spróbuj ponownie.");
+      setError("Błąd sieci lub połączenia — spróbuj ponownie za chwilę.");
       setBusy(false);
     }
   };
