@@ -48,11 +48,11 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-export const VAT_RATES: VatRate[] = ["23", "8", "5", "0", "zw", "np"];
+export const VAT_RATES: VatRate[] = ["23", "8", "5", "0", "zw", "np", "oo"];
 
 export function vatPercent(rate: VatRate): number {
   if (rate === "23" || rate === "8" || rate === "5" || rate === "0") return Number(rate);
-  return 0;
+  return 0; // zw, np, oo — brak VAT
 }
 
 export function vatRateLabel(rate: VatRate): string {
@@ -61,8 +61,24 @@ export function vatRateLabel(rate: VatRate): string {
       return "zw.";
     case "np":
       return "np.";
+    case "oo":
+      return "o.o.";
     default:
       return `${rate}%`;
+  }
+}
+
+/** Kolor badge'a dla stawki VAT (Tailwind className) */
+export function vatRateBadgeClass(rate: VatRate): string {
+  switch (rate) {
+    case "23": return "bg-indigo-500/12 text-indigo-600 dark:text-indigo-400 ring-indigo-500/20";
+    case "8":  return "bg-sky-500/12 text-sky-600 dark:text-sky-400 ring-sky-500/20";
+    case "5":  return "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20";
+    case "0":  return "bg-slate-500/12 text-slate-500 ring-slate-500/20";
+    case "zw": return "bg-amber-500/12 text-amber-600 dark:text-amber-400 ring-amber-500/20";
+    case "np": return "bg-orange-500/12 text-orange-600 dark:text-orange-400 ring-orange-500/20";
+    case "oo": return "bg-rose-500/12 text-rose-600 dark:text-rose-400 ring-rose-500/20";
+    default:   return "bg-muted text-muted-foreground ring-border";
   }
 }
 

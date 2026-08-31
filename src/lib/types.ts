@@ -1,4 +1,4 @@
-export type VatRate = "23" | "8" | "5" | "0" | "zw" | "np";
+export type VatRate = "23" | "8" | "5" | "0" | "zw" | "np" | "oo";
 export type Currency = "PLN" | "EUR" | "USD";
 export type InvoiceLanguage = "PL" | "EN";
 export type InvoiceType = "sale" | "purchase";

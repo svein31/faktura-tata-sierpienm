@@ -128,6 +128,8 @@ export function mapVatRateToP12(rate: VatRate): string {
       return "zw";
     case "np":
       return "np";
+    case "oo":
+      return "OO"; // odwrotne obciążenie wg FA(3)
     default:
       return "23";
   }

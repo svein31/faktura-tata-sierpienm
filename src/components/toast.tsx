@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Info, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ToastKind = "success" | "error" | "info";
+type ToastKind = "success" | "error" | "info" | "warning";
 interface ToastItem {
   id: string;
   kind: ToastKind;
@@ -27,12 +27,14 @@ const icons: Record<ToastKind, React.ReactNode> = {
   success: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
   error: <XCircle className="h-4 w-4 text-rose-500" />,
   info: <Info className="h-4 w-4 text-sky-500" />,
+  warning: <AlertTriangle className="h-4 w-4 text-amber-500" />,
 };
 
 const kindStyles: Record<ToastKind, string> = {
   success: "border-emerald-500/30 bg-card/90 shadow-emerald-500/5",
   error: "border-rose-500/30 bg-card/90 shadow-rose-500/5",
   info: "border-sky-500/30 bg-card/90 shadow-sky-500/5",
+  warning: "border-amber-500/30 bg-card/90 shadow-amber-500/5",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {

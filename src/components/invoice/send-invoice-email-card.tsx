@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Mail, CheckCircle2, Clock, Send, FileText, FileCode2, AlertCircle } from "lucide-react";
+import { Mail, CheckCircle2, Clock, Send, FileText, FileCode2, AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -102,14 +102,23 @@ export function SendInvoiceEmailCard({
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.message || data.error || "Wystąpił błąd podczas wysyłki.");
+        const errMsg = data.message || data.error || "Wystąpił błąd podczas wysyłki.";
+        throw new Error(errMsg);
       }
 
-      toast(
-        "success",
-        "Faktura wysłana e-mailem",
-        `Pomyślnie wysłano fakturę na adres: ${recipientEmail}`
-      );
+      if (data.isDemo) {
+        toast(
+          "warning",
+          "Tryb demonstracyjny",
+          "Brak konfiguracji SMTP. Ustaw RESEND_API_KEY lub SMTP_HOST w zmiennych środowiskowych."
+        );
+      } else {
+        toast(
+          "success",
+          "Faktura wysłana!",
+          `Wysłano na: ${recipientEmail}${data.attachmentCount ? ` · ${data.attachmentCount} załącznik(i)` : ""}`
+        );
+      }
 
       const sentTime = data.sentAt || new Date().toISOString();
       setLastSentAt(sentTime);

@@ -124,6 +124,8 @@ export function vatLabel(rate: VatRate, lang: InvoiceLanguage): string {
       return lang === "PL" ? "zw." : "exempt";
     case "np":
       return lang === "PL" ? "np." : "n/a";
+    case "oo":
+      return lang === "PL" ? "o.o." : "reverse charge";
     default:
       return `${rate}%`;
   }
