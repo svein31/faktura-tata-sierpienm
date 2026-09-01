@@ -6,10 +6,21 @@
  * - KSeF API v2.0
  */
 
+/** KSeF 1.x (legacy) – używany przez istniejące endpointy wysyłki. */
 export const KSEF_URLS = {
   production: "https://ksef.mf.gov.pl/api",
   test: "https://ksef-test.mf.gov.pl/api",
   demo: "https://ksef-demo.mf.gov.pl/api",
+} as const;
+
+/**
+ * KSeF 2.0 – oficjalny REST API z uwierzytelnianiem JWT.
+ * Pobieranie faktur (query/metadata, /invoices/ksef/{ksefNumber}) używa tych adresów.
+ */
+export const KSEF_V2_URLS = {
+  production: "https://api.ksef.mf.gov.pl/v2",
+  test: "https://api-test.ksef.mf.gov.pl/v2",
+  demo: "https://api-demo.ksef.mf.gov.pl/v2",
 } as const;
 
 export type KsefEnvironment = "production" | "test" | "demo";

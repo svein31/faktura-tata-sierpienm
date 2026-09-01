@@ -98,6 +98,9 @@ export interface Invoice {
   paymentTermDays: number;
   notes?: string;
   lines: InvoiceLine[];
+  totalNet?: number;
+  totalVat?: number;
+  totalGross?: number;
   ksef?: KsefInfo;
   sentAt?: string | null;
   sentToEmail?: string | null;

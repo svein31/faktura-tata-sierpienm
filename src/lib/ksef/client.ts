@@ -2,8 +2,9 @@
  * Klient KSeF API v2.0 dla środowisk Next.js Serverless (Netlify Functions)
  */
 
-import { KSEF_PROCESSING_STATUS, KSEF_URLS, type KsefEnvironment } from "./constants";
-import { encryptInvoicePayload, encryptKsefToken, getKsefPublicKey, type EncryptedInvoicePackage } from "./crypto";
+import { KSEF_PROCESSING_STATUS, KSEF_URLS, KSEF_V2_URLS, type KsefEnvironment } from "./constants";
+import { encryptInvoicePayload, encryptKsefToken, getKsefPublicKey, normalizePublicKeyPem, type EncryptedInvoicePackage } from "./crypto";
+import * as crypto from "crypto";
 
 export interface KsefChallengeResponse {
   challenge: string;
@@ -34,10 +35,49 @@ export interface KsefInvoiceStatusResult {
   raw?: unknown;
 }
 
+/**
+ * Metadane faktury w formacie zwracanym przez KSeF v2
+ * (POST /invoices/query/metadata → InvoiceMetadata).
+ */
+export interface KsefInvoiceHeader {
+  /** Numer KSeF (v2: `ksefNumber`; v1 fallback: `ksefReferenceNumber`). */
+  ksefNumber: string;
+  ksefReferenceNumber?: string;
+  invoiceNumber?: string;
+  invoiceReferenceNumber?: string;
+  issueDate?: string;
+  invoicingDate?: string;
+  acquisitionDate?: string;
+  acquisitionTimestamp?: string;
+  permanentStorageDate?: string;
+  seller?: { nip?: string; name?: string };
+  buyer?: { identifier?: { type?: string; value?: string }; name?: string };
+  netAmount?: number;
+  grossAmount?: number;
+  vatAmount?: number;
+  currency?: string;
+  upo?: string;
+  [key: string]: unknown;
+}
+
+export interface KsefInvoiceQueryResult {
+  invoiceHeaders: KsefInvoiceHeader[];
+  hasMore: boolean;
+  isTruncated: boolean;
+  permanentStorageHwmDate?: string;
+  numberOfElements: number;
+  pageOffset: number;
+  pageSize: number;
+  raw: unknown;
+}
+
 export interface KsefClientOptions {
   environment?: KsefEnvironment;
   timeoutMs?: number;
+  /** Nadpisuje adres bazowy KSeF 1.x (legacy, wyssyłka faktur). */
   baseUrl?: string;
+  /** Nadpisuje adres bazowy KSeF 2.0 (pobieranie faktur, uwierzytelnianie JWT). */
+  baseUrlV2?: string;
 }
 
 export class KsefApiError extends Error {
@@ -55,13 +95,15 @@ export class KsefApiError extends Error {
 export class KsefClient {
   public readonly environment: KsefEnvironment;
   public readonly baseUrl: string;
+  public readonly baseUrlV2: string;
   public readonly timeoutMs: number;
 
   constructor(options: KsefClientOptions = {}) {
     const envVar = (process.env.KSEF_ENV || process.env.KSEF_ENVIRONMENT || "test").toLowerCase();
     this.environment = options.environment || (envVar === "production" ? "production" : envVar === "demo" ? "demo" : "test");
     this.baseUrl = options.baseUrl || KSEF_URLS[this.environment] || KSEF_URLS.test;
-    this.timeoutMs = options.timeoutMs || 12000; // Netlify Serverless friendly timeout
+    this.baseUrlV2 = options.baseUrlV2 || KSEF_V2_URLS[this.environment] || KSEF_V2_URLS.test;
+    this.timeoutMs = options.timeoutMs || 12000;
   }
 
   /**
@@ -74,17 +116,20 @@ export class KsefClient {
       body?: unknown;
       headers?: Record<string, string>;
       rawResponse?: boolean;
+      /** Nadpisuje bazę URL dla tego konkretnego wywołania. */
+      baseUrl?: string;
     } = {}
   ): Promise<T> {
-    const { method = "GET", body, headers = {}, rawResponse = false } = options;
-    const url = `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+    const { method = "GET", body, headers = {}, rawResponse = false, baseUrl } = options;
+    const effectiveBaseUrl = baseUrl || this.baseUrl;
+    const url = `${effectiveBaseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const isOctetStream = headers["Content-Type"] === "application/octet-stream";
-      const isXml = headers["Content-Type"] === "application/xml";
+      const isOctetStream = (headers["Content-Type"] || "") === "application/octet-stream";
+      const isXml = (headers["Content-Type"] || "") === "application/xml";
 
       let requestBody: BodyInit | undefined;
       if (body) {
@@ -107,6 +152,9 @@ export class KsefClient {
 
       if (rawResponse) {
         const text = await res.text();
+        if (!res.ok) {
+          throw new KsefApiError(`Błąd API KSeF (HTTP ${res.status})`, res.status, undefined, text);
+        }
         return text as unknown as T;
       }
 
@@ -380,24 +428,252 @@ export class KsefClient {
     };
   }
 
+  // ────────────────────────────────────────────────────────────────────────────
+  // KSeF 2.0 – uwierzytelnianie JWT
+  // ────────────────────────────────────────────────────────────────────────────
+
   /**
-   * KROK 6: Pobranie faktury XML z KSeF
+   * Pobiera certyfikat klucza publicznego do szyfrowania tokena KSeF
+   * z endpointu KSeF v2: GET /security/public-key-certificates
+   *
+   * Zwraca `{ pem: string; publicKeyId: string }` dla klucza `KsefTokenEncryption`.
+   */
+  public async fetchPublicKeyCertificate(): Promise<{ pem: string; publicKeyId: string }> {
+    let certs: any[];
+    try {
+      certs = await this.request<any[]>("/security/public-key-certificates", {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        baseUrl: this.baseUrlV2,
+      });
+    } catch {
+      // Fallback: użyj wbudowanego klucza środowiskowego
+      return { pem: getKsefPublicKey(this.environment), publicKeyId: "" };
+    }
+
+    const encCert = (Array.isArray(certs) ? certs : []).find(
+      (c: any) => Array.isArray(c.usage) && c.usage.includes("KsefTokenEncryption")
+    );
+    if (!encCert?.certificate) {
+      return { pem: getKsefPublicKey(this.environment), publicKeyId: "" };
+    }
+
+    try {
+      const derBuf = Buffer.from(encCert.certificate, "base64");
+      const x509 = new crypto.X509Certificate(derBuf);
+      const pem = x509.publicKey.export({ type: "spki", format: "pem" }).toString();
+      return { pem: normalizePublicKeyPem(pem), publicKeyId: encCert.publicKeyId ?? "" };
+    } catch {
+      return { pem: getKsefPublicKey(this.environment), publicKeyId: encCert.publicKeyId ?? "" };
+    }
+  }
+
+  /**
+   * Pełny flow uwierzytelniania KSeF 2.0 tokenem KSeF:
+   *  1. POST /auth/challenge – pobierz challenge
+   *  2. Zaszyfruj `token|timestampMs` kluczem publicznym MF
+   *  3. POST /auth/ksef-token – zainicjuj uwierzytelnianie, odbierz authenticationToken
+   *  4. GET /auth/{referenceNumber} (poll) – czekaj na status 200
+   *  5. POST /auth/token/redeem – odbierz accessToken + refreshToken
+   *
+   * Zwraca accessToken (JWT) używany jako Bearer w dalszych wywołaniach.
+   */
+  public async loginWithKsefTokenV2(
+    nip: string,
+    ksefToken: string
+  ): Promise<KsefSessionInitResult> {
+    const cleanNip = nip.replace(/\D/g, "").trim();
+
+    // 1. Challenge
+    const challengeRes = await this.request<any>("/auth/challenge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: {},
+      baseUrl: this.baseUrlV2,
+    });
+    const challenge: string = challengeRes.challenge;
+    const timestampMs: number = challengeRes.timestampMs ?? new Date(challengeRes.timestamp ?? Date.now()).getTime();
+
+    // 2. Klucz publiczny + szyfrowanie
+    const { pem, publicKeyId } = await this.fetchPublicKeyCertificate();
+    const encryptedToken = encryptKsefToken(ksefToken, timestampMs, pem);
+
+    // 3. Inicjalizacja sesji tokenem
+    const initRes = await this.request<any>("/auth/ksef-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: {
+        challenge,
+        contextIdentifier: { type: "Nip", value: cleanNip },
+        encryptedToken,
+        ...(publicKeyId ? { publicKeyId } : {}),
+      },
+      baseUrl: this.baseUrlV2,
+    });
+    const referenceNumber: string = initRes.referenceNumber;
+    const operationToken: string = initRes.authenticationToken?.token ?? initRes.authenticationToken ?? "";
+    const operationTokenValidUntil: string = initRes.authenticationToken?.validUntil ?? new Date(Date.now() + 5 * 60_000).toISOString();
+
+    // 4. Polling statusu uwierzytelniania (max ~24 s)
+    let statusCode = 100;
+    const pollStart = Date.now();
+    while (statusCode === 100 || statusCode === 150) {
+      if (Date.now() - pollStart > 24_000) {
+        throw new KsefApiError("Przekroczono czas oczekiwania na uwierzytelnianie KSeF (timeout 24 s).", 504, "AUTH_TIMEOUT");
+      }
+      await new Promise((r) => setTimeout(r, 2_000));
+      const statusRes = await this.request<any>(`/auth/${encodeURIComponent(referenceNumber)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${operationToken}`,
+          Accept: "application/json",
+        },
+        baseUrl: this.baseUrlV2,
+      });
+      statusCode = Number(statusRes.status?.code ?? statusRes.statusCode ?? 0);
+    }
+
+    if (statusCode !== 200) {
+      throw new KsefApiError(
+        `Uwierzytelnianie KSeF nie powiodło się (kod statusu: ${statusCode}).`,
+        401,
+        "AUTH_FAILED"
+      );
+    }
+
+    // 5. Pobranie tokenów dostępowych
+    const redeemRes = await this.request<any>("/auth/token/redeem", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${operationToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: {},
+      baseUrl: this.baseUrlV2,
+    });
+    const accessToken: string = redeemRes.accessToken?.token ?? redeemRes.accessToken ?? "";
+    const refreshToken: string = redeemRes.refreshToken?.token ?? redeemRes.refreshToken ?? "";
+    const validUntil: string = redeemRes.accessToken?.validUntil ?? operationTokenValidUntil;
+
+    return {
+      referenceNumber,
+      authenticationToken: refreshToken || operationToken,
+      accessToken,
+      validUntil,
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // KSeF 2.0 – pobieranie faktur
+  // ────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Pobiera stronę metadanych faktur, w których zalogowany podmiot jest nabywcą,
+   * używając KSeF API v2.0 (POST /invoices/query/metadata, Subject2, PermanentStorage).
+   */
+  public async queryIncomingInvoices(
+    accessToken: string,
+    from: Date,
+    to: Date,
+    pageOffset = 0,
+    pageSize = 100
+  ): Promise<KsefInvoiceQueryResult> {
+    const result = await this.request<any>(
+      `/invoices/query/metadata?pageOffset=${pageOffset}&pageSize=${Math.min(pageSize, 250)}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: {
+          subjectType: "Subject2",
+          dateRange: {
+            dateType: "PermanentStorage",
+            from: from.toISOString(),
+            to: to.toISOString(),
+          },
+        },
+        baseUrl: this.baseUrlV2,
+      }
+    );
+
+    const rawInvoices: unknown[] = Array.isArray(result?.invoices)
+      ? result.invoices
+      : Array.isArray(result?.invoiceHeaderList)
+        ? result.invoiceHeaderList
+        : [];
+
+    // Normalizuj do wspólnego interfejsu KsefInvoiceHeader
+    const invoiceHeaders: KsefInvoiceHeader[] = rawInvoices.map((inv: any) => ({
+      ksefNumber: inv.ksefNumber ?? inv.ksefReferenceNumber ?? "",
+      ksefReferenceNumber: inv.ksefReferenceNumber ?? inv.ksefNumber ?? "",
+      invoiceNumber: inv.invoiceNumber,
+      issueDate: inv.issueDate,
+      invoicingDate: inv.invoicingDate,
+      acquisitionDate: inv.acquisitionDate,
+      acquisitionTimestamp: inv.acquisitionDate ?? inv.acquisitionTimestamp,
+      permanentStorageDate: inv.permanentStorageDate,
+      seller: inv.seller,
+      buyer: inv.buyer,
+      netAmount: inv.netAmount,
+      grossAmount: inv.grossAmount,
+      vatAmount: inv.vatAmount,
+      currency: inv.currency,
+    }));
+
+    return {
+      invoiceHeaders,
+      hasMore: Boolean(result?.hasMore),
+      isTruncated: Boolean(result?.isTruncated),
+      permanentStorageHwmDate: result?.permanentStorageHwmDate,
+      numberOfElements: Number(result?.numberOfElements ?? invoiceHeaders.length),
+      pageOffset,
+      pageSize,
+      raw: result,
+    };
+  }
+
+  /**
+   * Pobiera dokument XML faktury z KSeF.
+   *
+   * Próbuje najpierw KSeF v2 (GET /invoices/ksef/{ksefNumber}),
+   * a przy błędzie spada na KSeF v1 (GET /online/Invoice/Get/{id}).
    */
   public async downloadInvoiceXml(
-    sessionToken: string,
-    ksefReferenceNumber: string
+    accessToken: string,
+    ksefNumber: string
   ): Promise<string> {
-
-    const xml = await this.request<string>(`/online/Invoice/Get/${encodeURIComponent(ksefReferenceNumber)}`, {
-      method: "GET",
-      headers: {
-        SessionToken: sessionToken,
-        Accept: "application/xml",
-      },
-      rawResponse: true,
-    });
-
-    return xml;
+    // KSeF v2 – primary
+    try {
+      const xml = await this.request<string>(`/invoices/ksef/${encodeURIComponent(ksefNumber)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/xml, text/xml, application/octet-stream",
+        },
+        rawResponse: true,
+        baseUrl: this.baseUrlV2,
+      });
+      return xml;
+    } catch (v2err) {
+      if (v2err instanceof KsefApiError && (v2err.statusCode === 404 || v2err.statusCode === 401)) {
+        // fallback do KSeF v1 (legacy środowiska testowe)
+        const xml = await this.request<string>(`/online/Invoice/Get/${encodeURIComponent(ksefNumber)}`, {
+          method: "GET",
+          headers: {
+            SessionToken: accessToken,
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/octet-stream, application/xml",
+          },
+          rawResponse: true,
+        });
+        return xml;
+      }
+      throw v2err;
+    }
   }
 }
 

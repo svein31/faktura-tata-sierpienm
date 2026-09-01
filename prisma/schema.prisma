@@ -15,24 +15,25 @@ datasource db {
 }
 
 model User {
-  id              String                 @id @default(auto()) @map("_id") @db.ObjectId
-  email           String                 @unique
-  password        String                 // Zawsze zhashowane bcrypt (12 rund)
-  name            String?                @default("")
-  nip             String?                @default("")
-  companyName     String?                @default("")
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  sessions        Session[]
-  company         CompanySettings?
-  companyProfiles CompanyProfile[]
-  ksef            KsefSettings?
-  contractors     Contractor[]
-  products        Product[]
-  invoices        Invoice[]
-  ksefSessions    KsefSession[]
-  notifications   Notification[]
-  preferences     NotificationPreference?
+  id                  String                  @id @default(auto()) @map("_id") @db.ObjectId
+  email               String                  @unique
+  password            String // Zawsze zhashowane bcrypt (12 rund)
+  name                String?                 @default("")
+  nip                 String?                 @default("")
+  companyName         String?                 @default("")
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  sessions            Session[]
+  company             CompanySettings?
+  companyProfiles     CompanyProfile[]
+  ksef                KsefSettings?
+  contractors         Contractor[]
+  products            Product[]
+  invoices            Invoice[]
+  ksefSessions        KsefSession[]
+  incomingKsefImports KsefIncomingImport[]
+  notifications       Notification[]
+  preferences         NotificationPreference?
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -70,15 +71,16 @@ model CompanySettings {
 
 /// Ustawienia KSeF
 model KsefSettings {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String   @unique @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  environment  String   @default("demo")
-  tokenSet     Boolean  @default(false)
-  tokenMask    String   @default("")
-  certName     String   @default("")
-  autoValidate Boolean  @default(true)
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String    @unique @db.ObjectId
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  environment        String    @default("demo")
+  tokenSet           Boolean   @default(false)
+  tokenMask          String    @default("")
+  certName           String    @default("")
+  autoValidate       Boolean   @default(true)
+  lastIncomingSyncAt DateTime?
+  updatedAt          DateTime  @updatedAt
 }
 
 /// Sesja uwierzytelniona KSeF API 2.0
@@ -99,6 +101,17 @@ model KsefSession {
   invoices            Invoice[]
 
   @@index([nip])
+  @@index([userId])
+}
+
+model KsefIncomingImport {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String   @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ksefReferenceNumber String   @unique
+  invoiceId           String?  @db.ObjectId
+  createdAt           DateTime @default(now())
+
   @@index([userId])
 }
 
@@ -182,10 +195,13 @@ model Invoice {
   lines           Json
   ksef            Json?
   nip             String?         @default("")
+  totalNet        Float?          @default(0)
+  totalVat        Float?          @default(0)
   totalGross      Float?          @default(0)
   ksefNumber      String?
   referenceNumber String?
   upoXml          String?
+  ksefXml         String?
   ksefSessionId   String?         @db.ObjectId
   ksefSession     KsefSession?    @relation(fields: [ksefSessionId], references: [id], onDelete: SetNull)
   sentAt          DateTime?

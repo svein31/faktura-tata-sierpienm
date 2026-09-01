@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownUp,
+  CloudDownload,
   Copy,
   FileText,
   Filter,
-  FlaskConical,
   Pencil,
   Plus,
   Search,
@@ -28,9 +28,8 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTooltip } from "@/components/ui/tooltip";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import type { EffectiveStatus } from "@/lib/store";
-import type { Contractor, Invoice, InvoiceType } from "@/lib/types";
+import type { Invoice, InvoiceType } from "@/lib/types";
 import { EMPTY_COMPANY } from "@/lib/types";
-import { playNotificationSound } from "@/lib/sound";
 
 const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> = [
   { value: "all", label: "Wszystkie" },
@@ -132,45 +131,28 @@ export default function InvoicesPage() {
     setConfirmKsef(null);
   };
 
-  /** „Symuluj nową fakturę z KSeF" — tworzy FZ + powiadomienie (per user, demo). */
-  const [simulating, setSimulating] = React.useState(false);
-  const simulatePurchase = async () => {
-    setSimulating(true);
+  const [syncingIncoming, setSyncingIncoming] = React.useState(false);
+  const syncIncomingInvoices = async () => {
+    setSyncingIncoming(true);
     try {
-      const res = await fetch("/api/ksef/simulate-purchase", { method: "POST" });
+      const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
       const data = (await res.json()) as {
-        ok?: boolean;
+        success?: boolean;
+        importedCount?: number;
         error?: string;
-        invoice?: Invoice;
-        contractor?: Contractor;
-        notification?: { id: string };
       };
-      if (!res.ok || !data.ok || !data.invoice) {
-        toast("error", "Nie udało się zasymulować faktury", data.error ?? "Błąd API.");
+      if (!res.ok || !data.success) {
+        toast("error", "Nie udało się pobrać faktur z KSeF", data.error ?? "Błąd API KSeF.");
         return;
       }
-      const state = useAppStore.getState();
-      if (data.contractor) {
-        useAppStore.setState({
-          contractors: state.contractors.some((c) => c.id === data.contractor!.id)
-            ? state.contractors
-            : [data.contractor, ...state.contractors],
-        });
-      }
-      state.applyInvoice(data.invoice);
-      if (data.notification) {
-        void state.fetchNotifications().catch(() => undefined);
-        if (state.notificationPrefs.soundEnabled) playNotificationSound();
-      }
-      toast(
-        "success",
-        "Symulacja KSeF: nowa faktura zakupowa",
-        `${data.invoice.number} — powiadomienie wysłane (dzwonek, dźwięk).`
-      );
+
+      await useAppStore.getState().revalidate();
+      const count = data.importedCount ?? 0;
+      toast("success", "Synchronizacja KSeF zakończona", `Pobrano i zaimportowano ${count} nowych faktur zakupowych z KSeF.`);
     } catch {
-      toast("error", "Błąd sieci", "Nie udało się zasymulować faktury zakupowej.");
+      toast("error", "Błąd sieci", "Nie udało się pobrać faktur zakupowych z KSeF.");
     } finally {
-      setSimulating(false);
+      setSyncingIncoming(false);
     }
   };
 
@@ -183,11 +165,13 @@ export default function InvoicesPage() {
           <>
             <Button
               variant="subtle"
-              onClick={simulatePurchase}
-              loading={simulating}
-              title="Tworzy fakturę zakupową FZ + powiadomienie"
+              onClick={syncIncomingInvoices}
+              loading={syncingIncoming}
+              title="Pobierz faktury zakupowe z KSeF"
+              aria-label={syncingIncoming ? "Pobieranie faktur z KSeF" : "Pobierz faktury zakupowe z KSeF"}
             >
-              <FlaskConical className="h-4 w-4" /> Faktura zakupowa (FZ)
+              {!syncingIncoming && <CloudDownload className="h-4 w-4" />}
+              {syncingIncoming ? "Pobieranie faktur z KSeF..." : "Pobierz z KSeF (FZ)"}
             </Button>
             <Button onClick={() => router.push("/invoices/new")}>
               <Plus className="h-4 w-4" /> Nowa faktura
@@ -320,7 +304,12 @@ export default function InvoicesPage() {
                       <td className="px-3 py-3 text-muted-foreground">{formatDate(inv.issueDate)}</td>
                       <td className="px-3 py-3 text-muted-foreground">{formatDate(inv.dueDate)}</td>
                       <td className="px-3 py-3 text-right font-semibold tabular-nums">
-                        {formatMoney(invoiceTotals(inv).gross, inv.currency)}
+                        {formatMoney(
+                          inv.type === "purchase" && inv.ksef && typeof inv.totalGross === "number"
+                            ? inv.totalGross
+                            : invoiceTotals(inv).gross,
+                          inv.currency
+                        )}
                       </td>
                       <td className="px-3 py-3">
                         <Badge className={STATUS_META[s].color}>
