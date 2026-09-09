@@ -134,12 +134,16 @@ export function productToDto(p: DbProduct): Product {
 export function ksefInfoFrom(v: unknown): KsefInfo | undefined {
   if (!v || typeof v !== "object") return undefined;
   const k = v as Partial<KsefInfo>;
-  if (!k.number) return undefined;
+  if (!k.number && !k.referenceNumber) return undefined;
   return {
-    number: k.number,
+    number: k.number ?? "",
     status: k.status ?? "SENT",
     sentAt: k.sentAt ?? new Date().toISOString(),
     environment: k.environment ?? "demo",
+    sessionReferenceNumber: k.sessionReferenceNumber,
+    referenceNumber: k.referenceNumber,
+    processingCode: k.processingCode,
+    processingDescription: k.processingDescription,
   };
 }
 
@@ -165,6 +169,10 @@ export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile |
     totalVat: i.totalVat ?? undefined,
     totalGross: i.totalGross ?? undefined,
     ksef: ksefInfoFrom(i.ksef),
+    ksefNumber: i.ksefNumber ?? null,
+    referenceNumber: i.referenceNumber ?? null,
+    upoXml: i.upoXml ?? null,
+    ksefXml: i.ksefXml ?? null,
     sentAt: i.sentAt ? i.sentAt.toISOString() : null,
     sentToEmail: i.sentToEmail ?? null,
     emailStatus: i.emailStatus ?? null,

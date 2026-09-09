@@ -76,9 +76,13 @@ export interface InvoiceLine {
 
 export interface KsefInfo {
   number: string;
+  referenceNumber?: string;
+  sessionReferenceNumber?: string;
   status: "QUEUED" | "SENT" | "ACTIVE" | "REJECTED";
   sentAt: string;
   environment: KsefEnv;
+  processingCode?: number;
+  processingDescription?: string;
 }
 
 export interface Invoice {
@@ -102,6 +106,10 @@ export interface Invoice {
   totalVat?: number;
   totalGross?: number;
   ksef?: KsefInfo;
+  ksefNumber?: string | null;
+  referenceNumber?: string | null;
+  upoXml?: string | null;
+  ksefXml?: string | null;
   sentAt?: string | null;
   sentToEmail?: string | null;
   emailStatus?: string | null;

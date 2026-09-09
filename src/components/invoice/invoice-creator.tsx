@@ -785,8 +785,8 @@ export function InvoiceCreator() {
             <Button variant="ghost" size="sm" onClick={exports.exportPdf} title="PDF (drukuj / zapisz jako PDF)">
               <Printer className="h-3.5 w-3.5" /> PDF
             </Button>
-            <Button variant="ghost" size="sm" onClick={exports.exportXml} title="Eksport XML FA(2)">
-              <FileCode2 className="h-3.5 w-3.5" /> XML
+            <Button variant="ghost" size="sm" onClick={exports.exportXml} title="Eksport XML FA(3)">
+              <FileCode2 className="h-3.5 w-3.5" /> XML FA(3)
             </Button>
             <Button variant="ghost" size="sm" onClick={exports.exportJson} title="Eksport JSON">
               <FileJson2 className="h-3.5 w-3.5" /> JSON

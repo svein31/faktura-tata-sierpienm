@@ -418,33 +418,45 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* KSeF Status Banner */}
-      <Card className="border-emerald-500/20 bg-emerald-500/4">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-500 ring-1 ring-emerald-500/20">
-              <ShieldCheck className="h-5 w-5" />
+      {/* KSeF 2.0 Live Banner */}
+      <Card className="rounded-3xl border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-card to-card shadow-xs">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/30">
+              <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-[13.5px] font-semibold text-foreground">
-                KSeF — środowisko:{" "}
-                <span className="uppercase text-emerald-500">{ksefSafe.environment}</span>
-              </p>
-              <p className="text-[12px] text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <p className="text-[14px] font-bold text-foreground">
+                  Krajowy System e-Faktur (KSeF 2.0)
+                </p>
+                <Badge tone={ksefSafe.environment === "production" ? "success" : ksefSafe.environment === "test" ? "warning" : "info"} className="text-[10.5px] uppercase font-mono">
+                  {ksefSafe.environment}
+                </Badge>
+              </div>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
                 {ksefSafe.environment === "demo"
-                  ? "Tryb demo — symulacja lokalna."
+                  ? "Tryb demo — bezpieczna symulacja e-Faktur FA(3) i generowanie UPO."
                   : ksefSafe.environment === "test"
-                    ? "Połączono z API MF Test (ksef-test.mf.gov.pl)"
-                    : "Połączono z API MF Produkcja (ksef.mf.gov.pl)"}
+                    ? "Połączono z oficjalną bramką testową MF (api-test.ksef.mf.gov.pl/v2)"
+                    : "Połączono z oficjalną bramką produkcyjną MF (api.ksef.mf.gov.pl/v2)"}
               </p>
             </div>
           </div>
-          <Link
-            href="/ksef"
-            className="inline-flex h-9 items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 text-[12.5px] font-medium text-emerald-600 dark:text-emerald-400 transition-all hover:bg-emerald-500/14 active:scale-95"
-          >
-            Centrum KSeF <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/ksef?tab=inspector"
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border/80 bg-card px-3.5 text-[12px] font-medium text-foreground transition-all hover:bg-muted active:scale-95 shadow-2xs"
+            >
+              Inspektor FA(3)
+            </Link>
+            <Link
+              href="/ksef"
+              className="inline-flex h-9 items-center gap-2 rounded-xl bg-emerald-600 px-4 text-[12.5px] font-semibold text-white transition-all hover:bg-emerald-500 active:scale-95 shadow-xs"
+            >
+              Centrum KSeF <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

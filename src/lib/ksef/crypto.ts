@@ -1,19 +1,7 @@
 import crypto from "crypto";
-import { KSEF_PUBLIC_KEYS, type KsefEnvironment } from "./constants";
+import { KSEF_STATIC_KEYS, type KsefEnvironment, type KsefKeyInfo } from "./constants";
 
 export interface EncryptedInvoicePackage {
-  /** Zaszyfrowana zawartość faktury w formacie binarnym */
-  encryptedData: Buffer;
-  /** Zaszyfrowana zawartość faktury zakodowana w Base64 */
-  encryptedDataBase64: string;
-  /** Wektor inicjalizacyjny IV (16 bajtów) w Base64 */
-  ivBase64: string;
-  /** Klucz symetryczny AES-256 (32 bajty) */
-  symmetricKey: Buffer;
-  /** Wektor IV (16 bajtów) */
-  iv: Buffer;
-  /** Klucz symetryczny AES zaszyfrowany kluczem publicznym RSA MF (Base64) */
-  encryptedSymmetricKeyBase64: string;
   /** Skrót SHA-256 oryginalnego dokumentu XML w Base64 */
   plainDigestBase64: string;
   /** Rozmiar oryginalnego dokumentu XML w bajtach */
@@ -22,6 +10,14 @@ export interface EncryptedInvoicePackage {
   encryptedDigestBase64: string;
   /** Rozmiar zaszyfrowanego dokumentu w bajtach */
   encryptedFileSize: number;
+  /** Zaszyfrowana zawartość faktury zakodowana w Base64 */
+  encryptedDataBase64: string;
+  /** Zaszyfrowane bajty */
+  encryptedData: Buffer;
+  /** Klucz symetryczny AES-256 (32 bajty) */
+  symmetricKey: Buffer;
+  /** Wektor IV (16 bajtów) */
+  iv: Buffer;
 }
 
 /**
@@ -41,7 +37,7 @@ export function sha256Hex(data: string | Buffer): string {
 }
 
 /**
- * Normalizuje klucz publiczny RSA / certyfikat X.509 do formatu PEM.
+ * Normalizuje klucz publiczny RSA / certyfikat X.509 do formatu PEM (SPKI).
  */
 export function normalizePublicKeyPem(keyOrCert: string): string {
   const trimmed = keyOrCert.trim();
@@ -51,7 +47,7 @@ export function normalizePublicKeyPem(keyOrCert: string): string {
       const x509 = new crypto.X509Certificate(trimmed);
       return x509.publicKey.export({ type: "spki", format: "pem" }).toString();
     } catch {
-      // Fallback do czystego tekstu jeśli parser X509 nie przetworzył certyfikatu
+      // kontynuuj do sprawdzenia kolejnych wariantów
     }
   }
 
@@ -65,19 +61,18 @@ export function normalizePublicKeyPem(keyOrCert: string): string {
 }
 
 /**
- * Pobiera właściwy klucz publiczny dla danego środowiska KSeF.
+ * Pobiera statyczny certyfikat / klucz publiczny MF dla danego środowiska i przeznaczenia.
  */
-export function getKsefPublicKey(env: KsefEnvironment = "test"): string {
-  const customKey = process.env.KSEF_PUBLIC_KEY_PEM;
-  if (customKey && customKey.trim().length > 0) {
-    return normalizePublicKeyPem(customKey);
-  }
-  const key = KSEF_PUBLIC_KEYS[env] || KSEF_PUBLIC_KEYS.test;
-  return normalizePublicKeyPem(key);
+export function getStaticKsefKey(
+  env: KsefEnvironment = "test",
+  usage: "tokenEncryption" | "symmetricKeyEncryption" = "tokenEncryption"
+): KsefKeyInfo {
+  const targetEnv = env === "production" ? "production" : "test";
+  return KSEF_STATIC_KEYS[targetEnv][usage];
 }
 
 /**
- * Szyfruje dane asymetrycznym algorytmem RSA-OAEP z funkcją skrótu SHA-256 i MGF1 (standard KSeF API 2.0).
+ * Szyfruje dane asymetrycznym algorytmem RSA-OAEP z funkcją skrótu SHA-256 (standard KSeF API 2.0).
  */
 export function encryptRsaOaep(plaintext: Buffer | string, publicKeyPem: string): string {
   const buf = typeof plaintext === "string" ? Buffer.from(plaintext, "utf8") : plaintext;
@@ -100,8 +95,8 @@ export function encryptRsaOaep(plaintext: Buffer | string, publicKeyPem: string)
  * Format wejściowy: `${token}|${timestampMs}`
  *
  * @param token - Token autoryzacyjny podatnika wygenerowany w KSeF
- * @param challengeTimestampMs - Timestamp (w ms) uzyskany z AuthorisationChallenge
- * @param publicKeyPem - Klucz publiczny RSA MF
+ * @param challengeTimestampMs - Timestamp (w ms) uzyskany z /auth/challenge
+ * @param publicKeyPem - Klucz publiczny RSA MF (KsefTokenEncryption)
  */
 export function encryptKsefToken(
   token: string,
@@ -132,25 +127,17 @@ export function generateIv(): Buffer {
 }
 
 /**
- * Szyfruje treść XML faktury zgodnie z oficjalnym standardem KSeF:
- * 1. Wylicza hash SHA-256 oryginalnego XML.
- * 2. Generuje losowy 32-bajtowy klucz symetryczny AES-256 oraz 16-bajtowy wektor IV.
- * 3. Szyfruje XML algorytmem AES-256-CBC z dopełnieniem PKCS#7.
- * 4. Szyfruje klucz symetryczny kluczem publicznym RSA MF (RSA-OAEP SHA-256).
- * 5. Wylicza hash SHA-256 zaszyfrowanego pliku.
- *
- * @param xmlContent - Surowy XML faktury zgodny z FA(3)
- * @param publicKeyPem - Klucz publiczny RSA Ministerstwa Finansów
+ * Szyfruje treść XML faktury zgodnie z oficjalnym standardem KSeF API 2.0 (AES-256-CBC z PKCS#7).
  */
-export function encryptInvoicePayload(xmlContent: string, publicKeyPem: string): EncryptedInvoicePackage {
+export function encryptInvoicePayload(
+  xmlContent: string,
+  symmetricKey: Buffer,
+  iv: Buffer
+): EncryptedInvoicePackage {
   const xmlBuffer = Buffer.from(xmlContent.trim(), "utf8");
   const plainDigestBase64 = sha256Base64(xmlBuffer);
   const plainFileSize = xmlBuffer.length;
 
-  const symmetricKey = generateAesKey();
-  const iv = generateIv();
-
-  // Szyfrowanie symetryczne AES-256-CBC (Node.js automatycznie stosuje dopełnienie PKCS#7)
   const cipher = crypto.createCipheriv("aes-256-cbc", symmetricKey, iv);
   const encryptedChunks = [cipher.update(xmlBuffer), cipher.final()];
   const encryptedData = Buffer.concat(encryptedChunks);
@@ -159,29 +146,20 @@ export function encryptInvoicePayload(xmlContent: string, publicKeyPem: string):
   const encryptedDigestBase64 = sha256Base64(encryptedData);
   const encryptedFileSize = encryptedData.length;
 
-  // Asymetryczne szyfrowanie klucza symetrycznego kluczem publicznym MF
-  const encryptedSymmetricKeyBase64 = encryptRsaOaep(symmetricKey, publicKeyPem);
-
   return {
-    encryptedData,
-    encryptedDataBase64,
-    iv,
-    ivBase64: iv.toString("base64"),
-    symmetricKey,
-    encryptedSymmetricKeyBase64,
     plainDigestBase64,
     plainFileSize,
     encryptedDigestBase64,
     encryptedFileSize,
+    encryptedDataBase64,
+    encryptedData,
+    symmetricKey,
+    iv,
   };
 }
 
 /**
  * Deszyfruje zaszyfrowaną fakturę pobraną z KSeF (AES-256-CBC z PKCS#7).
- *
- * @param encryptedBuffer - Zaszyfrowane bajty dokumentu
- * @param symmetricKey - Klucz symetryczny AES-256 (32 bajty)
- * @param iv - Wektor inicjalizacyjny IV (16 bajtów)
  */
 export function decryptInvoicePayload(encryptedBuffer: Buffer, symmetricKey: Buffer, iv: Buffer): string {
   const decipher = crypto.createDecipheriv("aes-256-cbc", symmetricKey, iv);

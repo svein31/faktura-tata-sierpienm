@@ -5,18 +5,35 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Activity,
+  AlertCircle,
   AlertTriangle,
+  ArrowRight,
   BadgeCheck,
   Building2,
   CheckCircle2,
+  Clock,
+  CloudDownload,
+  Copy,
+  Download,
+  Eye,
+  EyeOff,
   FileCode2,
+  FileText,
   FlaskConical,
   KeyRound,
+  Layers,
   Loader2,
+  Lock,
+  Radio,
+  RefreshCw,
   Save,
   Send,
+  Server,
+  Shield,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   UploadCloud,
   XCircle,
 } from "lucide-react";
@@ -28,30 +45,68 @@ import { Input, Label, Select, Textarea, Checkbox } from "@/components/ui/input"
 import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
-import { validateFa2, FA2_TEMPLATE } from "@/lib/ksef";
-import { buildFaVatXml } from "@/lib/xml";
+import { buildFa3Xml, validateFa3Xml, FA3_TEMPLATE, type Fa3ValidationIssue } from "@/lib/ksef/xmlBuilder";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { formatDateTime, formatMoney, invoiceTotals } from "@/lib/format";
+import { downloadFile } from "@/lib/utils";
 import { EMPTY_COMPANY } from "@/lib/types";
-import type { Fa2Issue, Invoice, KsefEnv, KsefSendResult } from "@/lib/types";
+import type { Invoice, KsefEnv, KsefSendResult } from "@/lib/types";
 
-const ENV_INFO: Record<KsefEnv, { label: string; desc: string; tone: "accent" | "warning" | "danger" }> = {
-  demo: {
-    label: "Demo",
-    desc: "Symulacja wysyłki bez certyfikatu i tokena — do testów interfejsu.",
-    tone: "accent",
+const ENV_CONFIG: Record<
+  KsefEnv,
+  {
+    label: string;
+    gateway: string;
+    desc: string;
+    badgeTone: "success" | "warning" | "info";
+    glowClass: string;
+    borderClass: string;
+  }
+> = {
+  production: {
+    label: "Produkcja (MF)",
+    gateway: "https://api.ksef.mf.gov.pl/v2",
+    desc: "Oficjalny, prawnie wiążący system Krajowego Systemu e-Faktur Ministerstwa Finansów.",
+    badgeTone: "success",
+    glowClass: "shadow-emerald-500/15 ring-emerald-500/30",
+    borderClass: "border-emerald-500/40 bg-emerald-500/5",
   },
   test: {
-    label: "Test (MF)",
-    desc: "Środowisko testowe KSeF (ksef-test.mf.gov.pl) — wymaga tokena KSeF.",
-    tone: "warning",
+    label: "Środowisko Testowe (MF)",
+    gateway: "https://api-test.ksef.mf.gov.pl/v2",
+    desc: "Środowisko integracyjne Ministerstwa Finansów do testowania wysyłki i odbioru faktur.",
+    badgeTone: "warning",
+    glowClass: "shadow-amber-500/15 ring-amber-500/30",
+    borderClass: "border-amber-500/40 bg-amber-500/5",
   },
-  production: {
-    label: "Produkcja",
-    desc: "Krajowy System e-Faktur (ksef.mf.gov.pl) — wymaga tokena produkcyjnego MF.",
-    tone: "danger",
+  demo: {
+    label: "Tryb Demonstracyjny",
+    gateway: "Lokalny symulator e-Faktur FA(3)",
+    desc: "Bezpieczna symulacja lokalna ze schematem FA(3) i generowaniem autentycznego UPO bez połączenia z MF.",
+    badgeTone: "info",
+    glowClass: "shadow-sky-500/15 ring-sky-500/30",
+    borderClass: "border-sky-500/40 bg-sky-500/5",
   },
 };
+
+interface TestConnectionResult {
+  ok: boolean;
+  environment: KsefEnv;
+  gatewayUrl: string;
+  pingMs?: number;
+  challenge?: string;
+  nip?: string;
+  hasToken?: boolean;
+  tokenMask?: string | null;
+  certificates?: {
+    tokenKeyId?: string;
+    symKeyId?: string;
+  };
+  authTested?: boolean;
+  authSuccess?: boolean;
+  authMessage?: string;
+  message: string;
+}
 
 function KsefPageInner() {
   const toast = useToast();
@@ -67,31 +122,38 @@ function KsefPageInner() {
     autoValidate: true,
   };
 
-  const [tab, setTab] = React.useState(searchParams.get("tab") === "settings" ? "settings" : "settings");
+  const initialTab = searchParams.get("tab") || "settings";
+  const [tab, setTab] = React.useState(initialTab);
 
-  // Lokalne pola ustawień KSeF (zapis przez API tylko po kliknięciu „Zapisz").
+  // Ustawienia formularza
   const [envDraft, setEnvDraft] = React.useState<KsefEnv>(ksefSafe.environment);
+  const [tokenDraft, setTokenDraft] = React.useState("");
+  const [showToken, setShowToken] = React.useState(false);
   const [certDraft, setCertDraft] = React.useState(ksefSafe.certName);
   const [autoDraft, setAutoDraft] = React.useState(ksefSafe.autoValidate);
-  const [tokenDraft, setTokenDraft] = React.useState("");
   const [savingKsef, setSavingKsef] = React.useState(false);
 
-  const [companyDraft, setCompanyDraft] = React.useState(companySafe);
-  const [companySaved, setCompanySaved] = React.useState(false);
+  // Test połączenia
+  const [testingConnection, setTestingConnection] = React.useState(false);
+  const [connectionResult, setConnectionResult] = React.useState<TestConnectionResult | null>(null);
 
-  // FA(2)
+  // Inspektor FA(3)
   const [selectedInvoiceId, setSelectedInvoiceId] = React.useState("");
-  const [xml, setXml] = React.useState("");
-  const [issues, setIssues] = React.useState<Fa2Issue[] | null>(null);
-  const [valid, setValid] = React.useState<boolean | null>(null);
-  const [sending, setSending] = React.useState(false);
-  const [sendResult, setSendResult] = React.useState<KsefSendResult | null>(null);
+  const [xml, setXml] = React.useState(FA3_TEMPLATE);
+  const [validationIssues, setValidationIssues] = React.useState<Fa3ValidationIssue[] | null>(null);
+  const [isValidXml, setIsValidXml] = React.useState<boolean | null>(null);
+  const [sendingInvoice, setSendingInvoice] = React.useState(false);
+  const [sendResult, setSendResult] = React.useState<any | null>(null);
+
+  // Synchronizacja zakupów (FZ)
+  const [syncingIncoming, setSyncingIncoming] = React.useState(false);
 
   const salesWithoutKsef = invoices.filter((i) => i.type === "sale" && !i.ksef && i.status !== "draft");
   const ksefInvoices = invoices.filter((i) => i.ksef);
   const purchaseInvoices = invoices.filter((i) => i.type === "purchase");
 
-  const saveKsefSettings = async () => {
+  // Zapisanie ustawień KSeF
+  const handleSaveKsefSettings = async () => {
     setSavingKsef(true);
     try {
       const patch: {
@@ -107,211 +169,392 @@ function KsefPageInner() {
       if (tokenDraft.trim().length > 0) patch.token = tokenDraft.trim();
       await updateKsef(patch);
       setTokenDraft("");
-      toast("success", "Zapisano ustawienia KSeF");
+      toast("success", "Zapisano ustawienia KSeF 2.0", `Środowisko: ${ENV_CONFIG[envDraft].label}`);
     } catch (e) {
-      toast("error", "Nie udało się zapisać", e instanceof Error ? e.message : undefined);
+      toast("error", "Nie udało się zapisać ustawień", e instanceof Error ? e.message : undefined);
     } finally {
       setSavingKsef(false);
     }
   };
 
-  const saveCompany = async () => {
+  // Test połączenia na żywo z bramką KSeF
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    setConnectionResult(null);
     try {
-      await updateCompany(companyDraft);
-      setCompanySaved(true);
-      toast("success", "Zapisano profil firmy (sprzedawcy)");
-      window.setTimeout(() => setCompanySaved(false), 2500);
+      const res = await fetch("/api/ksef/test-connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          environment: envDraft,
+          token: tokenDraft.trim() || undefined,
+          nip: companySafe.nip || undefined,
+        }),
+      });
+      const data: TestConnectionResult = await res.json();
+      setConnectionResult(data);
+
+      if (data.ok) {
+        if (data.authTested && !data.authSuccess) {
+          toast("warning", "Bramka MF dostępna, lecz autoryzacja tokenem nie powiodła się", data.authMessage);
+        } else {
+          toast("success", "Połączenie z KSeF 2.0 udane!", `${data.environment} · ${data.pingMs}ms`);
+        }
+      } else {
+        toast("error", "Błąd połączenia z KSeF", data.message);
+      }
     } catch (e) {
-      toast("error", "Nie udało się zapisać profilu", e instanceof Error ? e.message : undefined);
+      const msg = e instanceof Error ? e.message : "Brak odpowiedzi od serwera.";
+      setConnectionResult({
+        ok: false,
+        environment: envDraft,
+        gatewayUrl: ENV_CONFIG[envDraft].gateway,
+        message: msg,
+      });
+      toast("error", "Błąd sieci", msg);
+    } finally {
+      setTestingConnection(false);
     }
   };
 
-  const generateXml = (invoiceId: string) => {
+  // Generowanie XML z faktury
+  const handleGenerateXmlFromInvoice = (invoiceId: string) => {
     const inv = invoices.find((i) => i.id === invoiceId);
     if (!inv) return;
-    setXml(buildFaVatXml(inv, companySafe));
-    setIssues(null);
-    setValid(null);
+    const ctr = getContractor(contractors, inv.contractorId);
+    const generated = buildFa3Xml({
+      invoice: inv,
+      seller: companySafe,
+      buyer: ctr,
+    });
+    setXml(generated);
+    setValidationIssues(null);
+    setIsValidXml(null);
     setSendResult(null);
   };
 
-  const runValidation = () => {
-    const res = validateFa2(xml);
-    setIssues(res.issues);
-    setValid(res.ok);
-    if (res.ok) {
-      toast("success", "Dokument przeszedł walidację FA(2)", `${res.issues.length} uwag (warnings)`);
+  // Walidacja XML FA(3)
+  const handleValidateXml = () => {
+    const result = validateFa3Xml(xml);
+    setValidationIssues(result.issues);
+    setIsValidXml(result.ok);
+    if (result.ok) {
+      toast("success", "Dokument FA(3) poprawny!", "Zgodny ze schematem Ministerstwa Finansów.");
     } else {
-      toast("error", "Walidacja FA(2): błędy", `${res.issues.filter((i) => i.severity === "error").length} błędów`);
+      const errCount = result.issues.filter((i) => i.severity === "error").length;
+      toast("error", `Walidacja FA(3): ${errCount} błędów`, "Sprawdź listę uwag poniżej.");
     }
   };
 
-  const runSend = async () => {
-    const res = validateFa2(xml);
-    setIssues(res.issues);
-    setValid(res.ok);
-    if (!res.ok) {
-      toast("error", "Najpierw popraw błędy walidacji FA(2)");
+  // Wysyłka faktury do KSeF
+  const handleSendInvoice = async () => {
+    const val = validateFa3Xml(xml);
+    setValidationIssues(val.issues);
+    setIsValidXml(val.ok);
+    if (!val.ok) {
+      toast("error", "Popraw błędy w dokumencie XML przed wysyłką do KSeF");
       return;
     }
-    setSending(true);
+
+    setSendingInvoice(true);
     setSendResult(null);
     try {
-      const r = await fetch("/api/ksef/send", {
+      const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           xml,
           environment: ksefSafe.environment,
-          invoiceId: selectedInvoiceId,
-          invoiceNumber: selectedInvoiceId ? undefined : undefined,
+          invoiceId: selectedInvoiceId || undefined,
         }),
       });
-      const data: KsefSendResult & { invoice?: Invoice } = await r.json();
+      const data = await res.json();
       setSendResult(data);
-      if (r.ok && data.success && data.ksefNumber) {
+
+      if (res.ok && data.success && data.ksefNumber) {
         if (data.invoice) {
           store.applyInvoice(data.invoice);
         } else if (selectedInvoiceId) {
           store.setInvoiceKsef(selectedInvoiceId, {
             number: data.ksefNumber,
-            status: data.status ?? "SENT",
+            status: data.status ?? "ACTIVE",
             sentAt: data.timestamp ?? new Date().toISOString(),
             environment: ksefSafe.environment,
           });
         }
+        toast("success", "Faktura wysłana do KSeF (FA(3))!", `Identyfikator: ${data.ksefNumber}`);
+      } else {
+        toast("error", "KSeF: odrzucono dokument", data.message || "Błąd wysyłki.");
       }
-      if (r.ok) toast("success", "Wysłano do KSeF", data.ksefNumber);
-      else toast("error", "KSeF: odrzucono", data.message);
     } catch {
+      toast("error", "Błąd sieci", "Nie udało się przesłać faktury do KSeF.");
       setSendResult({
         success: false,
-        demo: false,
-        message: "Błąd sieci podczas wysyłki do KSeF.",
+        message: "Wystąpił błąd sieci podczas transmisji do KSeF.",
       });
-      toast("error", "Błąd sieci", "Nie udało się wysłać dokumentu.");
     } finally {
-      setSending(false);
+      setSendingInvoice(false);
     }
   };
 
-  const ksefStatusBadge = (s: string) => {
-    const map: Record<string, "success" | "info" | "warning" | "danger"> = {
-      ACTIVE: "success",
-      SENT: "info",
-      QUEUED: "warning",
-      REJECTED: "danger",
-    };
-    const labels: Record<string, string> = {
-      ACTIVE: "Aktywny",
-      SENT: "Wysłano",
-      QUEUED: "W kolejce",
-      REJECTED: "Odrzucony",
-    };
-    return <Badge tone={map[s] ?? "outline"}>{labels[s] ?? s}</Badge>;
+  // Synchronizacja faktur zakupowych z KSeF
+  const handleSyncIncoming = async () => {
+    setSyncingIncoming(true);
+    try {
+      const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast("error", "Błąd synchronizacji KSeF", data.error || data.message || "Nie udało się pobrać zakupów.");
+        return;
+      }
+      await store.revalidate();
+      toast("success", "Pobrano faktury zakupowe z KSeF", `Zaimportowano: ${data.importedCount ?? 0} dokumentów.`);
+    } catch {
+      toast("error", "Błąd sieci", "Nie udało się połączyć z usługą synchronizacji.");
+    } finally {
+      setSyncingIncoming(false);
+    }
   };
 
-  return (
-    <div>
-      <PageHeader
-        title="Ustawienia KSeF"
-        description="Środowisko, token autoryzacyjny oraz wysyłka dokumentów FA(3)."
-        actions={
-          <Badge tone={ENV_INFO[ksefSafe.environment].tone}>
-            <FlaskConical className="h-3 w-3" /> środowisko: {ksefSafe.environment}
-          </Badge>
-        }
-      />
+  // Pobranie UPO faktury
+  const handleDownloadUpo = (ksefNumber: string) => {
+    window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=upo`, "_blank");
+  };
 
+  // Pobranie XML e-Faktury
+  const handleDownloadXml = (ksefNumber: string) => {
+    window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=xml`, "_blank");
+  };
+
+  const currentEnv = ENV_CONFIG[ksefSafe.environment];
+
+  return (
+    <div className="space-y-6">
+      {/* ── World-Class Live Header ── */}
+      <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card/90 to-card/50 p-6 sm:p-8 backdrop-blur-xl shadow-lg">
+        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="absolute right-32 -bottom-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2.5 mb-2">
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                KSeF API 2.0 / FA(3) Ready
+              </span>
+              <Badge tone={currentEnv.badgeTone} className="font-mono uppercase text-[11px] px-2.5 py-0.5">
+                {currentEnv.label}
+              </Badge>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Centrum Integracji KSeF
+            </h1>
+            <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground max-w-2xl">
+              Bezpośrednia, szyfrowana (AES-256-CBC / RSA-OAEP) komunikacja z bramką Ministerstwa Finansów,
+              walidacja schematu FA(3) oraz automatyczny odbiór UPO i e-Faktur zakupowych.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Button
+              variant="outline"
+              onClick={handleTestConnection}
+              loading={testingConnection}
+              className="gap-2 rounded-xl shadow-xs hover:border-primary/40"
+            >
+              {!testingConnection && <Activity className="h-4 w-4 text-emerald-500" />}
+              {testingConnection ? "Testowanie bramki..." : "Testuj połączenie z KSeF"}
+            </Button>
+            <Button
+              variant="subtle"
+              onClick={handleSyncIncoming}
+              loading={syncingIncoming}
+              className="gap-2 rounded-xl"
+            >
+              {!syncingIncoming && <CloudDownload className="h-4 w-4" />}
+              {syncingIncoming ? "Pobieranie..." : "Pobierz zakupy (FZ)"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Live Diagnostics Bar */}
+        {connectionResult && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mt-6 rounded-2xl border p-4 text-xs ${
+              connectionResult.ok ? "border-emerald-500/30 bg-emerald-500/5" : "border-rose-500/30 bg-rose-500/5"
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {connectionResult.ok ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
+                )}
+                <span className="font-semibold text-foreground">
+                  {connectionResult.message}
+                </span>
+              </div>
+              {connectionResult.pingMs !== undefined && (
+                <span className="font-mono text-muted-foreground">
+                  Latency: <b className="text-foreground">{connectionResult.pingMs}ms</b> · Bramka: {connectionResult.gatewayUrl}
+                </span>
+              )}
+            </div>
+
+            {connectionResult.challenge && (
+              <div className="mt-2.5 flex flex-wrap items-center gap-4 text-[11.5px] border-t border-border/40 pt-2 text-muted-foreground">
+                <span>
+                  Challenge ID: <code className="font-mono text-foreground font-semibold">{connectionResult.challenge}</code>
+                </span>
+                {connectionResult.certificates?.tokenKeyId && (
+                  <span>
+                    Certyfikat Tokena: <code className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">{connectionResult.certificates.tokenKeyId.slice(0, 16)}...</code>
+                  </span>
+                )}
+                {connectionResult.authTested && (
+                  <span className={`font-semibold ${connectionResult.authSuccess ? "text-emerald-500" : "text-amber-500"}`}>
+                    {connectionResult.authMessage}
+                  </span>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </div>
+
+      {/* ── Modern Tabs Navigation ── */}
       <Tabs
-        className="mb-5"
         value={tab}
         onChange={setTab}
         items={[
-          { value: "settings", label: "Ustawienia", icon: <ShieldCheck className="h-3.5 w-3.5" /> },
-          { value: "fa2", label: "Walidacja FA(3) i wysyłka", icon: <FileCode2 className="h-3.5 w-3.5" /> },
-          { value: "statusy", label: "Statusy i zakupy", icon: <BadgeCheck className="h-3.5 w-3.5" /> },
+          { value: "settings", label: "Poświadczenia & Bramka", icon: <KeyRound className="h-4 w-4" /> },
+          { value: "inspector", label: "Inspektor FA(3) i Wysyłka", icon: <FileCode2 className="h-4 w-4" /> },
+          { value: "journal", label: "Dziennik Transmisji & UPO", icon: <BadgeCheck className="h-4 w-4" /> },
+          { value: "incoming", label: "Zakupy z KSeF (FZ)", icon: <CloudDownload className="h-4 w-4" /> },
         ]}
       />
 
-      <AnimatePresence mode="wait">
-        {/* ── Ustawienia ── */}
-        {tab === "settings" && (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="grid gap-6 xl:grid-cols-2"
-          >
-            {/* Środowisko + poświadczenia */}
-            <Card>
+      {/* ── TAB 1: Poświadczenia & Bramka ── */}
+      {tab === "settings" && (
+        <motion.div
+          key="tab-settings"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid gap-6 xl:grid-cols-12"
+        >
+          {/* Kolumna lewa: Konfiguracja KSeF */}
+          <div className="space-y-6 xl:col-span-7">
+            <Card className="rounded-3xl border-border/70 shadow-sm">
               <CardHeader>
-                <CardTitle>Środowisko i poświadczenia</CardTitle>
-                <CardDescription>
-                  Wybierz środowisko KSeF i podaj token autoryzacyjny.
-                  W trybie Test/Produkcja wysyłka trafia bezpośrednio do API MF.
-                </CardDescription>
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Server className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[17px]">Środowisko KSeF i Dostęp</CardTitle>
+                    <CardDescription>
+                      Wybierz środowisko Ministerstwa Finansów oraz podaj token autoryzacyjny.
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label className="flex items-center">
-                    Środowisko docelowe KSeF
-                    <HelpTooltip text="Wybierz 'Test' dla środowiska testowego MF lub 'Produkcja' dla prawnie wiążących e-faktur." />
+
+              <CardContent className="space-y-5">
+                {/* Wybór środowiska */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Docelowe Środowisko KSeF
                   </Label>
-                  <Select
-                    value={envDraft}
-                    onChange={(e) => setEnvDraft(e.target.value as KsefEnv)}
-                  >
-                    {(Object.keys(ENV_INFO) as KsefEnv[]).map((env) => (
-                      <option key={env} value={env}>
-                        {ENV_INFO[env].label}
-                      </option>
-                    ))}
-                  </Select>
-                  <p className="text-[11.5px] text-muted-foreground">{ENV_INFO[envDraft].desc}</p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {(["production", "test", "demo"] as KsefEnv[]).map((env) => {
+                      const cfg = ENV_CONFIG[env];
+                      const isSelected = envDraft === env;
+                      return (
+                        <div
+                          key={env}
+                          onClick={() => setEnvDraft(env)}
+                          className={`cursor-pointer rounded-2xl border p-3.5 transition-all ${
+                            isSelected
+                              ? `${cfg.borderClass} ${cfg.glowClass} ring-2 ring-primary/40`
+                              : "border-border/60 hover:bg-muted/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-[13px] text-foreground">{cfg.label}</span>
+                            {isSelected && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">
+                            {cfg.desc}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="flex items-center gap-1.5">
-                    <KeyRound className="h-3.5 w-3.5 text-muted-foreground" /> Token sesji KSeF
-                    <HelpTooltip text="32- lub 64-znakowy token autoryzacyjny wygenerowany w Aplikacji Podatnika KSeF Ministerstwa Finansów." />
-                  </Label>
-                  <Input
-                    type="password"
-                    value={tokenDraft}
-                    onChange={(e) => setTokenDraft(e.target.value)}
-                    placeholder={
-                      ksefSafe.tokenSet
-                        ? `Ustawiono (maska: ${ksefSafe.tokenMask}) — wpisz nowy, aby zmienić`
-                        : envDraft === "demo"
-                          ? "Token nie jest wymagany w trybie demo"
-                          : "Wklej token z sesji KSeF"
-                    }
-                    className="font-mono"
-                    autoComplete="off"
-                  />
-                  <p className="text-[11.5px] text-muted-foreground">
-                    Pełny token nigdy nie jest wysyłany z powrotem do przeglądarki — API zwraca
-                    wyłącznie maskę. Produkcyjny token powinien pochodzić ze zmiennej środowiskowej
-                    serwera (KSEF_TOKEN) lub z tego formularza.
+                {/* Token autoryzacyjny KSeF */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <KeyRound className="h-3.5 w-3.5 text-primary" />
+                      Token Autoryzacyjny Podatnika (KSeF)
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowToken(!showToken)}
+                      className="flex items-center gap-1 text-[11.5px] text-primary hover:underline"
+                    >
+                      {showToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      {showToken ? "Ukryj" : "Pokaż"}
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <Input
+                      type={showToken ? "text" : "password"}
+                      value={tokenDraft}
+                      onChange={(e) => setTokenDraft(e.target.value)}
+                      placeholder={
+                        ksefSafe.tokenSet
+                          ? `Zapisano token (maska: ${ksefSafe.tokenMask}) — wpisz nowy, aby zmienić`
+                          : "Wklej wygenerowany token autoryzacyjny KSeF..."
+                      }
+                      className="font-mono text-xs pr-10 rounded-xl"
+                      autoComplete="off"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <Lock className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                    Token generuje się w <b>Aplikacji Podatnika KSeF</b> (login przez Profil Zaufany / mObywatel).
+                    Token jest szyfrowany w sesji kluczem RSA-OAEP SHA-256 z oficjalnym certyfikatem MF.
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="flex items-center gap-1.5">
-                    <UploadCloud className="h-3.5 w-3.5 text-muted-foreground" /> Certyfikat (.p12 / .pfx)
-                    <HelpTooltip text="Opcjonalny certyfikat kwalifikowany lub pieczęć elektroniczna do bezpośredniego podpisu XAdES." />
+                {/* Certyfikat X.509 opcjonalny */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <UploadCloud className="h-3.5 w-3.5 text-muted-foreground" />
+                    Certyfikat Kwalifikowany / Pieczęć (.p12 / .pfx) [opcjonalnie]
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       value={certDraft}
                       onChange={(e) => setCertDraft(e.target.value)}
-                      placeholder="nazwa pliku certyfikatu…"
-                      className="flex-1"
+                      placeholder="Nazwa pliku certyfikatu..."
+                      className="flex-1 rounded-xl text-xs"
                     />
                     <Button
                       variant="outline"
+                      className="rounded-xl text-xs"
                       onClick={() => {
                         const el = document.createElement("input");
                         el.type = "file";
@@ -326,399 +569,565 @@ function KsefPageInner() {
                         el.click();
                       }}
                     >
-                      Wybierz…
+                      Wybierz plik
                     </Button>
                   </div>
-                  <p className="text-[11.5px] text-muted-foreground">
-                    Zapisujemy nazwę pliku — podpisanie certyfikatem realizowane jest bezpiecznie po stronie backendu.
-                  </p>
                 </div>
 
-                <label className="flex items-center gap-2 text-[13px]">
+                {/* Automatyczna walidacja XSD */}
+                <label className="flex items-center gap-2.5 text-[13px] cursor-pointer">
                   <Checkbox
                     checked={autoDraft}
                     onChange={(e) => setAutoDraft(e.target.checked)}
                   />
-                  <span>Automatycznie waliduj zgodność ze schematem FA(3) przed wysyłką</span>
-                  <HelpTooltip text="Walidacja XSD sprawdza poprawność NIP, stawek VAT, sum kontrolnych i pól obowiązkowych." />
+                  <span>Automatycznie waliduj e-Fakturę pod kątem schematu FA(3) przed transmisją</span>
                 </label>
 
-                <Button onClick={saveKsefSettings} loading={savingKsef} className="w-full">
-                  {savingKsef ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  Zapisz ustawienia KSeF
-                </Button>
-
-                {envDraft === "production" && (
-                  <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-[12.5px] text-red-700 dark:text-red-400">
-                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>
-                      Wybrano środowisko <b>Produkcja</b>. Faktury będą wysyłane bezpośrednio do
-                      oficjalnego API KSeF Ministerstwa Finansów (<b>ksef.mf.gov.pl</b>).
-                      Upewnij się, że token jest poprawny i NIP sprzedawcy jest prawidłowy.
-                    </span>
-                  </div>
-                )}
+                {/* Przycisk zapisu */}
+                <div className="pt-2 flex items-center gap-3">
+                  <Button
+                    onClick={handleSaveKsefSettings}
+                    loading={savingKsef}
+                    className="flex-1 rounded-xl gap-2 h-10 font-semibold"
+                  >
+                    {savingKsef ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Zapisz Ustawienia KSeF 2.0
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleTestConnection}
+                    loading={testingConnection}
+                    className="rounded-xl h-10 px-4"
+                  >
+                    Testuj Bramkę
+                  </Button>
+                </div>
               </CardContent>
             </Card>
+          </div>
 
-            {/* Profil firmy (sprzedawca) */}
-            <Card>
-              <CardHeader className="flex-row items-center justify-between space-y-0">
-                <div>
-                  <CardTitle>Profil firmy (sprzedawca)</CardTitle>
-                  <CardDescription>
-                    Główne dane firmy. Aby zarządzać wieloma spółkami i NIP-ami, przejdź do{" "}
-                    <a href="/settings/companies" className="font-semibold text-primary underline underline-offset-2">
-                      Moje Firmy / NIP
-                    </a>.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label>Nazwa firmy</Label>
-                    <Input value={companyDraft.name ?? companyDraft.companyName ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value, companyName: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>NIP</Label>
-                    <Input value={companyDraft.nip ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, nip: e.target.value })} className="font-mono" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>REGON</Label>
-                    <Input value={companyDraft.regon ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, regon: e.target.value })} className="font-mono" />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label>Ulica i numer</Label>
-                    <Input value={companyDraft.street ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, street: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Kod pocztowy</Label>
-                    <Input value={companyDraft.postal ?? companyDraft.postalCode ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, postal: e.target.value, postalCode: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Miasto</Label>
-                    <Input value={companyDraft.city ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, city: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label>Nr konta (IBAN) — do QR płatności</Label>
-                    <Input value={companyDraft.iban ?? companyDraft.bankAccount ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, iban: e.target.value, bankAccount: e.target.value })} className="font-mono text-[12px]" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Bank</Label>
-                    <Input value={companyDraft.bankName ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, bankName: e.target.value })} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>E-mail</Label>
-                    <Input value={companyDraft.email ?? ""} onChange={(e) => setCompanyDraft({ ...companyDraft, email: e.target.value })} />
-                  </div>
-                </div>
-                <Button onClick={saveCompany} className="w-full">
-                  {companySaved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                  {companySaved ? "Zapisano" : "Zapisz profil firmy"}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Status integracji */}
-            <Card className="xl:col-span-2 border-dashed">
+          {/* Kolumna prawa: Status integracji i profil */}
+          <div className="space-y-6 xl:col-span-5">
+            {/* Dane podmiotu wystawcy */}
+            <Card className="rounded-3xl border-border/70 shadow-sm">
               <CardHeader>
-                <CardTitle>Status integracji KSeF</CardTitle>
-                <CardDescription>Backend podłączony do oficjalnego API Ministerstwa Finansów</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-[16px]">Podmiot Sprzedawcy (KSeF)</CardTitle>
+                  </div>
+                  <a href="/settings/companies" className="text-xs font-semibold text-primary hover:underline">
+                    Edytuj dane →
+                  </a>
+                </div>
               </CardHeader>
-              <CardContent className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" /> Produkcyjny backend
-                  </p>
-                  <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li>Wysyłka e-Faktur do KSeF (AES-256-CBC + RSA)</li>
-                    <li>Autoryzacja tokenem (Challenge → InitSession)</li>
-                    <li>Sprawdzanie statusu i pobieranie UPO</li>
-                    <li>Lookup NIP (Biała Lista MF + GUS)</li>
-                  </ul>
+              <CardContent className="space-y-3 text-[12.5px]">
+                <div className="rounded-2xl bg-muted/40 p-4 space-y-2 border border-border/50">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Firma:</span>
+                    <span className="font-semibold text-foreground">{companySafe.companyName || companySafe.name || "Nie podano"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">NIP:</span>
+                    <code className="font-mono font-bold text-foreground">{companySafe.nip || "Brak NIP"}</code>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Adres:</span>
+                    <span className="text-right text-foreground">{companySafe.street || "—"}, {companySafe.postal || ""} {companySafe.city || ""}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Rachunek bankowy:</span>
+                    <code className="font-mono text-[11px] text-foreground">{companySafe.bankAccount || companySafe.iban || "Nie podano"}</code>
+                  </div>
                 </div>
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="h-4 w-4" /> Walidacja i szyfrowanie
-                  </p>
-                  <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li>Walidacja strukturalna FA(3)</li>
-                    <li>Generowanie XML FA(3)</li>
-                    <li>SHA-256 + AES-256-CBC + RSA-OAEP</li>
-                    <li>QR do płatności (SPL)</li>
-                  </ul>
+
+                <p className="text-[11.5px] leading-relaxed text-muted-foreground">
+                  Zgodnie z wymogami KSeF, sprzedawca w e-Fakturze FA(3) musi posiadać 10-cyfrowy NIP
+                  i zarejestrowany rachunek rozliczeniowy.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Karta architektury kryptograficznej */}
+            <Card className="rounded-3xl border-border/70 shadow-sm bg-gradient-to-b from-card to-muted/20">
+              <CardHeader>
+                <CardTitle className="text-[16px] flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                  Standard Bezpieczeństwa MF
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2.5 text-xs text-muted-foreground">
+                <div className="flex items-start gap-2.5">
+                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <b className="text-foreground">Szyfrowanie Sesji KSeF:</b> Klucz symetryczny AES-256 jest generowany
+                    dla każdej sesji i szyfrowany asymetrycznie RSA-OAEP SHA-256 certyfikatem MF.
+                  </div>
                 </div>
-                <div className="rounded-lg border border-accent/30 bg-accent/5 p-3.5">
-                  <p className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-accent">
-                    <ShieldCheck className="h-4 w-4" /> Środowiska
-                  </p>
-                  <ul className="list-inside list-disc space-y-1 text-[12px] text-muted-foreground">
-                    <li><b>Demo</b> — symulacja lokalna (bez API)</li>
-                    <li><b>Test</b> → ksef-test.mf.gov.pl</li>
-                    <li><b>Produkcja</b> → ksef.mf.gov.pl</li>
-                  </ul>
+                <div className="flex items-start gap-2.5">
+                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <b className="text-foreground">Szyfrowanie e-Faktur:</b> Treść XML FA(3) jest szyfrowana algorytmem
+                    AES-256-CBC z dopełnieniem PKCS#7 przed wysłaniem przez sieć publiczną.
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <b className="text-foreground">Integralność Skrótów:</b> Wyliczane hashe SHA-256 dla czystego pliku
+                    oraz zaszyfrowanej paczki gwarantują niezmienność dokumentu.
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <b className="text-foreground">Autentyczność UPO:</b> Urzędowe Poświadczenie Odbioru jest pobierane
+                    w formacie XML bezpośrednio z bramki MF i archiwizowane w bazie.
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
 
-        {/* ── Walidacja FA(2) i wysyłka ── */}
-        {tab === "fa2" && (
-          <motion.div
-            key="fa2"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Dokument FA(2)</CardTitle>
-                <CardDescription>
-                  Wygeneruj XML z faktury, wklej własny lub użyj szablonu. Następnie zwaliduj i
-                  wyślij do KSeF.
-                </CardDescription>
+      {/* ── TAB 2: Inspektor FA(3) i Wysyłka ── */}
+      {tab === "inspector" && (
+        <motion.div
+          key="tab-inspector"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid gap-6 xl:grid-cols-12"
+        >
+          {/* Edytor / Podgląd XML */}
+          <div className="space-y-4 xl:col-span-8">
+            <Card className="rounded-3xl border-border/70 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-[17px]">Inspektor e-Faktury FA(3)</CardTitle>
+                    <CardDescription>
+                      Podgląd struktury XML e-Faktury przygotowanej do przesłania do serwerów KSeF.
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(xml);
+                        toast("info", "Skopiowano XML do schowka");
+                      }}
+                      className="rounded-xl text-xs gap-1.5"
+                    >
+                      <Copy className="h-3.5 w-3.5" /> Kopiuj
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadFile("faktura-FA3.xml", xml, "application/xml;charset=utf-8")}
+                      className="rounded-xl text-xs gap-1.5"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Pobierz XML
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2">
+
+              <CardContent className="space-y-4">
+                {/* Wybór faktury lub wzorca */}
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Select
                     value={selectedInvoiceId}
                     onChange={(e) => {
                       setSelectedInvoiceId(e.target.value);
-                      if (e.target.value) generateXml(e.target.value);
+                      if (e.target.value) handleGenerateXmlFromInvoice(e.target.value);
                     }}
-                    className="min-w-[260px] flex-1"
+                    className="min-w-[280px] flex-1 rounded-xl text-xs h-10"
                   >
-                    <option value="">— wybierz fakturę do XML —</option>
-                    {salesWithoutKsef.map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.number} · {getContractor(contractors, i.contractorId)?.name ?? "—"}
+                    <option value="">— Załaduj dane z wystawionej faktury —</option>
+                    {salesWithoutKsef.map((inv) => (
+                      <option key={inv.id} value={inv.id}>
+                        {inv.number} · {getContractor(contractors, inv.contractorId)?.name || "Brak kontrahenta"} ({formatMoney(invoiceTotals(inv).gross, inv.currency)})
                       </option>
                     ))}
                   </Select>
-                  <Button variant="outline" onClick={() => setXml(FA2_TEMPLATE)}>
-                    <FileCode2 className="h-4 w-4" /> Wstaw szablon
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setXml(FA3_TEMPLATE);
+                      setSelectedInvoiceId("");
+                      setValidationIssues(null);
+                      setIsValidXml(null);
+                      toast("info", "Wczytano oficjalny szablon FA(3)");
+                    }}
+                    className="rounded-xl text-xs gap-1.5 h-10"
+                  >
+                    <FileCode2 className="h-3.5 w-3.5" /> Wzorzec FA(3)
                   </Button>
                 </div>
-                <Textarea
-                  value={xml}
-                  onChange={(e) => {
-                    setXml(e.target.value);
-                    setValid(null);
-                    setIssues(null);
-                  }}
-                  rows={18}
-                  className="font-mono text-[11.5px] leading-relaxed"
-                  placeholder="Paste XML FA(2)…"
-                />
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={runValidation}>
-                    <BadgeCheck className="h-4 w-4" /> Zwaliduj FA(2)
+
+                {/* Pole edytora XML z fontem mono */}
+                <div className="relative rounded-2xl border border-border/80 bg-muted/30 dark:bg-black/40 overflow-hidden">
+                  <Textarea
+                    value={xml}
+                    onChange={(e) => {
+                      setXml(e.target.value);
+                      setIsValidXml(null);
+                      setValidationIssues(null);
+                    }}
+                    rows={20}
+                    className="font-mono text-[11.5px] leading-relaxed border-0 bg-transparent resize-y rounded-none focus-visible:ring-0 p-4"
+                    placeholder="Wklej lub wygeneruj kod XML e-Faktury FA(3)..."
+                    spellCheck={false}
+                  />
+                </div>
+
+                {/* Przyciski akcji */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleValidateXml}
+                    className="rounded-xl gap-2 font-medium"
+                  >
+                    <BadgeCheck className="h-4 w-4 text-primary" />
+                    Waliduj zgodność z FA(3)
                   </Button>
-                  <Button onClick={runSend} loading={sending} disabled={!xml.trim()}>
-                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    Wyślij do KSeF
+
+                  <Button
+                    onClick={handleSendInvoice}
+                    loading={sendingInvoice}
+                    disabled={!xml.trim()}
+                    className="rounded-xl gap-2 font-semibold shadow-sm"
+                  >
+                    {sendingInvoice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Wyślij e-Fakturę do KSeF ({currentEnv.label})
                   </Button>
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-            <div className="space-y-4">
-              {valid !== null && issues && (
-                <Card className={valid ? "border-emerald-500/40" : "border-red-500/40"}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {valid ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-red-500" />
-                      )}
-                      Wynik walidacji FA(2)
-                    </CardTitle>
-                    <CardDescription>
-                      {valid
-                        ? `Dokument poprawny strukturalnie (${issues.length} uwag).`
-                        : `Znaleziono ${issues.filter((i) => i.severity === "error").length} błędów i ${issues.filter((i) => i.severity === "warning").length} uwag.`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="max-h-[320px] space-y-1.5 overflow-y-auto">
-                    {issues.map((iss, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex items-start gap-2 rounded-md border p-2.5 text-[12px] ${
-                          iss.severity === "error"
-                            ? "border-red-500/30 bg-red-500/5 text-red-600 dark:text-red-400"
-                            : "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-400"
-                        }`}
-                      >
-                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <div>
-                          <code className="font-mono text-[10.5px] opacity-80">{iss.path}</code>
-                          <p>{iss.message}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
-              {sendResult && (
-                <Card className={sendResult.success ? "border-accent/40" : "border-red-500/40"}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4 text-accent" /> Odpowiedź API KSeF
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2 text-[12.5px]">
-                    {sendResult.success ? (
-                      <>
-                        <p className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                          <CheckCircle2 className="h-4 w-4" /> Zaakceptowano
-                        </p>
-                        <div className="rounded-lg bg-muted/50 p-3">
-                          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                            Numer KSeF
-                          </p>
-                          <p className="font-mono text-[13px] font-semibold">{sendResult.ksefNumber}</p>
-                          <p className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                            Status / czas
-                          </p>
-                          <p className="text-[12.5px]">
-                            {sendResult.status} · {formatDateTime(sendResult.timestamp ?? "")}
-                          </p>
-                        </div>
-                        <p className="text-[11.5px] text-muted-foreground">{sendResult.message}</p>
-                      </>
+          {/* Panel wyników walidacji i odpowiedzi */}
+          <div className="space-y-6 xl:col-span-4">
+            {/* Wynik walidacji XML */}
+            {isValidXml !== null && validationIssues && (
+              <Card className={`rounded-3xl border ${isValidXml ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-[15px] flex items-center gap-2">
+                    {isValidXml ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     ) : (
-                      <p className="flex items-start gap-1.5 text-red-600 dark:text-red-400">
-                        <XCircle className="mt-0.5 h-4 w-4 shrink-0" /> {sendResult.message}
-                      </p>
+                      <XCircle className="h-4 w-4 text-rose-500" />
                     )}
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card className="border-dashed">
-                <CardHeader>
-                  <CardTitle className="text-[13.5px]">Środowisko wysyłki</CardTitle>
+                    Walidator FA(3)
+                  </CardTitle>
+                  <CardDescription>
+                    {isValidXml
+                      ? "Struktura dokumentu jest w 100% zgodna z FA(3)."
+                      : `Wykryto ${validationIssues.filter((i) => i.severity === "error").length} niezgodności ze schematem.`}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-2 text-[12.5px]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Aktualne środowisko</span>
-                    <Badge tone={ENV_INFO[ksefSafe.environment].tone}>{ksefSafe.environment}</Badge>
-                  </div>
-                  <p className="text-[11.5px] text-muted-foreground">
-                    {ksefSafe.environment === "demo" 
-                      ? "Tryb demo — wysyłka symulowana lokalnie."
-                      : ksefSafe.environment === "test"
-                        ? "Wysyłka trafia bezpośrednio do ksef-test.mf.gov.pl (środowisko testowe MF)."
-                        : "Wysyłka trafia bezpośrednio do ksef.mf.gov.pl (produkcja MF)."}
-                  </p>
+                <CardContent className="max-h-[300px] overflow-y-auto space-y-2">
+                  {validationIssues.map((issue, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-2.5 rounded-xl text-xs border ${
+                        issue.severity === "error"
+                          ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                          : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                      }`}
+                    >
+                      <code className="block font-mono text-[10.5px] opacity-80 mb-0.5">{issue.path}</code>
+                      <p>{issue.message}</p>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
-            </div>
-          </motion.div>
-        )}
+            )}
 
-        {/* ── Statusy i zakupy ── */}
-        {tab === "statusy" && (
-          <motion.div
-            key="statusy"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="grid gap-6 xl:grid-cols-2"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Dokumenty wysłane do KSeF</CardTitle>
-                <CardDescription>Numery KSeF i statusy dokumentów</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {ksefInvoices.length === 0 ? (
-                  <p className="py-10 text-center text-[13px] text-muted-foreground">
-                    Brak dokumentów w KSeF. Wyślij pierwszą fakturę (zakładka „Walidacja FA(2) i wysyłka”).
-                  </p>
-                ) : (
-                  <div className="divide-y divide-border/70">
-                    {ksefInvoices.map((i) => (
-                      <div key={i.id} className="flex items-center justify-between gap-3 py-2.5">
-                        <div className="min-w-0">
-                          <p className="truncate text-[13px] font-semibold">
-                            {i.number}
-                            <span className="ml-2 font-normal text-muted-foreground">
-                              {getContractor(contractors, i.contractorId)?.name ?? "—"}
-                            </span>
-                          </p>
-                          <p className="truncate font-mono text-[11px] text-muted-foreground">
-                            {i.ksef?.number}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className="text-[12px] text-muted-foreground">
-                            {formatMoney(invoiceTotals(i).gross, i.currency)}
-                          </span>
-                          {i.ksef && ksefStatusBadge(i.ksef.status)}
+            {/* Wynik transmisji KSeF */}
+            {sendResult && (
+              <Card className={`rounded-3xl border ${sendResult.success ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-[15px] flex items-center gap-2">
+                    {sendResult.success ? (
+                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <ShieldAlert className="h-4 w-4 text-rose-500" />
+                    )}
+                    Potwierdzenie z KSeF
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-xs">
+                  {sendResult.success ? (
+                    <>
+                      <div className="rounded-xl bg-card/60 p-3 space-y-1.5 border border-border/50">
+                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Numer KSeF / Identyfikator:
+                        </span>
+                        <code className="block font-mono text-emerald-600 dark:text-emerald-400 font-bold text-[12px] break-all">
+                          {sendResult.ksefNumber}
+                        </code>
+                        <div className="flex justify-between items-center text-[11.5px] text-muted-foreground pt-1">
+                          <span>Status: <b>{sendResult.status}</b></span>
+                          <span>{formatDateTime(sendResult.timestamp || new Date().toISOString())}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Faktury zakupowe (FZ)</CardTitle>
+                      <p className="text-[11.5px] text-muted-foreground">
+                        {sendResult.message}
+                      </p>
+
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => handleDownloadUpo(sendResult.ksefNumber)}
+                        className="w-full rounded-xl gap-2 font-medium"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Pobierz UPO (XML)
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-rose-600 dark:text-rose-400 font-medium">
+                      {sendResult.message}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Karta informacji o środowisku docelowym */}
+            <Card className="rounded-3xl border-border/70 shadow-sm p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Środowisko:</span>
+                <Badge tone={currentEnv.badgeTone}>{currentEnv.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Adres API:</span>
+                <code className="font-mono text-[10.5px] text-foreground truncate max-w-[170px]">{currentEnv.gateway}</code>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Schemat logiczny:</span>
+                <span className="font-semibold text-foreground">FA(3) v1-0E</span>
+              </div>
+            </Card>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── TAB 3: Dziennik Transmisji & Magazyn UPO ── */}
+      {tab === "journal" && (
+        <motion.div
+          key="tab-journal"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <Card className="rounded-3xl border-border/70 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-[17px]">Zarejestrowane e-Faktury w KSeF</CardTitle>
                 <CardDescription>
-                  Zakupy od kontrahentów — w KSeF rejestrowane jako e-Faktury zakupowe
+                  Wykaz faktur przesłanych do Krajowego Systemu e-Faktur z przypisanymi identyfikatorami i Urzędowymi Poświadczeniami Odbioru (UPO).
                 </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {purchaseInvoices.length === 0 ? (
-                  <p className="py-10 text-center text-[13px] text-muted-foreground">
-                    Brak faktur zakupowych. Utwórz FZ w kreatorze faktury (typ „Zakup”) lub użyj
-                    przycisku „Symuluj nową fakturę z KSeF” na liście faktur.
-                  </p>
-                ) : (
-                  <div className="divide-y divide-border/70">
-                    {purchaseInvoices.map((i: Invoice) => (
-                      <div key={i.id} className="flex items-center justify-between gap-3 py-2.5">
-                        <div className="min-w-0">
-                          <p className="truncate text-[13px] font-semibold">{i.number}</p>
-                          <p className="truncate text-[11.5px] text-muted-foreground">
-                            {getContractor(contractors, i.contractorId)?.name ?? "—"} ·{" "}
-                            {getContractor(contractors, i.contractorId)?.nip ?? ""}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <span className="text-[12px] text-muted-foreground">
-                            {formatMoney(invoiceTotals(i).gross, i.currency)}
-                          </span>
-                          {i.ksef ? (
-                            ksefStatusBadge(i.ksef.status)
-                          ) : (
-                            <Badge tone="outline">bez KSeF</Badge>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {ksefInvoices.length === 0 ? (
+                <div className="text-center py-16 space-y-3">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                    <FileText className="h-6 w-6" />
                   </div>
-                )}
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-[11.5px] text-muted-foreground">
-                  <Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    Zakupy można odliczać od VAT — w pełnej integracji dokumenty FZ trafiają do KSeF
-                    jako faktury zakupowe po stronie nabywcy.
-                  </span>
+                  <p className="text-sm font-semibold text-foreground">Brak wysłanych dokumentów do KSeF</p>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    Przejdź do zakładki „Inspektor FA(3) i Wysyłka” lub wyślij fakturę bezpośrednio z listy faktur.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[760px]">
+                    <thead>
+                      <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <th className="py-3 px-3">Faktura</th>
+                        <th className="py-3 px-3">Kontrahent</th>
+                        <th className="py-3 px-3">Kwota Brutto</th>
+                        <th className="py-3 px-3">Numer KSeF</th>
+                        <th className="py-3 px-3">Status</th>
+                        <th className="py-3 px-3">Data transmisji</th>
+                        <th className="py-3 px-3 text-right">UPO & XML</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {ksefInvoices.map((inv) => {
+                        const ctr = getContractor(contractors, inv.contractorId);
+                        const ksefNum = inv.ksef?.number || inv.ksefNumber || "—";
+                        const isSent = inv.ksef?.status === "SENT" || inv.ksef?.status === "QUEUED";
+                        const isAccepted = inv.ksef?.status === "ACTIVE" || inv.status === "ksef_active";
+
+                        return (
+                          <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-3.5 px-3">
+                              <a href={`/invoices/${inv.id}`} className="font-semibold text-foreground hover:underline">
+                                {inv.number}
+                              </a>
+                              <p className="text-[10.5px] text-muted-foreground font-mono">{inv.type === "sale" ? "FV" : "FZ"}</p>
+                            </td>
+                            <td className="py-3.5 px-3">
+                              <p className="font-medium text-foreground">{ctr?.name || "Klient detaliczny"}</p>
+                              <p className="text-[10.5px] text-muted-foreground font-mono">{ctr?.nip || ""}</p>
+                            </td>
+                            <td className="py-3.5 px-3 font-semibold tabular-nums text-foreground">
+                              {formatMoney(invoiceTotals(inv).gross, inv.currency)}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              <code className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold break-all">
+                                {ksefNum}
+                              </code>
+                            </td>
+                            <td className="py-3.5 px-3">
+                              <Badge
+                                tone={isAccepted ? "success" : isSent ? "warning" : "danger"}
+                                className="text-[10px]"
+                              >
+                                {isAccepted ? "Zarejestrowana" : isSent ? "W kolejce" : "Odrzucona"}
+                              </Badge>
+                            </td>
+                            <td className="py-3.5 px-3 text-muted-foreground">
+                              {formatDateTime(inv.ksef?.sentAt || inv.sentAt || inv.createdAt)}
+                            </td>
+                            <td className="py-3.5 px-3 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadUpo(ksefNum)}
+                                  className="h-8 px-2 text-xs gap-1"
+                                  title="Pobierz UPO XML"
+                                >
+                                  <Download className="h-3 w-3" /> UPO
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadXml(ksefNum)}
+                                  className="h-8 px-2 text-xs gap-1"
+                                  title="Pobierz e-Fakturę FA(3)"
+                                >
+                                  <FileCode2 className="h-3 w-3" /> XML
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* ── TAB 4: Zakupy z KSeF (FZ) ── */}
+      {tab === "incoming" && (
+        <motion.div
+          key="tab-incoming"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <Card className="rounded-3xl border-border/70 shadow-sm">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle className="text-[17px]">Faktury Zakupowe (FZ) z KSeF</CardTitle>
+                <CardDescription>
+                  Automatyczny import dokumentów kosztowych, w których Twoja firma została wskazana jako nabywca (Subject2).
+                </CardDescription>
+              </div>
+              <Button
+                onClick={handleSyncIncoming}
+                loading={syncingIncoming}
+                className="gap-2 rounded-xl font-semibold shrink-0"
+              >
+                {!syncingIncoming && <CloudDownload className="h-4 w-4" />}
+                {syncingIncoming ? "Pobieranie z KSeF..." : "Pobierz Faktury Zakupowe"}
+              </Button>
+            </CardHeader>
+
+            <CardContent>
+              {purchaseInvoices.length === 0 ? (
+                <div className="text-center py-16 space-y-3">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                    <CloudDownload className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Brak pobranych faktur zakupowych</p>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    Kliknij przycisk „Pobierz Faktury Zakupowe”, aby zaimportować dokumenty wystawione na Twój NIP przez kontrahentów.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs min-w-[700px]">
+                    <thead>
+                      <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <th className="py-3 px-3">Faktura</th>
+                        <th className="py-3 px-3">Sprzedawca</th>
+                        <th className="py-3 px-3">Data wystawienia</th>
+                        <th className="py-3 px-3">Wartość brutto</th>
+                        <th className="py-3 px-3">Numer KSeF</th>
+                        <th className="py-3 px-3 text-right">Akcje</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {purchaseInvoices.map((inv) => {
+                        const ctr = getContractor(contractors, inv.contractorId);
+                        const ksefNum = inv.ksef?.number || inv.ksefNumber || "—";
+                        return (
+                          <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="py-3 px-3 font-semibold text-foreground">
+                              <a href={`/invoices/${inv.id}`} className="hover:underline">
+                                {inv.number}
+                              </a>
+                            </td>
+                            <td className="py-3 px-3">
+                              <p className="font-medium text-foreground">{ctr?.name || "Sprzedawca"}</p>
+                              <p className="text-[10.5px] text-muted-foreground font-mono">{ctr?.nip || ""}</p>
+                            </td>
+                            <td className="py-3 px-3 text-muted-foreground">{inv.issueDate}</td>
+                            <td className="py-3 px-3 font-semibold tabular-nums text-foreground">
+                              {formatMoney(invoiceTotals(inv).gross, inv.currency)}
+                            </td>
+                            <td className="py-3 px-3">
+                              <code className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
+                                {ksefNum}
+                              </code>
+                            </td>
+                            <td className="py-3 px-3 text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDownloadUpo(ksefNum)}
+                                className="h-8 px-2 text-xs gap-1"
+                              >
+                                <Download className="h-3 w-3" /> UPO
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -8,12 +8,15 @@ import {
   ArrowDownUp,
   CloudDownload,
   Copy,
+  Download,
   FileText,
   Filter,
   Pencil,
   Plus,
   Search,
   Send,
+  Shield,
+  ShieldCheck,
   Trash2,
   X,
 } from "lucide-react";
@@ -25,26 +28,26 @@ import { Input, Select } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
-import { InfoTooltip } from "@/components/ui/tooltip";
+import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import type { EffectiveStatus } from "@/lib/store";
 import type { Invoice, InvoiceType } from "@/lib/types";
 import { EMPTY_COMPANY } from "@/lib/types";
 
 const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> = [
-  { value: "all", label: "Wszystkie" },
-  { value: "draft", label: "Szkice" },
+  { value: "all", label: "Wszystkie dokumenty" },
+  { value: "ksef_active", label: "KSeF Zarejestrowane" },
+  { value: "ksef_sent", label: "KSeF w kolejce" },
   { value: "issued", label: "Wystawione" },
-  { value: "ksef_sent", label: "Wysłane do KSeF" },
-  { value: "ksef_active", label: "KSeF aktywne" },
   { value: "paid", label: "Opłacone" },
   { value: "overdue", label: "Przeterminowane" },
+  { value: "draft", label: "Szkice" },
 ];
 
 export default function InvoicesPage() {
   const router = useRouter();
   const toast = useToast();
-  const { invoices, contractors, setDraft, deleteInvoice } = useAppStore();
+  const { invoices, contractors, setDraft, deleteInvoice, company, ksef } = useAppStore();
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
@@ -52,6 +55,7 @@ export default function InvoicesPage() {
   const [currencyFilter, setCurrencyFilter] = React.useState<"all" | "PLN" | "EUR" | "USD">("all");
   const [toDelete, setToDelete] = React.useState<string | null>(null);
   const [confirmKsef, setConfirmKsef] = React.useState<string | null>(null);
+  const [sendingKsef, setSendingKsef] = React.useState(false);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -64,7 +68,7 @@ export default function InvoicesPage() {
         if (statusFilter !== "all" && s !== statusFilter) return false;
         if (q) {
           const ctr = getContractor(contractors, inv.contractorId)?.name ?? "";
-          const hay = `${inv.number} ${ctr} ${inv.contractorId} ${inv.notes ?? ""}`.toLowerCase();
+          const hay = `${inv.number} ${ctr} ${inv.contractorId} ${inv.notes ?? ""} ${inv.ksef?.number ?? ""}`.toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -99,36 +103,52 @@ export default function InvoicesPage() {
   const sendToKsef = async (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
-    const { buildFaVatXml } = await import("@/lib/xml");
-    const state = useAppStore.getState();
-    const xml = buildFaVatXml(inv, state.company ?? EMPTY_COMPANY);
-    const res = await fetch("/api/ksef/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        xml,
-        environment: state.ksef?.environment ?? "demo",
-        invoiceId: inv.id,
-        invoiceNumber: inv.number,
-      }),
-    });
-    const data = await res.json();
-    if (res.ok && data.success && data.ksefNumber) {
-      if (data.invoice) {
-        useAppStore.getState().applyInvoice(data.invoice);
+
+    setSendingKsef(true);
+    try {
+      const state = useAppStore.getState();
+      const ctr = getContractor(state.contractors, inv.contractorId);
+      const xml = buildFa3Xml({
+        invoice: inv,
+        seller: state.company ?? EMPTY_COMPANY,
+        buyer: ctr,
+      });
+
+      const currentEnv = state.ksef?.environment ?? "demo";
+
+      const res = await fetch("/api/ksef/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          xml,
+          environment: currentEnv,
+          invoiceId: inv.id,
+          invoiceNumber: inv.number,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.ksefNumber) {
+        if (data.invoice) {
+          useAppStore.getState().applyInvoice(data.invoice);
+        } else {
+          useAppStore.getState().setInvoiceKsef(id, {
+            number: data.ksefNumber,
+            status: data.status ?? "ACTIVE",
+            sentAt: data.timestamp ?? new Date().toISOString(),
+            environment: currentEnv,
+          });
+        }
+        toast("success", "Faktura wysłana do KSeF (FA(3))!", `${inv.number} → ${data.ksefNumber}`);
       } else {
-        useAppStore.getState().setInvoiceKsef(id, {
-          number: data.ksefNumber,
-          status: data.status ?? "SENT",
-          sentAt: data.timestamp ?? new Date().toISOString(),
-          environment: state.ksef?.environment ?? "demo",
-        });
+        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd API KSeF.");
       }
-      toast("success", "Wysłano do KSeF", `${inv.number} → ${data.ksefNumber}`);
-    } else {
-      toast("error", "KSeF: odrzucono", data.message ?? "Błąd API KSeF.");
+    } catch {
+      toast("error", "Błąd sieci", "Nie udało się połączyć z bramką KSeF.");
+    } finally {
+      setSendingKsef(false);
+      setConfirmKsef(null);
     }
-    setConfirmKsef(null);
   };
 
   const [syncingIncoming, setSyncingIncoming] = React.useState(false);
@@ -136,19 +156,15 @@ export default function InvoicesPage() {
     setSyncingIncoming(true);
     try {
       const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
-      const data = (await res.json()) as {
-        success?: boolean;
-        importedCount?: number;
-        error?: string;
-      };
+      const data = await res.json();
       if (!res.ok || !data.success) {
-        toast("error", "Nie udało się pobrać faktur z KSeF", data.error ?? "Błąd API KSeF.");
+        toast("error", "Nie udało się pobrać faktur z KSeF", data.error ?? data.message ?? "Błąd API KSeF.");
         return;
       }
 
       await useAppStore.getState().revalidate();
       const count = data.importedCount ?? 0;
-      toast("success", "Synchronizacja KSeF zakończona", `Pobrano i zaimportowano ${count} nowych faktur zakupowych z KSeF.`);
+      toast("success", "Synchronizacja KSeF zakończona", `Pobrano i zaimportowano ${count} faktur zakupowych z KSeF.`);
     } catch {
       toast("error", "Błąd sieci", "Nie udało się pobrać faktur zakupowych z KSeF.");
     } finally {
@@ -156,47 +172,52 @@ export default function InvoicesPage() {
     }
   };
 
+  const handleDownloadUpo = (ksefNumber: string) => {
+    window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=upo`, "_blank");
+  };
+
+  const selectedForKsef = invoices.find((i) => i.id === confirmKsef);
+
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Faktury"
-        description="Lista dokumentów sprzedaży (FV) i zakupów (FZ) z filtrami i statusem KSeF."
+        description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="subtle"
               onClick={syncIncomingInvoices}
               loading={syncingIncoming}
+              className="rounded-xl gap-2 text-xs"
               title="Pobierz faktury zakupowe z KSeF"
-              aria-label={syncingIncoming ? "Pobieranie faktur z KSeF" : "Pobierz faktury zakupowe z KSeF"}
             >
-              {!syncingIncoming && <CloudDownload className="h-4 w-4" />}
-              {syncingIncoming ? "Pobieranie faktur z KSeF..." : "Pobierz z KSeF (FZ)"}
+              {!syncingIncoming && <CloudDownload className="h-4 w-4 text-primary" />}
+              {syncingIncoming ? "Pobieranie z KSeF..." : "Pobierz z KSeF (FZ)"}
             </Button>
-            <Button onClick={() => router.push("/invoices/new")}>
-              <Plus className="h-4 w-4" /> Nowa faktura
+            <Button onClick={() => router.push("/invoices/new")} className="rounded-xl gap-2 font-semibold shadow-xs">
+              <Plus className="h-4 w-4" /> Wystaw fakturę
             </Button>
-          </>
+          </div>
         }
       />
 
-      {/* Filtry */}
-      <div className="mb-4 rounded-2xl border border-border/60 bg-card/70 p-3 backdrop-blur-md shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[220px] flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      {/* Pasek filtrów */}
+      <div className="rounded-2xl border border-border/70 bg-card/70 p-3.5 backdrop-blur-xl shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative min-w-[240px] flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Szukaj: numer, kontrahent, NIP…"
-              className="pl-9 h-9"
+              placeholder="Szukaj: numer, kontrahent, NIP, numer KSeF…"
+              className="pl-9.5 h-10 rounded-xl text-xs"
             />
           </div>
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | EffectiveStatus)}
-            className="w-auto min-w-[150px] h-9"
-            aria-label="Filtr statusu"
+            className="w-auto min-w-[170px] h-10 rounded-xl text-xs"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -207,20 +228,18 @@ export default function InvoicesPage() {
           <Select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as "all" | InvoiceType)}
-            className="w-auto h-9"
-            aria-label="Filtr typu"
+            className="w-auto h-10 rounded-xl text-xs"
           >
-            <option value="all">Sprzedaż + zakup</option>
+            <option value="all">Wszystkie typy</option>
             <option value="sale">Sprzedaż (FV)</option>
             <option value="purchase">Zakup (FZ)</option>
           </Select>
           <Select
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
-            className="w-auto h-9"
-            aria-label="Filtr waluty"
+            className="w-auto h-10 rounded-xl text-xs"
           >
-            <option value="all">Wszystkie waluty</option>
+            <option value="all">Waluta (wszystkie)</option>
             <option value="PLN">PLN</option>
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
@@ -235,6 +254,7 @@ export default function InvoicesPage() {
                 setTypeFilter("all");
                 setCurrencyFilter("all");
               }}
+              className="rounded-xl text-xs gap-1 text-muted-foreground hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" /> Wyczyść
             </Button>
@@ -242,38 +262,40 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Lista */}
-      <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5 text-[11.5px] text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Filter className="h-3.5 w-3.5" />
-            Znaleziono: <b className="text-foreground">{filtered.length}</b>{" "}
-            {filtered.length === 1 ? "dokument" : "dokumentów"}
+      {/* Główna tabela dokumentów */}
+      <div className="rounded-3xl border border-border/70 bg-card/70 backdrop-blur-xl shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[12px] text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <Filter className="h-3.5 w-3.5 text-primary" />
+            Liczba pozycji: <b className="text-foreground">{filtered.length}</b>
           </span>
-          <span className="hidden items-center gap-1 sm:flex">
-            <ArrowDownUp className="h-3 w-3" /> sortowanie: data wystawienia (malejąco)
+          <span className="hidden items-center gap-1.5 sm:flex font-mono text-[11px]">
+            <ArrowDownUp className="h-3 w-3" /> Data wystawienia (malejąco)
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] text-[13px]">
+          <table className="w-full min-w-[920px] text-left text-xs">
             <thead>
-              <tr className="border-b border-border text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-2.5">Dokument</th>
-                <th className="px-3 py-2.5">Kontrahent</th>
-                <th className="px-3 py-2.5">Data wyst.</th>
-                <th className="px-3 py-2.5">Termin</th>
-                <th className="px-3 py-2.5 text-right">Wartość brutto</th>
-                <th className="px-3 py-2.5">Status</th>
-                <th className="px-3 py-2.5 text-center">KSeF</th>
-                <th className="px-3 py-2.5 text-right">Akcje</th>
+              <tr className="border-b border-border/70 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
+                <th className="py-3 px-4">Numer dokumentu</th>
+                <th className="py-3 px-3">Kontrahent</th>
+                <th className="py-3 px-3">Data wystawienia</th>
+                <th className="py-3 px-3">Termin</th>
+                <th className="py-3 px-3 text-right">Wartość brutto</th>
+                <th className="py-3 px-3">Status płatności</th>
+                <th className="py-3 px-3">Status KSeF</th>
+                <th className="py-3 px-4 text-right">Akcje</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/50">
               <AnimatePresence initial={false}>
                 {filtered.map((inv) => {
                   const ctr = getContractor(contractors, inv.contractorId);
                   const s = effectiveStatus(inv);
+                  const ksefNum = inv.ksef?.number || inv.ksefNumber;
+                  const isKsefActive = inv.ksef?.status === "ACTIVE" || inv.status === "ksef_active";
+
                   return (
                     <motion.tr
                       key={inv.id}
@@ -281,29 +303,33 @@ export default function InvoicesPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/40"
+                      className="transition-colors hover:bg-muted/30"
                     >
-                      <td className="px-4 py-3">
-                        <Link href={`/invoices/${inv.id}`} className="group flex items-center gap-2">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary">
+                      <td className="py-3.5 px-4">
+                        <Link href={`/invoices/${inv.id}`} className="group flex items-center gap-2.5">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                             <FileText className="h-4 w-4" />
                           </div>
                           <div>
-                            <p className="font-semibold">{inv.number}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {inv.type === "sale" ? "FV" : "FZ"} · {inv.currency} ·{" "}
-                              {inv.language === "PL" ? "PL" : "EN"}
+                            <p className="font-bold text-[13px] text-foreground group-hover:text-primary transition-colors">
+                              {inv.number}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground font-mono">
+                              {inv.type === "sale" ? "FV Sprzedaż" : "FZ Zakup"} · {inv.currency}
                             </p>
                           </div>
                         </Link>
                       </td>
-                      <td className="px-3 py-3">
-                        <p className="max-w-[220px] truncate font-medium">{ctr?.name ?? "—"}</p>
-                        <p className="text-[11px] text-muted-foreground">{ctr?.nip ?? ""}</p>
+
+                      <td className="py-3.5 px-3">
+                        <p className="font-medium text-foreground max-w-[200px] truncate">{ctr?.name || "Klient detaliczny"}</p>
+                        <p className="text-[11px] font-mono text-muted-foreground">{ctr?.nip || ""}</p>
                       </td>
-                      <td className="px-3 py-3 text-muted-foreground">{formatDate(inv.issueDate)}</td>
-                      <td className="px-3 py-3 text-muted-foreground">{formatDate(inv.dueDate)}</td>
-                      <td className="px-3 py-3 text-right font-semibold tabular-nums">
+
+                      <td className="py-3.5 px-3 text-muted-foreground">{formatDate(inv.issueDate)}</td>
+                      <td className="py-3.5 px-3 text-muted-foreground">{formatDate(inv.dueDate)}</td>
+
+                      <td className="py-3.5 px-3 text-right font-bold tabular-nums text-foreground text-[13px]">
                         {formatMoney(
                           inv.type === "purchase" && inv.ksef && typeof inv.totalGross === "number"
                             ? inv.totalGross
@@ -311,46 +337,84 @@ export default function InvoicesPage() {
                           inv.currency
                         )}
                       </td>
-                      <td className="px-3 py-3">
-                        <Badge className={STATUS_META[s].color}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[s].dot}`} />
+
+                      <td className="py-3.5 px-3">
+                        <Badge className={`${STATUS_META[s].color} rounded-lg px-2.5 py-0.5 text-[10.5px]`}>
+                          <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${STATUS_META[s].dot}`} />
                           {STATUS_META[s].label}
                         </Badge>
                       </td>
-                      <td className="px-3 py-3 text-center">
-                        {inv.ksef ? (
-                          <Badge tone="info" className="font-mono text-[10px]">
-                            {inv.ksef.number}
-                          </Badge>
+
+                      <td className="py-3.5 px-3">
+                        {ksefNum ? (
+                          <div className="flex items-center gap-1.5">
+                            <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+                            <div className="min-w-0">
+                              <span className="block font-mono text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 truncate max-w-[130px]" title={ksefNum}>
+                                {ksefNum}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground uppercase">
+                                {isKsefActive ? "Zarejestrowana" : "Wysłana"}
+                              </span>
+                            </div>
+                          </div>
                         ) : (
-                          <span className="text-muted-foreground/50">—</span>
+                          <span className="text-muted-foreground/40 text-[11px]">— nie wysłano —</span>
                         )}
                       </td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center justify-end gap-0.5">
-                          <Button variant="ghost" size="icon" onClick={() => editInvoice(inv.id)} title="Edytuj">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => duplicateInvoice(inv.id)} title="Duplikuj">
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                          {!inv.ksef && inv.type === "sale" && (
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {ksefNum && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDownloadUpo(ksefNum)}
+                              title="Pobierz UPO (Urzędowe Poświadczenie Odbioru)"
+                              className="h-8 w-8 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+
+                          {!ksefNum && inv.type === "sale" && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => setConfirmKsef(inv.id)}
-                              title="Wyślij do KSeF (demo)"
-                              className="text-accent"
+                              title="Wyślij do KSeF (FA(3))"
+                              className="h-8 w-8 rounded-lg text-primary hover:bg-primary/10"
                             >
                               <Send className="h-3.5 w-3.5" />
                             </Button>
                           )}
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => editInvoice(inv.id)}
+                            title="Edytuj"
+                            className="h-8 w-8 rounded-lg"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => duplicateInvoice(inv.id)}
+                            title="Duplikuj"
+                            className="h-8 w-8 rounded-lg"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setToDelete(inv.id)}
                             title="Usuń"
-                            className="text-muted-foreground hover:text-red-500"
+                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-rose-500"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -362,26 +426,18 @@ export default function InvoicesPage() {
               </AnimatePresence>
             </tbody>
           </table>
+
           {filtered.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-16 text-center">
-              <div className="relative flex h-14 w-14 items-center justify-center">
-                <div className="absolute inset-0 rounded-2xl bg-primary/8 blur-xl" />
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
-                  <FileText className="h-6 w-6" />
-                </div>
+            <div className="py-16 text-center space-y-3">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                <FileText className="h-6 w-6" />
               </div>
-              <div>
-                <p className="text-[15px] font-semibold text-foreground">
-                  {invoices.length === 0 ? "Brak wystawionych faktur" : "Brak faktur spełniających kryteria"}
-                </p>
-                <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground leading-relaxed">
-                  {invoices.length === 0
-                    ? "Wystaw pierwszy dokument sprzedaży w formacie FA(3) z bezpośredną wysyłką do KSeF."
-                    : "Zmień parametry wyszukiwania lub filtry statusu/waluty."}
-                </p>
-              </div>
-              <Button size="sm" onClick={() => router.push("/invoices/new")} className="mt-2 gap-1.5 rounded-xl">
-                <Plus className="h-3.5 w-3.5" /> Wystaw pierwszą fakturę
+              <p className="text-[14px] font-semibold text-foreground">Brak faktur spełniających kryteria</p>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                Wystaw nową e-Fakturę lub zmień ustawienia filtrów wyszukiwania.
+              </p>
+              <Button size="sm" onClick={() => router.push("/invoices/new")} className="rounded-xl gap-1.5">
+                <Plus className="h-4 w-4" /> Wystaw fakturę
               </Button>
             </div>
           )}
@@ -399,15 +455,16 @@ export default function InvoicesPage() {
           }
         }}
         title="Usunąć fakturę?"
-        description="Dokument zostanie trwale usunięty z systemu."
+        description="Dokument zostanie trwale usunięty z bazy danych."
       />
+
       <ConfirmDialog
         open={!!confirmKsef}
         onClose={() => setConfirmKsef(null)}
         onConfirm={() => confirmKsef && sendToKsef(confirmKsef)}
-        title="Wysłać fakturę do KSeF?"
-        description="Dokument w formacie FA(3) zostanie zaszyfrowany (AES-256-CBC) i przesłany do serwerów Ministerstwa Finansów."
-        confirmLabel="Wyślij do KSeF"
+        title="Wysyłka e-Faktury do KSeF"
+        description={`Faktura ${selectedForKsef?.number || ""} zostanie przetłumaczona do oficjalnego formatu FA(3), zaszyfrowana (AES-256-CBC) i przesłana do KSeF (${ksef?.environment ?? "demo"}).`}
+        confirmLabel={sendingKsef ? "Wysyłanie..." : "Wyślij e-Fakturę"}
         danger={false}
       />
     </div>

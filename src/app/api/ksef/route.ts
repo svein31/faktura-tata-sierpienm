@@ -9,12 +9,6 @@ const ENVIRONMENTS = ["demo", "test", "production"] as const;
 
 /**
  * PUT /api/ksef — ustawienia KSeF bieżącego użytkownika.
- *
- * Bezpieczeństwo poświadczeń:
- *  - Pełny token NIGDY nie jest zwracany przez API (tylko tokenSet + tokenMask).
- *  - Token przekazany w body jest zapisywany WYŁĄCZNIE jako maska (ostatnie 4 znaki)
- *    — w produkcji prawdziwy token powinien pochodzić ze zmiennej środowiskowej
- *    serwera (KSEF_TOKEN), patrz README → „KSeF w produkcji".
  */
 export async function PUT(req: Request) {
   try {
@@ -34,12 +28,25 @@ export async function PUT(req: Request) {
     let tokenSet = existing?.tokenSet ?? false;
     let tokenMask = existing?.tokenMask ?? "";
 
-    // Opcjonalny token w body — zapisujemy tylko maskę.
+    // Opcjonalny token w body — zapisujemy maskę oraz aktualizujemy domyślny profil firmy
     if (typeof body.token === "string" && body.token.trim().length > 0) {
       const t = body.token.trim();
       if (t.length < 4) throw new ApiError(400, "Token musi mieć co najmniej 4 znaki.");
       tokenSet = true;
       tokenMask = `••••${t.slice(-4)}`;
+
+      // Zapisz token w profilu firmy użytkownika
+      const defaultProfile = await prisma.companyProfile.findFirst({
+        where: { userId: user.id },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+      });
+
+      if (defaultProfile) {
+        await prisma.companyProfile.update({
+          where: { id: defaultProfile.id },
+          data: { ksefToken: t },
+        });
+      }
     }
 
     const data = {

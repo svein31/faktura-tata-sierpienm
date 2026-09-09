@@ -374,3 +374,86 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
   const errors = issues.filter((i) => i.severity === "error");
   return { ok: errors.length === 0, issues };
 }
+
+export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
+<Faktura xmlns="${FA3_NAMESPACE}" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Naglowek>
+    <KodFormularza kodSystemowy="${FA3_SYSTEM_CODE}" wersjaSchemy="${FA3_SCHEMA_VERSION}">FA</KodFormularza>
+    <WariantFormularza>${FA3_FORM_VARIANT}</WariantFormularza>
+    <DataWytworzeniaFa>2026-09-09T09:00:00Z</DataWytworzeniaFa>
+    <SystemInfo>Fakturo KSeF 2.0</SystemInfo>
+  </Naglowek>
+  <Podmiot1>
+    <PrefiksPodatnika>PL</PrefiksPodatnika>
+    <DaneIdentyfikacyjne>
+      <NIP>5260301706</NIP>
+      <Nazwa>Fakturowa Sp. z o.o.</Nazwa>
+    </DaneIdentyfikacyjne>
+    <Adres>
+      <KodKraju>PL</KodKraju>
+      <AdresL1>ul. Przykładowa 10</AdresL1>
+      <AdresL2>00-001 Warszawa</AdresL2>
+    </Adres>
+    <DaneKontaktowe>
+      <Email>kontakt@fakturowa.pl</Email>
+    </DaneKontaktowe>
+  </Podmiot1>
+  <Podmiot2>
+    <DaneIdentyfikacyjne>
+      <NIP>5270000024</NIP>
+      <Nazwa>Kontrahent Testowy S.A.</Nazwa>
+    </DaneIdentyfikacyjne>
+    <Adres>
+      <KodKraju>PL</KodKraju>
+      <AdresL1>ul. Testowa 1</AdresL1>
+      <AdresL2>00-950 Warszawa</AdresL2>
+    </Adres>
+  </Podmiot2>
+  <Fa>
+    <KodWaluty>PLN</KodWaluty>
+    <P_1>2026-09-09</P_1>
+    <P_2>FV/2026/09/0001</P_2>
+    <P_6>2026-09-09</P_6>
+    <P_13_1>1000.00</P_13_1>
+    <P_14_1>230.00</P_14_1>
+    <P_15>1230.00</P_15>
+    <Adnotacje>
+      <P_16>2</P_16>
+      <P_17>2</P_17>
+      <P_18>2</P_18>
+      <P_18A>2</P_18A>
+      <Zwolnienie>
+        <P_19N>1</P_19N>
+      </Zwolnienie>
+      <NoweSrodkiTransportu>
+        <P_22N>1</P_22N>
+      </NoweSrodkiTransportu>
+      <P_23>2</P_23>
+      <P_PMarzy>
+        <P_PMarzyN>1</P_PMarzyN>
+      </P_PMarzy>
+    </Adnotacje>
+    <RodzajFaktury>VAT</RodzajFaktury>
+    <FaWiersz>
+      <NrWierszaFa>1</NrWierszaFa>
+      <P_7>Usługi programistyczne i integracja KSeF 2.0</P_7>
+      <P_8A>usł.</P_8A>
+      <P_8B>1</P_8B>
+      <P_9A>1000.00</P_9A>
+      <P_11>1000.00</P_11>
+      <P_12>23</P_12>
+    </FaWiersz>
+    <Platnosc>
+      <DoZaplaty>1230.00</DoZaplaty>
+      <FormaPlatnosci>6</FormaPlatnosci>
+      <TerminPlatnosci>
+        <Termin>2026-09-23</Termin>
+        <TerminOpis>Przelew 14 dni</TerminOpis>
+      </TerminPlatnosci>
+      <RachunekBankowy>
+        <NrRB>12105000996711111111111111</NrRB>
+      </RachunekBankowy>
+    </Platnosc>
+  </Fa>
+</Faktura>`;
+

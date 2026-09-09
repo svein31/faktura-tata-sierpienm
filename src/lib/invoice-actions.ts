@@ -1,7 +1,8 @@
 "use client";
 
 import { buildInvoiceHtmlString } from "./invoice-html";
-import { invoiceToJson, buildFaVatXml } from "./xml";
+import { invoiceToJson } from "./xml";
+import { buildFa3Xml } from "./ksef/xmlBuilder";
 import { downloadFile } from "./utils";
 import type { CompanyProfile, Contractor, Invoice } from "./types";
 
@@ -13,8 +14,7 @@ export interface ExportActions {
 }
 
 /**
- * Eksport PDF (przez okno drukowania → „Zapisz jako PDF"), HTML, XML FA(2), JSON.
- * Wszystko po stronie klienta — brak zależności od backendu.
+ * Eksport PDF (przez okno drukowania → „Zapisz jako PDF"), HTML, oficjalnego XML FA(3), JSON.
  */
 export function useInvoiceExports(
   invoice: Invoice,
@@ -24,7 +24,6 @@ export function useInvoiceExports(
   const safeName = invoice.number.replace(/[^a-zA-Z0-9_-]/g, "_");
 
   const exportPdf = () => {
-    // Klasyczna technika: otwieramy ukryte okno z HTML i wywołujemy print().
     const html = buildInvoiceHtmlString(invoice, contractor, company);
     const w = window.open("", "_blank", "width=900,height=1100");
     if (!w) {
@@ -50,7 +49,8 @@ export function useInvoiceExports(
   };
 
   const exportXml = () => {
-    downloadFile(`${safeName}.xml`, buildFaVatXml(invoice, company), "application/xml;charset=utf-8");
+    const xml = buildFa3Xml({ invoice, seller: company, buyer: contractor });
+    downloadFile(`${safeName}-FA3.xml`, xml, "application/xml;charset=utf-8");
   };
 
   const exportJson = () => {

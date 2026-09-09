@@ -8,23 +8,28 @@ import {
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
+  Download,
   FileCode2,
+  FileDown,
   FileJson2,
+  FileText,
   Pencil,
   Printer,
+  RefreshCw,
   Send,
+  ShieldCheck,
   Trash2,
-  FileDown,
 } from "lucide-react";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
+import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Invoice } from "@/lib/types";
 
@@ -59,6 +64,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
 
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [sending, setSending] = React.useState(false);
+  const [checkingStatus, setCheckingStatus] = React.useState(false);
 
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefEnv = ksef?.environment ?? "demo";
@@ -76,12 +82,16 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const handleSendKsef = async () => {
     setSending(true);
     try {
-      const { buildFa3Xml } = await import("@/lib/ksef/index");
       const xml = buildFa3Xml({ invoice, seller: companySafe, buyer: contractor });
       const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ xml, environment: ksefEnv, invoiceId: invoice.id, invoiceNumber: invoice.number }),
+        body: JSON.stringify({
+          xml,
+          environment: ksefEnv,
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.number,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success && data.ksefNumber) {
@@ -90,20 +100,47 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         } else {
           setInvoiceKsef(invoice.id, {
             number: data.ksefNumber,
-            status: data.status ?? "SENT",
+            status: data.status ?? "ACTIVE",
             sentAt: data.timestamp ?? new Date().toISOString(),
             environment: ksefEnv,
           });
         }
-        toast("success", "Wysłano do KSeF (FA(3))", `${invoice.number} → ${data.ksefNumber}`);
+        toast("success", "Faktura wysłana do KSeF (FA(3))!", `${invoice.number} → ${data.ksefNumber}`);
       } else {
         toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
       }
     } catch {
-      toast("error", "Błąd sieci", "Nie udało się wysłać do KSeF.");
+      toast("error", "Błąd sieci", "Nie udało się przesłać dokumentu do KSeF.");
     } finally {
       setSending(false);
     }
+  };
+
+  const handleCheckKsefStatus = async () => {
+    const ref = invoice.referenceNumber || invoice.ksefNumber || invoice.id;
+    setCheckingStatus(true);
+    try {
+      const res = await fetch(`/api/ksef/status/${encodeURIComponent(ref)}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await useAppStore.getState().revalidate();
+        toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription}`);
+      } else {
+        toast("error", "Nie udało się pobrać statusu", data.message);
+      }
+    } catch {
+      toast("error", "Błąd sieci", "Nie udało się sprawdzić statusu w KSeF.");
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
+  const handleDownloadUpo = (ksefNumber: string) => {
+    window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=upo`, "_blank");
+  };
+
+  const handleDownloadXml = (ksefNumber: string) => {
+    window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=xml`, "_blank");
   };
 
   const handleEdit = () => {
@@ -111,126 +148,200 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     router.push("/invoices/new");
   };
 
+  const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
+  const isKsefActive = invoice.ksef?.status === "ACTIVE" || invoice.status === "ksef_active";
+
   return (
-    <div>
-      <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-6">
+      {/* Pasek nawigacji i akcji */}
+      <div className="no-print flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push("/invoices")}
             aria-label="Wróć"
-            className="rounded-xl hover:bg-muted/60"
+            className="rounded-xl hover:bg-muted/60 h-10 w-10"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[18px] font-bold tracking-tight text-foreground">{invoice.number}</h2>
-              <Badge className={STATUS_META[status].color}>
-                <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[status].dot}`} />
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">{invoice.number}</h1>
+              <Badge className={`${STATUS_META[status].color} rounded-lg px-2.5 py-0.5 text-xs`}>
+                <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${STATUS_META[status].dot}`} />
                 {STATUS_META[status].label}
               </Badge>
             </div>
-            <p className="text-[11.5px] text-muted-foreground">
-              {invoice.type === "sale" ? "Faktura sprzedaży" : "Faktura zakupowa"} ·{" "}
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {invoice.type === "sale" ? "Faktura sprzedaży (FV)" : "Faktura zakupowa (FZ)"} ·{" "}
               {formatDateTime(invoice.createdAt)}
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <Button variant="outline" size="sm" onClick={exports.exportPdf} className="rounded-xl">
-            <Printer className="h-3.5 w-3.5" /> PDF
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Button variant="outline" size="sm" onClick={exports.exportPdf} className="rounded-xl gap-1.5 text-xs">
+            <Printer className="h-3.5 w-3.5" /> Drukuj / PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportHtml} className="rounded-xl">
+          <Button variant="outline" size="sm" onClick={exports.exportXml} className="rounded-xl gap-1.5 text-xs">
+            <FileCode2 className="h-3.5 w-3.5" /> Pobierz FA(3)
+          </Button>
+          <Button variant="outline" size="sm" onClick={exports.exportHtml} className="rounded-xl gap-1.5 text-xs">
             <FileDown className="h-3.5 w-3.5" /> HTML
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportXml} className="rounded-xl">
-            <FileCode2 className="h-3.5 w-3.5" /> XML FA(2)
-          </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportJson} className="rounded-xl">
+          <Button variant="outline" size="sm" onClick={exports.exportJson} className="rounded-xl gap-1.5 text-xs">
             <FileJson2 className="h-3.5 w-3.5" /> JSON
           </Button>
-          <Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl">
+          <Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl gap-1.5 text-xs">
             <Pencil className="h-3.5 w-3.5" /> Edytuj
           </Button>
+
           {status !== "paid" && status !== "draft" && (
-            <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl">
+            <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl gap-1.5 text-xs">
               <CheckCircle2 className="h-3.5 w-3.5" /> Oznacz opłaconą
             </Button>
           )}
-          {!invoice.ksef && (
-            <Button variant="subtle" size="sm" onClick={handleSendKsef} loading={sending} className="rounded-xl">
-              <Send className="h-3.5 w-3.5" /> Wyślij do KSeF (demo)
+
+          {!ksefNum && invoice.type === "sale" && (
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={handleSendKsef}
+              loading={sending}
+              className="rounded-xl gap-1.5 text-xs font-semibold"
+            >
+              <Send className="h-3.5 w-3.5" /> Wyślij do KSeF ({ksefEnv})
             </Button>
           )}
+
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => setConfirmDelete(true)}
-            className="rounded-xl text-muted-foreground hover:text-rose-500"
+            className="rounded-xl text-muted-foreground hover:text-rose-500 h-9 w-9"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* KSeF info */}
-      {invoice.ksef && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print mb-4">
-          <Card className="border-emerald-500/30 bg-emerald-500/5">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/12 text-emerald-500 ring-1 ring-emerald-500/20">
-                  <BadgeCheck className="h-5 w-5" />
+      {/* Dedykowana Karta Transmisji KSeF */}
+      {ksefNum ? (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
+          <Card className="rounded-3xl border-emerald-500/30 bg-emerald-500/5 shadow-xs overflow-hidden">
+            <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/30">
+                  <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold text-foreground">
-                    Dokument w KSeF · numer:{" "}
-                    <span className="font-mono text-emerald-500">{invoice.ksef.number}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">
+                      Dokument zarejestrowany w KSeF
+                    </p>
+                    <Badge tone="success" className="text-[10px]">
+                      {isKsefActive ? "Aktywny / UPO pobrane" : "Wysłano"}
+                    </Badge>
+                    <Badge tone="outline" className="text-[10px] uppercase font-mono">
+                      {invoice.ksef?.environment || "demo"}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 break-all">
+                    Numer KSeF: {ksefNum}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Status: {invoice.ksef.status} · wysłano: {formatDateTime(invoice.ksef.sentAt)} ·{" "}
-                    środowisko: {invoice.ksef.environment}
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Data przyjęcia: {formatDateTime(invoice.ksef?.sentAt || invoice.sentAt || invoice.createdAt)}
                   </p>
                 </div>
               </div>
-              <Badge tone="success">KSeF {invoice.ksef.status}</Badge>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCheckKsefStatus}
+                  loading={checkingStatus}
+                  className="rounded-xl gap-1.5 text-xs"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${checkingStatus ? "animate-spin" : ""}`} />
+                  Odśwież status
+                </Button>
+                <Button
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => handleDownloadUpo(ksefNum)}
+                  className="rounded-xl gap-1.5 text-xs font-semibold"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Pobierz UPO (XML)
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadXml(ksefNum)}
+                  className="rounded-xl gap-1.5 text-xs"
+                >
+                  <FileCode2 className="h-3.5 w-3.5" />
+                  Pobierz XML
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
-      )}
+      ) : invoice.type === "sale" ? (
+        <Card className="no-print rounded-3xl border-border/70 bg-card/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Send className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground">
+                Faktura nie została jeszcze przekazana do KSeF
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Możesz przesłać dokument w formacie FA(3) bezpośrednio do serwerów Ministerstwa Finansów ({ksefEnv}).
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleSendKsef}
+            loading={sending}
+            size="sm"
+            className="rounded-xl gap-1.5 text-xs font-semibold shrink-0"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Wyślij do KSeF ({ksefEnv})
+          </Button>
+        </Card>
+      ) : null}
 
+      {/* Wizualny podgląd arkusza faktury */}
       <div className="print-area">
         <InvoicePreview invoice={invoice} contractor={contractor} company={companySafe} />
       </div>
 
-      <div className="no-print mt-4 grid gap-3 sm:grid-cols-3">
-        <Card className="rounded-2xl border border-border/60 bg-card/70">
-          <CardContent className="p-5 text-center">
-            <p className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">Netto</p>
-            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-foreground">{formatMoney(totals.net, invoice.currency)}</p>
+      {/* Podsumowanie kwot */}
+      <div className="no-print grid gap-3 sm:grid-cols-3">
+        <Card className="rounded-2xl border border-border/70 bg-card/70 shadow-xs">
+          <CardContent className="p-4 text-center">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Wartość Netto</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{formatMoney(totals.net, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-border/60 bg-card/70">
-          <CardContent className="p-5 text-center">
-            <p className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">VAT</p>
-            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-foreground">{formatMoney(totals.vat, invoice.currency)}</p>
+        <Card className="rounded-2xl border border-border/70 bg-card/70 shadow-xs">
+          <CardContent className="p-4 text-center">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Podatek VAT</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{formatMoney(totals.vat, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-primary/30 bg-primary/5">
-          <CardContent className="p-5 text-center">
-            <p className="text-[10.5px] font-medium uppercase tracking-wider text-primary/70">Brutto</p>
-            <p className="mt-1.5 text-[18px] font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
+        <Card className="rounded-2xl border border-primary/30 bg-primary/5 shadow-xs">
+          <CardContent className="p-4 text-center">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-primary/80">Wartość Brutto</p>
+            <p className="mt-1 text-lg font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
           </CardContent>
         </Card>
       </div>
-
-      <p className="no-print mt-6 text-center text-[12px] text-muted-foreground">
-        <Link href="/invoices" className="underline-offset-4 hover:underline">
-          ← Wszystkie faktury
-        </Link>
-      </p>
 
       <ConfirmDialog
         open={confirmDelete}
@@ -244,7 +355,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             .catch((e: Error) => toast("error", "Nie udało się usunąć", e.message));
         }}
         title="Usunąć fakturę?"
-        description={`Dokument ${invoice.number} zostanie trwale usunięty.`}
+        description={`Dokument ${invoice.number} zostanie trwale usunięty z systemu.`}
       />
     </div>
   );
