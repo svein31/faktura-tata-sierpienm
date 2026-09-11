@@ -108,40 +108,47 @@ function ActionCard({ title, count, subtext, icon, tone, filterHref, delay = 0 }
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: delay * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="h-full"
     >
-      <Link href={filterHref} className="block group">
+      <Link href={filterHref} className="block group h-full">
         <Card
-          className={`relative overflow-hidden rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md ${toneClasses.border} ${toneClasses.bg}`}
+          className={`relative overflow-hidden rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md h-full flex flex-col justify-between ${toneClasses.border} ${toneClasses.bg}`}
         >
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-medium text-muted-foreground">{title}</span>
-                </div>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
-                    {count}
+          <CardContent className="p-5 flex flex-col justify-between flex-1 h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[12px] font-medium text-muted-foreground leading-snug line-clamp-2 min-h-[2.25rem] flex items-start">
+                    {title}
                   </span>
-                  {count > 0 && (
-                    <span
-                      className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold border ${toneClasses.badge}`}
-                    >
-                      Wymaga reakcji
-                    </span>
-                  )}
                 </div>
-                <p className="mt-1.5 text-[11.5px] text-muted-foreground truncate">{subtext}</p>
+
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-transform duration-200 group-hover:scale-105 ${toneClasses.iconBg}`}
+                >
+                  {icon}
+                </div>
               </div>
 
-              <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-transform duration-200 group-hover:scale-105 ${toneClasses.iconBg}`}
-              >
-                {icon}
+              <div className="mt-2 flex items-center gap-2 h-9">
+                <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums leading-none">
+                  {count}
+                </span>
+                {count > 0 && (
+                  <span
+                    className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold border leading-none ${toneClasses.badge}`}
+                  >
+                    Wymaga reakcji
+                  </span>
+                )}
               </div>
+
+              <p className="mt-1 text-[11.5px] text-muted-foreground truncate" title={subtext}>
+                {subtext}
+              </p>
             </div>
 
-            <div className="mt-4 flex items-center gap-1 text-[11.5px] font-medium text-primary opacity-90 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
+            <div className="mt-4 pt-2.5 flex items-center gap-1 text-[11.5px] font-medium text-primary opacity-90 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all border-t border-border/30">
               <span>Zobacz listę</span>
               <ArrowRight className="h-3 w-3" />
             </div>

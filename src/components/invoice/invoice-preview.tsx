@@ -14,8 +14,6 @@ import {
 import { invoiceLabels, paymentMethodLabel } from "@/lib/i18n";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { QRCodeSVG } from "qrcode.react";
-import { buildKsefVerificationUrl, getKsefQrLabel } from "@/lib/ksef";
-
 export function buildQrPayload(invoice: Invoice, contractor: Contractor | undefined, company: CompanyProfile): string {
   const t = invoiceTotals(invoice);
   const iban = (invoice.type === "sale" ? (company.bankAccount || company.iban) : contractor?.iban) ?? "";

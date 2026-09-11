@@ -258,7 +258,7 @@ export default function ContractorsPage() {
               placeholder="np. DemoIT Solutions Sp. z o.o."
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label>NIP *</Label>
             <NipLookup
               nip={draft.nip}

@@ -61,29 +61,35 @@ export function NipLookup({
   const valid = nip.trim() !== "" && isValidNipFormat(normalizeNip(nip));
 
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
+    <div className="space-y-2 w-full">
+      <div className="flex gap-2 items-center w-full">
+        <div className="relative flex-1 min-w-0">
           <Input
             value={nip}
             onChange={(e) => onNipChange(e.target.value)}
             placeholder="np. 527-000-00-24"
             inputMode="numeric"
-            className="pr-24 font-mono"
+            className="font-mono text-sm tracking-wider px-3 w-full"
             aria-label="NIP kontrahenta"
           />
-          <Badge tone="accent" className="absolute right-2 top-1/2 -translate-y-1/2">
-            <FlaskConical className="h-3 w-3" /> demo
-          </Badge>
         </div>
         <Button
+          type="button"
           variant="outline"
           onClick={run}
           disabled={state.loading || !nip.trim()}
-          className="shrink-0"
+          className="shrink-0 gap-1.5 px-3.5 whitespace-nowrap"
+          title="Sprawdź w bazie GUS / CEIDG / KRS"
         >
-          {state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-          <span className="hidden sm:inline">Sprawdź w GUS</span>
+          {state.loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4 text-muted-foreground" />
+          )}
+          <span>Sprawdź w GUS</span>
+          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            demo
+          </span>
         </Button>
       </div>
 
