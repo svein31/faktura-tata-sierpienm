@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Building2,
@@ -17,6 +17,8 @@ import {
   UserPlus,
   Mail,
   Info,
+  TrendingUp,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -72,6 +74,7 @@ const emptyNewContractor: NewContractorDraft = {
 
 interface FormState {
   type: InvoiceType;
+  isProforma?: boolean;
   sellerCompanyId: string;
   contractorId: string;
   useNewContractor: boolean;
@@ -103,6 +106,7 @@ interface FormState {
 function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState {
   return {
     type: inv.type,
+    isProforma: inv.isProforma ?? false,
     sellerCompanyId: inv.sellerCompanyId || defaultCompanyId,
     contractorId: inv.contractorId,
     useNewContractor: false,
@@ -134,6 +138,7 @@ function freshForm(defaultCompanyId: string = ""): FormState {
   const today = todayISO();
   return {
     type: "sale",
+    isProforma: false,
     sellerCompanyId: defaultCompanyId,
     contractorId: "",
     useNewContractor: false,
@@ -180,6 +185,82 @@ export function InvoiceCreator() {
   const [form, setForm] = React.useState<FormState>(() =>
     draftInvoice ? formFromInvoice(draftInvoice, defaultCompany.id) : freshForm(defaultCompany.id)
   );
+
+  const searchParams = useSearchParams();
+  const [tabConflict, setTabConflict] = React.useState(false);
+  const [nbpRate, setNbpRate] = React.useState<{ rate: number; tableNumber: string; effectiveDate: string; source: string } | null>(null);
+
+  // Multi-tab conflict listener
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !("BroadcastChannel" in window)) return;
+    try {
+      const channel = new BroadcastChannel("fakturo_invoice_creator");
+      const tabId = Math.random().toString(36).substring(7);
+      channel.postMessage({ type: "TAB_PING", tabId });
+      channel.onmessage = (e) => {
+        if (e.data && e.data.tabId !== tabId) {
+          if (e.data.type === "TAB_PING") {
+            channel.postMessage({ type: "TAB_PONG", tabId });
+            setTabConflict(true);
+          } else if (e.data.type === "TAB_PONG") {
+            setTabConflict(true);
+          }
+        }
+      };
+      return () => {
+        channel.close();
+      };
+    } catch {}
+  }, []);
+
+  // Clone from existing invoice (?cloneFrom=<id>)
+  React.useEffect(() => {
+    const cloneId = searchParams.get("cloneFrom");
+    if (cloneId && invoices.length > 0) {
+      const src = invoices.find((i) => i.id === cloneId);
+      if (src) {
+        setForm({
+          ...formFromInvoice(src, defaultCompany.id),
+          isCorrection: false,
+          correctionReason: "",
+          originalInvoiceId: "",
+          originalInvoiceNumber: "",
+          originalIssueDate: "",
+          originalKsefNumber: "",
+          issueDate: todayISO(),
+          saleDate: todayISO(),
+          dueDate: addDaysISO(todayISO(), src.paymentTermDays || 14),
+          dueTouched: false,
+        });
+        toast("info", "Sklonowano dane faktury", `Utworzono nowy dokument na wzór ${src.number}`);
+      }
+    }
+  }, [searchParams, invoices, defaultCompany.id]);
+
+  // NBP rate fetcher
+  const fetchNbpRate = React.useCallback(async (curr: string, date: string) => {
+    if (curr === "PLN") {
+      setNbpRate(null);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/nbp?currency=${curr}&date=${date}`);
+      if (res.ok) {
+        const data = await res.json();
+        setNbpRate(data);
+      }
+    } catch {
+      // Ignored
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (form.currency !== "PLN") {
+      fetchNbpRate(form.currency, form.issueDate);
+    } else {
+      setNbpRate(null);
+    }
+  }, [form.currency, form.issueDate, fetchNbpRate]);
 
   // ── Autosave stanu roboczego w localStorage ──
   const DRAFT_KEY = "fakturo_local_draft_v2";
@@ -252,7 +333,11 @@ export function InvoiceCreator() {
     companies.find((c) => c.id === form.sellerCompanyId) ?? defaultCompany ?? EMPTY_COMPANY;
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
-  const invoiceNumber = draftInvoice?.number ?? nextInvoiceNumber(invoices, form.type, form.isCorrection);
+  const invoiceNumber =
+    draftInvoice?.number ??
+    (form.isProforma
+      ? `PRO/${nextInvoiceNumber(invoices, form.type, false)}`
+      : nextInvoiceNumber(invoices, form.type, form.isCorrection));
   const isPurchase = form.type === "purchase";
   const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
@@ -283,6 +368,7 @@ export function InvoiceCreator() {
     number: invoiceNumber,
     type: form.type,
     status: "draft",
+    isProforma: form.isProforma,
     sellerCompanyId: form.sellerCompanyId || undefined,
     sellerCompany: effectiveSellerCompany,
     contractorId: form.contractorId,
@@ -386,6 +472,7 @@ export function InvoiceCreator() {
       originalInvoiceNumber: form.originalInvoiceNumber || undefined,
       originalIssueDate: form.originalIssueDate || undefined,
       originalKsefNumber: form.originalKsefNumber || undefined,
+      isProforma: form.isProforma,
       isRecurring: form.isRecurring,
       recurringInterval: form.recurringInterval,
       recurringNextDate: form.recurringNextDate,
@@ -414,7 +501,7 @@ export function InvoiceCreator() {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
-      toast("success", `Zapisano fakturę ${saved.number}`, "Faktura oznaczona jako wystawiona.");
+      toast("success", `Zapisano ${form.isProforma ? "fakturę proforma" : "fakturę"} ${saved.number}`, "Dokument oznaczony jako wystawiony.");
       store.setDraft(null, true);
       router.push("/invoices");
     } catch (e) {
@@ -443,6 +530,10 @@ export function InvoiceCreator() {
   };
 
   const handleSendKsef = async () => {
+    if (form.isProforma) {
+      toast("error", "KSeF: Błąd dokumentu", "Faktura proforma nie jest dokumentem księgowym i nie podlega rejestracji w KSeF.");
+      return;
+    }
     if (isPurchase) {
       toast("error", "Błąd logiczny", "Faktura zakupowa (FZ) nie może być wysłana do KSeF jako faktura sprzedaży. Faktury zakupowe są odbierane z KSeF.");
       return;
@@ -523,6 +614,16 @@ export function InvoiceCreator() {
           )}
         </div>
 
+        {/* Ostrzeżenie o równoczesnej edycji w innej karcie */}
+        {tabConflict && (
+          <div className="flex items-center gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span>
+              <b>Wykryto edycję w innej karcie:</b> Ta faktura jest jednocześnie otwarta w innej karcie przeglądarki. Aby uniknąć nadpisania danych, zalecamy edycję tylko w jednej karcie.
+            </span>
+          </div>
+        )}
+
         {/* Baner przywracania niezapisanej wersji roboczej */}
         {hasRecoverableDraft && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3.5 text-xs text-foreground">
@@ -583,6 +684,18 @@ export function InvoiceCreator() {
           </Card>
         )}
 
+        {form.isProforma && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-[12px] text-indigo-900 dark:text-indigo-200">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+            <div>
+              <p className="font-semibold">Tryb: Faktura Proforma (dokument handlowy)</p>
+              <p className="text-[11.5px] opacity-90 mt-0.5">
+                Faktura proforma nie jest dokumentem księgowym w rozumieniu ustawy o VAT i nie podlega wysyłce do KSeF. Służy jako wezwanie do zapłaty lub oferta handlowa.
+              </p>
+            </div>
+          </div>
+        )}
+
         {isPurchase && (
           <div className="flex items-start gap-2.5 rounded-xl border border-blue-500/25 bg-blue-500/5 p-3 text-[12px] text-blue-700 dark:text-blue-300">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
@@ -615,7 +728,7 @@ export function InvoiceCreator() {
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
                 <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca) & Typ
-                <HelpTooltip text="Wybierz spółkę / NIP wystawcy oraz rodzaj dokumentu (Sprzedaż / Zakup)." />
+                <HelpTooltip text="Wybierz spółkę / NIP wystawcy oraz rodzaj dokumentu (Sprzedaż / Zakup / Proforma)." />
               </CardTitle>
               <CardDescription>
                 Wybierz profil spółki / NIP, z którego wystawiasz ten dokument
@@ -626,9 +739,10 @@ export function InvoiceCreator() {
                 {(["sale", "purchase"] as const).map((t) => (
                   <button
                     key={t}
-                    onClick={() => set({ type: t })}
+                    type="button"
+                    onClick={() => set({ type: t, isProforma: false })}
                     className={
-                      form.type === t
+                      form.type === t && !form.isProforma
                         ? "rounded-md bg-card px-2.5 py-0.5 shadow-sm ring-1 ring-border text-foreground font-semibold"
                         : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
                     }
@@ -636,6 +750,18 @@ export function InvoiceCreator() {
                     {t === "sale" ? "Sprzedaż (FV)" : "Zakup (FZ)"}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => set({ type: "sale", isProforma: !form.isProforma })}
+                  className={
+                    form.isProforma
+                      ? "rounded-md bg-primary text-primary-foreground px-2.5 py-0.5 shadow-sm font-semibold"
+                      : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
+                  }
+                  title="Wystaw fakturę proforma"
+                >
+                  Proforma
+                </button>
               </div>
               <Button
                 type="button"
@@ -911,6 +1037,39 @@ export function InvoiceCreator() {
               </div>
             </div>
 
+            {/* Przelicznik walut NBP (art. 31a ustawy o VAT) */}
+            {form.currency !== "PLN" && (
+              <div className="rounded-xl border border-primary/25 bg-primary/5 p-3.5 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-semibold text-primary">
+                    <TrendingUp className="h-4 w-4" />
+                    Kurs przeliczeniowy NBP (art. 31a ustawy o VAT)
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10"
+                    onClick={() => fetchNbpRate(form.currency, form.issueDate)}
+                  >
+                    Odśwież kurs
+                  </Button>
+                </div>
+                {nbpRate ? (
+                  <div className="text-muted-foreground space-y-1">
+                    <p>
+                      1 {form.currency} = <span className="font-bold text-foreground">{nbpRate.rate.toFixed(4)} PLN</span> ({nbpRate.source})
+                    </p>
+                    <p className="text-[11.5px]">
+                      Wartość w PLN: <b className="text-foreground">{formatMoney(totals.gross * nbpRate.rate, "PLN")} brutto</b> (w tym VAT: {formatMoney(totals.vat * nbpRate.rate, "PLN")})
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic">Pobieranie tabeli kursowej z NBP...</p>
+                )}
+              </div>
+            )}
+
             {/* Opcja faktury cyklicznej */}
             <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-3">
               <div className="flex items-center justify-between">
@@ -1010,9 +1169,9 @@ export function InvoiceCreator() {
                 <Save className="h-4 w-4" /> Szkic
               </Button>
               <Button onClick={handleSave} loading={saving === "save"}>
-                <CheckCircle2 className="h-4 w-4" /> {isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
+                <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
               </Button>
-              {!isPurchase && !isKsefRegistered && (
+              {!isPurchase && !isKsefRegistered && !form.isProforma && (
                 <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">
                   <Send className="h-4 w-4" /> Wyślij do KSeF
                 </Button>
@@ -1049,9 +1208,9 @@ export function InvoiceCreator() {
             <Save className="h-4 w-4" /> Szkic
           </Button>
           <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
-            <CheckCircle2 className="h-4 w-4" /> {isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
+            <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
           </Button>
-          {!isPurchase && !isKsefRegistered && (
+          {!isPurchase && !isKsefRegistered && !form.isProforma && (
             <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
               <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
             </Button>

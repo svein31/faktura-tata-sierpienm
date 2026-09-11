@@ -40,7 +40,13 @@ export function parseContractorBody(body: Record<string, unknown>) {
     iban: cleanStr(body.iban, 60, "iban") || null,
     bankName: cleanStr(body.bankName, 200, "bankName") || null,
     isVatPayer: body.isVatPayer !== false,
-    notes: cleanStr(body.notes, 2000, "notes") || null,
+    notes: cleanStr(body.notes, 4000, "notes") || null,
+    tags: Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean) : undefined,
+    defaultCurrency: cleanStr(body.defaultCurrency, 3, "defaultCurrency") || null,
+    defaultPaymentTermDays: typeof body.defaultPaymentTermDays === "number" ? Math.max(0, body.defaultPaymentTermDays) : null,
+    defaultDiscountPercent: typeof body.defaultDiscountPercent === "number" ? Math.max(0, Math.min(100, body.defaultDiscountPercent)) : null,
+    vatStatus: cleanStr(body.vatStatus, 30, "vatStatus") || null,
+    bankAccountVerified: Boolean(body.bankAccountVerified),
   };
 }
 
@@ -203,6 +209,9 @@ export async function parseInvoiceBody(
     notes: cleanStr(body.notes, 4000, "notes") || null,
     lines: parseLines(body.lines) as unknown as Prisma.InputJsonValue,
     approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
+    // Proforma & Udostępnianie
+    isProforma: Boolean(body.isProforma),
+    shareToken: typeof body.shareToken === "string" && body.shareToken.trim() ? cleanStr(body.shareToken, 64, "shareToken") : undefined,
     // Korekty
     isCorrection: Boolean(body.isCorrection),
     correctionReason: cleanStr(body.correctionReason, 1000, "correctionReason") || null,

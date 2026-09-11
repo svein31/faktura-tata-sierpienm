@@ -12,6 +12,10 @@ import type {
   Notification as DbNotification,
   NotificationPreference,
   Product as DbProduct,
+  Offer as DbOffer,
+  Order as DbOrder,
+  Expense as DbExpense,
+  DocumentComment as DbDocumentComment,
 } from "@prisma/client";
 import type {
   Address,
@@ -23,6 +27,10 @@ import type {
   KsefSettings,
   NotificationPrefs,
   Product,
+  Offer,
+  Order,
+  Expense,
+  DocumentCommentItem,
 } from "./types";
 
 export function addressFrom(v: unknown): Address {
@@ -121,6 +129,14 @@ export function contractorToDto(c: DbContractor): Contractor {
     bankName: c.bankName ?? undefined,
     isVatPayer: c.isVatPayer,
     notes: c.notes ?? undefined,
+    tags: c.tags ?? [],
+    defaultCurrency: (c.defaultCurrency as any) || "PLN",
+    defaultPaymentTermDays: c.defaultPaymentTermDays ?? 14,
+    defaultDiscountPercent: c.defaultDiscountPercent ?? 0,
+    contacts: (Array.isArray(c.contacts) ? c.contacts : undefined) as any,
+    vatStatus: c.vatStatus ?? undefined,
+    vatCheckedAt: c.vatCheckedAt ? c.vatCheckedAt.toISOString() : undefined,
+    vatCheckSource: c.vatCheckSource ?? undefined,
     createdAt: c.createdAt.toISOString(),
   };
 }
@@ -226,7 +242,97 @@ export function invoiceToDto(
     recurringAutoSend: i.recurringAutoSend ?? false,
     lastPaymentReminderSentAt: i.lastPaymentReminderSentAt ? i.lastPaymentReminderSentAt.toISOString() : undefined,
     paymentReminderCount: i.paymentReminderCount ?? 0,
+    shareToken: i.shareToken ?? undefined,
+    isProforma: i.isProforma ?? false,
+    declaredPaymentDate: i.declaredPaymentDate ?? undefined,
     createdAt: i.createdAt.toISOString(),
+  };
+}
+
+export function offerToDto(o: DbOffer): Offer {
+  return {
+    id: o.id,
+    number: o.number,
+    contractorId: o.contractorId,
+    contractorName: o.contractorName,
+    contractorNip: o.contractorNip,
+    title: o.title,
+    status: o.status as Offer["status"],
+    issueDate: o.issueDate,
+    validUntil: o.validUntil,
+    currency: o.currency as Offer["currency"],
+    lines: (Array.isArray(o.lines) ? o.lines : []) as any,
+    totalNet: o.totalNet,
+    totalVat: o.totalVat,
+    totalGross: o.totalGross,
+    notes: o.notes,
+    publicToken: o.publicToken,
+    version: o.version,
+    acceptedAt: o.acceptedAt ? o.acceptedAt.toISOString() : null,
+    rejectionReason: o.rejectionReason,
+    convertedOrderId: o.convertedOrderId,
+    createdAt: o.createdAt.toISOString(),
+    updatedAt: o.updatedAt.toISOString(),
+  };
+}
+
+export function orderToDto(ord: DbOrder): Order {
+  return {
+    id: ord.id,
+    number: ord.number,
+    offerId: ord.offerId,
+    contractorId: ord.contractorId,
+    contractorName: ord.contractorName,
+    title: ord.title,
+    status: ord.status as Order["status"],
+    stages: (Array.isArray(ord.stages) ? ord.stages : []) as any,
+    hourlyRate: ord.hourlyRate ?? 0,
+    trackedMinutes: ord.trackedMinutes ?? 0,
+    totalNet: ord.totalNet,
+    totalGross: ord.totalGross,
+    currency: ord.currency as Order["currency"],
+    notes: ord.notes,
+    billedInvoiceId: ord.billedInvoiceId,
+    createdAt: ord.createdAt.toISOString(),
+    updatedAt: ord.updatedAt.toISOString(),
+  };
+}
+
+export function expenseToDto(e: DbExpense): Expense {
+  return {
+    id: e.id,
+    number: e.number,
+    contractorName: e.contractorName,
+    nip: e.nip,
+    issueDate: e.issueDate,
+    dueDate: e.dueDate,
+    category: e.category as Expense["category"],
+    description: e.description,
+    totalNet: e.totalNet,
+    totalVat: e.totalVat,
+    totalGross: e.totalGross,
+    currency: e.currency as Expense["currency"],
+    paymentStatus: e.paymentStatus as Expense["paymentStatus"],
+    paidAt: e.paidAt ? e.paidAt.toISOString() : null,
+    attachmentUrl: e.attachmentUrl,
+    attachmentName: e.attachmentName,
+    workflowStatus: e.workflowStatus as Expense["workflowStatus"],
+    isKsefSource: e.isKsefSource,
+    ksefRefNumber: e.ksefRefNumber,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  };
+}
+
+export function documentCommentToDto(c: DbDocumentComment): DocumentCommentItem {
+  return {
+    id: c.id,
+    authorName: c.authorName,
+    authorRole: c.authorRole as DocumentCommentItem["authorRole"],
+    docType: c.docType as DocumentCommentItem["docType"],
+    docId: c.docId,
+    message: c.message,
+    createdAt: c.createdAt.toISOString(),
   };
 }
 

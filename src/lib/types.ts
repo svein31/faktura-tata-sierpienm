@@ -53,6 +53,13 @@ export interface CompanyProfile {
   regon?: string;
 }
 
+export interface ContractorContact {
+  name: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
 export interface Contractor {
   id: string;
   name: string;
@@ -65,6 +72,14 @@ export interface Contractor {
   bankName?: string;
   isVatPayer: boolean;
   notes?: string;
+  tags?: string[];
+  defaultCurrency?: Currency;
+  defaultPaymentTermDays?: number;
+  defaultDiscountPercent?: number;
+  contacts?: ContractorContact[];
+  vatStatus?: "czynny" | "zwolniony" | "nieznany" | string;
+  vatCheckedAt?: string;
+  vatCheckSource?: string;
   createdAt: string;
 }
 
@@ -159,6 +174,131 @@ export interface Invoice {
   // Przypomnienia
   lastPaymentReminderSentAt?: string;
   paymentReminderCount?: number;
+  // Portal Kontrahenta & Proforma
+  shareToken?: string;
+  isProforma?: boolean;
+  declaredPaymentDate?: string;
+  createdAt: string;
+}
+
+export interface OfferLine {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  netPrice: number;
+  vatRate: VatRate;
+  description?: string;
+}
+
+export interface Offer {
+  id: string;
+  number: string;
+  contractorId?: string | null;
+  contractorName: string;
+  contractorNip?: string | null;
+  title: string;
+  status: "draft" | "sent" | "accepted" | "rejected" | "expired" | "converted";
+  issueDate: string;
+  validUntil: string;
+  currency: Currency;
+  lines: OfferLine[];
+  totalNet: number;
+  totalVat: number;
+  totalGross: number;
+  notes?: string | null;
+  publicToken: string;
+  version: number;
+  acceptedAt?: string | null;
+  rejectionReason?: string | null;
+  convertedOrderId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderStage {
+  id: string;
+  name: string;
+  amount: number;
+  status: "pending" | "in_progress" | "completed" | "billed";
+  dueDate?: string;
+  billedInvoiceId?: string;
+}
+
+export interface Order {
+  id: string;
+  number: string;
+  offerId?: string | null;
+  contractorId?: string | null;
+  contractorName: string;
+  title: string;
+  status: "in_progress" | "completed" | "billed" | "cancelled";
+  stages?: OrderStage[];
+  hourlyRate?: number;
+  trackedMinutes?: number;
+  totalNet: number;
+  totalGross: number;
+  currency: Currency;
+  notes?: string | null;
+  billedInvoiceId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Expense {
+  id: string;
+  number: string;
+  contractorName: string;
+  nip?: string | null;
+  issueDate: string;
+  dueDate?: string | null;
+  category: "biuro" | "sprzęt" | "paliwo" | "oprogramowanie" | "marketing" | "usługi" | "podatki" | "inne" | string;
+  description?: string | null;
+  totalNet: number;
+  totalVat: number;
+  totalGross: number;
+  currency: Currency;
+  paymentStatus: "unpaid" | "paid";
+  paidAt?: string | null;
+  attachmentUrl?: string | null;
+  attachmentName?: string | null;
+  workflowStatus: "to_verify" | "verified" | "sent_to_accountant";
+  isKsefSource: boolean;
+  ksefRefNumber?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BankStatementTransaction {
+  id: string;
+  date: string;
+  amount: number;
+  title: string;
+  senderName: string;
+  senderAccount?: string;
+  matchedInvoiceId?: string;
+  matchedInvoiceNumber?: string;
+  matchedContractorName?: string;
+  confidence: "exact" | "high" | "low" | "none";
+}
+
+export interface DocumentCommentItem {
+  id: string;
+  authorName: string;
+  authorRole: "owner" | "accountant" | "employee" | "client";
+  docType: "invoice" | "offer" | "expense";
+  docId: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface TeamMemberInvitation {
+  id: string;
+  email: string;
+  role: "accountant" | "employee" | "viewer";
+  token: string;
+  expiresAt: string;
+  status: "pending" | "accepted" | "revoked" | "expired";
   createdAt: string;
 }
 

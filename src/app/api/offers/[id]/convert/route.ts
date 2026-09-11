@@ -1,0 +1,105 @@
+import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
+import { handleApiError, json, readJson } from "@/lib/api";
+import { invoiceToDto, orderToDto } from "@/lib/dto";
+import * as crypto from "crypto";
+
+export const runtime = "nodejs";
+
+/**
+ * POST /api/offers/[id]/convert
+ * body: { target: "invoice" | "order" }
+ */
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getSessionUser();
+    if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
+
+    const { id } = await params;
+    const offer = await prisma.offer.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!offer) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
+
+    const body = await readJson(req);
+    const target = body.target === "order" ? "order" : "invoice";
+
+    if (target === "order") {
+      const orderCount = await prisma.order.count({ where: { userId: user.id } });
+      const orderNumber = `ZL/${new Date().getFullYear()}/${(orderCount + 1).toString().padStart(4, "0")}`;
+
+      const order = await prisma.order.create({
+        data: {
+          userId: user.id,
+          contractorId: offer.contractorId,
+          contractorName: offer.contractorName,
+          offerId: offer.id,
+          number: orderNumber,
+          title: `Realizacja oferty: ${offer.title}`,
+          status: "in_progress",
+          stages: [
+            {
+              id: "s1",
+              name: "Realizacja całości zlecenia",
+              amount: offer.totalGross,
+              status: "in_progress",
+              dueDate: offer.validUntil,
+            },
+          ],
+          totalNet: offer.totalNet,
+          totalGross: offer.totalGross,
+          currency: offer.currency,
+          notes: offer.notes,
+        },
+      });
+
+      await prisma.offer.update({
+        where: { id: offer.id },
+        data: { status: "converted" },
+      });
+
+      return json({ success: true, target: "order", order: orderToDto(order) });
+    } else {
+      // Konwersja do faktury
+      const year = new Date().getFullYear();
+      const invoiceCount = await prisma.invoice.count({ where: { userId: user.id, type: "sale" } });
+      const invoiceNumber = `FV/${year}/${(invoiceCount + 1).toString().padStart(4, "0")}`;
+      const today = new Date().toISOString().slice(0, 10);
+      const dueDate = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+
+      const invoice = await prisma.invoice.create({
+        data: {
+          userId: user.id,
+          contractorId: offer.contractorId || "",
+          number: invoiceNumber,
+          type: "sale",
+          status: "issued",
+          documentStatus: "issued",
+          paymentStatus: "unpaid",
+          issueDate: today,
+          saleDate: today,
+          dueDate,
+          currency: offer.currency,
+          language: "PL",
+          paymentMethod: "transfer",
+          paymentTermDays: 14,
+          notes: `Wystawiono na podstawie oferty ${offer.number}. ${offer.notes || ""}`.trim(),
+          lines: offer.lines as any,
+          shareToken: crypto.randomBytes(16).toString("hex"),
+        },
+      });
+
+      await prisma.offer.update({
+        where: { id: offer.id },
+        data: { status: "converted" },
+      });
+
+      return json({ success: true, target: "invoice", invoice: invoiceToDto(invoice) });
+    }
+  } catch (e) {
+    return handleApiError(e);
+  }
+}

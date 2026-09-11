@@ -7,6 +7,7 @@ import { DataBootstrap } from "./data-bootstrap";
 import { Sidebar, MobileSidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { BottomNav } from "./bottom-nav";
+import { CommandPalette } from "./command-palette";
 
 /**
  * Powłoka aplikacji (tylko dla zalogowanych — strona (app) przechodzi
@@ -18,6 +19,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
   return (
     <SessionProvider user={user}>
       <div className="min-h-screen bg-background text-foreground overflow-x-hidden antialiased selection:bg-primary/20 selection:text-primary">
+        <CommandPalette />
         <Sidebar />
         <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
         <div className="lg:pl-64 flex min-h-screen flex-col">

@@ -20,8 +20,89 @@ import type { Currency, InvoiceLine, Product, VatRate } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
+import { Dialog } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/input";
+
 export function newLine(): InvoiceLine {
   return { id: uid("l"), name: "", quantity: 1, unit: "szt.", netPrice: 0, vatRate: "23" };
+}
+
+function normalizeVatRate(raw: string): VatRate {
+  const clean = raw.toLowerCase().replace(/%/g, "").trim();
+  if (clean === "23") return "23";
+  if (clean === "8") return "8";
+  if (clean === "5") return "5";
+  if (clean === "0") return "0";
+  if (clean === "zw" || clean === "zwolniony") return "zw";
+  if (clean === "np" || clean === "niepodlega") return "np";
+  if (clean === "oo" || clean === "odwrocone") return "oo";
+  return "23";
+}
+
+function parseSpreadsheetRows(text: string): InvoiceLine[] {
+  const result: InvoiceLine[] = [];
+  const rawRows = text.split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
+
+  for (const row of rawRows) {
+    let cells: string[] = [];
+    if (row.includes("\t")) {
+      cells = row.split("\t").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+    } else if (row.includes(";")) {
+      cells = row.split(";").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+    } else {
+      cells = row.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
+    }
+
+    if (cells.length === 0 || !cells[0]) continue;
+    const firstLower = cells[0].toLowerCase();
+    if (
+      firstLower === "nazwa" ||
+      firstLower === "produkt" ||
+      firstLower === "usługa" ||
+      firstLower === "pozycja" ||
+      firstLower === "name"
+    ) {
+      continue;
+    }
+
+    const name = cells[0];
+    let qty = 1;
+    let unit = "szt.";
+    let price = 0;
+    let vat: VatRate = "23";
+
+    if (cells.length === 2) {
+      price = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 0;
+    } else if (cells.length === 3) {
+      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
+      price = parseFloat(cells[2].replace(/\s/g, "").replace(",", ".")) || 0;
+    } else if (cells.length === 4) {
+      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
+      const cell2Num = parseFloat(cells[2].replace(/\s/g, "").replace(",", "."));
+      if (!isNaN(cell2Num) && !cells[2].includes("szt") && !cells[2].includes("godz")) {
+        price = cell2Num;
+        vat = normalizeVatRate(cells[3]);
+      } else {
+        unit = cells[2];
+        price = parseFloat(cells[3].replace(/\s/g, "").replace(",", ".")) || 0;
+      }
+    } else if (cells.length >= 5) {
+      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
+      unit = cells[2] || "szt.";
+      price = parseFloat(cells[3].replace(/\s/g, "").replace(",", ".")) || 0;
+      vat = normalizeVatRate(cells[4]);
+    }
+
+    result.push({
+      id: uid("l"),
+      name,
+      quantity: Math.max(0.0001, qty),
+      unit: unit || "szt.",
+      netPrice: Math.max(0, price),
+      vatRate: vat,
+    });
+  }
+  return result;
 }
 
 export function LineItemsEditor({
@@ -37,6 +118,8 @@ export function LineItemsEditor({
   products: Product[];
   disabled?: boolean;
 }) {
+  const [pasteModalOpen, setPasteModalOpen] = React.useState(false);
+  const [pastedText, setPastedText] = React.useState("");
   const update = (id: string, patch: Partial<InvoiceLine>) =>
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
@@ -249,17 +332,29 @@ export function LineItemsEditor({
         </table>
       </div>
 
-      {/* ── Przycisk dodania + podsumowanie ogólne ── */}
+      {/* ── Przycisk dodania + wklejania z arkusza + podsumowanie ogólne ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onChange([...lines, newLine()])}
-          disabled={disabled}
-          className="rounded-xl gap-1.5"
-        >
-          <Plus className="h-3.5 w-3.5" /> Dodaj pozycję
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onChange([...lines, newLine()])}
+            disabled={disabled}
+            className="rounded-xl gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" /> Dodaj pozycję
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setPasteModalOpen(true)}
+            disabled={disabled}
+            className="rounded-xl gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+            title="Wklej wiele pozycji skopiowanych z arkusza Excel / Google Sheets"
+          >
+            📋 Wklej z arkusza / CSV
+          </Button>
+        </div>
         <div className="flex items-center gap-4 text-[13px]">
           <span className="text-muted-foreground">
             Netto:{" "}
@@ -335,6 +430,89 @@ export function LineItemsEditor({
           </table>
         </div>
       )}
+
+      {/* ── Modal wklejania z arkusza / CSV ── */}
+      <Dialog
+        open={pasteModalOpen}
+        onClose={() => {
+          setPasteModalOpen(false);
+          setPastedText("");
+        }}
+        title="Wklej pozycje z arkusza (Excel / Google Sheets / CSV)"
+        description="Zaznacz i skopiuj wiersze w swoim arkuszu kalkulacyjnym (np. Ctrl+C), a następnie wklej je poniżej."
+        size="lg"
+        footer={
+          <div className="flex items-center justify-between w-full gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setPasteModalOpen(false);
+                setPastedText("");
+              }}
+            >
+              Anuluj
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pastedText.trim()}
+                onClick={() => {
+                  const parsed = parseSpreadsheetRows(pastedText);
+                  if (parsed.length > 0) {
+                    onChange([...lines.filter((l) => l.name.trim()), ...parsed]);
+                    setPasteModalOpen(false);
+                    setPastedText("");
+                  }
+                }}
+              >
+                Dodaj na końcu ({parseSpreadsheetRows(pastedText).length})
+              </Button>
+              <Button
+                size="sm"
+                disabled={!pastedText.trim()}
+                onClick={() => {
+                  const parsed = parseSpreadsheetRows(pastedText);
+                  if (parsed.length > 0) {
+                    onChange(parsed);
+                    setPasteModalOpen(false);
+                    setPastedText("");
+                  }
+                }}
+              >
+                Zastąp wszystkie pozycje ({parseSpreadsheetRows(pastedText).length})
+              </Button>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-3 py-2">
+          <div className="rounded-lg bg-muted/40 p-3 text-[12px] text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Obsługiwany układ kolumn w wierszu:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              <li><b>Nazwa</b> &nbsp;|&nbsp; <b>Ilość</b> &nbsp;|&nbsp; <b>Cena netto</b></li>
+              <li><b>Nazwa</b> &nbsp;|&nbsp; <b>Ilość</b> &nbsp;|&nbsp; <b>J.m.</b> (np. szt., godz.) &nbsp;|&nbsp; <b>Cena netto</b> &nbsp;|&nbsp; <b>VAT</b> (np. 23%, zw)</li>
+            </ul>
+            <p className="text-[11px] pt-1">Możesz wklejać bezpośrednio ze schowka (Ctrl+V) – nagłówki kolumn zostaną automatycznie pominięte.</p>
+          </div>
+
+          <Textarea
+            value={pastedText}
+            onChange={(e) => setPastedText(e.target.value)}
+            placeholder="Wklej tutaj wiersze (Ctrl+V)..."
+            rows={8}
+            className="font-mono text-xs"
+          />
+
+          {pastedText.trim() && (
+            <div className="text-xs text-muted-foreground">
+              Rozpoznano pozycji do zaimportowania:{" "}
+              <b className="text-foreground">{parseSpreadsheetRows(pastedText).length}</b>
+            </div>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }

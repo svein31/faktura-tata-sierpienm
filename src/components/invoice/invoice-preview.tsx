@@ -94,12 +94,14 @@ export function InvoicePreview({
               <span className="text-lg font-bold tracking-tight text-gradient">
                 {invoice.isCorrection
                   ? "FAKTURA KORYGUJĄCA (KOR)"
-                  : invoice.type === "purchase"
-                    ? L.purchaseDoc
-                    : L.saleDoc}
+                  : invoice.isProforma
+                    ? "FAKTURA PROFORMA"
+                    : invoice.type === "purchase"
+                      ? L.purchaseDoc
+                      : L.saleDoc}
               </span>
               <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                {L.originals}
+                {invoice.isProforma ? "DOKUMENT PŁATNICZY" : L.originals}
               </span>
             </div>
             <p className="mt-1 text-[13px] text-muted-foreground">

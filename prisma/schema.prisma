@@ -39,6 +39,12 @@ model User {
   incomingKsefImports KsefIncomingImport[]
   notifications       Notification[]
   preferences         NotificationPreference?
+  offers              Offer[]
+  orders              Order[]
+  expenses            Expense[]
+  bankImports         BankStatementImport[]
+  comments            DocumentComment[]
+  sentInvitations     TeamInvitation[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -137,10 +143,18 @@ model Contractor {
   phone      String?
   iban       String?
   bankName   String?
-  isVatPayer Boolean  @default(true)
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  isVatPayer             Boolean   @default(true)
+  notes                  String?
+  tags                   String[]  @default([])
+  defaultCurrency        String?   @default("PLN")
+  defaultPaymentTermDays Int?      @default(14)
+  defaultDiscountPercent Float?    @default(0)
+  contacts               Json?     // Lista osób kontaktowych: [{ name, email, phone, role }]
+  vatStatus              String?   // "czynny" | "zwolniony" | "nieznany"
+  vatCheckedAt           DateTime?
+  vatCheckSource         String?   // "mf_whitelist" | "gus_bir" | "manual"
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   @@index([userId])
 }
@@ -250,9 +264,14 @@ model Invoice {
   // Przypomnienia o płatności
   lastPaymentReminderSentAt DateTime?
   paymentReminderCount      Int?    @default(0)
+  // Portal Kontrahenta i Proforma
+  shareToken                String? @unique
+  isProforma                Boolean? @default(false)
+  declaredPaymentDate       String? // Deklarowana data zapłaty przez kontrahenta
   // Relacje
   payments        PaymentRecord[]
   ksefTasks       KsefQueueTask[]
+  comments        DocumentComment[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -350,4 +369,146 @@ model AuditLog {
 
   @@index([userId, createdAt])
 }
+
+model Offer {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String            @db.ObjectId
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number           String
+  contractorId     String?
+  contractorName   String
+  contractorNip    String?
+  title            String            @default("Oferta handlowa")
+  status           String            @default("draft") // draft | sent | accepted | rejected | expired | converted
+  issueDate        String
+  validUntil       String
+  currency         String            @default("PLN")
+  lines            Json              // pozycje oferty
+  totalNet         Float             @default(0)
+  totalVat         Float             @default(0)
+  totalGross       Float             @default(0)
+  notes            String?
+  publicToken      String            @unique
+  version          Int               @default(1)
+  acceptedAt       DateTime?
+  rejectionReason  String?
+  convertedOrderId String?           @db.ObjectId
+  orders           Order[]
+  comments         DocumentComment[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Order {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String          @db.ObjectId
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number          String
+  offerId         String?         @db.ObjectId
+  offer           Offer?          @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  contractorId    String?
+  contractorName  String
+  title           String
+  status          String          @default("in_progress") // in_progress | completed | billed | cancelled
+  stages          Json?           // Etapy: [{ id, name, amount, status, dueDate, billedInvoiceId }]
+  hourlyRate      Float?          @default(0)
+  trackedMinutes  Int             @default(0)
+  totalNet        Float           @default(0)
+  totalGross      Float           @default(0)
+  currency        String          @default("PLN")
+  notes           String?
+  billedInvoiceId String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Expense {
+  id             String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String            @db.ObjectId
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number         String
+  contractorName String
+  nip            String?
+  issueDate      String
+  dueDate        String?
+  category       String            @default("inne") // biuro | sprzęt | paliwo | oprogramowanie | marketing | usługi | podatki | inne
+  description    String?
+  totalNet       Float             @default(0)
+  totalVat       Float             @default(0)
+  totalGross     Float             @default(0)
+  currency       String            @default("PLN")
+  paymentStatus  String            @default("unpaid") // unpaid | paid
+  paidAt         DateTime?
+  attachmentUrl  String?
+  attachmentName String?
+  workflowStatus String            @default("to_verify") // to_verify | verified | sent_to_accountant
+  isKsefSource   Boolean           @default(false)
+  ksefRefNumber  String?
+  comments       DocumentComment[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@index([workflowStatus])
+  @@index([issueDate])
+}
+
+model BankStatementImport {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename     String
+  bankFormat   String   // mbank | pko | santander | ing | alior | millennium | generic
+  rowCount     Int
+  matchedCount Int      @default(0)
+  totalAmount  Float    @default(0)
+  fileHash     String   @unique
+  importedAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model DocumentComment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authorName String
+  authorRole String   // owner | accountant | employee | client
+  docType    String   // invoice | offer | expense
+  docId      String
+  invoice    Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId  String?  @db.ObjectId
+  offer      Offer?   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  offerId    String?  @db.ObjectId
+  expense    Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseId  String?  @db.ObjectId
+  message    String
+  createdAt  DateTime @default(now())
+
+  @@index([docType, docId])
+  @@index([userId])
+}
+
+model TeamInvitation {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email      String
+  role       String    @default("accountant") // accountant | employee | viewer
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  status     String    @default("pending") // pending | accepted | revoked | expired
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
 

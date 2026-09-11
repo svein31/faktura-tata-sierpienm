@@ -551,7 +551,7 @@ export default function InvoicesPage() {
                               {inv.number}
                             </p>
                             <p className="text-[11px] text-muted-foreground font-mono">
-                              {inv.type === "sale" ? "FV Sprzedaż" : "FZ Zakup"} · {inv.currency}
+                              {inv.isProforma ? "PRO Proforma" : inv.type === "sale" ? "FV Sprzedaż" : "FZ Zakup"} · {inv.currency}
                             </p>
                           </div>
                         </Link>
@@ -663,7 +663,7 @@ export default function InvoicesPage() {
                             </Button>
                           )}
 
-                          {!ksefNum && inv.type === "sale" && (
+                          {!ksefNum && inv.type === "sale" && !inv.isProforma && (
                             <Button
                               variant="ghost"
                               size="icon"

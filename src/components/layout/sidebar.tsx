@@ -14,6 +14,11 @@ import {
   UserCog,
   Users,
   X,
+  FileCheck2,
+  Briefcase,
+  Receipt,
+  DollarSign,
+  Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -23,12 +28,17 @@ import { useSessionUser } from "@/lib/session-context";
 const NAV_MAIN = [
   { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
   { href: "/invoices", label: "Faktury", icon: FileText },
+  { href: "/offers", label: "Oferty", icon: FileCheck2 },
+  { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
+  { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
+  { href: "/finances", label: "Finanse & Wyciągi", icon: DollarSign },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },
   { href: "/analytics", label: "Analityka", icon: BarChart3 },
 ];
 
 const NAV_SETTINGS = [
+  { href: "/accountant", label: "Księgowość & Zespół", icon: Users2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },

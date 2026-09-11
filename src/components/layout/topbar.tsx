@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-center";
@@ -14,6 +14,11 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/invoices\/new/, title: "Nowa faktura" },
   { re: /^\/invoices\/(?!new)/, title: "Faktura" },
   { re: /^\/invoices/, title: "Faktury" },
+  { re: /^\/offers/, title: "Oferty handlowe" },
+  { re: /^\/orders/, title: "Zlecenia & Czas" },
+  { re: /^\/expenses/, title: "Koszty i wydatki" },
+  { re: /^\/finances/, title: "Finanse & Wyciągi" },
+  { re: /^\/accountant/, title: "Księgowość & Zespół" },
   { re: /^\/contractors/, title: "Kontrahenci" },
   { re: /^\/products/, title: "Produkty / Usługi" },
   { re: /^\/settings\/companies/, title: "Moje Firmy / Spółki" },
@@ -46,6 +51,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     router.refresh();
   };
 
+  const handleOpenSearch = () => {
+    window.dispatchEvent(new CustomEvent("open-command-palette"));
+  };
+
   return (
     <header className="no-print sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-xl sm:px-6">
       <div className="flex items-center gap-3">
@@ -71,6 +80,20 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Przycisk wyszukiwania / Command Palette */}
+        <button
+          type="button"
+          onClick={handleOpenSearch}
+          title="Szukaj lub polecenie (Ctrl+K / ⌘K)"
+          className="hidden sm:flex items-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs"
+        >
+          <Search className="h-3.5 w-3.5" />
+          <span className="hidden md:inline">Szukaj...</span>
+          <kbd className="rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            ⌘K
+          </kbd>
+        </button>
+
         <NotificationBell />
         <ThemeToggle />
 
