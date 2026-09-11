@@ -58,102 +58,65 @@ interface ActionCardProps {
   count: number;
   subtext: string;
   icon: React.ReactNode;
-  tone: "rose" | "amber" | "indigo" | "sky" | "slate" | "emerald";
   filterHref: string;
   delay?: number;
+  tone?: string;
 }
 
-function ActionCard({ title, count, subtext, icon, tone, filterHref, delay = 0 }: ActionCardProps) {
-  const toneClasses = {
-    rose: {
-      border: "border-rose-500/25 dark:border-rose-500/30 hover:border-rose-500/50",
-      bg: "bg-rose-500/5 dark:bg-rose-500/10",
-      iconBg: "bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-rose-500/30",
-      badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-    },
-    amber: {
-      border: "border-amber-500/25 dark:border-amber-500/30 hover:border-amber-500/50",
-      bg: "bg-amber-500/5 dark:bg-amber-500/10",
-      iconBg: "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-amber-500/30",
-      badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-    },
-    indigo: {
-      border: "border-indigo-500/25 dark:border-indigo-500/30 hover:border-indigo-500/50",
-      bg: "bg-indigo-500/5 dark:bg-indigo-500/10",
-      iconBg: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 ring-indigo-500/30",
-      badge: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30",
-    },
-    sky: {
-      border: "border-sky-500/25 dark:border-sky-500/30 hover:border-sky-500/50",
-      bg: "bg-sky-500/5 dark:bg-sky-500/10",
-      iconBg: "bg-sky-500/15 text-sky-600 dark:text-sky-400 ring-sky-500/30",
-      badge: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-    },
-    slate: {
-      border: "border-border/70 hover:border-border",
-      bg: "bg-muted/40",
-      iconBg: "bg-muted text-muted-foreground ring-border/50",
-      badge: "bg-muted text-foreground/80 border-border/60",
-    },
-    emerald: {
-      border: "border-emerald-500/25 dark:border-emerald-500/30 hover:border-emerald-500/50",
-      bg: "bg-emerald-500/5 dark:bg-emerald-500/10",
-      iconBg: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-emerald-500/30",
-      badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-    },
-  }[tone];
-
+function ActionCard({ title, count, subtext, icon, filterHref, delay = 0 }: ActionCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: delay * 0.04, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className="h-full"
     >
-      <Link href={filterHref} className="block group h-full">
-        <Card
-          className={`relative overflow-hidden rounded-2xl border transition-all duration-200 shadow-sm hover:shadow-md h-full flex flex-col justify-between ${toneClasses.border} ${toneClasses.bg}`}
-        >
-          <CardContent className="p-5 flex flex-col justify-between flex-1 h-full">
-            <div>
-              <div className="flex items-start justify-between gap-2.5">
-                <div className="min-w-0 flex-1">
-                  <span className="text-[12px] font-medium text-muted-foreground leading-snug line-clamp-2 min-h-[2.25rem] flex items-start">
-                    {title}
-                  </span>
-                </div>
-
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-transform duration-200 group-hover:scale-105 ${toneClasses.iconBg}`}
-                >
-                  {icon}
-                </div>
-              </div>
-
-              <div className="mt-2 flex items-center gap-2 h-9">
-                <span className="text-3xl font-bold tracking-tight text-foreground tabular-nums leading-none">
-                  {count}
+      <Link
+        href={filterHref}
+        className="block group h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
+      >
+        <div className="relative h-full flex flex-col justify-between rounded-2xl border border-border/80 dark:border-border/60 bg-card p-5 sm:p-6 shadow-xs transition-colors duration-150 ease-in-out hover:border-border dark:hover:border-border/90 hover:bg-card/95">
+          <div>
+            {/* Nagłówek po lewej, ikona w neutralnym kontenerze 40x40 po prawej */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <span className="text-[13px] sm:text-[14px] font-medium text-foreground/85 dark:text-foreground/90 leading-snug line-clamp-2 min-h-[38px] flex items-center">
+                  {title}
                 </span>
-                {count > 0 && (
-                  <span
-                    className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold border leading-none ${toneClasses.badge}`}
-                  >
-                    Wymaga reakcji
-                  </span>
-                )}
               </div>
 
-              <p className="mt-1 text-[11.5px] text-muted-foreground truncate" title={subtext}>
-                {subtext}
-              </p>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 dark:bg-muted/40 border border-border/50 text-muted-foreground transition-colors duration-150">
+                {icon}
+              </div>
             </div>
 
-            <div className="mt-4 pt-2.5 flex items-center gap-1 text-[11.5px] font-medium text-primary opacity-90 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all border-t border-border/30">
-              <span>Zobacz listę</span>
-              <ArrowRight className="h-3 w-3" />
+            {/* Liczba (30-34px) + badge "Wymaga reakcji" z własnym paddingiem i odstępem */}
+            <div className="mt-3 sm:mt-3.5 flex items-center flex-wrap gap-2.5">
+              <span className="text-[30px] sm:text-[34px] font-bold tracking-tight text-foreground tabular-nums leading-none">
+                {count}
+              </span>
+              {count > 0 && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 shrink-0">
+                  Wymaga reakcji
+                </span>
+              )}
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Krótki opis (12-13px) */}
+            <p
+              className="mt-2 text-[12px] sm:text-[12.5px] text-muted-foreground leading-relaxed line-clamp-1 min-h-[18px]"
+              title={subtext}
+            >
+              {subtext}
+            </p>
+          </div>
+
+          {/* Odnośnik przy dolnej krawędzi */}
+          <div className="mt-5 pt-3.5 border-t border-border/50 flex items-center justify-between text-[12px] sm:text-[12.5px] font-medium text-primary transition-colors duration-150">
+            <span>Zobacz listę</span>
+            <ArrowRight className="h-3.5 w-3.5 text-primary/80 transition-colors duration-150" />
+          </div>
+        </div>
       </Link>
     </motion.div>
   );
@@ -300,7 +263,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── 5 LICZNIKÓW AKCJI („CO WYMAGA DZIAŁANIA?”) ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-5">
         {/* 1. Faktury odrzucone */}
         <ActionCard
           title="Faktury odrzucone"
@@ -311,7 +274,6 @@ export default function DashboardPage() {
               : "Wymagają poprawy i ponowienia"
           }
           icon={<AlertOctagon className="h-5 w-5" />}
-          tone="rose"
           filterHref="/invoices?status=ksef_rejected"
           delay={0}
         />
@@ -326,7 +288,6 @@ export default function DashboardPage() {
               : "Trwa wysyłka lub oczekiwanie na UPO"
           }
           icon={<Clock className="h-5 w-5" />}
-          tone="amber"
           filterHref="/invoices?status=ksef_sent"
           delay={1}
         />
@@ -341,7 +302,6 @@ export default function DashboardPage() {
               : "Zaległości wymagające kontaktu"
           }
           icon={<AlertTriangle className="h-5 w-5" />}
-          tone="rose"
           filterHref="/invoices?status=overdue"
           delay={2}
         />
@@ -356,7 +316,6 @@ export default function DashboardPage() {
               : "Niewystawione wersje robocze"
           }
           icon={<FileEdit className="h-5 w-5" />}
-          tone="sky"
           filterHref="/invoices?status=draft"
           delay={3}
         />
@@ -371,7 +330,6 @@ export default function DashboardPage() {
               : "Oczekują na przesłanie do KSeF"
           }
           icon={<Zap className="h-5 w-5" />}
-          tone="indigo"
           filterHref="/invoices?status=offline"
           delay={4}
         />
