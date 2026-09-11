@@ -45,6 +45,7 @@ export type PublicUser = {
   id: string;
   email: string;
   name: string;
+  role: "owner" | "accountant" | "viewer";
   nip?: string | null;
   companyName?: string | null;
   createdAt: string;
@@ -77,6 +78,7 @@ export function toPublicUser(u: FullUserWithRelations): PublicUser {
     id: u.id,
     email: u.email,
     name: u.name || "",
+    role: (u.role as "owner" | "accountant" | "viewer") || "owner",
     nip: u.nip || defaultProfile?.nip || u.company?.nip || "",
     companyName: u.companyName || defaultProfile?.companyName || u.company?.name || "",
     createdAt: u.createdAt.toISOString(),

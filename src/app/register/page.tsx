@@ -140,7 +140,7 @@ function RegisterForm() {
         <form onSubmit={submit} className="space-y-4" noValidate>
           {/* Email */}
           <div className="space-y-1.5">
-            <Label htmlFor="reg-email">Adres e-mail</Label>
+            <Label htmlFor="reg-email" className="text-xs font-medium">Adres e-mail</Label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -149,7 +149,7 @@ function RegisterForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jan@firma.pl"
-                className="pl-10"
+                className="h-11 pl-10 text-sm rounded-xl"
                 autoComplete="email"
                 required
               />
@@ -158,7 +158,7 @@ function RegisterForm() {
 
           {/* Password */}
           <div className="space-y-1.5">
-            <Label htmlFor="reg-password">Hasło (min. {MIN_PASSWORD_LENGTH} znaków)</Label>
+            <Label htmlFor="reg-password" className="text-xs font-medium">Hasło (min. {MIN_PASSWORD_LENGTH} znaków)</Label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -167,7 +167,7 @@ function RegisterForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10"
+                className="h-11 pl-10 pr-10 text-sm rounded-xl"
                 autoComplete="new-password"
                 required
               />
@@ -185,7 +185,7 @@ function RegisterForm() {
 
           {/* Confirm */}
           <div className="space-y-1.5">
-            <Label htmlFor="reg-confirm">Powtórz hasło</Label>
+            <Label htmlFor="reg-confirm" className="text-xs font-medium">Powtórz hasło</Label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -194,7 +194,7 @@ function RegisterForm() {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10"
+                className="h-11 pl-10 text-sm rounded-xl"
                 autoComplete="new-password"
                 required
               />
@@ -218,7 +218,7 @@ function RegisterForm() {
             </div>
           )}
 
-          <Button type="submit" className="mt-2 h-10 w-full text-[13.5px] font-semibold" loading={busy}>
+          <Button type="submit" className="mt-2 h-11 w-full text-[13.5px] font-semibold rounded-xl" loading={busy}>
             {!busy && <UserPlus className="h-4 w-4" />}
             {busy ? "Tworzenie konta…" : "Utwórz konto"}
           </Button>
@@ -227,7 +227,7 @@ function RegisterForm() {
           <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-[11.5px] leading-relaxed text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
             <span>
-              Hasła szyfrowane <strong className="text-foreground/80">bcrypt (12 rund)</strong>. Sesja pozostaje aktywna przez 30 dni.
+              Bezpieczne szyfrowanie i ochrona Twoich danych finansowych. Sesja pozostaje aktywna przez 30 dni.
             </span>
           </div>
         </form>
@@ -248,13 +248,28 @@ function RegisterForm() {
   );
 }
 
+function RegisterFormSkeleton() {
+  return (
+    <div className="w-full max-w-sm rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl animate-pulse space-y-4">
+      <div className="h-8 w-28 bg-muted/60 rounded-xl mx-auto" />
+      <div className="h-4 w-44 bg-muted/40 rounded mx-auto mt-3" />
+      <div className="h-11 w-full bg-muted/30 rounded-xl mt-6" />
+      <div className="h-11 w-full bg-muted/30 rounded-xl mt-3" />
+      <div className="h-11 w-full bg-muted/30 rounded-xl mt-3" />
+      <div className="h-11 w-full bg-primary/20 rounded-xl mt-4" />
+    </div>
+  );
+}
+
 export default function RegisterPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
       <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
       <div className="pointer-events-none absolute top-1/2 -left-24 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-violet-500/6 blur-3xl" />
-      <RegisterForm />
+      <React.Suspense fallback={<RegisterFormSkeleton />}>
+        <RegisterForm />
+      </React.Suspense>
     </div>
   );
 }

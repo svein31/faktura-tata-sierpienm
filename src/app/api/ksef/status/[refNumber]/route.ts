@@ -120,15 +120,20 @@ export async function GET(req: Request, { params }: RouteParams) {
     const statusResult = await client.getInvoiceStatus(accessToken, sessionRef, invoiceElementRef);
 
     if (invoice) {
-      const isAccepted = statusResult.status === "ACCEPTED";
+      const isAccepted = statusResult.status === "ACCEPTED" && Boolean(statusResult.ksefReferenceNumber);
       const isRejected = statusResult.status === "REJECTED";
       const newStatus = isAccepted ? "ksef_active" : isRejected ? "ksef_rejected" : invoice.status;
-      const ksefRef = statusResult.ksefReferenceNumber || invoice.ksefNumber;
+      const ksefRef = isAccepted ? statusResult.ksefReferenceNumber : (isRejected ? null : invoice.ksefNumber);
+
+      const ksefStatus = isAccepted ? "accepted" : isRejected ? "rejected" : "sending";
+      const documentStatus = isAccepted ? "accepted" : isRejected ? "rejected" : (invoice.documentStatus || "ready");
 
       await prisma.invoice.update({
         where: { id: invoice.id },
         data: {
           status: newStatus,
+          documentStatus,
+          ksefStatus,
           ksefNumber: ksefRef,
           upoXml: statusResult.upoXml || invoice.upoXml,
           ksef: {

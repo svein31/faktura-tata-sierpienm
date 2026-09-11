@@ -187,6 +187,8 @@ export async function POST(req: Request) {
           where: { id: invoice.id },
           data: {
             status: "ksef_active",
+            documentStatus: "accepted",
+            ksefStatus: "accepted",
             referenceNumber: elemRef,
             ksefNumber: ksefNumber,
             upoXml: upoXml,
@@ -221,6 +223,8 @@ export async function POST(req: Request) {
         ksefNumber,
         referenceNumber: elemRef,
         status: "ACTIVE",
+        ksefStatus: "accepted",
+        documentStatus: "accepted",
         timestamp: sentAt,
         hasUpo: true,
         message: `Faktura została zarejestrowana w KSeF (symulacja demo). Przydzielony numer: ${ksefNumber}`,
@@ -302,31 +306,48 @@ export async function POST(req: Request) {
     // Otwórz sesję interaktywną KSeF 2.0 dla faktur FA(3)
     const onlineSession = await client.openOnlineSession(accessToken);
 
-    // Wyślij zaszyfrowaną fakturę do KSeF API
-    const sendResult = await client.sendInvoiceEncrypted(
-      accessToken,
-      onlineSession.referenceNumber,
-      xml,
-      onlineSession.symmetricKey,
-      onlineSession.iv
-    );
+    let sendResult;
+    try {
+      // Wyślij zaszyfrowaną fakturę do KSeF API
+      sendResult = await client.sendInvoiceEncrypted(
+        accessToken,
+        onlineSession.referenceNumber,
+        xml,
+        onlineSession.symmetricKey,
+        onlineSession.iv
+      );
+    } catch (sendErr: any) {
+      // W razie błędu sieciowego lub timeoutu — oznacz jako weryfikacja wymagana
+      if (invoice) {
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            ksefStatus: "verify_needed",
+          },
+        });
+      }
+      throw sendErr;
+    }
 
     const invoiceRef = sendResult.elementReferenceNumber;
     const sentAt = new Date().toISOString();
 
     let updated = invoice;
     if (invoice) {
+      // Zgodnie z wymaganiami KSeF: numer KSeF NIE jest nadawany przy wysyłce!
+      // Nadawany jest wyłącznie po uzyskaniu kodu 200 i wygenerowaniu UPO przez MF.
       updated = await prisma.invoice.update({
         where: { id: invoice.id },
         data: {
           status: "ksef_sent",
+          documentStatus: "ready",
+          ksefStatus: "sending",
           referenceNumber: invoiceRef,
-          ksefNumber: invoiceRef,
+          ksefNumber: null,
           ksefXml: xml,
           sentAt: new Date(),
           ksefSessionId: activeSession?.id ?? null,
           ksef: {
-            number: invoiceRef,
             referenceNumber: invoiceRef,
             sessionReferenceNumber: onlineSession.referenceNumber,
             status: "QUEUED",
@@ -341,8 +362,8 @@ export async function POST(req: Request) {
         data: {
           userId: session.id,
           kind: "ksef_status",
-          title: `Faktura ${updated.number} przesłana do KSeF (${environment})`,
-          body: `Identyfikator przetwarzania: ${invoiceRef}`,
+          title: `Faktura ${updated.number} przekazana do KSeF (${environment})`,
+          body: `Identyfikator przetwarzania w sesji: ${invoiceRef}. Oczekiwanie na nadanie numeru KSeF i UPO.`,
           link: `/invoices/${updated.id}`,
           read: false,
         },
@@ -352,12 +373,14 @@ export async function POST(req: Request) {
     return json({
       success: true,
       demo: false,
-      ksefNumber: invoiceRef,
+      ksefNumber: null,
       referenceNumber: invoiceRef,
       sessionReferenceNumber: onlineSession.referenceNumber,
       status: "QUEUED",
+      ksefStatus: "sending",
+      documentStatus: "ready",
       timestamp: sentAt,
-      message: `Faktura została zaszyfrowana (AES-256-CBC/RSA-OAEP) i przyjęta przez KSeF (${environment}). Identyfikator: ${invoiceRef}`,
+      message: `Faktura została zaszyfrowana (AES-256-CBC/RSA-OAEP) i przyjęta przez KSeF (${environment}). Identyfikator przetwarzania: ${invoiceRef}. Trwa weryfikacja schematu i nadawanie numeru KSeF.`,
       environment,
       invoice: updated ? invoiceToDto(updated) : null,
     });

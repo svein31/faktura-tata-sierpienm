@@ -21,9 +21,14 @@ model User {
   name                String?                 @default("")
   nip                 String?                 @default("")
   companyName         String?                 @default("")
+  role                String                  @default("owner") // "owner" | "accountant" | "viewer"
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
   sessions            Session[]
+  resetTokens         PasswordResetToken[]
+  auditLogs           AuditLog[]
+  paymentRecords      PaymentRecord[]
+  ksefTasks           KsefQueueTask[]
   company             CompanySettings?
   companyProfiles     CompanyProfile[]
   ksef                KsefSettings?
@@ -216,6 +221,38 @@ model Invoice {
   approvalStatus  String?         @default("pending")
   approvedAt      DateTime?
   approvedBy      String?
+  // Rozszerzony cykl życia dokumentu, KSeF i płatności
+  documentStatus  String?         @default("draft") // draft | ready | issued | cancelled
+  ksefStatus      String?         @default("none")  // none | draft | ready | queued | sending | accepted | rejected | verify_needed
+  paymentStatus   String?         @default("unpaid") // unpaid | partially_paid | paid | overdue
+  paidAmount      Float?          @default(0)
+  version         Int?            @default(1)
+  // Obsługa faktur korygujących (KOR)
+  isCorrection    Boolean?        @default(false)
+  correctionReason String?
+  originalInvoiceId String?
+  originalInvoiceNumber String?
+  originalKsefNumber String?
+  originalIssueDate String?
+  originalLines   Json?
+  // Obsługa trybów offline i kodów QR
+  isOffline       Boolean?        @default(false)
+  offlineReason   String?
+  offlineDeadline DateTime?
+  qrCodeI         String?
+  qrCodeII        String?
+  // Faktury cykliczne
+  isRecurring     Boolean?        @default(false)
+  recurringInterval String?       // monthly | quarterly | yearly
+  recurringNextDate String?
+  recurringPaused Boolean?        @default(false)
+  recurringAutoSend Boolean?      @default(false)
+  // Przypomnienia o płatności
+  lastPaymentReminderSentAt DateTime?
+  paymentReminderCount      Int?    @default(0)
+  // Relacje
+  payments        PaymentRecord[]
+  ksefTasks       KsefQueueTask[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -223,6 +260,8 @@ model Invoice {
   @@index([sellerCompanyId])
   @@index([referenceNumber])
   @@index([ksefNumber])
+  @@index([ksefStatus])
+  @@index([paymentStatus])
 }
 
 model Notification {
@@ -247,3 +286,68 @@ model NotificationPreference {
   soundEnabled   Boolean  @default(true)
   updatedAt      DateTime @updatedAt
 }
+
+model PasswordResetToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model PaymentRecord {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId String   @db.ObjectId
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  paidAt    DateTime @default(now())
+  method    String   @default("transfer")
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([userId])
+}
+
+model KsefQueueTask {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String    @db.ObjectId
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceId      String    @db.ObjectId
+  invoice        Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  environment    String    @default("test")
+  status         String    @default("queued") // queued | processing | completed | failed | verify_needed
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(5)
+  lastAttemptAt  DateTime?
+  nextAttemptAt  DateTime?
+  lockedUntil    DateTime?
+  errorDetails   String?
+  idempotencyKey String    @unique
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([userId])
+  @@index([invoiceId])
+}
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action     String   // e.g. "ksef_send", "invoice_approve", "export_generated", "payment_add"
+  entityType String   // "invoice", "payment", "ksef_session"
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+

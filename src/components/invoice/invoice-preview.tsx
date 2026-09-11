@@ -14,6 +14,7 @@ import {
 import { invoiceLabels, paymentMethodLabel } from "@/lib/i18n";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { QRCodeSVG } from "qrcode.react";
+import { buildKsefVerificationUrl, getKsefQrLabel } from "@/lib/ksef";
 
 export function buildQrPayload(invoice: Invoice, contractor: Contractor | undefined, company: CompanyProfile): string {
   const t = invoiceTotals(invoice);
@@ -93,7 +94,11 @@ export function InvoicePreview({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight text-gradient">
-                {invoice.type === "purchase" ? L.purchaseDoc : L.saleDoc}
+                {invoice.isCorrection
+                  ? "FAKTURA KORYGUJĄCA (KOR)"
+                  : invoice.type === "purchase"
+                    ? L.purchaseDoc
+                    : L.saleDoc}
               </span>
               <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                 {L.originals}
@@ -102,6 +107,17 @@ export function InvoicePreview({
             <p className="mt-1 text-[13px] text-muted-foreground">
               {L.invoiceNo}: <span className="font-semibold text-foreground">{invoice.number}</span>
             </p>
+
+            {invoice.isCorrection && (
+              <div className="mt-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-900 dark:text-rose-200">
+                <p className="font-bold">Korekta do faktury: {invoice.originalInvoiceNumber || "FA/ORYG"} z dnia {invoice.originalIssueDate || invoice.issueDate}</p>
+                <p className="mt-0.5 text-muted-foreground">Przyczyna: {invoice.correctionReason || "Korekta pozycji faktury"}</p>
+                {invoice.originalKsefNumber && (
+                  <p className="font-mono text-[11px] text-muted-foreground">Nr KSeF oryginału: {invoice.originalKsefNumber}</p>
+                )}
+              </div>
+            )}
+
             <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 text-[12px] sm:grid-cols-3">
               <div>
                 <span className="text-muted-foreground">{L.issueDate}: </span>

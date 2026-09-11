@@ -33,21 +33,25 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Definicja ścieżek publicznych autoryzacji
-  const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+  // 3. Definicja ścieżek publicznych
+  const isPublicPath =
+    pathname === "/" ||
+    pathname === "/demo" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password");
 
-  // 4. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
-  if (!token && !isAuthPage) {
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/") {
-      loginUrl.searchParams.set("next", pathname);
-    }
-    return NextResponse.redirect(loginUrl);
+  // 4. Zalogowany użytkownik wchodzący na stronę powitalną lub auth -> przekieruj na /dashboard
+  if (token && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // 5. Jeśli użytkownik wchodzi na /dashboard, przekieruj na główny pulpit /
-  if (pathname === "/dashboard") {
-    return NextResponse.redirect(new URL("/", request.url));
+  // 5. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
+  if (!token && !isPublicPath) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

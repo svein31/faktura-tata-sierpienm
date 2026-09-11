@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Pulpit", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
   { href: "/invoices", label: "Faktury", icon: FileText },
   {
     href: "/invoices/new",

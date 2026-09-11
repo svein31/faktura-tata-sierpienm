@@ -188,6 +188,9 @@ export async function parseInvoiceBody(
     number,
     type,
     status,
+    documentStatus: typeof body.documentStatus === "string" ? cleanStr(body.documentStatus, 20, "documentStatus") : (status === "draft" ? "draft" : "issued"),
+    paymentStatus: typeof body.paymentStatus === "string" ? cleanStr(body.paymentStatus, 20, "paymentStatus") : (status === "paid" ? "paid" : "unpaid"),
+    paidAmount: typeof body.paidAmount === "number" ? Math.max(0, body.paidAmount) : (status === "paid" ? undefined : 0),
     contractorId,
     sellerCompanyId,
     issueDate: body.issueDate as string,
@@ -200,6 +203,24 @@ export async function parseInvoiceBody(
     notes: cleanStr(body.notes, 4000, "notes") || null,
     lines: parseLines(body.lines) as unknown as Prisma.InputJsonValue,
     approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
+    // Korekty
+    isCorrection: Boolean(body.isCorrection),
+    correctionReason: cleanStr(body.correctionReason, 1000, "correctionReason") || null,
+    originalInvoiceId: cleanStr(body.originalInvoiceId, 100, "originalInvoiceId") || null,
+    originalInvoiceNumber: cleanStr(body.originalInvoiceNumber, 100, "originalInvoiceNumber") || null,
+    originalKsefNumber: cleanStr(body.originalKsefNumber, 100, "originalKsefNumber") || null,
+    originalIssueDate: cleanStr(body.originalIssueDate, 20, "originalIssueDate") || null,
+    originalLines: Array.isArray(body.originalLines) ? (body.originalLines as unknown as Prisma.InputJsonValue) : undefined,
+    // Offline
+    isOffline: Boolean(body.isOffline),
+    offlineReason: cleanStr(body.offlineReason, 500, "offlineReason") || null,
+    // Cykliczne
+    isRecurring: Boolean(body.isRecurring),
+    recurringInterval: cleanStr(body.recurringInterval, 20, "recurringInterval") || null,
+    recurringNextDate: cleanStr(body.recurringNextDate, 20, "recurringNextDate") || null,
+    recurringPaused: Boolean(body.recurringPaused),
+    recurringAutoSend: Boolean(body.recurringAutoSend),
+    version: typeof body.version === "number" ? body.version + 1 : 1,
     ksef: undefined,
   };
 }

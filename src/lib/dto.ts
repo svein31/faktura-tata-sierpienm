@@ -153,7 +153,22 @@ export function ksefInfoFrom(v: unknown): KsefInfo | undefined {
   };
 }
 
-export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile | null }): Invoice {
+export function invoiceToDto(
+  i: DbInvoice & {
+    sellerCompany?: DbCompanyProfile | null;
+    payments?: Array<{ id: string; amount: number; paidAt: Date; method: string; note?: string | null }>;
+  }
+): Invoice {
+  const mappedPayments = Array.isArray(i.payments)
+    ? i.payments.map((p) => ({
+        id: p.id,
+        amount: p.amount,
+        paidAt: p.paidAt.toISOString(),
+        method: p.method as any,
+        note: p.note ?? undefined,
+      }))
+    : undefined;
+
   return {
     id: i.id,
     number: i.number,
@@ -185,6 +200,32 @@ export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile |
     approvalStatus: i.approvalStatus ?? "pending",
     approvedAt: i.approvedAt ? i.approvedAt.toISOString() : null,
     approvedBy: i.approvedBy ?? null,
+    // Rozszerzone pola
+    documentStatus: (i.documentStatus as any) ?? "draft",
+    ksefStatus: (i.ksefStatus as any) ?? (i.ksefNumber ? "accepted" : "none"),
+    paymentStatus: (i.paymentStatus as any) ?? (i.status === "paid" ? "paid" : "unpaid"),
+    paidAmount: i.paidAmount ?? (i.status === "paid" ? (i.totalGross ?? 0) : 0),
+    payments: mappedPayments,
+    version: i.version ?? 1,
+    isCorrection: i.isCorrection ?? false,
+    correctionReason: i.correctionReason ?? undefined,
+    originalInvoiceId: i.originalInvoiceId ?? undefined,
+    originalInvoiceNumber: i.originalInvoiceNumber ?? undefined,
+    originalKsefNumber: i.originalKsefNumber ?? undefined,
+    originalIssueDate: i.originalIssueDate ?? undefined,
+    originalLines: (Array.isArray(i.originalLines) ? i.originalLines : undefined) as any,
+    isOffline: i.isOffline ?? false,
+    offlineReason: i.offlineReason ?? undefined,
+    offlineDeadline: i.offlineDeadline ? i.offlineDeadline.toISOString() : undefined,
+    qrCodeI: i.qrCodeI ?? undefined,
+    qrCodeII: i.qrCodeII ?? undefined,
+    isRecurring: i.isRecurring ?? false,
+    recurringInterval: i.recurringInterval ?? undefined,
+    recurringNextDate: i.recurringNextDate ?? undefined,
+    recurringPaused: i.recurringPaused ?? false,
+    recurringAutoSend: i.recurringAutoSend ?? false,
+    lastPaymentReminderSentAt: i.lastPaymentReminderSentAt ? i.lastPaymentReminderSentAt.toISOString() : undefined,
+    paymentReminderCount: i.paymentReminderCount ?? 0,
     createdAt: i.createdAt.toISOString(),
   };
 }

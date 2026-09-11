@@ -86,6 +86,18 @@ interface FormState {
   language: InvoiceLanguage;
   notes: string;
   lines: ReturnType<typeof newLine>[];
+  // Faktura korygująca
+  isCorrection?: boolean;
+  correctionReason?: string;
+  originalInvoiceId?: string;
+  originalInvoiceNumber?: string;
+  originalIssueDate?: string;
+  originalKsefNumber?: string;
+  // Faktura cykliczna
+  isRecurring?: boolean;
+  recurringInterval?: string;
+  recurringNextDate?: string;
+  recurringAutoSend?: boolean;
 }
 
 function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState {
@@ -105,6 +117,16 @@ function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState
     language: inv.language,
     notes: inv.notes ?? "",
     lines: inv.lines.map((l) => ({ ...l })),
+    isCorrection: inv.isCorrection ?? false,
+    correctionReason: inv.correctionReason ?? "",
+    originalInvoiceId: inv.originalInvoiceId ?? "",
+    originalInvoiceNumber: inv.originalInvoiceNumber ?? "",
+    originalIssueDate: inv.originalIssueDate ?? "",
+    originalKsefNumber: inv.originalKsefNumber ?? "",
+    isRecurring: inv.isRecurring ?? false,
+    recurringInterval: inv.recurringInterval ?? "monthly",
+    recurringNextDate: inv.recurringNextDate ?? addDaysISO(todayISO(), 30),
+    recurringAutoSend: inv.recurringAutoSend ?? false,
   };
 }
 
@@ -126,6 +148,16 @@ function freshForm(defaultCompanyId: string = ""): FormState {
     language: "PL",
     notes: "",
     lines: [newLine()],
+    isCorrection: false,
+    correctionReason: "",
+    originalInvoiceId: "",
+    originalInvoiceNumber: "",
+    originalIssueDate: "",
+    originalKsefNumber: "",
+    isRecurring: false,
+    recurringInterval: "monthly",
+    recurringNextDate: addDaysISO(today, 30),
+    recurringAutoSend: false,
   };
 }
 
@@ -148,6 +180,61 @@ export function InvoiceCreator() {
   const [form, setForm] = React.useState<FormState>(() =>
     draftInvoice ? formFromInvoice(draftInvoice, defaultCompany.id) : freshForm(defaultCompany.id)
   );
+
+  // ── Autosave stanu roboczego w localStorage ──
+  const DRAFT_KEY = "fakturo_local_draft_v2";
+  const [autosaveStatus, setAutosaveStatus] = React.useState<"idle" | "saving" | "saved">("idle");
+  const [hasRecoverableDraft, setHasRecoverableDraft] = React.useState<boolean>(false);
+  const [recoverableDate, setRecoverableDate] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!draftInvoice || draftInvoiceIsNew) {
+      try {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed?.form && (parsed.form.contractorId || parsed.form.lines?.length > 1 || parsed.form.lines?.[0]?.name)) {
+            setHasRecoverableDraft(true);
+            setRecoverableDate(parsed.savedAt ? new Date(parsed.savedAt).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "");
+          }
+        }
+      } catch {}
+    }
+  }, [draftInvoice, draftInvoiceIsNew]);
+
+  React.useEffect(() => {
+    const isKsef = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
+    if (isKsef) return;
+    setAutosaveStatus("saving");
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, savedAt: new Date().toISOString() }));
+        setAutosaveStatus("saved");
+      } catch {}
+    }, 800);
+    return () => clearTimeout(t);
+  }, [form, draftInvoice]);
+
+  const handleRecoverDraft = () => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.form) {
+          setForm(parsed.form);
+          toast("success", "Przywrócono wersję roboczą", `Zapisana o: ${recoverableDate}`);
+        }
+      }
+    } catch {}
+    setHasRecoverableDraft(false);
+  };
+
+  const handleDiscardRecoverableDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+    setHasRecoverableDraft(false);
+  };
   const [saving, setSaving] = React.useState<"save" | "ksef" | null>(null);
   const [errors, setErrors] = React.useState<string[]>([]);
   const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
@@ -165,7 +252,7 @@ export function InvoiceCreator() {
     companies.find((c) => c.id === form.sellerCompanyId) ?? defaultCompany ?? EMPTY_COMPANY;
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
-  const invoiceNumber = draftInvoice?.number ?? nextInvoiceNumber(invoices, form.type);
+  const invoiceNumber = draftInvoice?.number ?? nextInvoiceNumber(invoices, form.type, form.isCorrection);
   const isPurchase = form.type === "purchase";
   const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
@@ -209,6 +296,16 @@ export function InvoiceCreator() {
     notes: form.notes,
     lines: form.lines,
     createdAt: new Date().toISOString(),
+    isCorrection: form.isCorrection,
+    correctionReason: form.correctionReason,
+    originalInvoiceId: form.originalInvoiceId,
+    originalInvoiceNumber: form.originalInvoiceNumber,
+    originalIssueDate: form.originalIssueDate,
+    originalKsefNumber: form.originalKsefNumber,
+    isRecurring: form.isRecurring,
+    recurringInterval: form.recurringInterval,
+    recurringNextDate: form.recurringNextDate,
+    recurringAutoSend: form.recurringAutoSend,
   };
 
   const exports = useInvoiceExports(previewInvoice, effectiveContractor, effectiveSellerCompany);
@@ -224,6 +321,9 @@ export function InvoiceCreator() {
   const validate = (): string[] => {
     const errs: string[] = [];
     if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
+    if (form.isCorrection && !form.correctionReason?.trim()) {
+      errs.push("Faktura korygująca wymaga podania przyczyny korekty.");
+    }
     if (form.useNewContractor) {
       const nc = form.newContractor;
       if (!nc.name.trim()) errs.push("Podaj nazwę nowego kontrahenta.");
@@ -280,6 +380,16 @@ export function InvoiceCreator() {
       lines: form.lines
         .filter((l) => l.name.trim() && l.quantity > 0)
         .map((l) => ({ ...l, netPrice: round2(Number(l.netPrice) || 0), quantity: round2(Number(l.quantity) || 0) })),
+      isCorrection: form.isCorrection,
+      correctionReason: form.correctionReason?.trim() || undefined,
+      originalInvoiceId: form.originalInvoiceId || undefined,
+      originalInvoiceNumber: form.originalInvoiceNumber || undefined,
+      originalIssueDate: form.originalIssueDate || undefined,
+      originalKsefNumber: form.originalKsefNumber || undefined,
+      isRecurring: form.isRecurring,
+      recurringInterval: form.recurringInterval,
+      recurringNextDate: form.recurringNextDate,
+      recurringAutoSend: form.recurringAutoSend,
     };
     return base;
   };
@@ -303,6 +413,7 @@ export function InvoiceCreator() {
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       toast("success", `Zapisano fakturę ${saved.number}`, "Faktura oznaczona jako wystawiona.");
       store.setDraft(null, true);
       router.push("/invoices");
@@ -322,6 +433,7 @@ export function InvoiceCreator() {
     try {
       const inv = await buildInvoice("draft");
       const saved = await persist(inv);
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       toast("info", "Szkic zapisany", saved.number);
       store.setDraft(null, true);
       router.push("/invoices");
@@ -349,6 +461,7 @@ export function InvoiceCreator() {
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       const xmlRes = await import("@/lib/xml");
       const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany);
       const res = await fetch("/api/ksef/send", {
@@ -357,7 +470,7 @@ export function InvoiceCreator() {
         body: JSON.stringify({ xml, environment: ksefEnv, invoiceId: saved.id, invoiceNumber: saved.number }),
       });
       const data = await res.json();
-      if (res.ok && data.success && data.ksefNumber) {
+      if (res.ok && data.success) {
         if (data.invoice) {
           store.applyInvoice(data.invoice);
         } else {
@@ -368,7 +481,7 @@ export function InvoiceCreator() {
             environment: ksefEnv,
           });
         }
-        toast("success", "Wysłano do KSeF", `${saved.number} → numer: ${data.ksefNumber}`);
+        toast("success", "Przekazano do KSeF", `${saved.number} → ${data.message || "Przyjęto do kolejki KSeF"}`);
         store.setDraft(null, true);
         router.push("/invoices");
       } else {
@@ -385,6 +498,51 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
+        {/* Pasek statusu autozapisu */}
+        <div className="flex items-center justify-between gap-2 px-1 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">Status wersji roboczej:</span>
+            {autosaveStatus === "saving" ? (
+              <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                Zapisywanie w tle…
+              </span>
+            ) : autosaveStatus === "saved" ? (
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Zapisano lokalnie
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Bieżący stan gotowy do edycji</span>
+            )}
+          </div>
+          {form.isCorrection && (
+            <Badge tone="danger" className="text-[11px] font-bold">
+              Tryb: KOREKTA (FA-3 / KOR)
+            </Badge>
+          )}
+        </div>
+
+        {/* Baner przywracania niezapisanej wersji roboczej */}
+        {hasRecoverableDraft && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3.5 text-xs text-foreground">
+            <div className="flex items-center gap-2.5">
+              <Save className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                Wykryto niezapisaną wersję roboczą faktury z <b>{recoverableDate}</b>. Czy chcesz przywrócić dane?
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button size="sm" onClick={handleRecoverDraft} className="h-7 text-xs px-3 font-semibold">
+                Przywróć
+              </Button>
+              <Button size="sm" variant="ghost" onClick={handleDiscardRecoverableDraft} className="h-7 text-xs px-2.5 text-muted-foreground">
+                Odrzuć
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isKsefRegistered && (
           <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-[12.5px] text-emerald-800 dark:text-emerald-300">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -395,6 +553,34 @@ export function InvoiceCreator() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Sekcja faktury korygującej */}
+        {form.isCorrection && (
+          <Card className="border-rose-500/40 bg-rose-500/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-rose-700 dark:text-rose-400 text-[15px] flex items-center gap-2">
+                Faktura korygująca (KOR)
+              </CardTitle>
+              <CardDescription>
+                Korygujesz fakturę nr <b>{form.originalInvoiceNumber || "—"}</b> z dnia {form.originalIssueDate || "—"}.
+                {form.originalKsefNumber ? ` Numer KSeF oryginału: ${form.originalKsefNumber}` : ""}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-rose-900 dark:text-rose-300 font-semibold">
+                  Przyczyna korekty (pole wymagane w schemacie FA(3)) *
+                </Label>
+                <Input
+                  value={form.correctionReason || ""}
+                  onChange={(e) => set({ correctionReason: e.target.value })}
+                  placeholder="np. Udzielenie rabatu potransakcyjnego, zwrot towaru, korekta ilości"
+                  className="bg-card"
+                />
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {isPurchase && (
@@ -423,27 +609,44 @@ export function InvoiceCreator() {
           </div>
         )}
 
-        {/* Sprzedawca (Wystawca faktury) - Wybór firmy / spółki */}
+        {/* Sprzedawca (Wystawca faktury) oraz typ dokumentu */}
         <Card className="border-primary/25 bg-card">
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
-                <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca)
-                <HelpTooltip text="Wybierz firmę z listy (skonfigurowaną w 'Moje Firmy')." />
+                <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca) & Typ
+                <HelpTooltip text="Wybierz spółkę / NIP wystawcy oraz rodzaj dokumentu (Sprzedaż / Zakup)." />
               </CardTitle>
               <CardDescription>
                 Wybierz profil spółki / NIP, z którego wystawiasz ten dokument
               </CardDescription>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setCompanyModalOpen(true)}
-              className="gap-1.5 font-medium text-[12px] h-8"
-            >
-              <Plus className="h-3.5 w-3.5 text-primary" /> + Szybkie dodanie nowej firmy/NIP
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[12px] font-medium">
+                {(["sale", "purchase"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => set({ type: t })}
+                    className={
+                      form.type === t
+                        ? "rounded-md bg-card px-2.5 py-0.5 shadow-sm ring-1 ring-border text-foreground font-semibold"
+                        : "px-2.5 py-0.5 text-muted-foreground hover:text-foreground"
+                    }
+                  >
+                    {t === "sale" ? "Sprzedaż (FV)" : "Zakup (FZ)"}
+                  </button>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCompanyModalOpen(true)}
+                className="gap-1 font-medium text-[11px] h-7 px-2"
+              >
+                <Plus className="h-3 w-3 text-primary" /> Nowa firma
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <Select
@@ -466,35 +669,28 @@ export function InvoiceCreator() {
             </Select>
 
             {effectiveSellerCompany && (effectiveSellerCompany.companyName || effectiveSellerCompany.nip) && (
-              <div className="rounded-lg border border-border/80 bg-muted/20 p-3 text-[12.5px] grid gap-2 sm:grid-cols-2">
+              <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-[12px] grid gap-2 sm:grid-cols-2">
                 <div>
                   <p className="font-semibold text-foreground">
                     {effectiveSellerCompany.companyName || effectiveSellerCompany.name}
                   </p>
-                  <p className="font-mono text-muted-foreground text-[12px]">
+                  <p className="font-mono text-muted-foreground text-[11.5px]">
                     NIP: {formatNip(effectiveSellerCompany.nip)}
                   </p>
-                  <p className="text-muted-foreground text-[12px]">
-                    {[
-                      [effectiveSellerCompany.street, effectiveSellerCompany.buildingNumber].filter(Boolean).join(" ") +
-                        (effectiveSellerCompany.flatNumber ? `/${effectiveSellerCompany.flatNumber}` : ""),
-                      `${effectiveSellerCompany.postalCode || effectiveSellerCompany.postal || ""} ${effectiveSellerCompany.city || ""}`.trim(),
-                    ].filter(Boolean).join(", ")}
-                  </p>
                 </div>
-                <div className="sm:text-right space-y-1">
+                <div className="sm:text-right space-y-0.5">
                   {(effectiveSellerCompany.bankAccount || effectiveSellerCompany.iban) && (
-                    <p className="font-mono text-[11.5px] text-muted-foreground truncate">
+                    <p className="font-mono text-[11px] text-muted-foreground truncate">
                       IBAN: {effectiveSellerCompany.bankAccount || effectiveSellerCompany.iban}
                     </p>
                   )}
-                  <div className="flex sm:justify-end gap-1 pt-1">
+                  <div className="flex sm:justify-end gap-1 pt-0.5">
                     {effectiveSellerCompany.ksefToken ? (
-                      <Badge tone="success" className="text-[10.5px]">
+                      <Badge tone="success" className="text-[10px]">
                         <ShieldCheck className="h-3 w-3 mr-1" /> Dedykowany token KSeF
                       </Badge>
                     ) : (
-                      <Badge tone="outline" className="text-[10.5px] text-muted-foreground">
+                      <Badge tone="outline" className="text-[10px] text-muted-foreground">
                         Domyślny KSeF konta
                       </Badge>
                     )}
@@ -505,47 +701,16 @@ export function InvoiceCreator() {
           </CardContent>
         </Card>
 
-        {/* Typ faktury */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle>Typ dokumentu</CardTitle>
-              <CardDescription>Faktura sprzedaży lub zakupowa (FZ)</CardDescription>
-            </div>
-            <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium">
-              {(["sale", "purchase"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => set({ type: t })}
-                  className={
-                    form.type === t
-                      ? "rounded-md bg-card px-3 py-1 shadow-sm ring-1 ring-border"
-                      : "px-3 py-1 text-muted-foreground hover:text-foreground"
-                  }
-                >
-                  {t === "sale" ? "Sprzedaż (FV)" : "Zakup (FZ)"}
-                </button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-[12.5px] text-muted-foreground">
-              {form.type === "sale"
-                ? "Faktura VAT wystawiana Twoim kontrahentom."
-                : "Faktura zakupowa od kontrahenta — trafi do zakupów KSeF."}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Kontrahent */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
+        {/* ── KROK 1: Kontrahent ── */}
+        <Card className="border-border shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-[15px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mr-2">1</span>
               Kontrahent ({form.type === "sale" ? "Nabywca" : "Sprzedawca"})
               <HelpTooltip text="Wpisz NIP klienta i kliknij 'GUS', aby automatycznie pobrać dane kontrahenta z Bazy REGON / Białej Listy MF." />
             </CardTitle>
             <CardDescription>
-              {form.type === "sale" ? "Nabywca" : "Sprzedawca"} — wybierz z bazy lub dodaj nowego
+              Wybierz kontrahenta z listy lub wpisz NIP, aby pobrać dane z bazy GUS / VIES
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -577,7 +742,7 @@ export function InvoiceCreator() {
                 <div className="flex items-center gap-2 text-[13px] font-semibold">
                   <UserPlus className="h-4 w-4 text-primary" /> Nowy kontrahent
                   <span className="text-[11px] font-normal text-muted-foreground">
-                    (zostanie dodany do bazy)
+                    (zostanie zapisany w bazie)
                   </span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -659,11 +824,33 @@ export function InvoiceCreator() {
           </CardContent>
         </Card>
 
-        {/* Daty, płatność, waluta, język */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Parametry faktury</CardTitle>
-            <CardDescription>Daty, płatność, waluta i język dokumentu</CardDescription>
+        {/* ── KROK 2: Pozycje faktury (zgodnie z kolejnością Kontrahent -> Pozycje -> Płatność) ── */}
+        <Card className="border-border shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-[15px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mr-2">2</span>
+              Pozycje faktury
+            </CardTitle>
+            <CardDescription>Towary i usługi — stawki VAT (23%, 8%, 5%, 0%, zw, np, oo), przeliczenia kwot na żywo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LineItemsEditor
+              lines={form.lines}
+              onChange={(lines) => set({ lines })}
+              currency={form.currency}
+              products={products}
+            />
+          </CardContent>
+        </Card>
+
+        {/* ── KROK 3: Płatność, terminy i parametry ── */}
+        <Card className="border-border shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-[15px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mr-2">3</span>
+              Płatność, terminy i parametry
+            </CardTitle>
+            <CardDescription>Daty, sposób uregulowania płatności, faktury cykliczne oraz uwagi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-3">
@@ -695,7 +882,7 @@ export function InvoiceCreator() {
                   value={form.paymentMethod}
                   onChange={(e) => set({ paymentMethod: e.target.value as PaymentMethod })}
                 >
-                  <option value="transfer">Przelew</option>
+                  <option value="transfer">Przelew bankowy</option>
                   <option value="cash">Gotówka</option>
                   <option value="card">Karta płatnicza</option>
                   <option value="blik">BLIK</option>
@@ -724,6 +911,46 @@ export function InvoiceCreator() {
               </div>
             </div>
 
+            {/* Opcja faktury cyklicznej */}
+            <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Faktura cykliczna (automatyczne odnawianie)</p>
+                  <p className="text-[11px] text-muted-foreground">Generuj kolejne dokumenty w zadanym cyklu czasowym</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.isRecurring)}
+                  onChange={(e) => set({ isRecurring: e.target.checked })}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+              </div>
+
+              {form.isRecurring && (
+                <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-border/50">
+                  <div className="space-y-1">
+                    <Label className="text-[11.5px]">Interwał odnawiania</Label>
+                    <Select
+                      value={form.recurringInterval || "monthly"}
+                      onChange={(e) => set({ recurringInterval: e.target.value })}
+                    >
+                      <option value="monthly">Co miesiąc (zalecane dla abonamentów)</option>
+                      <option value="quarterly">Co kwartał</option>
+                      <option value="yearly">Co rok</option>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11.5px]">Data kolejnego wystawienia</Label>
+                    <Input
+                      type="date"
+                      value={form.recurringNextDate || ""}
+                      onChange={(e) => set({ recurringNextDate: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label>Język dokumentu</Label>
               <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium">
@@ -733,7 +960,7 @@ export function InvoiceCreator() {
                     onClick={() => set({ language: l })}
                     className={
                       form.language === l
-                        ? "rounded-md bg-card px-3 py-1 shadow-sm ring-1 ring-border"
+                        ? "rounded-md bg-card px-3 py-1 shadow-sm ring-1 ring-border text-foreground font-semibold"
                         : "px-3 py-1 text-muted-foreground hover:text-foreground"
                     }
                   >
@@ -744,37 +971,24 @@ export function InvoiceCreator() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Uwagi</Label>
+              <Label>Uwagi / Informacje dodatkowe</Label>
               <Textarea
                 value={form.notes}
                 onChange={(e) => set({ notes: e.target.value })}
-                placeholder="np. numer zamówienia, zapłata w terminie 14 dni…"
+                placeholder="np. numer zamówienia, numer umowy, szczegóły dostawy…"
                 rows={2}
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Pozycje */}
-        <Card>
+        {/* ── KROK 4: Podsumowanie i akcje (mobile) ── */}
+        <Card className="xl:hidden border-primary/30">
           <CardHeader>
-            <CardTitle>Pozycje faktury</CardTitle>
-            <CardDescription>Dynamiczna lista — nazwa, ilość, jednostka, netto, VAT, brutto</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LineItemsEditor
-              lines={form.lines}
-              onChange={(lines) => set({ lines })}
-              currency={form.currency}
-              products={products}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Podsumowanie + akcje (mobile) */}
-        <Card className="xl:hidden">
-          <CardHeader>
-            <CardTitle>Podsumowanie</CardTitle>
+            <CardTitle className="flex items-center text-[15px]">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mr-2">4</span>
+              Podsumowanie i wystawienie
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-2 text-center">
@@ -796,7 +1010,7 @@ export function InvoiceCreator() {
                 <Save className="h-4 w-4" /> Szkic
               </Button>
               <Button onClick={handleSave} loading={saving === "save"}>
-                <CheckCircle2 className="h-4 w-4" /> {isPurchase ? "Zapisz fakturę zakupową (FZ)" : "Zapisz fakturę"}
+                <CheckCircle2 className="h-4 w-4" /> {isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
               </Button>
               {!isPurchase && !isKsefRegistered && (
                 <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">

@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { KSEF_STATIC_KEYS, type KsefEnvironment, type KsefKeyInfo } from "./constants";
 
 export interface EncryptedInvoicePackage {

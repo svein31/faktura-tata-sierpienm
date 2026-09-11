@@ -4,7 +4,19 @@ export type InvoiceLanguage = "PL" | "EN";
 export type InvoiceType = "sale" | "purchase";
 export type PaymentMethod = "transfer" | "cash" | "card" | "blik" | "compensation";
 export type InvoiceStatus = "draft" | "issued" | "sent" | "paid" | "ksef_sent" | "ksef_active";
+export type DocumentStatus = "draft" | "ready" | "issued" | "cancelled";
+export type KsefStatus = "none" | "draft" | "ready" | "queued" | "sending" | "accepted" | "rejected" | "verify_needed";
+export type PaymentStatus = "unpaid" | "partially_paid" | "paid" | "overdue";
+export type UserRole = "owner" | "accountant" | "viewer";
 export type KsefEnv = "demo" | "test" | "production";
+
+export interface PaymentItem {
+  id: string;
+  amount: number;
+  paidAt: string;
+  method: PaymentMethod;
+  note?: string;
+}
 
 export interface Address {
   street: string;
@@ -117,6 +129,36 @@ export interface Invoice {
   approvalStatus?: "pending" | "approved" | string | null;
   approvedAt?: string | null;
   approvedBy?: string | null;
+  // Rozszerzony cykl życia
+  documentStatus?: DocumentStatus;
+  ksefStatus?: KsefStatus;
+  paymentStatus?: PaymentStatus;
+  paidAmount?: number;
+  payments?: PaymentItem[];
+  version?: number;
+  // Korekty (KOR)
+  isCorrection?: boolean;
+  correctionReason?: string;
+  originalInvoiceId?: string;
+  originalInvoiceNumber?: string;
+  originalKsefNumber?: string;
+  originalIssueDate?: string;
+  originalLines?: InvoiceLine[];
+  // Tryby offline i kody QR
+  isOffline?: boolean;
+  offlineReason?: string;
+  offlineDeadline?: string;
+  qrCodeI?: string;
+  qrCodeII?: string;
+  // Faktury cykliczne
+  isRecurring?: boolean;
+  recurringInterval?: string;
+  recurringNextDate?: string;
+  recurringPaused?: boolean;
+  recurringAutoSend?: boolean;
+  // Przypomnienia
+  lastPaymentReminderSentAt?: string;
+  paymentReminderCount?: number;
   createdAt: string;
 }
 

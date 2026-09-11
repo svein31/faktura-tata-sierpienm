@@ -97,7 +97,6 @@ function LoginForm() {
       >
         {/* Logo */}
         <div className="mb-7 flex flex-col items-center text-center">
-          <Logo compact className="mb-4" />
           <Logo />
           <h1 className="mt-4 text-xl font-bold tracking-tight text-foreground">
             Zaloguj się do Fakturo
@@ -109,7 +108,7 @@ function LoginForm() {
 
         <form onSubmit={submit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <Label htmlFor="email">Adres e-mail</Label>
+            <Label htmlFor="email" className="text-xs font-medium">Adres e-mail</Label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -119,14 +118,22 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jan@firma.pl"
-                className="pl-10"
+                className="h-11 pl-10 text-sm rounded-xl"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="password">Hasło</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-xs font-medium">Hasło</Label>
+              <Link
+                href="/forgot-password"
+                className="text-[11.5px] font-medium text-primary hover:underline transition-colors"
+              >
+                Nie pamiętasz hasła?
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -136,7 +143,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="pl-10 pr-10"
+                className="h-11 pl-10 pr-10 text-sm rounded-xl"
                 required
               />
               <button
@@ -157,7 +164,7 @@ function LoginForm() {
             </div>
           )}
 
-          <Button type="submit" className="mt-2 h-10 w-full text-[13.5px] font-semibold" loading={busy}>
+          <Button type="submit" className="mt-2 h-11 w-full text-[13.5px] font-semibold rounded-xl" loading={busy}>
             {!busy && <LogIn className="h-4 w-4" />}
             {busy ? "Logowanie…" : "Zaloguj się"}
           </Button>
@@ -183,6 +190,18 @@ function LoginForm() {
   );
 }
 
+function LoginFormSkeleton() {
+  return (
+    <div className="w-full max-w-sm rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl animate-pulse space-y-4">
+      <div className="h-8 w-28 bg-muted/60 rounded-xl mx-auto" />
+      <div className="h-4 w-44 bg-muted/40 rounded mx-auto mt-3" />
+      <div className="h-11 w-full bg-muted/30 rounded-xl mt-6" />
+      <div className="h-11 w-full bg-muted/30 rounded-xl mt-3" />
+      <div className="h-11 w-full bg-primary/20 rounded-xl mt-4" />
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
@@ -190,7 +209,7 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
       <div className="pointer-events-none absolute top-1/2 -left-24 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-violet-500/6 blur-3xl" />
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoginFormSkeleton />}>
         <LoginForm />
       </Suspense>
     </div>

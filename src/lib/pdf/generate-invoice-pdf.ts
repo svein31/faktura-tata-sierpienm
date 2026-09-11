@@ -2,6 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "../format";
 import { invoiceLabels, paymentMethodLabel } from "../i18n";
 import type { CompanyProfile, Contractor, Invoice } from "../types";
+import { buildKsefVerificationUrl, generateQrPngBuffer, getKsefQrLabel } from "../ksef";
 
 /**
  * Bezpieczne mapowanie znaków dla standardowych fontów PDF (WinAnsi).
@@ -61,6 +62,8 @@ export async function generateInvoicePdfBuffer(
   const grayColor = rgb(0.42, 0.45, 0.5); // #6b7280
   const lightBg = rgb(0.96, 0.97, 0.98); // #f4f6f8
   const borderColor = rgb(0.88, 0.9, 0.92);
+  const successColor = rgb(0.08, 0.55, 0.35);
+  const warningColor = rgb(0.85, 0.45, 0.05);
 
   let y = height - 40;
 
@@ -122,13 +125,16 @@ export async function generateInvoicePdfBuffer(
   }
 
   const titleX = logoImage ? 55 + logoWidth + 14 : 55;
-  const docTitle = invoice.type === "purchase" ? cleanText(L.purchaseDoc) : cleanText(L.saleDoc);
+  const docTitle = invoice.isCorrection
+    ? "FAKTURA KORYGUJACA"
+    : invoice.type === "purchase" ? cleanText(L.purchaseDoc) : cleanText(L.saleDoc);
+
   page.drawText(docTitle.toUpperCase(), {
     x: titleX,
     y: y - 22,
-    size: 15,
+    size: 14,
     font: fontBold,
-    color: primaryColor,
+    color: invoice.isCorrection ? rgb(0.7, 0.15, 0.15) : primaryColor,
   });
 
   page.drawText(`Nr: ${cleanText(invoice.number)}`, {
@@ -146,6 +152,14 @@ export async function generateInvoicePdfBuffer(
       size: 7.5,
       font: fontRegular,
       color: grayColor,
+    });
+  } else if (invoice.isOffline) {
+    page.drawText(`Tryb awaryjny KSeF (OFFLINE)`, {
+      x: titleX,
+      y: y - 50,
+      size: 7.5,
+      font: fontBold,
+      color: warningColor,
     });
   }
 
@@ -276,8 +290,35 @@ export async function generateInvoicePdfBuffer(
     font: fontRegular,
     color: grayColor,
   });
-
-  y -= 110;
+  // Baner faktury korygującej (jeśli dotyczy)
+  if (invoice.isCorrection) {
+    page.drawRectangle({
+      x: 40,
+      y: y - 122,
+      width: width - 80,
+      height: 32,
+      color: rgb(0.99, 0.95, 0.95),
+      borderColor: rgb(0.85, 0.3, 0.3),
+      borderWidth: 0.8,
+    });
+    page.drawText(cleanText(`KOREKTA DO FAKTURY: ${invoice.originalInvoiceNumber || "FA/ORYG"} z dnia ${invoice.originalIssueDate || invoice.issueDate}`), {
+      x: 52,
+      y: y - 105,
+      size: 8.5,
+      font: fontBold,
+      color: rgb(0.7, 0.15, 0.15),
+    });
+    page.drawText(cleanText(`Przyczyna: ${invoice.correctionReason || "Korekta pozycji faktury"}${invoice.originalKsefNumber ? ` | Nr KSeF korygowanej: ${invoice.originalKsefNumber}` : ""}`), {
+      x: 52,
+      y: y - 117,
+      size: 7.5,
+      font: fontRegular,
+      color: darkColor,
+    });
+    y -= 135;
+  } else {
+    y -= 110;
+  }
 
   // ── Tabela Pozycji Faktury ──
   page.drawRectangle({
@@ -342,8 +383,8 @@ export async function generateInvoicePdfBuffer(
 
   y -= 15;
 
-  // ── Podsumowanie i Płatność ──
-  const summaryBoxWidth = 220;
+  // ── Podsumowanie, Płatność i Kod QR CIRFMF ──
+  const summaryBoxWidth = 200;
   const summaryX = width - 40 - summaryBoxWidth;
 
   page.drawRectangle({
@@ -357,10 +398,10 @@ export async function generateInvoicePdfBuffer(
   });
 
   page.drawText(`${cleanText(L.totalNet)}:`, { x: summaryX + 12, y: y - 18, size: 9, font: fontRegular, color: grayColor });
-  page.drawText(cleanText(formatMoney(t.net, invoice.currency)), { x: summaryX + 130, y: y - 18, size: 9, font: fontBold, color: darkColor });
+  page.drawText(cleanText(formatMoney(t.net, invoice.currency)), { x: summaryX + 115, y: y - 18, size: 9, font: fontBold, color: darkColor });
 
   page.drawText(`${cleanText(L.totalVat)}:`, { x: summaryX + 12, y: y - 34, size: 9, font: fontRegular, color: grayColor });
-  page.drawText(cleanText(formatMoney(t.vat, invoice.currency)), { x: summaryX + 130, y: y - 34, size: 9, font: fontBold, color: darkColor });
+  page.drawText(cleanText(formatMoney(t.vat, invoice.currency)), { x: summaryX + 115, y: y - 34, size: 9, font: fontBold, color: darkColor });
 
   // Pasek Do zapłaty (Gross)
   page.drawRectangle({
@@ -372,11 +413,11 @@ export async function generateInvoicePdfBuffer(
     borderColor: primaryColor,
     borderWidth: 0.5,
   });
-  page.drawText(`${cleanText(L.totalGross)}:`.toUpperCase(), { x: summaryX + 14, y: y - 56, size: 9.5, font: fontBold, color: primaryColor });
-  page.drawText(cleanText(formatMoney(t.gross, invoice.currency)), { x: summaryX + 125, y: y - 56, size: 11, font: fontBold, color: primaryColor });
+  page.drawText(`${cleanText(L.totalGross)}:`.toUpperCase(), { x: summaryX + 12, y: y - 56, size: 9.5, font: fontBold, color: primaryColor });
+  page.drawText(cleanText(formatMoney(t.gross, invoice.currency)), { x: summaryX + 110, y: y - 56, size: 11, font: fontBold, color: primaryColor });
 
-  // Informacje o płatności (po lewej stronie podsumowania)
-  const payInfoWidth = summaryX - 55;
+  // Informacje o płatności (po lewej stronie)
+  const payInfoWidth = 195;
   page.drawRectangle({
     x: 40,
     y: y - 75,
@@ -387,9 +428,9 @@ export async function generateInvoicePdfBuffer(
     borderWidth: 1,
   });
 
-  page.drawText(cleanText(L.paymentMethod).toUpperCase(), { x: 52, y: y - 18, size: 8, font: fontBold, color: grayColor });
+  page.drawText(cleanText(L.paymentMethod).toUpperCase(), { x: 50, y: y - 18, size: 8, font: fontBold, color: grayColor });
   page.drawText(cleanText(paymentMethodLabel(invoice.paymentMethod, invoice.language || "PL")), {
-    x: 52,
+    x: 50,
     y: y - 32,
     size: 9.5,
     font: fontBold,
@@ -397,14 +438,70 @@ export async function generateInvoicePdfBuffer(
   });
 
   if (compIban) {
-    page.drawText("Numer konta bankowego (IBAN):", { x: 52, y: y - 48, size: 8, font: fontRegular, color: grayColor });
-    page.drawText(cleanText(compIban), { x: 52, y: y - 62, size: 9, font: fontBold, color: darkColor });
+    page.drawText("Numer konta bankowego (IBAN):", { x: 50, y: y - 48, size: 7.5, font: fontRegular, color: grayColor });
+    page.drawText(cleanText(compIban), { x: 50, y: y - 62, size: 8.5, font: fontBold, color: darkColor });
+  }
+
+  // ── Box KOD QR CIRFMF (w środku między płatnością a podsumowaniem) ──
+  const qrBoxX = 40 + payInfoWidth + 8;
+  const qrBoxWidth = summaryX - qrBoxX - 8;
+  page.drawRectangle({
+    x: qrBoxX,
+    y: y - 75,
+    width: qrBoxWidth,
+    height: 80,
+    color: lightBg,
+    borderColor: borderColor,
+    borderWidth: 1,
+  });
+
+  try {
+    const qrUrl = invoice.qrCodeI || buildKsefVerificationUrl({
+      sellerNip: sellerNip,
+      issueDate: invoice.issueDate,
+      environment: invoice.ksef?.environment || "test",
+      ksefNumber: invoice.ksefNumber || invoice.ksef?.number,
+    });
+    const qrLabel = getKsefQrLabel(invoice.ksefNumber || invoice.ksef?.number, invoice.isOffline);
+    const qrPng = await generateQrPngBuffer(qrUrl, 160);
+    const qrImage = await pdfDoc.embedPng(qrPng);
+
+    const qrSize = 50;
+    const qrImgX = qrBoxX + (qrBoxWidth - qrSize) / 2;
+    page.drawImage(qrImage, {
+      x: qrImgX,
+      y: y - 56,
+      width: qrSize,
+      height: qrSize,
+    });
+
+    const isAcceptedKsef = Boolean((invoice.ksefNumber || invoice.ksef?.number) && !invoice.isOffline);
+    page.drawText(cleanText(qrLabel), {
+      x: qrBoxX + 4,
+      y: y - 66,
+      size: 6,
+      font: fontBold,
+      color: isAcceptedKsef ? successColor : warningColor,
+    });
+
+    if (invoice.isOffline && invoice.offlineDeadline) {
+      page.drawText(`Termin: ${cleanText(invoice.offlineDeadline)}`, {
+        x: qrBoxX + 4,
+        y: y - 72,
+        size: 5.5,
+        font: fontRegular,
+        color: rgb(0.85, 0.2, 0.2),
+      });
+    }
+  } catch (err) {
+    console.warn("[PDF] Nie udało się wygenerować kodu QR KSeF:", err);
+    page.drawText("KSeF QR", { x: qrBoxX + 15, y: y - 42, size: 8, font: fontRegular, color: grayColor });
   }
 
   y -= 95;
 
   // ── Uwagi / KSeF info ──
-  if (invoice.ksef?.number || invoice.notes) {
+  if (invoice.ksef?.number || invoice.notes || invoice.isOffline) {
     page.drawRectangle({
       x: 40,
       y: y - 35,
@@ -416,19 +513,27 @@ export async function generateInvoicePdfBuffer(
     });
 
     if (invoice.ksef?.number) {
-      page.drawText(`KSeF Numer: ${cleanText(invoice.ksef.number)} | Srodowisko: ${cleanText(invoice.ksef.environment)}`, {
+      page.drawText(`KSeF Numer: ${cleanText(invoice.ksef.number)} | Srodowisko: ${cleanText(invoice.ksef.environment || "test")}`, {
         x: 52,
         y: y - 16,
         size: 8,
         font: fontBold,
-        color: rgb(0.1, 0.6, 0.4),
+        color: successColor,
+      });
+    } else if (invoice.isOffline) {
+      page.drawText(`Dokument wystawiony w trybie awaryjnym/offline. Wymaga przeslania do KSeF w terminie: ${cleanText(invoice.offlineDeadline || "następny dzień roboczy")}`, {
+        x: 52,
+        y: y - 16,
+        size: 7.5,
+        font: fontBold,
+        color: warningColor,
       });
     }
 
     if (invoice.notes) {
       page.drawText(`Uwagi: ${cleanText(invoice.notes).substring(0, 90)}`, {
         x: 52,
-        y: y - (invoice.ksef?.number ? 28 : 20),
+        y: y - (invoice.ksef?.number || invoice.isOffline ? 28 : 20),
         size: 8,
         font: fontRegular,
         color: darkColor,

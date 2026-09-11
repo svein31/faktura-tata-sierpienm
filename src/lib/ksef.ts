@@ -5,6 +5,7 @@
 import type { Fa2Issue, Fa2ValidationResult } from "./types";
 export type { KsefEnvironment } from "./ksef/constants";
 export { buildFa3Xml, validateFa3Xml, FA3_TEMPLATE } from "./ksef/xmlBuilder";
+export * from "./ksef/index";
 
 export function validateFa2(xml: string): Fa2ValidationResult {
   const trimmed = xml.trim();

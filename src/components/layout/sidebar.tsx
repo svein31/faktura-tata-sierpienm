@@ -21,7 +21,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { useSessionUser } from "@/lib/session-context";
 
 const NAV_MAIN = [
-  { href: "/", label: "Pulpit", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
   { href: "/invoices", label: "Faktury", icon: FileText },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },

@@ -769,8 +769,8 @@ export function getContractor(contractors: Contractor[], id: string): Contractor
   return contractors.find((c) => c.id === id);
 }
 
-export function nextInvoiceNumber(invoices: Invoice[], type: "sale" | "purchase"): string {
-  const prefix = type === "sale" ? "FV" : "FZ";
+export function nextInvoiceNumber(invoices: Invoice[], type: "sale" | "purchase", isCorrection?: boolean): string {
+  const prefix = isCorrection ? "KOR" : (type === "sale" ? "FV" : "FZ");
   const year = new Date().getFullYear();
   const re = new RegExp(`^${prefix}/${year}/(\\d{4})$`);
   let max = 0;

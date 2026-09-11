@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/toast";
 import { SessionProvider } from "@/lib/session-context";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -32,11 +39,11 @@ try {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl" suppressHydrationWarning className="dark">
+    <html lang="pl" suppressHydrationWarning className={`dark ${inter.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen">
+      <body className={`${inter.className} font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen`}>
         <ThemeProvider>
           <ToastProvider>
             <SessionProvider>{children}</SessionProvider>

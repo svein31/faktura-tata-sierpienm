@@ -291,8 +291,14 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
         <P_PMarzyN>1</P_PMarzyN>
       </P_PMarzy>
     </Adnotacje>
-    <RodzajFaktury>VAT</RodzajFaktury>
-${faWierszeXml}
+    <RodzajFaktury>${invoice.isCorrection ? "KOR" : "VAT"}</RodzajFaktury>
+${invoice.isCorrection ? `    <PrzyczynaKorekty>${esc(invoice.correctionReason || "Korekta pozycji faktury")}</PrzyczynaKorekty>
+    <DaneFaKorygowanej>
+      <DataWystFaKorygowanej>${invoice.originalIssueDate || invoice.issueDate}</DataWystFaKorygowanej>
+      <NrFaKorygowanej>${esc(invoice.originalInvoiceNumber || "FA/ORYG")}</NrFaKorygowanej>
+      ${invoice.originalKsefNumber ? `<NrKSeF>${esc(invoice.originalKsefNumber)}</NrKSeF>` : `<NrKSeFN>1</NrKSeFN>`}
+    </DaneFaKorygowanej>
+` : ""}${faWierszeXml}
     <Platnosc>
 ${paymentStatusXml}      <FormaPlatnosci>${paymentMethodCode}</FormaPlatnosci>
       <TerminPlatnosci>
@@ -369,6 +375,29 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
 
   if (!trimmed.includes("<P_15>")) {
     issues.push({ severity: "error", path: "/Faktura/Fa/P_15", message: "Brak pola P_15 (kwota brutto ogółem)." });
+  }
+
+  if (trimmed.includes("<RodzajFaktury>KOR</RodzajFaktury>")) {
+    if (!trimmed.includes("<PrzyczynaKorekty>") || !trimmed.includes("</PrzyczynaKorekty>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Fa/PrzyczynaKorekty",
+        message: "Faktura korygująca (KOR) musi zawierać element <PrzyczynaKorekty>.",
+      });
+    }
+    if (!trimmed.includes("<DaneFaKorygowanej>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Fa/DaneFaKorygowanej",
+        message: "Faktura korygująca (KOR) musi zawierać sekcję <DaneFaKorygowanej>.",
+      });
+    } else if (!trimmed.includes("<NrFaKorygowanej>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Fa/DaneFaKorygowanej/NrFaKorygowanej",
+        message: "Sekcja <DaneFaKorygowanej> musi zawierać numer korygowanej faktury (<NrFaKorygowanej>).",
+      });
+    }
   }
 
   const errors = issues.filter((i) => i.severity === "error");
