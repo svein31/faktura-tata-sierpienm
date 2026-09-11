@@ -68,6 +68,7 @@ export interface AppState {
   deleteInvoice: (id: string) => Promise<void>;
   setInvoiceKsef: (id: string, ksef: KsefInfo) => void;
   applyInvoice: (inv: Invoice) => void;
+  approveInvoices: (ids: string[], status?: "approved" | "pending") => Promise<void>;
 
   setDraft: (invoice: Invoice | null, isNew: boolean) => void;
 
@@ -655,6 +656,40 @@ export const useAppStore = create<AppState>((set, get) => ({
         ? get().invoices.map((i) => (i.id === inv.id ? inv : i))
         : [inv, ...get().invoices],
     });
+  },
+
+  approveInvoices: async (ids, status = "approved") => {
+    const previousInvoices = get().invoices;
+    set({
+      invoices: previousInvoices.map((inv) =>
+        ids.includes(inv.id)
+          ? {
+              ...inv,
+              approvalStatus: status,
+              approvedAt: status === "approved" ? new Date().toISOString() : null,
+            }
+          : inv
+      ),
+    });
+
+    try {
+      const res = await fetch("/api/invoices/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceIds: ids, status }),
+      });
+      if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować statusu akceptacji faktur.");
+      const data = await res.json();
+      if (Array.isArray(data.invoices)) {
+        const map = new Map(data.invoices.map((i: Invoice) => [i.id, i]));
+        set({
+          invoices: get().invoices.map((inv) => (map.has(inv.id) ? (map.get(inv.id) as Invoice) : inv)),
+        });
+      }
+    } catch (err) {
+      set({ invoices: previousInvoices });
+      throw err;
+    }
   },
 
   setDraft: (invoice, isNew) => set({ draftInvoice: invoice, draftInvoiceIsNew: isNew }),

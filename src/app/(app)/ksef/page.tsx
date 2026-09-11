@@ -25,6 +25,7 @@ import {
   Layers,
   Loader2,
   Lock,
+  Mail,
   Radio,
   RefreshCw,
   Save,
@@ -145,8 +146,21 @@ function KsefPageInner() {
   const [sendingInvoice, setSendingInvoice] = React.useState(false);
   const [sendResult, setSendResult] = React.useState<any | null>(null);
 
-  // Synchronizacja zakupów (FZ)
+  // Synchronizacja zakupów (FZ) i harmonogram w tle
   const [syncingIncoming, setSyncingIncoming] = React.useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = React.useState<boolean>(Boolean(ksefSafe.autoSyncEnabled));
+  const [autoSyncIntervalHours, setAutoSyncIntervalHours] = React.useState<number>(ksefSafe.autoSyncIntervalHours || 2);
+  const [autoSyncNotifyEmail, setAutoSyncNotifyEmail] = React.useState<string>(ksefSafe.autoSyncNotifyEmail || "");
+  const [savingAutoSync, setSavingAutoSync] = React.useState(false);
+  const [approvingId, setApprovingId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (ksef) {
+      setAutoSyncEnabled(Boolean(ksef.autoSyncEnabled));
+      if (ksef.autoSyncIntervalHours) setAutoSyncIntervalHours(ksef.autoSyncIntervalHours);
+      if (ksef.autoSyncNotifyEmail !== undefined) setAutoSyncNotifyEmail(ksef.autoSyncNotifyEmail);
+    }
+  }, [ksef]);
 
   const salesWithoutKsef = invoices.filter((i) => i.type === "sale" && !i.ksef && i.status !== "draft");
   const ksefInvoices = invoices.filter((i) => i.ksef);
@@ -316,13 +330,69 @@ function KsefPageInner() {
     }
   };
 
+  const handleSaveAutoSync = async () => {
+    setSavingAutoSync(true);
+    try {
+      const res = await fetch("/api/ksef/auto-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          autoSyncEnabled,
+          autoSyncIntervalHours: Number(autoSyncIntervalHours),
+          autoSyncNotifyEmail: autoSyncNotifyEmail.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd zapisu harmonogramu");
+      await store.revalidate();
+      toast("success", "Zapisano harmonogram pobierania z KSeF", `Interwał: co ${autoSyncIntervalHours}h`);
+    } catch (e: any) {
+      toast("error", "Błąd zapisu harmonogramu", e?.message);
+    } finally {
+      setSavingAutoSync(false);
+    }
+  };
+
+  const handleToggleApproval = async (invoiceId: string, targetStatus: "approved" | "pending") => {
+    setApprovingId(invoiceId);
+    try {
+      const res = await fetch("/api/invoices/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceIds: [invoiceId],
+          status: targetStatus,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd aktualizacji statusu");
+      await store.revalidate();
+      toast(
+        targetStatus === "approved" ? "success" : "info",
+        targetStatus === "approved" ? "Zatwierdzono fakturę dla księgowości" : "Cofnięto zatwierdzenie"
+      );
+    } catch (e: any) {
+      toast("error", "Błąd aktualizacji", e?.message);
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   // Pobranie UPO faktury
   const handleDownloadUpo = (ksefNumber: string) => {
+    if (!ksefNumber || ksefNumber === "—") {
+      toast("warning", "Brak numeru KSeF", "Ta faktura nie posiada jeszcze zarejestrowanego numeru KSeF.");
+      return;
+    }
     window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=upo`, "_blank");
   };
 
   // Pobranie XML e-Faktury
   const handleDownloadXml = (ksefNumber: string) => {
+    if (!ksefNumber || ksefNumber === "—") {
+      toast("warning", "Brak numeru KSeF", "Ta faktura nie posiada jeszcze zarejestrowanego numeru KSeF.");
+      return;
+    }
     window.open(`/api/ksef/invoices/download/${encodeURIComponent(ksefNumber)}?format=xml`, "_blank");
   };
 
@@ -1041,6 +1111,96 @@ function KsefPageInner() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
+          {/* Karta harmonogramu automatycznego pobierania */}
+          <Card className="rounded-3xl border-border/70 shadow-sm bg-gradient-to-br from-card via-card/90 to-card/50">
+            <CardHeader className="pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-[16px]">Automatyczne Pobieranie Faktur z KSeF (w tle)</CardTitle>
+                    <CardDescription>
+                      System może cyklicznie odpytywać bramkę KSeF o nowe faktury kosztowe i powiadamiać Cię e-mailem o nowych dokumentach.
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge tone={autoSyncEnabled ? "success" : "muted"} className="text-xs">
+                  {autoSyncEnabled ? `Aktywny (co ${autoSyncIntervalHours}h)` : "Wyłączony"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-1">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Tryb automatyczny
+                  </Label>
+                  <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-border/60 bg-muted/20 cursor-pointer text-xs">
+                    <Checkbox
+                      checked={autoSyncEnabled}
+                      onChange={(e) => setAutoSyncEnabled(e.target.checked)}
+                    />
+                    <span className="font-medium text-foreground">Włącz autozakupy w tle</span>
+                  </label>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Częstotliwość sprawdzania
+                  </Label>
+                  <Select
+                    value={String(autoSyncIntervalHours)}
+                    onChange={(e) => setAutoSyncIntervalHours(Number(e.target.value))}
+                    className="rounded-xl text-xs h-10"
+                    disabled={!autoSyncEnabled}
+                  >
+                    <option value="1">Co 1 godzinę (1h)</option>
+                    <option value="2">Co 2 godziny (2h) — zalecane</option>
+                    <option value="10">Co 10 godzin (10h)</option>
+                    <option value="24">Co 24 godziny (raz na dobę)</option>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <Mail className="h-3 w-3" /> E-mail do powiadomień
+                  </Label>
+                  <Input
+                    type="email"
+                    placeholder="np. ksiegowosc@twojadomena.pl"
+                    value={autoSyncNotifyEmail}
+                    onChange={(e) => setAutoSyncNotifyEmail(e.target.value)}
+                    className="rounded-xl text-xs h-10"
+                    disabled={!autoSyncEnabled}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/40 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span>Ostatnia automatyczna synchronizacja:</span>
+                  <b className="text-foreground">
+                    {ksefSafe.lastAutoSyncAt ? formatDateTime(ksefSafe.lastAutoSyncAt) : "Nigdy / brak"}
+                  </b>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSaveAutoSync}
+                    loading={savingAutoSync}
+                    size="sm"
+                    className="rounded-xl gap-1.5 text-xs font-semibold"
+                  >
+                    <Save className="h-3.5 w-3.5" /> Zapisz harmonogram
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Wykaz faktur zakupowych */}
           <Card className="rounded-3xl border-border/70 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -1072,7 +1232,7 @@ function KsefPageInner() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs min-w-[700px]">
+                  <table className="w-full text-left text-xs min-w-[850px]">
                     <thead>
                       <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         <th className="py-3 px-3">Faktura</th>
@@ -1080,6 +1240,7 @@ function KsefPageInner() {
                         <th className="py-3 px-3">Data wystawienia</th>
                         <th className="py-3 px-3">Wartość brutto</th>
                         <th className="py-3 px-3">Numer KSeF</th>
+                        <th className="py-3 px-3">Księgowość</th>
                         <th className="py-3 px-3 text-right">Akcje</th>
                       </tr>
                     </thead>
@@ -1087,6 +1248,8 @@ function KsefPageInner() {
                       {purchaseInvoices.map((inv) => {
                         const ctr = getContractor(contractors, inv.contractorId);
                         const ksefNum = inv.ksef?.number || inv.ksefNumber || "—";
+                        const isApproved = inv.approvalStatus === "approved";
+
                         return (
                           <tr key={inv.id} className="hover:bg-muted/30 transition-colors">
                             <td className="py-3 px-3 font-semibold text-foreground">
@@ -1107,15 +1270,61 @@ function KsefPageInner() {
                                 {ksefNum}
                               </code>
                             </td>
+                            <td className="py-3 px-3">
+                              {isApproved ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] border border-emerald-500/20">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  Zatwierdzona
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-[11px] border border-amber-500/20">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  Do akceptacji
+                                </span>
+                              )}
+                            </td>
                             <td className="py-3 px-3 text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDownloadUpo(ksefNum)}
-                                className="h-8 px-2 text-xs gap-1"
-                              >
-                                <Download className="h-3 w-3" /> UPO
-                              </Button>
+                              <div className="flex items-center justify-end gap-1.5">
+                                {isApproved ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleToggleApproval(inv.id, "pending")}
+                                    loading={approvingId === inv.id}
+                                    className="h-7 px-2 text-[11px] rounded-lg"
+                                  >
+                                    Cofnij
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleToggleApproval(inv.id, "approved")}
+                                    loading={approvingId === inv.id}
+                                    className="h-7 px-2.5 text-[11px] rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium gap-1"
+                                  >
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    Akceptuj
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadUpo(ksefNum)}
+                                  className="h-7 px-2 text-xs gap-1"
+                                  title="Pobierz UPO (XML)"
+                                >
+                                  <Download className="h-3 w-3" /> UPO
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownloadXml(ksefNum)}
+                                  className="h-7 px-2 text-xs gap-1"
+                                  title="Pobierz e-Fakturę FA(3)"
+                                >
+                                  <FileCode2 className="h-3 w-3" /> XML
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         );

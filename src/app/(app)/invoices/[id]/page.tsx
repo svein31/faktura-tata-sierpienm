@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   CheckCircle2,
+  Clock,
   Download,
   FileCode2,
   FileDown,
@@ -65,6 +66,33 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [sending, setSending] = React.useState(false);
   const [checkingStatus, setCheckingStatus] = React.useState(false);
+  const [approving, setApproving] = React.useState(false);
+
+  const handleToggleApproval = async (targetStatus: "approved" | "pending") => {
+    setApproving(true);
+    try {
+      const res = await fetch("/api/invoices/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoiceIds: [invoice.id],
+          status: targetStatus,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd aktualizacji");
+      await useAppStore.getState().revalidate();
+      toast(
+        targetStatus === "approved" ? "success" : "info",
+        targetStatus === "approved" ? "Zatwierdzono fakturę dla księgowości" : "Cofnięto akceptację",
+        invoice.number
+      );
+    } catch (e: any) {
+      toast("error", "Błąd", e?.message);
+    } finally {
+      setApproving(false);
+    }
+  };
 
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefEnv = ksef?.environment ?? "demo";
@@ -203,6 +231,29 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             </Button>
           )}
 
+          {invoice.type === "purchase" && (
+            invoice.approvalStatus === "approved" ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleApproval("pending")}
+                loading={approving}
+                className="rounded-xl gap-1.5 text-xs text-muted-foreground"
+              >
+                Cofnij akceptację
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => handleToggleApproval("approved")}
+                loading={approving}
+                className="rounded-xl gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" /> Zatwierdź dla księgowości
+              </Button>
+            )
+          )}
+
           {!ksefNum && invoice.type === "sale" && (
             <Button
               variant="subtle"
@@ -225,6 +276,74 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           </Button>
         </div>
       </div>
+
+      {/* Karta Akceptacji Księgowej dla Faktur Zakupowych */}
+      {invoice.type === "purchase" && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
+          <Card className={`rounded-3xl border shadow-xs overflow-hidden ${
+            invoice.approvalStatus === "approved"
+              ? "border-emerald-500/30 bg-emerald-500/5"
+              : "border-amber-500/30 bg-amber-500/5"
+          }`}>
+            <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ${
+                  invoice.approvalStatus === "approved"
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-emerald-500/30"
+                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-amber-500/30"
+                }`}>
+                  {invoice.approvalStatus === "approved" ? (
+                    <CheckCircle2 className="h-6 w-6" />
+                  ) : (
+                    <Clock className="h-6 w-6" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">
+                      {invoice.approvalStatus === "approved"
+                        ? "Faktura zaakceptowana dla księgowości"
+                        : "Oczekuje na akceptację merytoryczno-księgową"}
+                    </p>
+                    <Badge tone={invoice.approvalStatus === "approved" ? "success" : "warning"} className="text-[10px]">
+                      {invoice.approvalStatus === "approved" ? "Zatwierdzona" : "Do akceptacji"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {invoice.approvalStatus === "approved"
+                      ? `Zaakceptowano: ${invoice.approvedAt ? formatDateTime(invoice.approvedAt) : "Tak"} · Użytkownik: ${invoice.approvedBy || "Administrator"}`
+                      : "Faktura zakupowa wymaga weryfikacji i akceptacji przed ujęciem w deklaracjach i KPiR/JPK."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0">
+                {invoice.approvalStatus === "approved" ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleToggleApproval("pending")}
+                    loading={approving}
+                    className="rounded-xl gap-1.5 text-xs"
+                  >
+                    Cofnij zatwierdzenie
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => handleToggleApproval("approved")}
+                    loading={approving}
+                    className="rounded-xl gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Zatwierdź dokument
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Dedykowana Karta Transmisji KSeF */}
       {ksefNum ? (

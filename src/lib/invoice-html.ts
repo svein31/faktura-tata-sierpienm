@@ -96,13 +96,25 @@ export function buildInvoiceHtmlString(
 <body>
 <div class="page">
   <div class="top">
-    <div>
-      <div class="doc-title">${invoice.type === "purchase" ? esc(L.purchaseDoc) : esc(L.saleDoc)}</div>
-      <div class="meta">${esc(L.invoiceNo)}: <b>${esc(invoice.number)}</b></div>
-      <div class="dates">
-        <span>${esc(L.issueDate)}: <b>${formatDate(invoice.issueDate)}</b></span>
-        <span>${esc(L.saleDate)}: <b>${formatDate(invoice.saleDate)}</b></span>
-        <span>${esc(L.dueDate)}: <b>${formatDate(invoice.dueDate)}</b></span>
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      ${company.logoUrl ? `
+        <div style="max-width: 180px; max-height: 75px; display: flex; align-items: center;">
+          <img src="${esc(company.logoUrl)}" alt="${esc(sellerName)}" style="max-height: 65px; max-width: 170px; object-fit: contain;" />
+        </div>
+      ` : ""}
+      <div>
+        <div class="doc-title">${invoice.type === "purchase" ? esc(L.purchaseDoc) : esc(L.saleDoc)}</div>
+        <div class="meta">${esc(L.invoiceNo)}: <b>${esc(invoice.number)}</b></div>
+        <div class="dates">
+          <span>${esc(L.issueDate)}: <b>${formatDate(invoice.issueDate)}</b></span>
+          <span>${esc(L.saleDate)}: <b>${formatDate(invoice.saleDate)}</b></span>
+          <span>${esc(L.dueDate)}: <b>${formatDate(invoice.dueDate)}</b></span>
+        </div>
+        ${(invoice.ksefNumber || invoice.ksef?.number) ? `
+          <div style="margin-top: 6px; font-size: 11px; font-family: monospace; color: #059669;">
+            Numer w KSeF: <b>${esc(invoice.ksefNumber || invoice.ksef?.number)}</b>
+          </div>
+        ` : ""}
       </div>
     </div>
     <div style="text-align:right; font-size:12px; color:#6b7280;">

@@ -92,16 +92,17 @@ async function main() {
 
   // 0. Przygotuj bazę testową (schema) i zbuduj aplikację (jeśli brak .next).
   console.log("[setup] prisma db push (test DB)…");
-  execFileSync("npx", ["prisma", "db", "push", "--skip-generate"], {
+  execFileSync(process.platform === "win32" ? "npx.cmd" : "npx", ["prisma", "db", "push", "--skip-generate"], {
     cwd: ROOT,
     env: { ...process.env, DATABASE_URL: DB_URL },
     stdio: "pipe",
+    shell: true,
   });
   console.log("[setup] db push OK");
 
   if (!existsSync(path.join(ROOT, ".next", "BUILD_ID"))) {
     console.log("[setup] brak .next — uruchamiam npm run build…");
-    execFileSync("npm", ["run", "build"], { cwd: ROOT, stdio: "pipe" });
+    execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: ROOT, stdio: "pipe", shell: true });
   }
 
   // 1. Start serwera.

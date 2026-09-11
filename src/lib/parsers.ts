@@ -135,6 +135,7 @@ export function parseCompanyProfileBody(body: Record<string, unknown>) {
     bankAccount: cleanStr(body.bankAccount ?? body.iban, 60, "bankAccount") || null,
     ksefToken: cleanStr(body.ksefToken, 500, "ksefToken") || null,
     isDefault: Boolean(body.isDefault),
+    logoUrl: typeof body.logoUrl === "string" ? body.logoUrl.trim() : null,
   };
 }
 
@@ -198,6 +199,7 @@ export async function parseInvoiceBody(
     paymentTermDays: Math.min(Math.max(Math.round(num(body.paymentTermDays)), 0), 365),
     notes: cleanStr(body.notes, 4000, "notes") || null,
     lines: parseLines(body.lines) as unknown as Prisma.InputJsonValue,
+    approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
     ksef: undefined,
   };
 }

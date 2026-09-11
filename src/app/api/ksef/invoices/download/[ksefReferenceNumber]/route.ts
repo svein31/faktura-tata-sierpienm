@@ -30,18 +30,30 @@ export async function GET(req: Request, { params }: RouteParams) {
     const url = new URL(req.url);
     const format = url.searchParams.get("format") || "json";
 
-    // 1. Sprawdź fakturę w lokalnej bazie
-    const localInvoice = await prisma.invoice.findFirst({
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(ksefReferenceNumber);
+    const orClauses: Array<{ ksefNumber?: string; referenceNumber?: string; id?: string }> = [
+      { ksefNumber: ksefReferenceNumber },
+      { referenceNumber: ksefReferenceNumber },
+    ];
+    if (isObjectId) {
+      orClauses.push({ id: ksefReferenceNumber });
+    }
+
+    // 1. Sprawdź fakturę w lokalnej bazie (najpierw powiązaną z sesją, a przy braku — ogólnie wg unikalnego nr KSeF)
+    let localInvoice = await prisma.invoice.findFirst({
       where: {
-        OR: [
-          { ksefNumber: ksefReferenceNumber },
-          { referenceNumber: ksefReferenceNumber },
-          { id: ksefReferenceNumber },
-        ],
+        OR: orClauses,
         ...(user ? { userId: user.id } : {}),
       },
-      include: { ksefSession: true },
+      include: { sellerCompany: true, ksefSession: true },
     });
+
+    if (!localInvoice) {
+      localInvoice = await prisma.invoice.findFirst({
+        where: { OR: orClauses },
+        include: { sellerCompany: true, ksefSession: true },
+      });
+    }
 
     const safeFilename = ksefReferenceNumber.replace(/[^a-zA-Z0-9_-]/g, "_");
 

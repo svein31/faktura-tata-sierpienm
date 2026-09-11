@@ -66,6 +66,7 @@ model CompanySettings {
   bankName  String   @default("")
   email     String   @default("")
   phone     String   @default("")
+  logoUrl   String?  @default("")
   updatedAt DateTime @updatedAt
 }
 
@@ -78,9 +79,13 @@ model KsefSettings {
   tokenSet           Boolean   @default(false)
   tokenMask          String    @default("")
   certName           String    @default("")
-  autoValidate       Boolean   @default(true)
-  lastIncomingSyncAt DateTime?
-  updatedAt          DateTime  @updatedAt
+  autoValidate          Boolean   @default(true)
+  lastIncomingSyncAt    DateTime?
+  autoSyncEnabled       Boolean   @default(false)
+  autoSyncIntervalHours Int       @default(1)
+  autoSyncNotifyEmail   String?   @default("")
+  lastAutoSyncAt        DateTime?
+  updatedAt             DateTime  @updatedAt
 }
 
 /// Sesja uwierzytelniona KSeF API 2.0
@@ -165,6 +170,7 @@ model CompanyProfile {
   bankAccount    String?
   ksefToken      String?
   isDefault      Boolean   @default(false)
+  logoUrl        String?   @default("")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   invoices       Invoice[]
@@ -207,6 +213,9 @@ model Invoice {
   sentAt          DateTime?
   sentToEmail     String?
   emailStatus     String?
+  approvalStatus  String?         @default("pending")
+  approvedAt      DateTime?
+  approvedBy      String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 

@@ -26,6 +26,7 @@ export interface CompanyProfile {
   bankAccount?: string | null;
   ksefToken?: string | null;
   isDefault: boolean;
+  logoUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 
@@ -113,6 +114,9 @@ export interface Invoice {
   sentAt?: string | null;
   sentToEmail?: string | null;
   emailStatus?: string | null;
+  approvalStatus?: "pending" | "approved" | string | null;
+  approvedAt?: string | null;
+  approvedBy?: string | null;
   createdAt: string;
 }
 
@@ -123,6 +127,10 @@ export interface KsefSettings {
   tokenMask: string;
   certName: string;
   autoValidate: boolean;
+  autoSyncEnabled?: boolean;
+  autoSyncIntervalHours?: number;
+  autoSyncNotifyEmail?: string;
+  lastAutoSyncAt?: string | null;
 }
 
 export interface NipLookupResult {

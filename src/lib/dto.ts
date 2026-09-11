@@ -49,6 +49,7 @@ export function companyProfileToDto(cp: DbCompanyProfile): CompanyProfile {
     bankAccount: cp.bankAccount ?? "",
     ksefToken: cp.ksefToken ?? null,
     isDefault: cp.isDefault,
+    logoUrl: cp.logoUrl ?? "",
     createdAt: cp.createdAt.toISOString(),
     updatedAt: cp.updatedAt.toISOString(),
 
@@ -78,6 +79,7 @@ export function companyToDto(c: CompanySettings): CompanyProfile {
     bankAccount: c.iban,
     ksefToken: null,
     isDefault: true,
+    logoUrl: c.logoUrl ?? "",
     createdAt: new Date().toISOString(),
     updatedAt: c.updatedAt.toISOString(),
 
@@ -99,6 +101,10 @@ export function ksefToDto(k: DbKsef): KsefSettings {
     tokenMask: k.tokenMask,
     certName: k.certName,
     autoValidate: k.autoValidate,
+    autoSyncEnabled: k.autoSyncEnabled,
+    autoSyncIntervalHours: k.autoSyncIntervalHours,
+    autoSyncNotifyEmail: k.autoSyncNotifyEmail ?? "",
+    lastAutoSyncAt: k.lastAutoSyncAt ? k.lastAutoSyncAt.toISOString() : null,
   };
 }
 
@@ -176,6 +182,9 @@ export function invoiceToDto(i: DbInvoice & { sellerCompany?: DbCompanyProfile |
     sentAt: i.sentAt ? i.sentAt.toISOString() : null,
     sentToEmail: i.sentToEmail ?? null,
     emailStatus: i.emailStatus ?? null,
+    approvalStatus: i.approvalStatus ?? "pending",
+    approvedAt: i.approvedAt ? i.approvedAt.toISOString() : null,
+    approvedBy: i.approvedBy ?? null,
     createdAt: i.createdAt.toISOString(),
   };
 }

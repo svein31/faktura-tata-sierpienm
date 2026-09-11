@@ -6,6 +6,7 @@ import { invoiceToDto } from "@/lib/dto";
 import { KsefApiError, KsefClient, type KsefInvoiceHeader } from "@/lib/ksef/client";
 import type { KsefEnvironment } from "@/lib/ksef/constants";
 import { parseFa3IncomingInvoice } from "@/lib/ksef/incomingInvoice";
+import { sendEmail } from "@/lib/email/sender";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -246,6 +247,7 @@ export async function POST() {
             number: parsed.number,
             type: "purchase",
             status: "issued",
+            approvalStatus: "pending",
             contractorId: contractor.id,
             issueDate: parsed.issueDate,
             saleDate: parsed.saleDate,
@@ -290,13 +292,68 @@ export async function POST() {
     // Zaktualizuj kursor synchronizacji dopiero po pomyślnym imporcie
     await prisma.ksefSettings.upsert({
       where: { userId: user.id },
-      update: { lastIncomingSyncAt: syncTo },
+      update: { lastIncomingSyncAt: syncTo, lastAutoSyncAt: syncTo },
       create: {
         userId: user.id,
         environment: client.environment,
         lastIncomingSyncAt: syncTo,
+        lastAutoSyncAt: syncTo,
       },
     });
+
+    // Powiadomienie e-mail i in-app jeśli zaimportowano nowe faktury
+    if (imported.length > 0) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          kind: "ksef",
+          title: `Pobrano ${imported.length} nową(-ych) faktur zakupowych z KSeF`,
+          body: `Faktury oczekują na zatwierdzenie dla księgowości.`,
+          link: "/invoices",
+        },
+      }).catch(() => undefined);
+
+      const notifyEmail = settings?.autoSyncNotifyEmail?.trim() || user.email;
+      if (notifyEmail) {
+        const rowsHtml = imported.map((inv: any) => `
+          <tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 10px; font-weight: bold;">${inv.number}</td>
+            <td style="padding: 10px; font-family: monospace; font-size: 11px;">${inv.ksefNumber || '—'}</td>
+            <td style="padding: 10px; text-align: right; font-weight: bold;">${inv.totalGross !== undefined ? Number(inv.totalGross).toFixed(2) + ' ' + (inv.currency || 'PLN') : '—'}</td>
+          </tr>
+        `).join("");
+
+        const appUrl = process.env.NEXTAUTH_URL || "https://fakturo.app";
+        sendEmail({
+          to: notifyEmail,
+          subject: `Nowe faktury zakupowe z KSeF (${imported.length})`,
+          html: `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; color: #111827; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
+              <h2 style="color: #059669; margin-top: 0;">Otrzymano nowe faktury zakupowe z KSeF</h2>
+              <p>System Fakturo pobrał <b>${imported.length}</b> nową(-ych) fakturę(-ur) kosztową(-ych) wystawioną(-ych) na Twój NIP.</p>
+              <p style="color: #4b5563; font-size: 14px;">Dokumenty oczekują na zatwierdzenie dla księgowości.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+                <thead>
+                  <tr style="background-color: #f9fafb; text-align: left; border-bottom: 2px solid #e5e7eb;">
+                    <th style="padding: 10px;">Nr faktury</th>
+                    <th style="padding: 10px;">Numer KSeF</th>
+                    <th style="padding: 10px; text-align: right;">Kwota brutto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+              <div style="margin-top: 24px; text-align: center;">
+                <a href="${appUrl}/invoices" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">Przejdź do faktur i zatwierdź</a>
+              </div>
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 32px;" />
+              <p style="font-size: 11px; color: #9ca3af; text-align: center;">Wiadomość wygenerowana automatycznie przez system Fakturo.</p>
+            </div>
+          `,
+        }).catch((e) => console.error("[sync-incoming] Błąd wysyłki e-mail powiadomienia:", e));
+      }
+    }
 
     return json({
       success: true,

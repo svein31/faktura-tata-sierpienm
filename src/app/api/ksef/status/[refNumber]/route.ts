@@ -27,13 +27,18 @@ export async function GET(req: Request, { params }: RouteParams) {
     }
 
     // Znajdź fakturę w bazie
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(refNumber);
+    const orClauses: Array<{ referenceNumber?: string; ksefNumber?: string; id?: string }> = [
+      { referenceNumber: refNumber },
+      { ksefNumber: refNumber },
+    ];
+    if (isObjectId) {
+      orClauses.push({ id: refNumber });
+    }
+
     const invoice = await prisma.invoice.findFirst({
       where: {
-        OR: [
-          { referenceNumber: refNumber },
-          { ksefNumber: refNumber },
-          { id: refNumber },
-        ],
+        OR: orClauses,
         ...(user ? { userId: user.id } : {}),
       },
       include: { ksefSession: true },

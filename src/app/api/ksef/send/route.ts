@@ -42,17 +42,39 @@ export async function POST(req: Request) {
     const invoiceId = str(body.invoiceId);
     const invoiceNumber = str(body.invoiceNumber);
 
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(invoiceId);
+    const orConds = [
+      ...(isObjectId ? [{ id: invoiceId }] : []),
+      ...(invoiceNumber ? [{ number: invoiceNumber }] : []),
+    ];
+
     // Znajdź fakturę w bazie
     const invoice = await prisma.invoice.findFirst({
       where: {
         userId: session.id,
-        OR: invoiceId ? [{ id: invoiceId }] : invoiceNumber ? [{ number: invoiceNumber }] : undefined,
+        OR: orConds.length > 0 ? orConds : undefined,
       },
       include: { sellerCompany: true },
     });
 
     if (!invoice && !xml) {
       throw new ApiError(404, "Nie znaleziono faktury do wysyłki.");
+    }
+
+    // Blokada logiczna: faktury zakupowe (FZ) nie mogą być wysyłane do KSeF jako faktury sprzedaży
+    if (invoice?.type === "purchase") {
+      throw new ApiError(
+        400,
+        "Faktura zakupowa (FZ) nie może być wysłana do KSeF. Faktury zakupowe odbiera się z KSeF lub ewidencjonuje jako koszty."
+      );
+    }
+
+    // Blokada logiczna: faktury już zarejestrowane w KSeF
+    if (invoice?.ksefNumber) {
+      throw new ApiError(
+        400,
+        `Faktura posiada już nadany numer KSeF (${invoice.ksefNumber}) i nie może zostać wysłana ponownie.`
+      );
     }
 
     // Pobierz dane sprzedawcy i kontrahenta

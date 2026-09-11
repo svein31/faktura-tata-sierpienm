@@ -64,31 +64,90 @@ export async function generateInvoicePdfBuffer(
 
   let y = height - 40;
 
+  // Osadzenie logo firmy (jeśli obecne)
+  let logoImage = null;
+  let logoWidth = 0;
+  let logoHeight = 0;
+
+  if (effectiveCompany.logoUrl) {
+    try {
+      const rawLogo = effectiveCompany.logoUrl;
+      let imgBuffer: Buffer | null = null;
+      let isPng = false;
+
+      if (rawLogo.startsWith("data:image/png;base64,")) {
+        imgBuffer = Buffer.from(rawLogo.replace("data:image/png;base64,", ""), "base64");
+        isPng = true;
+      } else if (rawLogo.startsWith("data:image/jpeg;base64,") || rawLogo.startsWith("data:image/jpg;base64,")) {
+        imgBuffer = Buffer.from(rawLogo.replace(/^data:image\/jpe?g;base64,/, ""), "base64");
+        isPng = false;
+      } else if (rawLogo.startsWith("data:")) {
+        const comma = rawLogo.indexOf(",");
+        if (comma !== -1) {
+          imgBuffer = Buffer.from(rawLogo.slice(comma + 1), "base64");
+          isPng = rawLogo.includes("image/png");
+        }
+      }
+
+      if (imgBuffer) {
+        logoImage = isPng ? await pdfDoc.embedPng(imgBuffer) : await pdfDoc.embedJpg(imgBuffer);
+        const dims = logoImage.scale(1);
+        const maxW = 90;
+        const maxH = 46;
+        const scale = Math.min(maxW / dims.width, maxH / dims.height, 1);
+        logoWidth = dims.width * scale;
+        logoHeight = dims.height * scale;
+      }
+    } catch (e) {
+      console.warn("[PDF] Nie udało się osadzić logo:", e);
+    }
+  }
+
   // ── Nagłówek dokumentu ──
   page.drawRectangle({
     x: 40,
-    y: y - 50,
+    y: y - 54,
     width: width - 80,
-    height: 60,
+    height: 64,
     color: lightBg,
   });
 
+  if (logoImage) {
+    page.drawImage(logoImage, {
+      x: 52,
+      y: y - 50 + (48 - logoHeight) / 2,
+      width: logoWidth,
+      height: logoHeight,
+    });
+  }
+
+  const titleX = logoImage ? 55 + logoWidth + 14 : 55;
   const docTitle = invoice.type === "purchase" ? cleanText(L.purchaseDoc) : cleanText(L.saleDoc);
   page.drawText(docTitle.toUpperCase(), {
-    x: 55,
+    x: titleX,
     y: y - 22,
-    size: 16,
+    size: 15,
     font: fontBold,
     color: primaryColor,
   });
 
   page.drawText(`Nr: ${cleanText(invoice.number)}`, {
-    x: 55,
-    y: y - 40,
-    size: 12,
+    x: titleX,
+    y: y - 38,
+    size: 11,
     font: fontBold,
     color: darkColor,
   });
+
+  if (invoice.ksefNumber || invoice.ksef?.number) {
+    page.drawText(`KSeF: ${cleanText(invoice.ksefNumber || invoice.ksef?.number)}`, {
+      x: titleX,
+      y: y - 50,
+      size: 7.5,
+      font: fontRegular,
+      color: grayColor,
+    });
+  }
 
   // Daty (prawa strona nagłówka)
   const dateX = width - 230;

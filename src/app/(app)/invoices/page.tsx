@@ -19,6 +19,10 @@ import {
   ShieldCheck,
   Trash2,
   X,
+  Check,
+  CheckCircle2,
+  Clock,
+  FileCheck2,
 } from "lucide-react";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -47,15 +51,18 @@ const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> =
 export default function InvoicesPage() {
   const router = useRouter();
   const toast = useToast();
-  const { invoices, contractors, setDraft, deleteInvoice, company, ksef } = useAppStore();
+  const { invoices, contractors, setDraft, deleteInvoice, company, ksef, approveInvoices } = useAppStore();
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
   const [typeFilter, setTypeFilter] = React.useState<"all" | InvoiceType>("all");
+  const [approvalFilter, setApprovalFilter] = React.useState<"all" | "pending" | "approved">("all");
   const [currencyFilter, setCurrencyFilter] = React.useState<"all" | "PLN" | "EUR" | "USD">("all");
   const [toDelete, setToDelete] = React.useState<string | null>(null);
   const [confirmKsef, setConfirmKsef] = React.useState<string | null>(null);
   const [sendingKsef, setSendingKsef] = React.useState(false);
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [approving, setApproving] = React.useState(false);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -64,6 +71,11 @@ export default function InvoicesPage() {
       .filter((inv) => {
         if (typeFilter !== "all" && inv.type !== typeFilter) return false;
         if (currencyFilter !== "all" && inv.currency !== currencyFilter) return false;
+        if (approvalFilter !== "all" && inv.type === "purchase") {
+          const isAppr = inv.approvalStatus === "approved";
+          if (approvalFilter === "approved" && !isAppr) return false;
+          if (approvalFilter === "pending" && isAppr) return false;
+        }
         const s = effectiveStatus(inv);
         if (statusFilter !== "all" && s !== statusFilter) return false;
         if (q) {
@@ -73,13 +85,43 @@ export default function InvoicesPage() {
         }
         return true;
       });
-  }, [invoices, contractors, search, statusFilter, typeFilter, currencyFilter]);
+  }, [invoices, contractors, search, statusFilter, typeFilter, approvalFilter, currencyFilter]);
 
-  const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || currencyFilter !== "all";
+  const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || approvalFilter !== "all" || currencyFilter !== "all";
+
+  const handleBulkApprove = async (status: "approved" | "pending" = "approved") => {
+    if (selectedIds.length === 0) return;
+    setApproving(true);
+    try {
+      await approveInvoices(selectedIds, status);
+      toast(
+        "success",
+        status === "approved" ? "Zaakceptowano zaznaczone faktury" : "Cofnięto akceptację",
+        `Zaktualizowano ${selectedIds.length} dokumentów.`
+      );
+      setSelectedIds([]);
+    } catch (e) {
+      toast("error", "Błąd", e instanceof Error ? e.message : undefined);
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleSingleApprove = async (id: string, status: "approved" | "pending") => {
+    try {
+      await approveInvoices([id], status);
+      toast("success", status === "approved" ? "Faktura zaakceptowana dla księgowości" : "Cofnięto akceptację");
+    } catch (e) {
+      toast("error", "Błąd", e instanceof Error ? e.message : undefined);
+    }
+  };
 
   const editInvoice = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv) return;
+    if (inv.ksefNumber || inv.ksef?.number) {
+      toast("info", "Faktura zarejestrowana w KSeF", "Dokument posiada status KSeF — edycja pól fiskalnych jest zablokowana.");
+    }
     setDraft({ ...inv }, false);
     router.push("/invoices/new");
   };
@@ -202,6 +244,177 @@ export default function InvoicesPage() {
         }
       />
 
+      {/* ── Nowoczesne, profesjonalne zakładki kategorii dokumentów ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-border/70 pb-3.5">
+          {/* Główne zakładki typów faktur */}
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-muted/40 border border-border/70 shadow-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setTypeFilter("all");
+                setApprovalFilter("all");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                typeFilter === "all"
+                  ? "bg-background text-foreground shadow-xs ring-1 ring-border/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span>Wszystkie dokumenty</span>
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                typeFilter === "all" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+              }`}>
+                {invoices.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTypeFilter("sale");
+                setApprovalFilter("all");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                typeFilter === "sale"
+                  ? "bg-background text-primary shadow-xs ring-1 ring-border/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <FileCheck2 className="h-3.5 w-3.5 text-primary" />
+              <span>Sprzedaż (FV)</span>
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                typeFilter === "sale" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {invoices.filter((i) => i.type === "sale").length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTypeFilter("purchase")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                typeFilter === "purchase"
+                  ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs ring-1 ring-border/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <CloudDownload className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Wydatki / Zakupy (FZ)</span>
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                typeFilter === "purchase" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+              }`}>
+                {invoices.filter((i) => i.type === "purchase").length}
+              </span>
+              {invoices.some((i) => i.type === "purchase" && i.approvalStatus !== "approved") && (
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Pod-zakładki akceptacji księgowej dla FZ */}
+          {typeFilter === "purchase" && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-muted/30 border border-border/60 shadow-2xs"
+            >
+              <span className="text-[11px] font-semibold text-muted-foreground px-2 uppercase tracking-wider">
+                Status księgowy:
+              </span>
+              <button
+                type="button"
+                onClick={() => setApprovalFilter("all")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  approvalFilter === "all"
+                    ? "bg-background text-foreground shadow-xs ring-1 ring-border/80"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                }`}
+              >
+                Wszystkie ({invoices.filter((i) => i.type === "purchase").length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setApprovalFilter("pending")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  approvalFilter === "pending"
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 shadow-xs ring-1 ring-amber-500/40"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                }`}
+              >
+                <Clock className="h-3.5 w-3.5 text-amber-500" />
+                <span>Do akceptacji</span>
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                  {invoices.filter((i) => i.type === "purchase" && i.approvalStatus !== "approved").length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setApprovalFilter("approved")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  approvalFilter === "approved"
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-xs ring-1 ring-emerald-500/40"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Zaakceptowane</span>
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                  {invoices.filter((i) => i.type === "purchase" && i.approvalStatus === "approved").length}
+                </span>
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Pasek masowych operacji */}
+      {selectedIds.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 px-4 shadow-sm"
+        >
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>
+              Zaznaczono: <b>{selectedIds.length}</b> dokument(ów)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => handleBulkApprove("approved")}
+              loading={approving}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
+            >
+              <Check className="h-3.5 w-3.5" /> Akceptuj dla księgowości
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkApprove("pending")}
+              loading={approving}
+              className="rounded-xl text-xs h-8 text-muted-foreground hover:text-foreground"
+            >
+              Cofnij akceptację
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+              className="rounded-xl text-xs h-8 text-muted-foreground"
+            >
+              Odznacz
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Pasek filtrów */}
       <div className="rounded-2xl border border-border/70 bg-card/70 p-3.5 backdrop-blur-xl shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5">
@@ -226,15 +439,6 @@ export default function InvoicesPage() {
             ))}
           </Select>
           <Select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as "all" | InvoiceType)}
-            className="w-auto h-10 rounded-xl text-xs"
-          >
-            <option value="all">Wszystkie typy</option>
-            <option value="sale">Sprzedaż (FV)</option>
-            <option value="purchase">Zakup (FZ)</option>
-          </Select>
-          <Select
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
             className="w-auto h-10 rounded-xl text-xs"
@@ -252,6 +456,7 @@ export default function InvoicesPage() {
                 setSearch("");
                 setStatusFilter("all");
                 setTypeFilter("all");
+                setApprovalFilter("all");
                 setCurrencyFilter("all");
               }}
               className="rounded-xl text-xs gap-1 text-muted-foreground hover:text-foreground"
@@ -275,16 +480,30 @@ export default function InvoicesPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[920px] text-left text-xs">
+          <table className="w-full min-w-[980px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/70 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
-                <th className="py-3 px-4">Numer dokumentu</th>
+                <th className="py-3 px-3 w-8 text-center">
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(filtered.map((i) => i.id));
+                      } else {
+                        setSelectedIds([]);
+                      }
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
+                  />
+                </th>
+                <th className="py-3 px-3">Numer dokumentu</th>
                 <th className="py-3 px-3">Kontrahent</th>
-                <th className="py-3 px-3">Data wystawienia</th>
-                <th className="py-3 px-3">Termin</th>
+                <th className="py-3 px-3">Data</th>
                 <th className="py-3 px-3 text-right">Wartość brutto</th>
-                <th className="py-3 px-3">Status płatności</th>
+                <th className="py-3 px-3">Płatność</th>
                 <th className="py-3 px-3">Status KSeF</th>
+                <th className="py-3 px-3">Księgowość</th>
                 <th className="py-3 px-4 text-right">Akcje</th>
               </tr>
             </thead>
@@ -295,6 +514,8 @@ export default function InvoicesPage() {
                   const s = effectiveStatus(inv);
                   const ksefNum = inv.ksef?.number || inv.ksefNumber;
                   const isKsefActive = inv.ksef?.status === "ACTIVE" || inv.status === "ksef_active";
+                  const isSelected = selectedIds.includes(inv.id);
+                  const isApproved = inv.approvalStatus === "approved";
 
                   return (
                     <motion.tr
@@ -303,9 +524,24 @@ export default function InvoicesPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="transition-colors hover:bg-muted/30"
+                      className={`transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
                     >
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds((prev) => [...prev, inv.id]);
+                            } else {
+                              setSelectedIds((prev) => prev.filter((id) => id !== inv.id));
+                            }
+                          }}
+                          className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
+                        />
+                      </td>
+
+                      <td className="py-3.5 px-3">
                         <Link href={`/invoices/${inv.id}`} className="group flex items-center gap-2.5">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                             <FileText className="h-4 w-4" />
@@ -322,12 +558,14 @@ export default function InvoicesPage() {
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <p className="font-medium text-foreground max-w-[200px] truncate">{ctr?.name || "Klient detaliczny"}</p>
+                        <p className="font-medium text-foreground max-w-[180px] truncate">{ctr?.name || "Klient detaliczny"}</p>
                         <p className="text-[11px] font-mono text-muted-foreground">{ctr?.nip || ""}</p>
                       </td>
 
-                      <td className="py-3.5 px-3 text-muted-foreground">{formatDate(inv.issueDate)}</td>
-                      <td className="py-3.5 px-3 text-muted-foreground">{formatDate(inv.dueDate)}</td>
+                      <td className="py-3.5 px-3 text-muted-foreground">
+                        <p>{formatDate(inv.issueDate)}</p>
+                        <p className="text-[10.5px] opacity-75">termin: {formatDate(inv.dueDate)}</p>
+                      </td>
 
                       <td className="py-3.5 px-3 text-right font-bold tabular-nums text-foreground text-[13px]">
                         {formatMoney(
@@ -350,7 +588,7 @@ export default function InvoicesPage() {
                           <div className="flex items-center gap-1.5">
                             <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
                             <div className="min-w-0">
-                              <span className="block font-mono text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 truncate max-w-[130px]" title={ksefNum}>
+                              <span className="block font-mono text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 truncate max-w-[120px]" title={ksefNum}>
                                 {ksefNum}
                               </span>
                               <span className="text-[10px] text-muted-foreground uppercase">
@@ -363,8 +601,56 @@ export default function InvoicesPage() {
                         )}
                       </td>
 
+                      {/* Status akceptacji księgowej (na wzór wFirma — Screen 4) */}
+                      <td className="py-3.5 px-3">
+                        {inv.type === "purchase" ? (
+                          isApproved ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25"
+                              title="Faktura zatwierdzona do księgowości"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Zaakceptowana
+                            </span>
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25"
+                              title="Wersja robocza — oczekuje na ręczne zatwierdzenie"
+                            >
+                              <Clock className="h-3.5 w-3.5 text-amber-500" /> Do akceptacji
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground/40 text-[11px]">—</span>
+                        )}
+                      </td>
+
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Przycisk akceptacji dla faktur zakupowych (dokładnie jak na screen 4) */}
+                          {inv.type === "purchase" && !isApproved && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSingleApprove(inv.id, "approved")}
+                              title="Zatwierdź dla księgowości"
+                              className="h-8 px-2.5 text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 gap-1 rounded-xl font-medium"
+                            >
+                              <Check className="h-3 w-3" /> Akceptuj
+                            </Button>
+                          )}
+
+                          {inv.type === "purchase" && isApproved && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSingleApprove(inv.id, "pending")}
+                              title="Cofnij zatwierdzenie"
+                              className="h-8 px-2 text-[11px] text-muted-foreground hover:text-foreground rounded-lg"
+                            >
+                              Cofnij
+                            </Button>
+                          )}
+
                           {ksefNum && (
                             <Button
                               variant="ghost"

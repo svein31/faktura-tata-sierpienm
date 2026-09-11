@@ -74,35 +74,53 @@ export function InvoicePreview({
     invoice.paymentMethod === "transfer" &&
     (invoice.type === "sale" ? compIban : contractor?.iban);
 
+  const logoUrl = invoice.type === "sale" ? company.logoUrl : undefined;
+
   return (
     <div className={cn("invoice-paper overflow-hidden p-6 sm:p-8", className)}>
       {/* Nagłówek */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight text-gradient">
-              {invoice.type === "purchase" ? L.purchaseDoc : L.saleDoc}
-            </span>
-            <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-              {L.originals}
-            </span>
-          </div>
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            {L.invoiceNo}: <span className="font-semibold text-foreground">{invoice.number}</span>
-          </p>
-          <div className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 text-[12px] sm:grid-cols-3">
-            <div>
-              <span className="text-muted-foreground">{L.issueDate}: </span>
-              <span className="font-medium">{formatDate(invoice.issueDate)}</span>
+        <div className="flex items-start gap-4">
+          {logoUrl ? (
+            <div className="flex shrink-0 items-center justify-center rounded-xl border border-border/60 bg-white p-2 max-w-[170px] max-h-[75px] shadow-xs">
+              <img
+                src={logoUrl}
+                alt={sellerName}
+                className="max-h-14 max-w-full object-contain"
+              />
             </div>
-            <div>
-              <span className="text-muted-foreground">{L.saleDate}: </span>
-              <span className="font-medium">{formatDate(invoice.saleDate)}</span>
+          ) : null}
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold tracking-tight text-gradient">
+                {invoice.type === "purchase" ? L.purchaseDoc : L.saleDoc}
+              </span>
+              <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                {L.originals}
+              </span>
             </div>
-            <div>
-              <span className="text-muted-foreground">{L.dueDate}: </span>
-              <span className="font-medium">{formatDate(invoice.dueDate)}</span>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              {L.invoiceNo}: <span className="font-semibold text-foreground">{invoice.number}</span>
+            </p>
+            <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 text-[12px] sm:grid-cols-3">
+              <div>
+                <span className="text-muted-foreground">{L.issueDate}: </span>
+                <span className="font-medium">{formatDate(invoice.issueDate)}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{L.saleDate}: </span>
+                <span className="font-medium">{formatDate(invoice.saleDate)}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">{L.dueDate}: </span>
+                <span className="font-medium">{formatDate(invoice.dueDate)}</span>
+              </div>
             </div>
+            {(invoice.ksefNumber || invoice.ksef?.number) && (
+              <p className="mt-1.5 text-[11px] text-muted-foreground font-mono">
+                Numer w KSeF: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{invoice.ksefNumber || invoice.ksef?.number}</span>
+              </p>
+            )}
           </div>
         </div>
         <div className="text-right">

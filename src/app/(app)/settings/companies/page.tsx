@@ -202,6 +202,11 @@ export default function CompaniesSettingsPage() {
 
                       <CardHeader className="pb-3">
                         <div className="pr-16">
+                          {company.logoUrl && (
+                            <div className="mb-2 flex h-9 w-fit items-center rounded-lg border border-border/70 bg-white p-1 px-2 max-w-[140px] overflow-hidden">
+                              <img src={company.logoUrl} alt={company.companyName} className="max-h-7 max-w-full object-contain" />
+                            </div>
+                          )}
                           <CardTitle className="text-[15px] leading-tight font-bold line-clamp-2">
                             {company.companyName}
                           </CardTitle>

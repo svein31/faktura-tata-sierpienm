@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   UserPlus,
   Mail,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -165,6 +166,8 @@ export function InvoiceCreator() {
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
   const invoiceNumber = draftInvoice?.number ?? nextInvoiceNumber(invoices, form.type);
+  const isPurchase = form.type === "purchase";
+  const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
   const selectedContractor = form.useNewContractor
     ? undefined
@@ -328,6 +331,14 @@ export function InvoiceCreator() {
   };
 
   const handleSendKsef = async () => {
+    if (isPurchase) {
+      toast("error", "Błąd logiczny", "Faktura zakupowa (FZ) nie może być wysłana do KSeF jako faktura sprzedaży. Faktury zakupowe są odbierane z KSeF.");
+      return;
+    }
+    if (isKsefRegistered) {
+      toast("error", "Błąd KSeF", "Ta faktura posiada już nadany numer KSeF i nie może zostać wysłana ponownie.");
+      return;
+    }
     const errs = validate();
     setErrors(errs);
     if (errs.length) {
@@ -374,6 +385,27 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
+        {isKsefRegistered && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-[12.5px] text-emerald-800 dark:text-emerald-300">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div>
+              <p className="font-semibold">Faktura zarejestrowana w KSeF (numer: {draftInvoice?.ksefNumber || draftInvoice?.ksef?.number})</p>
+              <p className="text-[11.5px] opacity-90 mt-0.5">
+                Ten dokument został oficjalnie przetworzony w KSeF. Jego dane skarbowe są nienaruszalne i zablokowane przed ponowną wysyłką.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isPurchase && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-blue-500/25 bg-blue-500/5 p-3 text-[12px] text-blue-700 dark:text-blue-300">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+            <span>
+              <b>Faktura zakupowa (FZ):</b> Dokument kosztowy od zewnętrznego sprzedawcy. Trafia do ewidencji wydatków i zatwierdzenia dla księgowości (nie podlega wysyłce do KSeF).
+            </span>
+          </div>
+        )}
+
         {companies.length === 0 && !effectiveSellerCompany?.companyName && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -764,11 +796,13 @@ export function InvoiceCreator() {
                 <Save className="h-4 w-4" /> Szkic
               </Button>
               <Button onClick={handleSave} loading={saving === "save"}>
-                <CheckCircle2 className="h-4 w-4" /> Zapisz fakturę
+                <CheckCircle2 className="h-4 w-4" /> {isPurchase ? "Zapisz fakturę zakupową (FZ)" : "Zapisz fakturę"}
               </Button>
-              <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">
-                <Send className="h-4 w-4" /> Wyślij do KSeF
-              </Button>
+              {!isPurchase && !isKsefRegistered && (
+                <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">
+                  <Send className="h-4 w-4" /> Wyślij do KSeF
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -801,11 +835,13 @@ export function InvoiceCreator() {
             <Save className="h-4 w-4" /> Szkic
           </Button>
           <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
-            <CheckCircle2 className="h-4 w-4" /> Zapisz fakturę {invoiceNumber}
+            <CheckCircle2 className="h-4 w-4" /> {isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
           </Button>
-          <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
-            <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
-          </Button>
+          {!isPurchase && !isKsefRegistered && (
+            <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
+              <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
+            </Button>
+          )}
         </div>
 
         {errors.length > 0 && (

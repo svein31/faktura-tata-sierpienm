@@ -14,6 +14,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
+    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
+    }
+
     const existing = await prisma.invoice.findFirst({
       where: { id: params.id, userId: user.id },
       include: { sellerCompany: true },
@@ -32,10 +36,33 @@ export async function PUT(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
+    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
+    }
+
     const existing = await prisma.invoice.findFirst({ where: { id: params.id, userId: user.id } });
     if (!existing) return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
 
     const body = await readJson(req);
+
+    // Ochrona integralności: faktury z nadanym numerem KSeF są trwałymi dokumentami skarbowymi
+    if (existing.ksefNumber) {
+      const allowedData: { notes?: string | null; approvalStatus?: string } = {};
+      if (body.notes !== undefined) {
+        allowedData.notes = typeof body.notes === "string" ? body.notes.trim() : null;
+      }
+      if (body.approvalStatus !== undefined && typeof body.approvalStatus === "string") {
+        allowedData.approvalStatus = body.approvalStatus.trim();
+      }
+
+      const updated = await prisma.invoice.update({
+        where: { id: existing.id },
+        data: allowedData,
+        include: { sellerCompany: true },
+      });
+      return json({ invoice: invoiceToDto(updated) });
+    }
+
     const data = await parseInvoiceBody(body, {
       contractorOwnedBy: async (id) =>
         (await prisma.contractor.count({ where: { id, userId: user.id } })) > 0,

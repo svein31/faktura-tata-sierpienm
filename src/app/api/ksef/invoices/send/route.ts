@@ -48,18 +48,37 @@ export async function POST(req: Request) {
     const invoiceNumber = str(body.invoiceNumber);
 
     if (invoiceId || invoiceNumber) {
-      invoiceRecord = await prisma.invoice.findFirst({
-        where: {
-          OR: [
-            ...(invoiceId ? [{ id: invoiceId }] : []),
-            ...(invoiceNumber ? [{ number: invoiceNumber }] : []),
-          ],
-          ...(user ? { userId: user.id } : {}),
-        },
-      });
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(invoiceId);
+      const orConds = [
+        ...(isObjectId ? [{ id: invoiceId }] : []),
+        ...(invoiceNumber ? [{ number: invoiceNumber }] : []),
+      ];
+
+      if (orConds.length > 0) {
+        invoiceRecord = await prisma.invoice.findFirst({
+          where: {
+            OR: orConds,
+            ...(user ? { userId: user.id } : {}),
+          },
+        });
+      }
 
       if (!invoiceRecord) {
         throw new ApiError(404, "Nie znaleziono wskazanej faktury w bazie danych.");
+      }
+
+      if (invoiceRecord.type === "purchase") {
+        throw new ApiError(
+          400,
+          "Faktura zakupowa (FZ) nie może być wysłana do KSeF. Faktury zakupowe odbiera się z KSeF."
+        );
+      }
+
+      if (invoiceRecord.ksefNumber) {
+        throw new ApiError(
+          400,
+          `Faktura posiada już nadany numer KSeF (${invoiceRecord.ksefNumber}) i nie może zostać wysłana ponownie.`
+        );
       }
 
       // Pobieramy dane profilu spółki sprzedawcy

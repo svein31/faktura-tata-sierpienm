@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Check, Download, KeyRound, Loader2, Save, Sparkles } from "lucide-react";
+import { Building2, Check, Download, KeyRound, Loader2, Save, Sparkles, Image as ImageIcon, Upload, X } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Checkbox } from "@/components/ui/input";
@@ -28,6 +28,7 @@ interface FormState {
   bankAccount: string;
   ksefToken: string;
   isDefault: boolean;
+  logoUrl: string;
 }
 
 const emptyForm: FormState = {
@@ -41,6 +42,7 @@ const emptyForm: FormState = {
   bankAccount: "",
   ksefToken: "",
   isDefault: false,
+  logoUrl: "",
 };
 
 export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyModalProps) {
@@ -67,11 +69,13 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
           bankAccount: initialData.bankAccount || initialData.iban || "",
           ksefToken: initialData.ksefToken || "",
           isDefault: Boolean(initialData.isDefault),
+          logoUrl: initialData.logoUrl || "",
         });
       } else {
         setForm({
           ...emptyForm,
           isDefault: companies.length === 0, // pierwsza firma automatycznie domyślna
+          logoUrl: "",
         });
       }
       setErrors({});
@@ -169,6 +173,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         bankAccount: form.bankAccount.trim() || null,
         ksefToken: form.ksefToken.trim() || null,
         isDefault: form.isDefault,
+        logoUrl: form.logoUrl.trim() || null,
       };
 
       let saved: CompanyProfile;
@@ -362,6 +367,86 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
           <p className="text-[11px] text-muted-foreground">
             Token wygenerowany w Aplikacji Podatnika KSeF dla numeru NIP tej konkretnej spółki.
           </p>
+        </div>
+
+        {/* Logo firmy na fakturze */}
+        <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="font-semibold text-[13px] flex items-center gap-1.5">
+              <ImageIcon className="h-4 w-4 text-primary" /> Logo firmy na fakturze (nagłówek)
+            </Label>
+            <span className="text-[11px] text-muted-foreground">PNG, JPG, SVG (max 2 MB)</span>
+          </div>
+
+          {form.logoUrl ? (
+            <div className="flex items-center gap-4 p-3 bg-card rounded-xl border border-border">
+              <div className="relative flex items-center justify-center p-2 bg-white rounded-lg border border-border/60 max-w-[180px] max-h-[70px] overflow-hidden">
+                <img
+                  src={form.logoUrl}
+                  alt="Podgląd logo"
+                  className="max-h-12 max-w-full object-contain"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <Check className="h-3.5 w-3.5" /> Logo wgrane
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Logo będzie widoczne w lewym górnym rogu faktury i na wydruku PDF.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setField("logoUrl", "")}
+                className="h-8 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 border-rose-500/30"
+              >
+                <X className="h-3.5 w-3.5 mr-1" /> Usuń
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl text-xs gap-1.5 h-9"
+                  onClick={() => {
+                    const el = document.createElement("input");
+                    el.type = "file";
+                    el.accept = "image/png,image/jpeg,image/webp,image/svg+xml";
+                    el.onchange = (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        toast("error", "Zbyt duży plik", "Maksymalny dopuszczalny rozmiar logo to 2 MB.");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const res = ev.target?.result as string;
+                        setField("logoUrl", res);
+                        toast("success", "Wgrano logo", file.name);
+                      };
+                      reader.readAsDataURL(file);
+                    };
+                    el.click();
+                  }}
+                >
+                  <Upload className="h-3.5 w-3.5" /> Wybierz plik z dysku…
+                </Button>
+                <span className="text-xs text-muted-foreground">lub wpisz URL poniżej:</span>
+              </div>
+              <Input
+                placeholder="https://twoja-domena.pl/logo.png lub data:image/..."
+                value={form.logoUrl}
+                onChange={(e) => setField("logoUrl", e.target.value)}
+                className="text-xs font-mono"
+              />
+            </div>
+          )}
         </div>
       </form>
     </Dialog>
