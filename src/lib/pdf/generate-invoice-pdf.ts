@@ -90,16 +90,40 @@ export async function generateInvoicePdfBuffer(
           imgBuffer = Buffer.from(rawLogo.slice(comma + 1), "base64");
           isPng = rawLogo.includes("image/png");
         }
+      } else if (rawLogo.startsWith("http://") || rawLogo.startsWith("https://")) {
+        try {
+          const res = await fetch(rawLogo);
+          if (res.ok) {
+            const arr = await res.arrayBuffer();
+            imgBuffer = Buffer.from(arr);
+            const contentType = res.headers.get("content-type") || "";
+            isPng = contentType.includes("png") || rawLogo.toLowerCase().includes(".png");
+          }
+        } catch (fetchErr) {
+          console.warn("[PDF] Nie udało się pobrać logo z URL:", fetchErr);
+        }
       }
 
       if (imgBuffer) {
-        logoImage = isPng ? await pdfDoc.embedPng(imgBuffer) : await pdfDoc.embedJpg(imgBuffer);
-        const dims = logoImage.scale(1);
-        const maxW = 90;
-        const maxH = 46;
-        const scale = Math.min(maxW / dims.width, maxH / dims.height, 1);
-        logoWidth = dims.width * scale;
-        logoHeight = dims.height * scale;
+        try {
+          logoImage = isPng ? await pdfDoc.embedPng(imgBuffer) : await pdfDoc.embedJpg(imgBuffer);
+        } catch {
+          // Fallback: próba drugiego formatu
+          try {
+            logoImage = isPng ? await pdfDoc.embedJpg(imgBuffer) : await pdfDoc.embedPng(imgBuffer);
+          } catch (embedErr) {
+            console.warn("[PDF] Nie udało się osadzić obrazu logo (obsługiwane: PNG, JPG):", embedErr);
+          }
+        }
+
+        if (logoImage) {
+          const dims = logoImage.scale(1);
+          const maxW = 100;
+          const maxH = 46;
+          const scale = Math.min(maxW / dims.width, maxH / dims.height, 1);
+          logoWidth = dims.width * scale;
+          logoHeight = dims.height * scale;
+        }
       }
     } catch (e) {
       console.warn("[PDF] Nie udało się osadzić logo:", e);

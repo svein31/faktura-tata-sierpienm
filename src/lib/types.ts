@@ -178,7 +178,27 @@ export interface Invoice {
   shareToken?: string;
   isProforma?: boolean;
   declaredPaymentDate?: string;
+  autoSendEmailOnKsef?: boolean;
+  emailLogs?: InvoiceEmailLog[];
   createdAt: string;
+}
+
+export interface InvoiceEmailLog {
+  id: string;
+  invoiceId: string;
+  userId: string;
+  to: string;
+  cc?: string | null;
+  bcc?: string | null;
+  subject: string;
+  messageBody?: string | null;
+  attachments?: Array<{ filename: string; size?: number; contentType?: string }>;
+  status: "queued" | "accepted" | "sent" | "delivered" | "failed";
+  provider: "smtp" | "resend" | "simulated";
+  messageId?: string | null;
+  error?: string | null;
+  sentAt: string;
+  userName?: string | null;
 }
 
 export interface OfferLine {

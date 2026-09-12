@@ -14,6 +14,7 @@ import {
   FileDown,
   FileJson2,
   FileText,
+  Mail,
   Pencil,
   Printer,
   RefreshCw,
@@ -31,6 +32,7 @@ import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
+import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Invoice } from "@/lib/types";
 
@@ -67,6 +69,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const [sending, setSending] = React.useState(false);
   const [checkingStatus, setCheckingStatus] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
+  const [emailModalOpen, setEmailModalOpen] = React.useState(false);
 
   const handleToggleApproval = async (targetStatus: "approved" | "pending") => {
     setApproving(true);
@@ -94,7 +97,11 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     }
   };
 
-  const companySafe = company ?? EMPTY_COMPANY;
+  const companies = useAppStore((s) => s.companies);
+  const matchedCompany = invoice.sellerCompanyId
+    ? companies.find((c) => c.id === invoice.sellerCompanyId)
+    : null;
+  const companySafe = matchedCompany ?? company ?? EMPTY_COMPANY;
   const ksefEnv = ksef?.environment ?? "demo";
   const contractor = getContractor(contractors, invoice.contractorId);
   const exports = useInvoiceExports(invoice, contractor, companySafe);
@@ -193,10 +200,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">{invoice.number}</h1>
-              <Badge className={`${STATUS_META[status].color} rounded-lg px-2.5 py-0.5 text-xs`}>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground break-all">
+                {invoice.number}
+              </h1>
+              <Badge className={`${STATUS_META[status].color} shrink-0 whitespace-nowrap rounded-lg px-2.5 py-0.5 text-xs`}>
                 <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${STATUS_META[status].dot}`} />
                 {STATUS_META[status].label}
               </Badge>
@@ -209,6 +218,14 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEmailModalOpen(true)}
+            className="rounded-xl gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/10 shadow-2xs"
+          >
+            <Mail className="h-3.5 w-3.5" /> Wyślij e-mailem
+          </Button>
           <Button variant="outline" size="sm" onClick={exports.exportPdf} className="rounded-xl gap-1.5 text-xs">
             <Printer className="h-3.5 w-3.5" /> Drukuj / PDF
           </Button>
@@ -475,6 +492,15 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         }}
         title="Usunąć fakturę?"
         description={`Dokument ${invoice.number} zostanie trwale usunięty z systemu.`}
+      />
+
+      <SendInvoiceEmailModal
+        open={emailModalOpen}
+        onClose={() => setEmailModalOpen(false)}
+        invoice={invoice}
+        contractor={contractor}
+        company={companySafe}
+        onSent={() => void useAppStore.getState().revalidate()}
       />
     </div>
   );

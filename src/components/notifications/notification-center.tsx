@@ -244,7 +244,7 @@ export function NotificationBell() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               transition={{ duration: 0.16 }}
-              className="absolute right-0 z-50 mt-2 w-[min(92vw,380px)] overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
+              className="fixed inset-x-2.5 top-14 mx-auto w-auto max-w-[calc(100vw-20px)] sm:max-w-[380px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[380px] z-50 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                 <p className="text-[13px] font-semibold">Powiadomienia</p>
@@ -303,7 +303,7 @@ export function NotificationBell() {
                           </span>
                           {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
                         </span>
-                        {n.body && <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">{n.body}</span>}
+                        {n.body && <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground break-words">{n.body}</span>}
                         <span className="mt-0.5 block text-[10.5px] text-muted-foreground/70">
                           {formatDateTime(n.createdAt)}
                         </span>

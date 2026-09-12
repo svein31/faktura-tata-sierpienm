@@ -45,6 +45,7 @@ model User {
   bankImports         BankStatementImport[]
   comments            DocumentComment[]
   sentInvitations     TeamInvitation[]
+  invoiceEmailLogs    InvoiceEmailLog[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -268,10 +269,12 @@ model Invoice {
   shareToken                String? @unique
   isProforma                Boolean? @default(false)
   declaredPaymentDate       String? // Deklarowana data zapłaty przez kontrahenta
+  autoSendEmailOnKsef       Boolean? @default(false)
   // Relacje
   payments        PaymentRecord[]
   ksefTasks       KsefQueueTask[]
   comments        DocumentComment[]
+  emailLogs       InvoiceEmailLog[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -508,6 +511,28 @@ model TeamInvitation {
   status     String    @default("pending") // pending | accepted | revoked | expired
   createdAt  DateTime  @default(now())
 
+  @@index([userId])
+}
+
+model InvoiceEmailLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId   String   @db.ObjectId
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  to          String
+  cc          String?
+  bcc         String?
+  subject     String
+  messageBody String?
+  attachments Json?    // [{ filename: string, size?: number, contentType?: string }]
+  status      String   @default("sent") // "queued" | "accepted" | "sent" | "delivered" | "failed"
+  provider    String   // "smtp" | "resend"
+  messageId   String?
+  error       String?
+  sentAt      DateTime @default(now())
+
+  @@index([invoiceId])
   @@index([userId])
 }
 

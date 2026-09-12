@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { KsefClient, type KsefEnvironment, generateDemoUpoXml } from "@/lib/ksef/index";
+import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -162,6 +163,10 @@ export async function GET(req: Request, { params }: RouteParams) {
             read: false,
           },
         });
+
+        if (isAccepted) {
+          void triggerAutoEmailOnKsef(invoice.id);
+        }
       }
     }
 

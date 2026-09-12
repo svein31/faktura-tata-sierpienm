@@ -31,6 +31,7 @@ import type {
   Order,
   Expense,
   DocumentCommentItem,
+  InvoiceEmailLog,
 } from "./types";
 
 export function addressFrom(v: unknown): Address {
@@ -245,7 +246,29 @@ export function invoiceToDto(
     shareToken: i.shareToken ?? undefined,
     isProforma: i.isProforma ?? false,
     declaredPaymentDate: i.declaredPaymentDate ?? undefined,
+    autoSendEmailOnKsef: (i as any).autoSendEmailOnKsef ?? false,
+    emailLogs: Array.isArray((i as any).emailLogs) ? (i as any).emailLogs.map(emailLogToDto) : undefined,
     createdAt: i.createdAt.toISOString(),
+  };
+}
+
+export function emailLogToDto(l: any): InvoiceEmailLog {
+  return {
+    id: l.id,
+    invoiceId: l.invoiceId,
+    userId: l.userId,
+    to: l.to,
+    cc: l.cc ?? null,
+    bcc: l.bcc ?? null,
+    subject: l.subject,
+    messageBody: l.messageBody ?? null,
+    attachments: Array.isArray(l.attachments) ? l.attachments : undefined,
+    status: l.status ?? "sent",
+    provider: l.provider ?? "smtp",
+    messageId: l.messageId ?? null,
+    error: l.error ?? null,
+    sentAt: l.sentAt instanceof Date ? l.sentAt.toISOString() : String(l.sentAt),
+    userName: l.user?.name ?? undefined,
   };
 }
 

@@ -11,6 +11,7 @@ import {
   generateDemoUpoXml,
 } from "@/lib/ksef/index";
 import { companyProfileToDto, companyToDto } from "@/lib/dto";
+import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -215,6 +216,9 @@ export async function POST(req: Request) {
             read: false,
           },
         });
+
+        // Automatyczna wysyłka e-mail, jeśli użytkownik włączył opcję dla tej faktury
+        void triggerAutoEmailOnKsef(updatedInvoice.id);
       }
 
       return json({

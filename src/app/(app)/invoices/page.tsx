@@ -11,6 +11,7 @@ import {
   Download,
   FileText,
   Filter,
+  Mail,
   Pencil,
   Plus,
   Search,
@@ -33,6 +34,7 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
+import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import type { EffectiveStatus } from "@/lib/store";
 import type { Invoice, InvoiceType } from "@/lib/types";
@@ -63,6 +65,7 @@ export default function InvoicesPage() {
   const [sendingKsef, setSendingKsef] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [approving, setApproving] = React.useState(false);
+  const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -678,6 +681,16 @@ export default function InvoicesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => setSelectedForEmail(inv)}
+                            title="Wyślij fakturę e-mailem"
+                            className="h-8 w-8 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => editInvoice(inv.id)}
                             title="Edytuj"
                             className="h-8 w-8 rounded-lg"
@@ -753,6 +766,21 @@ export default function InvoicesPage() {
         confirmLabel={sendingKsef ? "Wysyłanie..." : "Wyślij e-Fakturę"}
         danger={false}
       />
+
+      {selectedForEmail && (
+        <SendInvoiceEmailModal
+          open={Boolean(selectedForEmail)}
+          onClose={() => setSelectedForEmail(null)}
+          invoice={selectedForEmail}
+          contractor={getContractor(contractors, selectedForEmail.contractorId)}
+          company={
+            (selectedForEmail.sellerCompanyId
+              ? useAppStore.getState().companies.find((c) => c.id === selectedForEmail.sellerCompanyId)
+              : null) ?? company ?? EMPTY_COMPANY
+          }
+          onSent={() => void useAppStore.getState().revalidate()}
+        />
+      )}
     </div>
   );
 }
