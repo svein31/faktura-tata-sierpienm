@@ -19,6 +19,7 @@ import {
   Receipt,
   DollarSign,
   Users2,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -42,6 +43,7 @@ const NAV_SETTINGS = [
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
+  { href: "/help", label: "Instrukcja obsługi", icon: BookOpen },
 ];
 
 export function SidebarContent({

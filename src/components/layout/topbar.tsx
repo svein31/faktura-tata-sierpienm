@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, LogOut, Search } from "lucide-react";
+import { Menu, LogOut, Search, HelpCircle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-center";
@@ -11,6 +11,7 @@ import { useAppStore } from "@/lib/store";
 
 const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/$/, title: "Pulpit" },
+  { re: /^\/help/, title: "Instrukcja obsługi" },
   { re: /^\/invoices\/new/, title: "Nowa faktura" },
   { re: /^\/invoices\/(?!new)/, title: "Faktura" },
   { re: /^\/invoices/, title: "Faktury" },
@@ -95,6 +96,13 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </button>
 
         <NotificationBell />
+        <Link
+          href="/help"
+          title="Instrukcja obsługi"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs"
+        >
+          <HelpCircle className="h-4 w-4" />
+        </Link>
         <ThemeToggle />
 
         {/* Profil użytkownika + wylogowanie */}
