@@ -371,12 +371,12 @@ const HELP_SECTIONS: HelpSection[] = [
 
 const CATEGORIES = [
   { id: "all", label: "Wszystkie instrukcje" },
-  { id: "email", label: "✉️ Wysyłka e-mail" },
-  { id: "invoices", label: "📄 Faktury i Oferty" },
-  { id: "ksef", label: "🏛️ KSeF 2.0" },
-  { id: "finances", label: "💰 Koszty i Finanse" },
-  { id: "company", label: "🏢 Logo i GUS" },
-  { id: "accountant", label: "📂 Księgowość" },
+  { id: "email", label: "Wysyłka e-mail" },
+  { id: "invoices", label: "Faktury i Oferty" },
+  { id: "ksef", label: "KSeF 2.0" },
+  { id: "finances", label: "Koszty i Finanse" },
+  { id: "company", label: "Logo i GUS" },
+  { id: "accountant", label: "Księgowość" },
 ];
 
 export default function HelpPage() {
@@ -557,7 +557,7 @@ export default function HelpPage() {
               {/* Informacja o zmiennych na Netlify */}
               <div className="rounded-2xl bg-blue-500/10 border border-blue-500/20 p-3.5 text-xs text-blue-950 dark:text-blue-200">
                 <p className="font-black text-[12px] uppercase tracking-wide">
-                  📌 Jak aktywować wysyłkę na Netlify (ta-fax.netlify.app):
+                  Wskazówka: Jak aktywować wysyłkę na Netlify (ta-fax.netlify.app):
                 </p>
                 <p className="font-bold mt-1 text-[11.5px] leading-relaxed">
                   W panelu Netlify (Site configuration → Environment variables) dodaj zmienne:{" "}
