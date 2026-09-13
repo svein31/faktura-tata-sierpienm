@@ -24,6 +24,9 @@ import {
   History,
   KeyRound,
   UserCheck,
+  Shield,
+  Cookie,
+  Download,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -31,7 +34,7 @@ import { Input } from "@/components/ui/input";
 
 interface HelpSection {
   id: string;
-  category: "email" | "invoices" | "ksef" | "company" | "finances" | "accountant" | "team";
+  category: "email" | "invoices" | "ksef" | "company" | "finances" | "accountant" | "team" | "legal";
   categoryLabel: string;
   title: string;
   icon: React.ElementType;
@@ -572,10 +575,93 @@ const HELP_SECTIONS: HelpSection[] = [
       href: "/invoices",
     },
   },
+
+  // ── DOKUMENTY PRAWNE, ZGODY I RODO ──
+  {
+    id: "legal-documents-and-consents",
+    category: "legal",
+    categoryLabel: "Prywatność i RODO",
+    title: "Dokumenty prawne, akceptacja regulaminu i rejestr zgód (RODO / PKE)",
+    icon: Shield,
+    badge: "Nowość • RODO & PKE",
+    steps: [
+      {
+        title: "1. Komplet oficjalnych dokumentów prawnych",
+        description:
+          "W stopce serwisu oraz w menu bocznym masz stały dostęp do 5 publicznych dokumentów prawnych: Regulaminu świadczenia usług (/regulamin), Polityki prywatności (/polityka-prywatnosci), Polityki cookies (/polityka-cookies), Umowy powierzenia przetwarzania danych DPA (/powierzenie-danych) oraz Listy podwykonawców i podprocesorów (/podwykonawcy).",
+      },
+      {
+        title: "2. Przejrzysta akceptacja regulaminu",
+        description:
+          "Nowi użytkownicy akceptują regulamin przy rejestracji konta oraz przy dołączaniu do zespołu przez zaproszenie. Checkbox akceptacji regulaminu nigdy nie jest domyślnie zaznaczony, a zgody marketingowe są całkowicie opcjonalne.",
+      },
+      {
+        title: "3. Wersjonowanie regulaminu i bezpieczne powiadomienia",
+        description:
+          "Gdy regulamin zostanie zaktualizowany do nowej wersji, system wyświetla użytkownikowi modal informacyjny z kluczowymi zmianami. Zgoda jest rejestrowana z podaniem wersji, zanonimizowanego adresu IP i daty akceptacji.",
+      },
+      {
+        title: "4. Baner cookies zgodny z Prawem Komunikacji Elektronicznej (PKE)",
+        description:
+          "Baner zgód na pliki cookies oferuje 3 równorzędne przyciski („Zaakceptuj wszystkie”, „Odrzuć opcjonalne”, „Dostosuj preferencje”). Cookies analityczne i funkcjonalne nie są uruchamiane bez wyraźnej, aktywnej zgody.",
+      },
+      {
+        title: "5. Zmiana preferencji cookies w dowolnej chwili",
+        description:
+          "Możesz w każdej chwili zmienić swoje ustawienia cookies — klikając link „Preferencje cookies” w stopce strony, w menu bocznym lub w Ustawieniach konta.",
+      },
+    ],
+    quickAction: {
+      label: "Przeczytaj Regulamin",
+      href: "/regulamin",
+    },
+  },
+
+  // ── PRYWATNOŚĆ I EKSPORT DANYCH RODO ──
+  {
+    id: "legal-privacy-data-export",
+    category: "legal",
+    categoryLabel: "Prywatność i RODO",
+    title: "Panel prywatności w Ustawieniach i prawo do przenoszenia danych (art. 20 RODO)",
+    icon: Download,
+    badge: "Nowość • art. 20 RODO",
+    steps: [
+      {
+        title: "1. Wejdź w zakładkę „Prywatność i zgody”",
+        description:
+          "Przejdź do Ustawienia → Twoje konto i kliknij nową zakładkę „Prywatność i zgody”.",
+      },
+      {
+        title: "2. Wgląd w historię udzielonych zgód",
+        description:
+          "W panelu widzisz datę akceptacji aktualnego regulaminu oraz stan wszystkich opcjonalnych zgód (np. e-mail marketing).",
+      },
+      {
+        title: "3. Odwołanie opcjonalnych zgód jednym kliknięciem",
+        description:
+          "Zgodę na komunikację marketingową lub cookies możesz wycofać w dowolnym momencie za pomocą jednego przełącznika — zmiana jest natychmiast rejestrowana w trwałej bazie zgód.",
+      },
+      {
+        title: "4. Pobranie kopii danych osobowych (Eksport RODO)",
+        description:
+          "Zgodnie z art. 20 RODO masz prawo przenieść swoje dane. Kliknij przycisk „Pobierz kopię danych (JSON)”, aby natychmiast wyeksportować uporządkowany, maszynowo czytelny plik JSON zawierający profil, podpięte firmy, historię zgód oraz podsumowanie wystawionych dokumentów i kontrahentów.",
+      },
+      {
+        title: "5. Prawo do usunięcia konta (art. 17 RODO)",
+        description:
+          "W zakładce „Bezpieczeństwo konta” możesz w każdej chwili skorzystać z procedury trwałego usunięcia konta wraz ze wszystkimi powiązanymi danymi.",
+      },
+    ],
+    quickAction: {
+      label: "Otwórz Prywatność i zgody",
+      href: "/settings/account",
+    },
+  },
 ];
 
 const CATEGORIES = [
   { id: "all", label: "Wszystkie instrukcje" },
+  { id: "legal", label: "Prywatność i RODO" },
   { id: "team", label: "Zespół i Audyt" },
   { id: "email", label: "Wysyłka e-mail" },
   { id: "invoices", label: "Faktury i Waluty" },

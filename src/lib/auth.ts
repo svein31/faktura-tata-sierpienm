@@ -49,6 +49,8 @@ export type PublicUser = {
   nip?: string | null;
   companyName?: string | null;
   createdAt: string;
+  termsAcceptedAt?: string | null;
+  termsAcceptedVersion?: string | null;
   company?: {
     name: string;
     nip: string;
@@ -82,6 +84,8 @@ export function toPublicUser(u: FullUserWithRelations): PublicUser {
     nip: u.nip || defaultProfile?.nip || u.company?.nip || "",
     companyName: u.companyName || defaultProfile?.companyName || u.company?.name || "",
     createdAt: u.createdAt.toISOString(),
+    termsAcceptedAt: u.termsAcceptedAt ? u.termsAcceptedAt.toISOString() : null,
+    termsAcceptedVersion: u.termsAcceptedVersion || null,
     company: u.company
       ? {
           name: u.company.name,

@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck, UserPlus, FileText } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -54,6 +54,8 @@ function RegisterForm() {
   const [showPw, setShowPw] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [acceptTerms, setAcceptTerms] = React.useState(false);
+  const [acceptMarketing, setAcceptMarketing] = React.useState(false);
 
   React.useEffect(() => {
     if (status === "authenticated") {
@@ -77,13 +79,17 @@ function RegisterForm() {
       setError("Hasła nie są identyczne.");
       return;
     }
+    if (!acceptTerms) {
+      setError("Akceptacja Regulaminu jest wymagana do utworzenia konta.");
+      return;
+    }
 
     setBusy(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, password }),
+        body: JSON.stringify({ email: cleanEmail, password, acceptTerms: true, acceptMarketing }),
       });
 
       let data: { error?: string; user?: { name: string } } = {};
@@ -208,6 +214,46 @@ function RegisterForm() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Akceptacja Regulaminu (wymagana) */}
+          <div className="space-y-3 pt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/50 shrink-0"
+                required
+              />
+              <span className="text-[12px] leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors">
+                Zapoznałem/am się z treścią{" "}
+                <Link href="/regulamin" target="_blank" className="text-primary font-semibold underline-offset-2 hover:underline">
+                  Regulaminu serwisu
+                </Link>{" "}
+                i akceptuję jego postanowienia. <span className="text-rose-500">*</span>
+              </span>
+            </label>
+
+            <p className="text-[11px] text-muted-foreground/80 pl-6">
+              Informacje o przetwarzaniu danych osobowych znajdziesz w{" "}
+              <Link href="/polityka-prywatnosci" target="_blank" className="text-primary hover:underline">
+                Polityce prywatności
+              </Link>.
+            </p>
+
+            {/* Marketing (opcjonalny) */}
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={acceptMarketing}
+                onChange={(e) => setAcceptMarketing(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/50 shrink-0"
+              />
+              <span className="text-[12px] leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors">
+                Wyrażam zgodę na otrzymywanie informacji o nowościach i aktualizacjach serwisu na podany adres e-mail (opcjonalne).
+              </span>
+            </label>
           </div>
 
           {/* Error */}

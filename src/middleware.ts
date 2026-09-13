@@ -34,13 +34,23 @@ export function middleware(request: NextRequest) {
   }
 
   // 3. Definicja ścieżek publicznych
+  const isLegalPath =
+    pathname === "/regulamin" ||
+    pathname === "/polityka-prywatnosci" ||
+    pathname === "/polityka-cookies" ||
+    pathname === "/powierzenie-danych" ||
+    pathname === "/podwykonawcy";
+
   const isPublicPath =
     pathname === "/" ||
     pathname === "/demo" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password");
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/invite") ||
+    pathname.startsWith("/portal") ||
+    isLegalPath;
 
   // 4. Zalogowany użytkownik wchodzący na stronę powitalną lub auth -> przekieruj na /dashboard
   if (token && (pathname === "/" || pathname === "/login" || pathname === "/register")) {

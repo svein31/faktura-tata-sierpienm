@@ -502,6 +502,31 @@ export interface SessionUser {
   email: string;
   name: string;
   createdAt: string;
+  role?: "owner" | "accountant" | "viewer" | string;
+  nip?: string | null;
+  companyName?: string | null;
+  termsAcceptedAt?: string | null;
+  termsAcceptedVersion?: string | null;
+  company?: {
+    name: string;
+    nip: string;
+    regon: string;
+    street: string;
+    city: string;
+    postal: string;
+    country: string;
+    iban: string;
+    bankName: string;
+    email: string;
+    phone: string;
+  } | null;
+  ksef?: {
+    environment: string;
+    tokenSet: boolean;
+    tokenMask: string;
+    certName: string;
+    autoValidate: boolean;
+  } | null;
 }
 
 /** Fallback dla podglądów/eksportów, gdy nowy użytkownik nie uzupełnił jeszcze profilu firmy. */

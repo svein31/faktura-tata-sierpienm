@@ -12,6 +12,8 @@ import {
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
+import { recordLegalConsent } from "@/lib/legal/record-consent";
+import { LEGAL_VERSIONS } from "@/lib/legal/config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -53,6 +55,16 @@ export async function POST(req: Request) {
     const rawName = str(body.name).trim();
     const nip = str(body.nip).replace(/[^0-9]/g, "").trim();
     const companyName = str(body.companyName).trim();
+    const acceptTerms = body.acceptTerms === true;
+    const acceptMarketing = body.acceptMarketing === true;
+
+    // 4a. Walidacja akceptacji Regulaminu (wymagana prawnie)
+    if (!acceptTerms) {
+      return json(
+        { error: "Akceptacja Regulaminu jest wymagana do utworzenia konta.", code: "TERMS_NOT_ACCEPTED" },
+        { status: 400 }
+      );
+    }
 
     // 4. Walidacja formatu e-mail i hasła
     const v = validateCredentials(cleanEmail, password);
@@ -127,6 +139,33 @@ export async function POST(req: Request) {
       cookies().set("next-auth.session-token", token, { ...cookieOpts, secure: false });
     } catch {
       // ignore
+    }
+
+    // 9. Zarejestruj zgodę prawną (regulamin) w bazie danych
+    const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null;
+    const clientUa = req.headers.get("user-agent") || null;
+
+    await recordLegalConsent({
+      userId: user.id,
+      documentType: "terms_of_service",
+      documentVersion: LEGAL_VERSIONS.terms,
+      accepted: true,
+      rawIp: clientIp,
+      userAgent: clientUa,
+      context: "registration",
+    });
+
+    // 10. Opcjonalna zgoda marketingowa
+    if (acceptMarketing) {
+      await recordLegalConsent({
+        userId: user.id,
+        documentType: "marketing_email",
+        documentVersion: LEGAL_VERSIONS.terms,
+        accepted: true,
+        rawIp: clientIp,
+        userAgent: clientUa,
+        context: "registration",
+      });
     }
 
     const res = NextResponse.json(

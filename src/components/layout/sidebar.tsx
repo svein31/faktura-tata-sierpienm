@@ -185,6 +185,23 @@ export function SidebarContent({
         </div>
       </nav>
 
+      {/* Linki prawne */}
+      <div className="px-4 py-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground/70">
+        <a href="/regulamin" target="_blank" className="hover:text-foreground transition-colors">Regulamin</a>
+        <a href="/polityka-prywatnosci" target="_blank" className="hover:text-foreground transition-colors">Prywatność</a>
+        <a href="/polityka-cookies" target="_blank" className="hover:text-foreground transition-colors">Cookies</a>
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("open-cookie-preferences"));
+            }
+          }}
+          className="hover:text-foreground transition-colors cursor-pointer"
+        >
+          Preferencje
+        </button>
+      </div>
+
       <div className="border-t border-border/60 p-3">
         <div className="flex items-center justify-between rounded-xl px-2 py-1.5 bg-card/40 border border-border/40">
           <div className="flex min-w-0 items-center gap-2.5">

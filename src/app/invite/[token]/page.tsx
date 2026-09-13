@@ -68,6 +68,7 @@ export default function InviteAcceptPage() {
   const [password, setPassword] = React.useState("");
   const [name, setName] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [acceptTerms, setAcceptTerms] = React.useState(false);
 
   // Pobierz dane zaproszenia
   React.useEffect(() => {
@@ -116,6 +117,15 @@ export default function InviteAcceptPage() {
             return;
           }
           payload.name = name.trim();
+        }
+        // Nowi użytkownicy muszą zaakceptować regulamin
+        if (!data.userExists && !acceptTerms) {
+          setError("Akceptacja Regulaminu jest wymagana do utworzenia konta.");
+          setBusy(false);
+          return;
+        }
+        if (!data.userExists) {
+          payload.acceptTerms = "true";
         }
       }
 
@@ -302,6 +312,34 @@ export default function InviteAcceptPage() {
                           </p>
                         )}
                       </div>
+
+                      {/* Akceptacja regulaminu dla nowych użytkowników */}
+                      {!data.userExists && (
+                        <div className="space-y-2 pt-1">
+                          <label className="flex items-start gap-2.5 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={acceptTerms}
+                              onChange={(e) => setAcceptTerms(e.target.checked)}
+                              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary/50 shrink-0"
+                              required
+                            />
+                            <span className="text-[11px] leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors">
+                              Zapoznałem/am się z treścią{" "}
+                              <Link href="/regulamin" target="_blank" className="text-primary font-semibold hover:underline">
+                                Regulaminu serwisu
+                              </Link>{" "}
+                              i akceptuję jego postanowienia. <span className="text-rose-500">*</span>
+                            </span>
+                          </label>
+                          <p className="text-[10px] text-muted-foreground/80 pl-6">
+                            Informacje o przetwarzaniu danych:{" "}
+                            <Link href="/polityka-prywatnosci" target="_blank" className="text-primary hover:underline">
+                              Polityka prywatności
+                            </Link>.
+                          </p>
+                        </div>
+                      )}
 
                       <Button type="submit" disabled={busy} className="w-full text-xs font-semibold gap-2 h-10 mt-2">
                         <span>{busy ? "Przetwarzanie..." : data.userExists ? "Zaloguj się i dołącz" : "Załóż konto i dołącz"}</span>

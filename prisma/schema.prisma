@@ -47,6 +47,9 @@ model User {
   sentInvitations     TeamInvitation[]
   invoiceEmailLogs    InvoiceEmailLog[]
   companyMemberships  CompanyMember[]
+  termsAcceptedAt     DateTime?
+  termsAcceptedVersion String?
+  legalConsents       LegalConsent[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -621,5 +624,25 @@ model InvoiceEmailLog {
   @@index([invoiceId])
   @@index([userId])
 }
+
+/// Rejestr akceptacji dokumentów prawnych i zgód użytkowników
+model LegalConsent {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType    String    // "terms_of_service" | "privacy_policy" | "dpa" | "marketing_email" | "cookie_functional" | "cookie_analytics" | "cookie_marketing"
+  documentVersion String    // np. "1.0.0-2026-09-13"
+  accepted        Boolean   @default(true)
+  acceptedAt      DateTime  @default(now())
+  revokedAt       DateTime?
+  ipAddress       String?   // zanonimizowane IP np. 192.168.1.0/24
+  userAgent       String?
+  context         String?   // "registration" | "invite_accept" | "terms_update_modal" | "settings"
+  companyId       String?
+
+  @@index([userId, documentType])
+  @@index([documentType, documentVersion])
+}
+
 
 

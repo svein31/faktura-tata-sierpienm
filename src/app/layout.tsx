@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/toast";
 import { SessionProvider } from "@/lib/session-context";
+import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -46,7 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen`}>
         <ThemeProvider>
           <ToastProvider>
-            <SessionProvider>{children}</SessionProvider>
+            <SessionProvider>
+              {children}
+              <CookieConsentBanner />
+            </SessionProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>

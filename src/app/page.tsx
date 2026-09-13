@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-button";
 
 export const metadata: Metadata = {
   title: "Fakturo — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
@@ -374,21 +375,35 @@ export default function LandingPage() {
 
       {/* ── STOPKA ── */}
       <footer className="border-t border-border/60 py-10 bg-background">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Logo compact />
-            <span>© {new Date().getFullYear()} Fakturo. Wszelkie prawa zastrzeżone.</span>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-8 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Logo compact />
+              <span>© {new Date().getFullYear()} Fakturo. Wszelkie prawa zastrzeżone.</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link href="/demo" className="hover:text-foreground transition-colors">
+                Piaskownica Demo
+              </Link>
+              <Link href="/login" className="hover:text-foreground transition-colors">
+                Logowanie
+              </Link>
+              <Link href="/register" className="hover:text-foreground transition-colors">
+                Rejestracja
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/demo" className="hover:text-foreground transition-colors">
-              Piaskownica Demo
-            </Link>
-            <Link href="/login" className="hover:text-foreground transition-colors">
-              Logowanie
-            </Link>
-            <Link href="/register" className="hover:text-foreground transition-colors">
-              Rejestracja
-            </Link>
+          {/* Linki prawne */}
+          <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/80">
+            <Link href="/regulamin" className="hover:text-foreground transition-colors">Regulamin</Link>
+            <Link href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">Polityka prywatności</Link>
+            <Link href="/polityka-cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+            <Link href="/powierzenie-danych" className="hover:text-foreground transition-colors">DPA (art. 28)</Link>
+            <Link href="/podwykonawcy" className="hover:text-foreground transition-colors">Podwykonawcy</Link>
+            <span className="text-border">|</span>
+            <CookiePreferencesButton className="hover:text-foreground transition-colors cursor-pointer">
+              Ustawienia prywatności
+            </CookiePreferencesButton>
           </div>
         </div>
       </footer>

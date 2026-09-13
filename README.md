@@ -293,3 +293,28 @@ Każdy dokument w systemie objęty jest trwałym rejestrem zdarzeń:
 - **Prezentacja na wydruku**: Etykiety nagłówkowe, pozycje, stawki podatku, adnotacje NBP, dane rachunku bankowego (Beneficiary, IBAN, SWIFT/BIC) oraz podsumowanie podatku VAT w walucie i w PLN są czytelnie prezentowane w obu językach.
 - **Dostępność plików**: Faktury można pobrać jako oficjalny PDF, ustrukturyzowany plik XML FA(3) do KSeF, plik HTML oraz format JSON.
 
+---
+
+### 7. Dokumentacja prawna, zarządzanie zgodami i ochrona danych (RODO / PKE)
+
+Serwis posiada pełny, produkcyjny moduł prawny dopasowany do specyfiki SaaS fakturowego w Polsce:
+
+- **5 oficjalnych dokumentów prawnych**:
+  - `/regulamin` — Regulamin świadczenia usług drogą elektroniczną (zgodny z ustawą o świadczeniu usług drogą elektroniczną oraz prawem konsumenckim).
+  - `/polityka-prywatnosci` — Polityka prywatności opisująca podstawy prawne przetwarzania (art. 6 ust. 1 lit. b, c, f RODO), okresy retencji, prawa użytkowników i brak zautomatyzowanego profilowania wywołującego skutki prawne.
+  - `/polityka-cookies` — Polityka plików cookies z pełnym inwentarzem ciasteczek technicznych i analitycznych.
+  - `/powierzenie-danych` — Umowa powierzenia przetwarzania danych osobowych (DPA, art. 28 RODO) dla danych kontrahentów i faktur przetwarzanych w imieniu Użytkownika.
+  - `/podwykonawcy` — Rzeczywisty wykaz podwykonawców i podprocesorów (hosting CyberFolks / OVH, baza danych MongoDB Atlas, infrastruktura e-mail, bramka KSeF MF).
+- **Zarządzanie zgodami na pliki cookies (CMP)**:
+  - Baner cookies spełniający wymogi Prawa Komunikacji Elektronicznej (PKE / art. 173 PT): 3 równorzędne przyciski („Zaakceptuj wszystkie”, „Odrzuć opcjonalne”, „Dostosuj preferencje”).
+  - Brak domyślnego ładowania skryptów analitycznych; możliwość zmiany preferencji w dowolnym momencie ze stopki, menu lub panelu ustawień.
+- **Akceptacja regulaminu i wersjonowanie**:
+  - Niezaznaczony domyślnie checkbox akceptacji regulaminu na stronach rejestracji (`/register`) i akceptacji zaproszenia do zespołu (`/invite/[token]`).
+  - Opcjonalna, wyraźna zgoda na komunikację marketingową.
+  - Trwały rejestr zgód w bazie danych (`LegalConsent`) ze znacznikiem czasu, zanonimizowanym adresem IP i wersją dokumentu.
+  - Modal informacyjny wymuszający ponowną akceptację w przypadku aktualizacji wersji regulaminu (`TermsUpdateModal`).
+- **Prawa użytkownika (art. 17 i 20 RODO)**:
+  - **Panel prywatności** w `Ustawienia → Twoje konto → Prywatność i zgody`.
+  - **Eksport danych RODO (art. 20)**: Generowanie ustrukturyzowanego pliku JSON z kompletem danych profilowych, powiązań firmowych, historii zgód i podsumowania dokumentów (`GET /api/user/export-data`).
+  - **Prawo do usunięcia konta (art. 17)**: Dostępne w zakładce „Bezpieczeństwo konta”.
+
