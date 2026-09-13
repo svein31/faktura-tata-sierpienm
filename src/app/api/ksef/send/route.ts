@@ -13,6 +13,7 @@ import {
 import { companyProfileToDto, companyToDto } from "@/lib/dto";
 import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
+import { recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -49,17 +50,33 @@ export async function POST(req: Request) {
       ...(invoiceNumber ? [{ number: invoiceNumber }] : []),
     ];
 
+    // Pobierz firmy, do których użytkownik ma dostęp
+    const memberships = await prisma.companyMember.findMany({
+      where: { userId: session.id },
+      select: { companyId: true },
+    });
+    const accessibleCompanyIds = memberships.map((m) => m.companyId);
+
     // Znajdź fakturę w bazie
     const invoice = await prisma.invoice.findFirst({
       where: {
-        userId: session.id,
-        OR: orConds.length > 0 ? orConds : undefined,
+        OR: [
+          { userId: session.id },
+          ...(accessibleCompanyIds.length > 0 ? [{ sellerCompanyId: { in: accessibleCompanyIds } }] : []),
+        ],
+        AND: orConds.length > 0 ? [{ OR: orConds }] : undefined,
       },
       include: { sellerCompany: true },
     });
 
     if (!invoice && !xml) {
       throw new ApiError(404, "Nie znaleziono faktury do wysyłki.");
+    }
+
+    // Weryfikacja uprawnienia do wysyłki KSeF w zespole
+    if (invoice?.sellerCompanyId) {
+      const { requireCompanyAccess } = await import("@/lib/permissions");
+      await requireCompanyAccess(invoice.sellerCompanyId, session.id, "canSendKsef");
     }
 
     // Blokada logiczna: faktury zakupowe (FZ) nie mogą być wysyłane do KSeF jako faktury sprzedaży
@@ -217,6 +234,23 @@ export async function POST(req: Request) {
           },
         });
 
+        await recordAuditLog({
+          companyId: updatedInvoice.sellerCompanyId || undefined,
+          documentId: updatedInvoice.id,
+          userId: session.id,
+          userName: session.name || session.email,
+          userEmail: session.email,
+          action: "ksef_sent",
+          entityType: "invoice",
+          entityId: updatedInvoice.id,
+          description: `Zarejestrowano fakturę ${updatedInvoice.number} w KSeF (demo: ${ksefNumber})`,
+          details: {
+            ksefNumber,
+            referenceNumber: elemRef,
+            environment: "demo",
+          },
+        });
+
         // Automatyczna wysyłka e-mail, jeśli użytkownik włączył opcję dla tej faktury
         void triggerAutoEmailOnKsef(updatedInvoice.id);
       }
@@ -370,6 +404,23 @@ export async function POST(req: Request) {
           body: `Identyfikator przetwarzania w sesji: ${invoiceRef}. Oczekiwanie na nadanie numeru KSeF i UPO.`,
           link: `/invoices/${updated.id}`,
           read: false,
+        },
+      });
+
+      await recordAuditLog({
+        companyId: updated.sellerCompanyId || undefined,
+        documentId: updated.id,
+        userId: session.id,
+        userName: session.name || session.email,
+        userEmail: session.email,
+        action: "ksef_sent",
+        entityType: "invoice",
+        entityId: updated.id,
+        description: `Przekazano fakturę ${updated.number} do KSeF (${environment})`,
+        details: {
+          referenceNumber: invoiceRef,
+          sessionReferenceNumber: onlineSession.referenceNumber,
+          environment,
         },
       });
     }

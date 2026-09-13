@@ -189,3 +189,107 @@ Nie hardcodujemy domeny — w kodzie jest tylko placeholder
 Projekt demonstracyjny („demo”). Integracje zewnętrzne celowo nie zawierają
 prawdziwych sekretów. Przed wdrożeniem produkcyjnym wymagany jest audyt
 bezpieczeństwa i prawdziwe integracje (KSeF/GUS) — patrz wyżej.
+
+---
+
+## Instrukcja obsługi nowych funkcji
+
+Poniższy przewodnik opisuje wdrożone zaawansowane moduły pracy wieloużytkownikowej, fakturowania międzynarodowego, integracji kursów walut NBP oraz trwałego dziennika audytu.
+
+### 1. Zespół i uprawnienia (Wielodostęp w ramach firmy)
+
+Aplikacja wspiera wspólną pracę wielu osób w ramach jednej firmy — każda osoba loguje się własnym, unikalnym kontem e-mail i hasłem.
+
+#### Domyślne role systemowe:
+1. **Właściciel (`owner`)**:
+   - Pełna kontrola nad profilem firmy, rachunkami bankowymi, konfiguracją KSeF, finansami i zespołem.
+   - Posiada wyłączne prawo do usuwania firmy oraz zapraszania nowych użytkowników z uprawnieniem administracyjnym.
+   - **Ochrona ostatniego właściciela**: System bezwzględnie blokuje usunięcie lub degradację jedynego właściciela firmy.
+2. **Księgowa / Biuro rachunkowe (`accountant`)**:
+   - Wystawianie faktur sprzedaży i zakupów, faktury korygujące, rejestracja wpłat.
+   - Generowanie paczek dla biura (ZIP, JPK_V7, CSV), przegląd historii audytu i podgląd statusów KSeF.
+   - Brak możliwości usunięcia spółki lub edycji uprawnień właściciela.
+3. **Pracownik / Sprzedawca (`employee`)**:
+   - Wystawianie faktur sprzedaży i ofert handlowych, dostęp do bazy kontrahentów i produktów.
+   - Brak dostępu do modułu finansów, wyciągów bankowych oraz konfiguracji tokenów KSeF.
+4. **Podgląd / Audytor (`viewer`)**:
+   - Dostęp w trybie tylko do odczytu (wgląd do wystawionych faktur, raportów i dziennika audytu).
+   - Brak uprawnień do jakichkolwiek modyfikacji dokumentów i wpłat.
+
+#### Procedura zapraszania i zarządzania:
+- **Zaproszenie użytkownika**: Wejdź w `Ustawienia → Zespół i uprawnienia`. Wpisz adres e-mail współpracownika, wybierz rolę bazową i opcjonalnie dostosuj granularne uprawnienia (np. zezwól pracownikowi na wysyłkę do KSeF). Kliknij **„Wyślij zaproszenie”**.
+- **Akceptacja zaproszenia**: Zaproszony użytkownik otrzymuje bezpieczny link z unikalnym tokenem (ważnym 7 dni). Jeśli posiada już konto w systemie — loguje się i natychmiast uzyskuje dostęp. Jeśli jest nowym użytkownikiem — rejestruje się bezpośrednio z poziomu ekranu zaproszenia (`/invite/[token]`).
+- **Przełączanie firm (Company Switcher)**: Użytkownicy należący do wielu firm mogą błyskawicznie przełączać kontekst roboczy w prawym górnym rogu ekranu (Topbar). Każda firma posiada widoczną rolę użytkownika.
+- **Natychmiastowe odcięcie dostępu**: Odebranie roli lub usunięcie członka z zespołu przez Właściciela działa natychmiastowo — każde żądanie API weryfikuje uprawnienia w bazie danych, uniemożliwiając wykonanie jakiejkolwiek nieautoryzowanej operacji w aktywnej sesji.
+
+---
+
+### 2. Faktury walutowe i kursy NBP (art. 31a ustawy o VAT)
+
+System obsługuje wystawianie faktur w walutach obcych (EUR, USD, GBP, CHF, NOK, SEK, CAD) w pełnej zgodzie z polskimi przepisami podatkowymi.
+
+#### Zasady działania silnika NBP:
+- **Automatyczne stosowanie art. 31a ust. 1 i 2**:
+  - Jeżeli data sprzedaży (powstania obowiązku podatkowego) przypada w tym samym dniu lub po dacie wystawienia: kurs przeliczeniowy pobierany jest z **ostatniego dnia roboczego poprzedzającego dzień wykonania usługi lub dostawy towaru** (art. 31a ust. 1).
+  - Jeżeli fakturę wystawiono **przed** powstaniem obowiązku podatkowego: kurs pobierany jest z **ostatniego dnia roboczego poprzedzającego dzień wystawienia faktury** (art. 31a ust. 2).
+- **Obsługa weekendów i świąt**: System automatycznie sprawdza kalendarz notowań NBP (Tabela A). W przypadku transakcji poniedziałkowej lub poświątecznej, algorytm cofa się o odpowiednią liczbę dni do ostatniego opublikowanego notowania (np. piątek).
+- **Zakaz kursów fikcyjnych**: System nigdy nie wstawia fałszywego kursu 1.0 ani kursu z dnia bieżącego (notowania NBP publikowane są ok. godz. 11:45-12:15, zatem transakcje z danego dnia rozliczane są kursem z dnia poprzedniego).
+- **Trwały zapis w bazie**: Na dokumencie utrwalane są: numer tabeli NBP, data notowania, zastosowany kurs oraz przeliczone kwoty:
+  - `totalNetPln` (Wartość netto w PLN)
+  - `totalVatPln` (Podatek VAT w PLN)
+  - `totalGrossPln` (Wartość brutto w PLN)
+- **Kurs własny podatnika**: W przypadku stosowania kursu umownego, bankowego lub celnego, zaznacz opcję „Własny kurs podatnika”. Wymagane jest wprowadzenie formalnego uzasadnienia biznesowego (zapisywanego na dokumencie).
+
+---
+
+### 3. Kontrahenci zagraniczni (VAT UE i TIN spoza UE)
+
+System umożliwia rejestrowanie kontrahentów z całego świata bez konfliktów z polskim formatem NIP:
+
+- **Identyfikator NIP (Polska)**: Obowiązuje 10-cyfrowa walidacja sumy kontrolnej wagowej oraz integracja z bazą REGON (GUS BIR 1.1).
+- **Identyfikator VAT UE (Unia Europejska)**: Format dwuliterowego prefiksu kraju (np. `DE`, `FR`, `IT`, `ES`) oraz numeru VIES.
+- **Identyfikator TIN / Tax ID (Kraje trzecie, np. Ghana, USA, Wielka Brytania)**:
+  - Identyfikatory zagraniczne (np. `GH-102938475-X`, `US-EIN 12-3456789`) są zachowywane w całości wraz z literami i myślnikami.
+  - Wyłączona jest polska walidacja modulo-11, co zapobiega odrzucaniu poprawnych zagranicznych numerów rejestracji podatkowej.
+- **Stawki VAT dla zagranicy**:
+  - Stawka **`oo` (odwrotne obciążenie / reverse charge)**: Dedykowana dla usług wewnątrzwspólnotowych (art. 28b / art. 100 ustawy o VAT). Na fakturze PDF generowana jest prawna klauzula w języku polskim i angielskim: *„Odwrotne obciążenie / Reverse charge — podatek VAT rozlicza nabywca”*.
+  - Stawka **`0%` / `np`**: Dedykowana dla eksportu towarów i usług poza terytorium UE.
+- **Zgodność z KSeF FA(3)**:
+  - Podmiot unijny trafia do węzła `<Podmiot2><DaneIdentyfikacyjne><KodUE>DE</KodUE><NrVatUE>123456789</NrVatUE></DaneIdentyfikacyjne></Podmiot2>`.
+  - Podmiot spoza UE trafia do węzła `<Podmiot2><DaneIdentyfikacyjne><KodKraju>GH</KodKraju><NrID>C0012345678</NrID></DaneIdentyfikacyjne></Podmiot2>`.
+  - Podatek VAT w PLN dla transakcji walutowych trafia do węzłów `<P_14_xW>`.
+
+---
+
+### 4. Rachunki wielowalutowe i kody IBAN / SWIFT
+
+Dla transakcji międzynarodowych kluczowa jest przejrzysta informacja o rachunku bankowym sprzedawcy:
+
+- **Konfiguracja kont walutowych**: W `Ustawienia → Moje Firmy / NIP` (sekcja „Rachunki bankowe i konta walutowe”) możesz zdefiniować niezależne rachunki dla EUR, USD, GBP, PLN lub konta wielowalutowe.
+- **Walidacja IBAN**: Każdy numer konta sprawdzany jest międzynarodowym algorytmem `MOD-97-10` (z obsługą dużych liczb BigInt).
+- **Kod SWIFT / BIC**: Wymagany dla sprawnej realizacji płatności SEPA i SWIFT.
+- **Inteligentny dobór konta**: Po wybraniu waluty dokumentu (np. EUR), kreator faktury automatycznie proponuje konto dedykowane dla tej waluty.
+- **Bezpieczeństwo kodów QR**: Zgodnie z wytycznymi KIR i Związku Banków Polskich, standard kodu QR do przelewów dotyczy wyłącznie płatności krajowych w PLN. Dla faktur w walutach obcych generator kodu QR jest automatycznie dezaktywowany, aby zapobiec odrzuceniu przelewu przez bank klienta.
+
+---
+
+### 5. Dziennik audytu dokumentów (Audit Log) i ochrona współbieżności
+
+Każdy dokument w systemie objęty jest trwałym rejestrem zdarzeń:
+
+- **Niezmienność i transparentność**: W karcie faktury dostępna jest dedykowana zakładka **„Historia i audyt zmian (Audit Log)”**.
+- **Identyfikacja wykonawcy**: Każdy wpis zawiera:
+  - Dokładną tożsamość autora (imię, nazwisko, adres e-mail, rola w firmie).
+  - Datę i godzinę wykonania operacji.
+  - Typ akcji: wystawienie faktury, modyfikacja pozycji, zarejestrowanie wpłaty, wysyłka do KSeF, wysłanie e-mailem.
+- **Szczegółowy Diff parametrów**: W przypadku edycji dokumentu system porównuje stan poprzedni i nowy (np. `termin płatności: 14 dni → 30 dni`, `kwota netto: 1 200,00 EUR → 1 500,00 EUR`).
+- **Blokada edycji współbieżnej (Optimistic Concurrency Control)**: Każda faktura posiada pole `version`. Jeśli dwóch członków zespołu otworzy ten sam dokument do edycji, próba zapisu starszej wersji zostanie bezpiecznie zablokowana kodem błędu `CONCURRENCY_CONFLICT` z żądaniem odświeżenia strony.
+
+---
+
+### 6. Faktury dwujęzyczne (PL / EN) i wydruki PDF
+
+- **Szablony dwujęzyczne**: W kreatorze faktury dostępna jest opcja języka dokumentu: `Polski (PL)`, `Angielski (EN)` oraz `Dwujęzyczny (PL/EN)`.
+- **Prezentacja na wydruku**: Etykiety nagłówkowe, pozycje, stawki podatku, adnotacje NBP, dane rachunku bankowego (Beneficiary, IBAN, SWIFT/BIC) oraz podsumowanie podatku VAT w walucie i w PLN są czytelnie prezentowane w obu językach.
+- **Dostępność plików**: Faktury można pobrać jako oficjalny PDF, ustrukturyzowany plik XML FA(3) do KSeF, plik HTML oraz format JSON.
+

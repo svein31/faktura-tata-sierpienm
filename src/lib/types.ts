@@ -1,14 +1,98 @@
 export type VatRate = "23" | "8" | "5" | "0" | "zw" | "np" | "oo";
-export type Currency = "PLN" | "EUR" | "USD";
-export type InvoiceLanguage = "PL" | "EN";
+export type Currency = "PLN" | "EUR" | "USD" | "GBP" | string;
+export type InvoiceLanguage = "PL" | "EN" | "PL/EN";
 export type InvoiceType = "sale" | "purchase";
 export type PaymentMethod = "transfer" | "cash" | "card" | "blik" | "compensation";
 export type InvoiceStatus = "draft" | "issued" | "sent" | "paid" | "ksef_sent" | "ksef_active";
 export type DocumentStatus = "draft" | "ready" | "issued" | "cancelled";
 export type KsefStatus = "none" | "draft" | "ready" | "queued" | "sending" | "accepted" | "rejected" | "verify_needed";
 export type PaymentStatus = "unpaid" | "partially_paid" | "paid" | "overdue";
-export type UserRole = "owner" | "accountant" | "viewer";
+export type UserRole = "owner" | "accountant" | "employee" | "viewer";
+export type CompanyRole = "owner" | "accountant" | "employee" | "viewer";
+export type TaxIdType = "nip" | "vat_eu" | "tin" | "other" | "none";
+export type ExchangeRateRule = "art_31a_sale_date" | "art_31a_issue_date" | "art_31a_tax_point" | "manual";
 export type KsefEnv = "demo" | "test" | "production";
+
+export interface CompanyPermissions {
+  canIssueInvoices: boolean;
+  canCreateCorrections: boolean;
+  canRecordPayments: boolean;
+  canExport: boolean;
+  canSendKsef: boolean;
+  canManageBankAccounts: boolean;
+  canManageTeam: boolean;
+}
+
+export interface CompanyMember {
+  id: string;
+  companyId: string;
+  userId: string;
+  role: CompanyRole;
+  canIssueInvoices: boolean;
+  canCreateCorrections: boolean;
+  canRecordPayments: boolean;
+  canExport: boolean;
+  canSendKsef: boolean;
+  canManageBankAccounts: boolean;
+  canManageTeam: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    email: string;
+    name?: string | null;
+  };
+  company?: CompanyProfile;
+}
+
+export interface CompanyBankAccount {
+  id: string;
+  companyId: string;
+  accountName: string;
+  beneficiaryName: string;
+  currency: string;
+  isMultiCurrency: boolean;
+  accountNumber: string;
+  swiftBic?: string | null;
+  bankName: string;
+  bankAddress?: string | null;
+  transferInstructions?: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamInvitation {
+  id: string;
+  companyId?: string | null;
+  userId: string;
+  email: string;
+  role: CompanyRole;
+  permissions?: Partial<CompanyPermissions> | null;
+  token: string;
+  expiresAt: string;
+  acceptedAt?: string | null;
+  status: "pending" | "accepted" | "revoked" | "expired";
+  createdAt: string;
+  companyName?: string;
+  invitedByName?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  companyId?: string | null;
+  documentId?: string | null;
+  userId?: string | null;
+  userName?: string | null;
+  userEmail?: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  description?: string | null;
+  diff?: Record<string, { old: any; new: any; label?: string }> | null;
+  details?: any;
+  createdAt: string;
+}
 
 export interface PaymentItem {
   id: string;
@@ -41,6 +125,11 @@ export interface CompanyProfile {
   logoUrl?: string | null;
   createdAt: string;
   updatedAt: string;
+
+  // Uprawnienia bieżącego użytkownika w tej firmie (jeśli zapytanie zwraca kontekst)
+  currentUserRole?: CompanyRole;
+  currentUserPermissions?: CompanyPermissions;
+  bankAccounts?: CompanyBankAccount[];
 
   // Aliasy / kompatybilność
   name?: string;
@@ -80,6 +169,10 @@ export interface Contractor {
   vatStatus?: "czynny" | "zwolniony" | "nieznany" | string;
   vatCheckedAt?: string;
   vatCheckSource?: string;
+  // Kontrahenci zagraniczni
+  taxIdType?: TaxIdType;
+  taxId?: string;
+  country?: string;
   createdAt: string;
 }
 
@@ -180,6 +273,22 @@ export interface Invoice {
   declaredPaymentDate?: string;
   autoSendEmailOnKsef?: boolean;
   emailLogs?: InvoiceEmailLog[];
+  // Pola walutowe i NBP
+  exchangeRate?: number | null;
+  exchangeRateUnit?: number | null;
+  exchangeRateDate?: string | null;
+  exchangeRateTable?: string | null;
+  exchangeRateSource?: string | null;
+  exchangeRateRule?: ExchangeRateRule | null;
+  exchangeRateJustification?: string | null;
+  taxPointDate?: string | null;
+  totalNetPln?: number | null;
+  totalVatPln?: number | null;
+  totalGrossPln?: number | null;
+  bankAccountId?: string | null;
+  bankAccountSnapshot?: Partial<CompanyBankAccount> | null;
+  buyerTaxIdType?: TaxIdType | null;
+  buyerCountry?: string | null;
   createdAt: string;
 }
 

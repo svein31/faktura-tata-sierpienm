@@ -3,13 +3,14 @@ import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json } from "@/lib/api";
 import { invoiceToDto, contractorToDto, companyProfileToDto } from "@/lib/dto";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
+import { getCompanyMembership } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: { id: string } };
 
 /**
- * GET /api/invoices/[id]/pdf — Generuje i zwraca plik PDF faktury z kodem QR CIRFMF
+ * GET /api/invoices/[id]/pdf — Generuje i zwraca plik PDF faktury (dostępny dla wystawcy i członków firmy).
  */
 export async function GET(req: Request, { params }: Ctx) {
   try {
@@ -22,12 +23,27 @@ export async function GET(req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const invoiceRecord = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
-      include: { sellerCompany: true },
+    const invoiceRecord = await prisma.invoice.findUnique({
+      where: { id: params.id },
+      include: {
+        sellerCompany: {
+          include: { bankAccounts: true },
+        },
+      },
     });
 
     if (!invoiceRecord) {
+      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
+    }
+
+    // Weryfikacja dostępu: własna faktura LUB faktura firmy, w której użytkownik jest członkiem
+    let hasAccess = invoiceRecord.userId === user.id;
+    if (!hasAccess && invoiceRecord.sellerCompanyId) {
+      const membership = await getCompanyMembership(invoiceRecord.sellerCompanyId, user.id);
+      hasAccess = !!membership;
+    }
+
+    if (!hasAccess) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
@@ -35,8 +51,8 @@ export async function GET(req: Request, { params }: Ctx) {
 
     let contractorDto = undefined;
     if (invoiceRecord.contractorId) {
-      const contractorRecord = await prisma.contractor.findFirst({
-        where: { id: invoiceRecord.contractorId, userId: user.id },
+      const contractorRecord = await prisma.contractor.findUnique({
+        where: { id: invoiceRecord.contractorId },
       });
       if (contractorRecord) {
         contractorDto = contractorToDto(contractorRecord);
@@ -48,7 +64,7 @@ export async function GET(req: Request, { params }: Ctx) {
       companyDto = companyProfileToDto(invoiceRecord.sellerCompany);
     } else {
       const defaultCompany = await prisma.companyProfile.findFirst({
-        where: { userId: user.id, isDefault: true },
+        where: { userId: invoiceRecord.userId, isDefault: true },
       });
       if (defaultCompany) {
         companyDto = companyProfileToDto(defaultCompany);

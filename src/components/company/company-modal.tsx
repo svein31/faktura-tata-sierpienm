@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Check, Download, KeyRound, Loader2, Save, Sparkles, Image as ImageIcon, Upload, X } from "lucide-react";
+import { Building2, Check, Download, KeyRound, Loader2, Save, Sparkles, Image as ImageIcon, Upload, X, CreditCard, Plus, Trash2, Globe } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Checkbox } from "@/components/ui/input";
+import { Input, Label, Checkbox, Select } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
-import type { CompanyProfile } from "@/lib/types";
+import type { CompanyProfile, CompanyBankAccount } from "@/lib/types";
 
 interface CompanyModalProps {
   open: boolean;
@@ -55,6 +56,83 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
+  // Rachunki wielowalutowe
+  const [bankAccounts, setBankAccounts] = React.useState<CompanyBankAccount[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = React.useState(false);
+  const [showAddAccount, setShowAddAccount] = React.useState(false);
+  const [addingAccount, setAddingAccount] = React.useState(false);
+  const [newAccount, setNewAccount] = React.useState({
+    accountName: "Konto walutowe",
+    currency: "EUR",
+    accountNumber: "",
+    swiftBic: "",
+    bankName: "",
+    isDefault: false,
+  });
+
+  const fetchBankAccounts = React.useCallback(async (companyId: string) => {
+    setLoadingAccounts(true);
+    try {
+      const res = await fetch(`/api/companies/${companyId}/bank-accounts`);
+      if (res.ok) {
+        const data = await res.json();
+        setBankAccounts(data.accounts || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingAccounts(false);
+    }
+  }, []);
+
+  const handleCreateBankAccount = async () => {
+    if (!initialData?.id) return;
+    if (!newAccount.accountNumber.trim()) {
+      toast("error", "Błąd", "Wprowadź numer rachunku bankowego / IBAN.");
+      return;
+    }
+    setAddingAccount(true);
+    try {
+      const res = await fetch(`/api/companies/${initialData.id}/bank-accounts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAccount),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd zapisu rachunku");
+      toast("success", "Dodano rachunek bankowy", `${newAccount.currency} · ${newAccount.accountNumber}`);
+      setShowAddAccount(false);
+      setNewAccount({
+        accountName: "Konto walutowe",
+        currency: "EUR",
+        accountNumber: "",
+        swiftBic: "",
+        bankName: "",
+        isDefault: false,
+      });
+      await fetchBankAccounts(initialData.id);
+    } catch (e: any) {
+      toast("error", "Błąd", e.message);
+    } finally {
+      setAddingAccount(false);
+    }
+  };
+
+  const handleDeleteBankAccount = async (accId: string) => {
+    if (!initialData?.id) return;
+    try {
+      const res = await fetch(`/api/companies/${initialData.id}/bank-accounts?accountId=${accId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd usuwania rachunku");
+      toast("info", "Usunięto rachunek bankowy");
+      await fetchBankAccounts(initialData.id);
+    } catch (e: any) {
+      toast("error", "Błąd", e.message);
+    }
+  };
+
   React.useEffect(() => {
     if (open) {
       if (initialData) {
@@ -79,8 +157,14 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         });
       }
       setErrors({});
+      if (initialData?.id) {
+        void fetchBankAccounts(initialData.id);
+      } else {
+        setBankAccounts([]);
+      }
+      setShowAddAccount(false);
     }
-  }, [open, initialData, companies.length]);
+  }, [open, initialData, companies.length, fetchBankAccounts]);
 
   const setField = (field: keyof FormState, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -347,6 +431,163 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
             Będzie domyślnie umieszczany na fakturach wystawianych z tego profilu spółki oraz w kodzie QR do płatności.
           </p>
         </div>
+
+        {/* Rachunki wielowalutowe (EUR, USD, GBP, CHF, etc.) */}
+        {isEditing && initialData?.id && (
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold text-[13px] flex items-center gap-1.5">
+                <CreditCard className="h-4 w-4 text-primary" /> Rachunki bankowe i konta walutowe
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddAccount(!showAddAccount)}
+                className="h-7 text-xs gap-1 rounded-lg"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {showAddAccount ? "Anuluj" : "Dodaj konto walutowe"}
+              </Button>
+            </div>
+
+            {/* Formularz dodawania konta */}
+            {showAddAccount && (
+              <div className="p-3 bg-card rounded-xl border border-border space-y-3 animate-in fade-in-50">
+                <p className="text-xs font-bold text-foreground">Nowy rachunek walutowy</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div>
+                    <Label className="text-[11px]">Waluta</Label>
+                    <Select
+                      value={newAccount.currency}
+                      onChange={(e) => setNewAccount((p) => ({ ...p, currency: e.target.value }))}
+                      className="text-xs mt-1"
+                    >
+                      <option value="EUR">EUR (€)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="GBP">GBP (£)</option>
+                      <option value="CHF">CHF (Fr)</option>
+                      <option value="PLN">PLN (zł)</option>
+                      <option value="NOK">NOK</option>
+                      <option value="SEK">SEK</option>
+                    </Select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-[11px]">Nazwa rachunku</Label>
+                    <Input
+                      value={newAccount.accountName}
+                      onChange={(e) => setNewAccount((p) => ({ ...p, accountName: e.target.value }))}
+                      placeholder="np. Rachunek walutowy EUR"
+                      className="text-xs mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-[11px]">Numer konta / IBAN *</Label>
+                    <Input
+                      value={newAccount.accountNumber}
+                      onChange={(e) => setNewAccount((p) => ({ ...p, accountNumber: e.target.value }))}
+                      placeholder="PL61 1090 1014 0000 0712 1981 2874"
+                      className="font-mono text-xs mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px]">Kod SWIFT / BIC</Label>
+                    <Input
+                      value={newAccount.swiftBic}
+                      onChange={(e) => setNewAccount((p) => ({ ...p, swiftBic: e.target.value.toUpperCase() }))}
+                      placeholder="np. PKOPPLPW"
+                      className="font-mono text-xs mt-1 uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[11px]">Nazwa banku</Label>
+                  <Input
+                    value={newAccount.bankName}
+                    onChange={(e) => setNewAccount((p) => ({ ...p, bankName: e.target.value }))}
+                    placeholder="np. PKO Bank Polski / Santander"
+                    className="text-xs mt-1"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <Checkbox
+                      checked={newAccount.isDefault}
+                      onChange={(e) => setNewAccount((p) => ({ ...p, isDefault: e.target.checked }))}
+                    />
+                    <span>Ustaw jako domyślny dla tej waluty</span>
+                  </label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleCreateBankAccount}
+                    loading={addingAccount}
+                    className="h-8 text-xs gap-1"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Dodaj rachunek
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista istniejących kont */}
+            <div className="space-y-1.5">
+              {loadingAccounts ? (
+                <div className="text-center py-3 text-xs text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto mb-1" />
+                  Ładowanie kont...
+                </div>
+              ) : bankAccounts.length === 0 ? (
+                <p className="text-[11.5px] text-muted-foreground italic py-1">
+                  Brak dodatkowych kont walutowych. Główne konto PLN z pola powyżej jest aktywne.
+                </p>
+              ) : (
+                bankAccounts.map((acc) => (
+                  <div
+                    key={acc.id}
+                    className="p-2.5 bg-card rounded-xl border border-border flex items-center justify-between gap-2"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <Badge tone="primary" className="font-mono font-bold text-[10px] px-1.5 py-0">
+                          {acc.currency}
+                        </Badge>
+                        <span className="text-xs font-semibold text-foreground truncate">
+                          {acc.accountName}
+                        </span>
+                        {acc.isDefault && (
+                          <Badge tone="success" className="text-[9px] px-1 py-0">
+                            Domyślne
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="font-mono text-[11px] text-muted-foreground truncate mt-0.5">
+                        {acc.accountNumber}
+                        {acc.swiftBic && ` · SWIFT: ${acc.swiftBic}`}
+                        {acc.bankName && ` (${acc.bankName})`}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteBankAccount(acc.id)}
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-500 shrink-0"
+                      title="Usuń rachunek"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Token KSeF dla tej spółki */}
         <div className="rounded-lg border border-border/80 bg-muted/20 p-3.5 space-y-2">

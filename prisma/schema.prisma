@@ -46,6 +46,7 @@ model User {
   comments            DocumentComment[]
   sentInvitations     TeamInvitation[]
   invoiceEmailLogs    InvoiceEmailLog[]
+  companyMemberships  CompanyMember[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -154,6 +155,9 @@ model Contractor {
   vatStatus              String?   // "czynny" | "zwolniony" | "nieznany"
   vatCheckedAt           DateTime?
   vatCheckSource         String?   // "mf_whitelist" | "gus_bir" | "manual"
+  taxIdType              String?   @default("nip") // "nip" | "vat_eu" | "tin" | "other" | "none"
+  taxId                  String?   // Pełny identyfikator zachowujący litery, separatory i zera wiodące
+  country                String?   @default("PL")
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
@@ -194,9 +198,57 @@ model CompanyProfile {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   invoices       Invoice[]
+  members        CompanyMember[]
+  invitations    TeamInvitation[]
+  bankAccounts   CompanyBankAccount[]
+  auditLogs      AuditLog[]
 
   @@unique([userId, nip])
   @@index([userId])
+}
+
+/// Członkostwo i uprawnienia użytkownika w firmie
+model CompanyMember {
+  id                    String         @id @default(auto()) @map("_id") @db.ObjectId
+  companyId             String         @db.ObjectId
+  company               CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId                String         @db.ObjectId
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                  String         @default("employee") // "owner" | "accountant" | "employee" | "viewer"
+  canIssueInvoices      Boolean        @default(true)
+  canCreateCorrections  Boolean        @default(false)
+  canRecordPayments     Boolean        @default(false)
+  canExport             Boolean        @default(false)
+  canSendKsef           Boolean        @default(false)
+  canManageBankAccounts Boolean        @default(false)
+  canManageTeam         Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@unique([companyId, userId])
+  @@index([companyId])
+  @@index([userId])
+}
+
+/// Rachunki bankowe firmy (PLN i walutowe IBAN / SWIFT)
+model CompanyBankAccount {
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  companyId            String         @db.ObjectId
+  company              CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  accountName          String         @default("Rachunek główny")
+  beneficiaryName      String         @default("")
+  currency             String         @default("PLN") // PLN | EUR | USD | GBP | MULTI
+  isMultiCurrency      Boolean        @default(false)
+  accountNumber        String         // IBAN lub lokalny numer rachunku
+  swiftBic             String?        // Kod BIC/SWIFT 8 lub 11 znaków
+  bankName             String         @default("")
+  bankAddress          String?        @default("")
+  transferInstructions String?        @default("")
+  isDefault            Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([companyId])
 }
 
 /// Faktura
@@ -266,10 +318,28 @@ model Invoice {
   lastPaymentReminderSentAt DateTime?
   paymentReminderCount      Int?    @default(0)
   // Portal Kontrahenta i Proforma
-  shareToken                String? @unique
+  shareToken                String?
   isProforma                Boolean? @default(false)
   declaredPaymentDate       String? // Deklarowana data zapłaty przez kontrahenta
   autoSendEmailOnKsef       Boolean? @default(false)
+
+  // Pola walutowe, NBP i bankowe
+  exchangeRate              Float?
+  exchangeRateUnit          Int?    @default(1)
+  exchangeRateDate          String?
+  exchangeRateTable         String?
+  exchangeRateSource        String?
+  exchangeRateRule          String? // art_31a_sale_date | art_31a_issue_date | art_31a_tax_point | manual
+  exchangeRateJustification String?
+  taxPointDate              String?
+  totalNetPln               Float?  @default(0)
+  totalVatPln               Float?  @default(0)
+  totalGrossPln             Float?  @default(0)
+  bankAccountId             String?
+  bankAccountSnapshot       Json?
+  buyerTaxIdType            String?
+  buyerCountry              String?
+
   // Relacje
   payments        PaymentRecord[]
   ksefTasks       KsefQueueTask[]
@@ -284,6 +354,7 @@ model Invoice {
   @@index([ksefNumber])
   @@index([ksefStatus])
   @@index([paymentStatus])
+  @@index([shareToken])
 }
 
 model Notification {
@@ -361,16 +432,26 @@ model KsefQueueTask {
 }
 
 model AuditLog {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action     String   // e.g. "ksef_send", "invoice_approve", "export_generated", "payment_add"
-  entityType String   // "invoice", "payment", "ksef_session"
-  entityId   String
-  details    Json?
-  createdAt  DateTime @default(now())
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String?         @db.ObjectId
+  company     CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  documentId  String?
+  userId      String?         @db.ObjectId
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName    String?         // snapshot wykonawcy np. "Anna Kowalska" lub "System"
+  userEmail   String?
+  action      String          // e.g. "invoice_create", "invoice_update", "invoice_issue", "payment_add", "team_invite"
+  entityType  String          // "invoice", "payment", "company", "bank_account", "team"
+  entityId    String
+  description String?         // np. "Anna Kowalska zmieniła termin płatności z 20.09.2026 na 27.09.2026"
+  diff        Json?           // { field: { old, new, label } }
+  details     Json?           // bezpieczne metadane (bez haseł/kluczy)
+  createdAt   DateTime        @default(now())
 
+  @@index([companyId, createdAt])
+  @@index([documentId, createdAt])
   @@index([userId, createdAt])
+  @@index([action])
 }
 
 model Offer {
@@ -500,18 +581,23 @@ model DocumentComment {
 }
 
 model TeamInvitation {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String    @db.ObjectId
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  companyId  String?         @db.ObjectId
+  company    CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId     String          @db.ObjectId
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   email      String
-  role       String    @default("accountant") // accountant | employee | viewer
-  token      String    @unique
+  role       String          @default("accountant") // owner | accountant | employee | viewer
+  permissions Json?          // opcjonalne granularne uprawnienia
+  token      String          @unique
   expiresAt  DateTime
   acceptedAt DateTime?
-  status     String    @default("pending") // pending | accepted | revoked | expired
-  createdAt  DateTime  @default(now())
+  status     String          @default("pending") // pending | accepted | revoked | expired
+  createdAt  DateTime        @default(now())
 
   @@index([userId])
+  @@index([companyId])
+  @@index([email])
 }
 
 model InvoiceEmailLog {

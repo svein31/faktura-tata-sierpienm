@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, LogOut, Search, HelpCircle } from "lucide-react";
+import { Menu, LogOut, Search, HelpCircle, Building2, ChevronDown, Check, Shield } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-center";
@@ -19,7 +19,8 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/orders/, title: "Zlecenia & Czas" },
   { re: /^\/expenses/, title: "Koszty i wydatki" },
   { re: /^\/finances/, title: "Finanse & Wyciągi" },
-  { re: /^\/accountant/, title: "Księgowość & Zespół" },
+  { re: /^\/accountant/, title: "Paczka dla księgowej" },
+  { re: /^\/settings\/team/, title: "Zespół i uprawnienia" },
   { re: /^\/contractors/, title: "Kontrahenci" },
   { re: /^\/products/, title: "Produkty / Usługi" },
   { re: /^\/settings\/companies/, title: "Moje Firmy / Spółki" },
@@ -28,12 +29,40 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/ksef/, title: "Centrum KSeF" },
 ];
 
+const ROLE_DISPLAY: Record<string, { label: string; badgeClass: string }> = {
+  owner: { label: "Właściciel", badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
+  accountant: { label: "Księgowa", badgeClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
+  employee: { label: "Pracownik", badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
+  viewer: { label: "Podgląd", badgeClass: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+};
+
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useSessionUser();
   const match = TITLES.find((t) => t.re.test(pathname));
   const title = match?.title ?? "Fakturo";
+
+  const { companies, company, selectedCompanyId, setSelectedCompanyId } = useAppStore();
+  const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);
+  const companyMenuRef = React.useRef<HTMLDivElement>(null);
+
+  const activeCompany = companies.find((c) => c.id === selectedCompanyId) || company || companies[0] || null;
+  const currentRole = activeCompany?.currentUserRole || "owner";
+  const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.employee;
+
+  // Zamknij menu po kliknięciu poza nim
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (companyMenuRef.current && !companyMenuRef.current.contains(e.target as Node)) {
+        setShowCompanyMenu(false);
+      }
+    }
+    if (showCompanyMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showCompanyMenu]);
 
   const initials = user.name
     .split(/\s+/)
@@ -78,6 +107,81 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             })}
           </p>
         </div>
+
+        {/* Company Switcher z widoczną rolą użytkownika */}
+        {activeCompany && (
+          <div className="relative ml-2 sm:ml-4" ref={companyMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowCompanyMenu(!showCompanyMenu)}
+              className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs"
+            >
+              <div className="p-1 rounded-lg bg-primary/10 text-primary">
+                <Building2 className="w-3.5 h-3.5" />
+              </div>
+              <div className="hidden sm:block">
+                <p className="max-w-[140px] truncate text-xs font-semibold text-foreground leading-tight">
+                  {activeCompany.companyName || activeCompany.name || "Moja Firma"}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] text-muted-foreground">NIP: {activeCompany.nip}</span>
+                  <span className={`text-[9.5px] font-semibold px-1 py-0.2 rounded border ${roleInfo.badgeClass}`}>
+                    {roleInfo.label}
+                  </span>
+                </div>
+              </div>
+              {companies.length > 1 && (
+                <ChevronDown className="w-3 h-3 text-muted-foreground ml-0.5" />
+              )}
+            </button>
+
+            {/* Dropdown przełączania firm */}
+            {showCompanyMenu && companies.length > 1 && (
+              <div className="absolute top-full left-0 mt-1.5 w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
+                <p className="px-2 py-1 text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Twoje firmy i zespoły
+                </p>
+                <div className="space-y-0.5 mt-1 max-h-56 overflow-y-auto">
+                  {companies.map((c) => {
+                    const isSelected = c.id === activeCompany.id;
+                    const r = ROLE_DISPLAY[c.currentUserRole || "owner"] || ROLE_DISPLAY.employee;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCompanyId(c.id);
+                          setShowCompanyMenu(false);
+                        }}
+                        className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${
+                          isSelected ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"
+                        }`}
+                      >
+                        <div className="truncate">
+                          <p className="truncate font-medium">{c.companyName || c.name}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            NIP: {c.nip} · <span className="font-semibold">{r.label}</span>
+                          </p>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="border-t border-border/60 mt-1.5 pt-1">
+                  <Link
+                    href="/settings/team"
+                    onClick={() => setShowCompanyMenu(false)}
+                    className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-primary hover:bg-muted/50 rounded-lg transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Zarządzaj zespołem i rolami</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">

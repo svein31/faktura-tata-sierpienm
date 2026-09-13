@@ -4,10 +4,40 @@ import { ApiError, handleApiError, json, readJson, num, str } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { invoiceTotals, round2 } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
+import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
+import { recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: { id: string } };
+
+/** Pomocnicza funkcja weryfikacji dostępu do faktury */
+async function getInvoiceWithAccess(invoiceId: string, userId: string) {
+  if (!/^[0-9a-fA-F]{24}$/.test(invoiceId)) return null;
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: {
+      sellerCompany: { include: { bankAccounts: true } },
+      payments: true,
+    },
+  });
+
+  if (!invoice) return null;
+
+  if (invoice.userId === userId) {
+    return { invoice, isDirectOwner: true };
+  }
+
+  if (invoice.sellerCompanyId) {
+    const membership = await getCompanyMembership(invoice.sellerCompanyId, userId);
+    if (membership) {
+      return { invoice, isDirectOwner: false };
+    }
+  }
+
+  return null;
+}
 
 /**
  * GET /api/invoices/[id]/payments — Lista wpłat zarejestrowanych dla faktury
@@ -17,20 +47,13 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
-      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
-    }
-
-    const invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
-    });
-
-    if (!invoice) {
+    const result = await getInvoiceWithAccess(params.id, user.id);
+    if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const payments = await prisma.paymentRecord.findMany({
-      where: { invoiceId: invoice.id, userId: user.id },
+      where: { invoiceId: result.invoice.id },
       orderBy: { paidAt: "desc" },
     });
 
@@ -48,17 +71,16 @@ export async function POST(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    const result = await getInvoiceWithAccess(params.id, user.id);
+    if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
-      include: { sellerCompany: true },
-    });
+    const { invoice, isDirectOwner } = result;
 
-    if (!invoice) {
-      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
+    // Sprawdź uprawnienie do rejestracji płatności w firmie
+    if (!isDirectOwner && invoice.sellerCompanyId) {
+      await requireCompanyAccess(invoice.sellerCompanyId, user.id, "canRecordPayments");
     }
 
     const body = await readJson(req);
@@ -115,24 +137,33 @@ export async function POST(req: Request, { params }: Ctx) {
         paidAmount: totalPaid,
         paymentStatus,
         status: paymentStatus === "paid" ? "paid" : invoice.status,
+        version: (invoice.version || 1) + 1,
       },
-      include: { sellerCompany: true },
+      include: {
+        sellerCompany: { include: { bankAccounts: true } },
+        payments: true,
+      },
     });
 
-    // Zapisz audyt
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: "payment_registered",
-        entityType: "invoice",
-        entityId: invoice.id,
-        details: {
-          paymentId: payment.id,
-          amount,
-          totalPaid,
-          grossTotal,
-          paymentStatus,
-        },
+    // Zapisz zdarzenie w dzienniku audytu firmy
+    await recordAuditLog({
+      companyId: invoice.sellerCompanyId || undefined,
+      documentId: invoice.id,
+      userId: user.id,
+      userName: user.name || user.email,
+      userEmail: user.email,
+      action: "payment_registered",
+      entityType: "invoice",
+      entityId: invoice.id,
+      description: `Zarejestrowano wpłatę ${amount.toFixed(2)} ${invoice.currency} do faktury ${invoice.number}`,
+      details: {
+        paymentId: payment.id,
+        amount,
+        totalPaid,
+        grossTotal,
+        paymentStatus,
+        currency: invoice.currency,
+        method,
       },
     });
 
@@ -145,7 +176,7 @@ export async function POST(req: Request, { params }: Ctx) {
       invoice: invoiceToDto(updatedInvoice),
       message: paymentStatus === "paid"
         ? "Faktura została w całości opłacona."
-        : `Zarejestrowano wpłatę ${amount.toFixed(2)} PLN. Pozostało do zapłaty: ${Math.max(0, grossTotal - totalPaid).toFixed(2)} PLN.`,
+        : `Zarejestrowano wpłatę ${amount.toFixed(2)} ${invoice.currency}. Pozostało do zapłaty: ${Math.max(0, grossTotal - totalPaid).toFixed(2)} ${invoice.currency}.`,
     });
   } catch (e) {
     return handleApiError(e);

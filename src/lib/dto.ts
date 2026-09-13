@@ -138,6 +138,9 @@ export function contractorToDto(c: DbContractor): Contractor {
     vatStatus: c.vatStatus ?? undefined,
     vatCheckedAt: c.vatCheckedAt ? c.vatCheckedAt.toISOString() : undefined,
     vatCheckSource: c.vatCheckSource ?? undefined,
+    taxIdType: (c.taxIdType as any) || "nip",
+    taxId: c.taxId || c.nip,
+    country: c.country || "PL",
     createdAt: c.createdAt.toISOString(),
   };
 }
@@ -198,7 +201,7 @@ export function invoiceToDto(
     saleDate: i.saleDate,
     dueDate: i.dueDate,
     currency: i.currency as Invoice["currency"],
-    language: (i.language === "EN" ? "EN" : "PL") as Invoice["language"],
+    language: (i.language as any) || "PL",
     paymentMethod: i.paymentMethod as Invoice["paymentMethod"],
     paymentTermDays: i.paymentTermDays,
     notes: i.notes ?? undefined,
@@ -248,7 +251,105 @@ export function invoiceToDto(
     declaredPaymentDate: i.declaredPaymentDate ?? undefined,
     autoSendEmailOnKsef: (i as any).autoSendEmailOnKsef ?? false,
     emailLogs: Array.isArray((i as any).emailLogs) ? (i as any).emailLogs.map(emailLogToDto) : undefined,
+
+    // Nowe pola walutowe, NBP i bankowe
+    exchangeRate: i.exchangeRate ?? null,
+    exchangeRateUnit: i.exchangeRateUnit ?? 1,
+    exchangeRateDate: i.exchangeRateDate ?? null,
+    exchangeRateTable: i.exchangeRateTable ?? null,
+    exchangeRateSource: i.exchangeRateSource ?? null,
+    exchangeRateRule: (i.exchangeRateRule as any) ?? null,
+    exchangeRateJustification: i.exchangeRateJustification ?? null,
+    taxPointDate: i.taxPointDate ?? null,
+    totalNetPln: i.totalNetPln ?? null,
+    totalVatPln: i.totalVatPln ?? null,
+    totalGrossPln: i.totalGrossPln ?? null,
+    bankAccountId: i.bankAccountId ?? null,
+    bankAccountSnapshot: (i.bankAccountSnapshot as any) ?? null,
+    buyerTaxIdType: (i.buyerTaxIdType as any) ?? null,
+    buyerCountry: i.buyerCountry ?? null,
+
     createdAt: i.createdAt.toISOString(),
+  };
+}
+
+export function companyBankAccountToDto(ba: any): any {
+  return {
+    id: ba.id,
+    companyId: ba.companyId,
+    accountName: ba.accountName || "Rachunek bieżący",
+    beneficiaryName: ba.beneficiaryName || "",
+    currency: ba.currency || "PLN",
+    isMultiCurrency: ba.isMultiCurrency ?? false,
+    accountNumber: ba.accountNumber || "",
+    swiftBic: ba.swiftBic ?? null,
+    bankName: ba.bankName || "",
+    bankAddress: ba.bankAddress ?? null,
+    transferInstructions: ba.transferInstructions ?? null,
+    isDefault: ba.isDefault ?? false,
+    createdAt: ba.createdAt instanceof Date ? ba.createdAt.toISOString() : String(ba.createdAt),
+    updatedAt: ba.updatedAt instanceof Date ? ba.updatedAt.toISOString() : String(ba.updatedAt),
+  };
+}
+
+export function companyMemberToDto(cm: any): any {
+  return {
+    id: cm.id,
+    companyId: cm.companyId,
+    userId: cm.userId,
+    role: cm.role,
+    canIssueInvoices: cm.canIssueInvoices ?? false,
+    canCreateCorrections: cm.canCreateCorrections ?? false,
+    canRecordPayments: cm.canRecordPayments ?? false,
+    canExport: cm.canExport ?? false,
+    canSendKsef: cm.canSendKsef ?? false,
+    canManageBankAccounts: cm.canManageBankAccounts ?? false,
+    canManageTeam: cm.canManageTeam ?? false,
+    createdAt: cm.createdAt instanceof Date ? cm.createdAt.toISOString() : String(cm.createdAt),
+    updatedAt: cm.updatedAt instanceof Date ? cm.updatedAt.toISOString() : String(cm.updatedAt),
+    user: cm.user
+      ? {
+          id: cm.user.id,
+          email: cm.user.email,
+          name: cm.user.name || cm.user.email,
+        }
+      : undefined,
+  };
+}
+
+export function teamInvitationToDto(ti: any): any {
+  return {
+    id: ti.id,
+    companyId: ti.companyId ?? null,
+    userId: ti.userId,
+    email: ti.email,
+    role: ti.role,
+    permissions: ti.permissions ?? null,
+    token: ti.token,
+    expiresAt: ti.expiresAt instanceof Date ? ti.expiresAt.toISOString() : String(ti.expiresAt),
+    acceptedAt: ti.acceptedAt ? (ti.acceptedAt instanceof Date ? ti.acceptedAt.toISOString() : String(ti.acceptedAt)) : null,
+    status: ti.status,
+    createdAt: ti.createdAt instanceof Date ? ti.createdAt.toISOString() : String(ti.createdAt),
+    companyName: ti.company?.companyName ?? undefined,
+    invitedByName: ti.user?.name || ti.user?.email,
+  };
+}
+
+export function auditLogToDto(a: any): any {
+  return {
+    id: a.id,
+    companyId: a.companyId ?? null,
+    documentId: a.documentId ?? null,
+    userId: a.userId ?? null,
+    userName: a.userName || a.user?.name || a.user?.email || "System",
+    userEmail: a.userEmail || a.user?.email || null,
+    action: a.action,
+    entityType: a.entityType,
+    entityId: a.entityId,
+    description: a.description ?? null,
+    diff: a.diff ?? null,
+    details: a.details ?? null,
+    createdAt: a.createdAt instanceof Date ? a.createdAt.toISOString() : String(a.createdAt),
   };
 }
 

@@ -6,6 +6,9 @@
 import { FA3_NAMESPACE, FA3_SCHEMA_VERSION, FA3_SYSTEM_CODE, FA3_FORM_VARIANT, PAYMENT_METHOD_CODES } from "./constants";
 import type { CompanyProfile, Contractor, Invoice, InvoiceLine, VatRate } from "../types";
 import { lineGross, lineNet, lineVat, round2 } from "../format";
+import { EU_COUNTRIES } from "../validation";
+
+const EU_COUNTRIES_LIST = Array.from(EU_COUNTRIES);
 
 function esc(s: string | number | undefined | null): string {
   return String(s ?? "")
@@ -168,19 +171,35 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
     })
     .join("\n");
 
-  // Sumy wg stawek VAT (P_13_x oraz P_14_x)
+  const effectiveRate = invoice.currency && invoice.currency !== "PLN" && invoice.exchangeRate
+    ? invoice.exchangeRate / (invoice.exchangeRateUnit || 1)
+    : null;
+
+  // Sumy wg stawek VAT (P_13_x oraz P_14_x, oraz P_14_xW dla walut obcych)
   const rateSummaries: string[] = [];
   if (totals.rate23.net > 0 || totals.rate23.vat > 0) {
     rateSummaries.push(`    <P_13_1>${totals.rate23.net.toFixed(2)}</P_13_1>`);
     rateSummaries.push(`    <P_14_1>${totals.rate23.vat.toFixed(2)}</P_14_1>`);
+    if (effectiveRate && totals.rate23.vat > 0) {
+      const vatPln = round2(totals.rate23.vat * effectiveRate);
+      rateSummaries.push(`    <P_14_1W>${vatPln.toFixed(2)}</P_14_1W>`);
+    }
   }
   if (totals.rate8.net > 0 || totals.rate8.vat > 0) {
     rateSummaries.push(`    <P_13_2>${totals.rate8.net.toFixed(2)}</P_13_2>`);
     rateSummaries.push(`    <P_14_2>${totals.rate8.vat.toFixed(2)}</P_14_2>`);
+    if (effectiveRate && totals.rate8.vat > 0) {
+      const vatPln = round2(totals.rate8.vat * effectiveRate);
+      rateSummaries.push(`    <P_14_2W>${vatPln.toFixed(2)}</P_14_2W>`);
+    }
   }
   if (totals.rate5.net > 0 || totals.rate5.vat > 0) {
     rateSummaries.push(`    <P_13_3>${totals.rate5.net.toFixed(2)}</P_13_3>`);
     rateSummaries.push(`    <P_14_3>${totals.rate5.vat.toFixed(2)}</P_14_3>`);
+    if (effectiveRate && totals.rate5.vat > 0) {
+      const vatPln = round2(totals.rate5.vat * effectiveRate);
+      rateSummaries.push(`    <P_14_3W>${vatPln.toFixed(2)}</P_14_3W>`);
+    }
   }
   if (totals.rate0.net > 0) {
     rateSummaries.push(`    <P_13_6_1>${totals.rate0.net.toFixed(2)}</P_13_6_1>`);
@@ -191,17 +210,40 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
   if (totals.rateNp.net > 0) {
     rateSummaries.push(`    <P_13_8>${totals.rateNp.net.toFixed(2)}</P_13_8>`);
   }
+  if (totals.rateOo.net > 0) {
+    rateSummaries.push(`    <P_13_10>${totals.rateOo.net.toFixed(2)}</P_13_10>`);
+  }
 
   const rateSummariesXml = rateSummaries.length > 0 ? `${rateSummaries.join("\n")}\n` : "";
 
   // Sekcja Nabywcy (Podmiot2)
-  const buyerIdXml = buyerNip
-    ? `<NIP>${buyerNip}</NIP>`
-    : `<BrakID>1</BrakID>`;
+  const buyerCountry = (buyer?.country || buyer?.address?.country || invoice.buyerCountry || "PL").toUpperCase();
+  const buyerTaxIdType = buyer?.taxIdType || invoice.buyerTaxIdType || (buyerNip ? "nip" : "none");
+  const rawTaxId = (buyer?.taxId || buyer?.nip || "").trim();
+
+  let buyerIdXml = "";
+  if (buyerTaxIdType === "none" || (!rawTaxId && !buyerNip)) {
+    buyerIdXml = `<BrakID>1</BrakID>`;
+  } else if (buyerTaxIdType === "vat_eu" || (buyerTaxIdType as string) === "vat_ue" || (EU_COUNTRIES_LIST.includes(buyerCountry) && buyerCountry !== "PL")) {
+    let cleanVat = rawTaxId.replace(/[\s-]/g, "").toUpperCase();
+    let prefix = buyerCountry;
+    if (cleanVat.startsWith(prefix)) {
+      cleanVat = cleanVat.slice(prefix.length);
+    } else if (/^[A-Z]{2}/.test(cleanVat)) {
+      prefix = cleanVat.slice(0, 2);
+      cleanVat = cleanVat.slice(2);
+    }
+    if (prefix === "GR") prefix = "EL";
+    buyerIdXml = `<KodUE>${esc(prefix)}</KodUE>\n      <NrVatUE>${esc(cleanVat)}</NrVatUE>`;
+  } else if (buyerTaxIdType === "tin" || (buyerCountry !== "PL" && !EU_COUNTRIES_LIST.includes(buyerCountry))) {
+    buyerIdXml = `<KodKraju>${esc(buyerCountry)}</KodKraju>\n      <NrID>${esc(rawTaxId)}</NrID>`;
+  } else {
+    const cleanPolNip = cleanNip(rawTaxId || buyerNip);
+    buyerIdXml = cleanPolNip ? `<NIP>${cleanPolNip}</NIP>` : `<BrakID>1</BrakID>`;
+  }
 
   const buyerStreet = buyer?.address?.street || "";
   const buyerPostalCity = `${buyer?.address?.postal || ""} ${buyer?.address?.city || ""}`.trim();
-  const buyerCountry = buyer?.address?.country || "PL";
   const buyerName = buyer?.name || "Klient detaliczny";
 
   // Sekcja Sprzedawcy (Podmiot1)
@@ -278,7 +320,7 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
     <Adnotacje>
       <P_16>2</P_16>
       <P_17>2</P_17>
-      <P_18>2</P_18>
+      <P_18>${totals.rateOo.net > 0 ? "1" : "2"}</P_18>
       <P_18A>2</P_18A>
       <Zwolnienie>
         ${totals.rateZw.net > 0 ? `<P_19>1</P_19>` : `<P_19N>1</P_19N>`}

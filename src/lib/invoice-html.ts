@@ -1,6 +1,7 @@
 import { formatDate, formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "./format";
 import { invoiceLabels, paymentMethodLabel } from "./i18n";
-import type { CompanyProfile, Contractor, Invoice } from "./types";
+import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "./types";
+import { getTaxIdLabel } from "./validation";
 
 function esc(s: string | number | undefined | null): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -8,14 +9,15 @@ function esc(s: string | number | undefined | null): string {
 
 /**
  * Samodzielny dokument HTML z fakturą — do pobrania / wydruku („Zapisz jako PDF").
- * Pełny, serwerowy PDF (np. Puppeteer) wykracza poza zakres demo — patrz README.
+ * Obsługuje faktury wielowalutowe, kursy NBP, dane wielowalutowe IBAN/SWIFT oraz tryb dwujęzyczny PL/EN.
  */
 export function buildInvoiceHtmlString(
   invoice: Invoice,
   contractor: Contractor | undefined,
   company: CompanyProfile
 ): string {
-  const L = invoiceLabels[invoice.language];
+  const lang = invoice.language || "PL";
+  const L = invoiceLabels[lang] || invoiceLabels["PL"];
   const t = invoiceTotals(invoice);
 
   const compName = company.companyName || company.name || "—";
@@ -37,8 +39,15 @@ export function buildInvoiceHtmlString(
     invoice.type === "sale"
       ? contractor?.address
       : { street: compStreet, city: compCity, postal: compPostal, country: compCountry };
+
   const sellerNip = invoice.type === "sale" ? company.nip : (contractor?.nip ?? "—");
-  const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : company.nip;
+  const buyerTaxId = invoice.type === "sale" ? (contractor?.taxId || contractor?.nip || "—") : company.nip;
+  const buyerTaxIdType = contractor?.taxIdType || invoice.buyerTaxIdType || "nip";
+  const buyerCountry = contractor?.country || contractor?.address?.country || invoice.buyerCountry || "PL";
+  const buyerTaxLabel = invoice.type === "sale" ? getTaxIdLabel(buyerTaxIdType, buyerCountry, lang) : L.nip;
+
+  // Snapshot rachunku bankowego jeśli został przypisany
+  const bankSnapshot = invoice.bankAccountSnapshot as (CompanyBankAccount & { bankName?: string }) | undefined;
 
   const rows = invoice.lines
     .map(
@@ -56,8 +65,11 @@ export function buildInvoiceHtmlString(
     )
     .join("");
 
+  const isForeignCurrency = invoice.currency && invoice.currency !== "PLN";
+  const vatInPln = invoice.totalVatPln ?? (invoice.exchangeRate ? t.vat * (invoice.exchangeRate / (invoice.exchangeRateUnit || 1)) : null);
+
   return `<!DOCTYPE html>
-<html lang="${invoice.language === "PL" ? "pl" : "en"}">
+<html lang="${lang === "PL" ? "pl" : "en"}">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -89,6 +101,7 @@ export function buildInvoiceHtmlString(
   .totals .gross { font-weight: 800; font-size: 14px; border-top: 1px solid #e5e7eb; margin-top: 6px; padding-top: 8px; }
   .totals .pay { background: rgba(99,102,241,.1); color: #4f46e5; font-weight: 800; border-radius: 6px; padding: 7px 10px; margin-top: 8px; display: flex; justify-content: space-between; }
   .pay-info { margin-top: 18px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #374151; }
+  .nbp-box { margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #1e3a8a; }
   .foot { margin-top: 34px; padding-top: 14px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 10.5px; color: #9ca3af; }
   @media print { body { background: #fff; padding: 0; } .page { box-shadow: none; border-radius: 0; padding: 24px; } }
 </style>
@@ -119,7 +132,7 @@ export function buildInvoiceHtmlString(
     </div>
     <div style="text-align:right; font-size:12px; color:#6b7280;">
       <div><b>${invoice.currency}</b></div>
-      <div style="margin-top:4px;">${esc(L.paymentMethod)}: ${esc(paymentMethodLabel(invoice.paymentMethod, invoice.language))} (${invoice.paymentTermDays} dni)</div>
+      <div style="margin-top:4px;">${esc(L.paymentMethod)}: ${esc(paymentMethodLabel(invoice.paymentMethod, lang))} (${invoice.paymentTermDays} dni)</div>
     </div>
   </div>
 
@@ -135,7 +148,7 @@ export function buildInvoiceHtmlString(
       <h4>${esc(L.buyer)}</h4>
       <p><b>${esc(buyerName)}</b><br/>
         <span class="muted">${esc(buyerAddr?.street ?? "")}<br/>${esc(`${buyerAddr?.postal ?? ""} ${buyerAddr?.city ?? ""}, ${buyerAddr?.country ?? ""}`)}</span><br/>
-        ${esc(L.nip)}: <b>${esc(buyerNip)}</b>
+        ${esc(buyerTaxLabel)}: <b>${esc(buyerTaxId)}</b>
       </p>
     </div>
   </div>
@@ -158,9 +171,27 @@ export function buildInvoiceHtmlString(
     </div>
   </div>
 
+  ${isForeignCurrency && invoice.exchangeRate ? `
+    <div class="nbp-box">
+      <b>Przeliczenie waluty obcej wg kursu NBP (art. 31a ustawy o VAT) / Currency conversion:</b><br/>
+      ${invoice.exchangeRateTable ? `Tabela NBP / Table: <b>${esc(invoice.exchangeRateTable)}</b> z dnia / Date: <b>${esc(invoice.exchangeRateDate || "—")}</b><br/>` : ""}
+      Kurs / Rate: <b>1 ${esc(invoice.currency)} = ${(invoice.exchangeRate / (invoice.exchangeRateUnit || 1)).toFixed(4)} PLN</b><br/>
+      ${vatInPln !== null ? `Kwota podatku VAT w PLN / VAT amount in PLN: <b>${vatInPln.toFixed(2)} PLN</b><br/>` : ""}
+      ${invoice.exchangeRateJustification ? `Uzasadnienie / Justification: <i>${esc(invoice.exchangeRateJustification)}</i>` : ""}
+    </div>
+  ` : ""}
+
   <div class="pay-info">
-    <b>${esc(L.paymentMethod)}:</b> ${esc(paymentMethodLabel(invoice.paymentMethod, invoice.language))}
-    ${invoice.paymentMethod === "transfer" ? `<br/>${esc(L.account)}: <b>${esc(invoice.type === "sale" ? compIban : (contractor?.iban ?? "—"))}</b>` : ""}
+    <b>${esc(L.paymentMethod)}:</b> ${esc(paymentMethodLabel(invoice.paymentMethod, lang))}<br/>
+    ${bankSnapshot ? `
+      <b>Bank:</b> ${esc(bankSnapshot.bankName || "—")}<br/>
+      <b>Beneficiary / Odbiorca:</b> ${esc((bankSnapshot as any).beneficiary || sellerName)}<br/>
+      <b>IBAN / Account:</b> <b>${esc(bankSnapshot.accountNumber)}</b><br/>
+      ${bankSnapshot.swiftBic ? `<b>SWIFT / BIC:</b> <b>${esc(bankSnapshot.swiftBic)}</b><br/>` : ""}
+      <b>Currency / Waluta konta:</b> ${esc(bankSnapshot.currency)}
+    ` : (invoice.paymentMethod === "transfer" ? `
+      <b>${esc(L.account)}:</b> <b>${esc(invoice.type === "sale" ? compIban : (contractor?.iban ?? "—"))}</b>
+    ` : "")}
     <br/>${esc(L.invoiceNo)}: ${esc(invoice.number)} · ${esc(L.dueDate)}: ${formatDate(invoice.dueDate)}
   </div>
 

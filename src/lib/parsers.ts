@@ -5,7 +5,7 @@
  */
 
 import { ApiError, cleanStr, num } from "./api";
-import { normalizeNip, isValidNipFormat } from "./validation";
+import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
 import type { Address } from "./types";
 
@@ -25,14 +25,23 @@ function parseAddress(v: unknown): Address {
 
 export function parseContractorBody(body: Record<string, unknown>) {
   const name = cleanStr(body.name, 200, "name");
-  const nipRaw = cleanStr(body.nip, 20, "nip");
-  const nip = normalizeNip(nipRaw);
-  if (!isValidNipFormat(nip)) {
-    throw new ApiError(400, "NIP ma nieprawidłowy format lub sumę kontrolną.");
+  if (!name) throw new ApiError(400, "Podaj nazwę kontrahenta.");
+
+  const taxIdType = (cleanStr(body.taxIdType, 20, "taxIdType") as any) || "nip";
+  const country = (cleanStr(body.country, 10, "country") || "PL").toUpperCase();
+  const taxIdRaw = cleanStr(body.taxId ?? body.nip, 50, "taxId");
+
+  const validation = validateTaxId(taxIdRaw, taxIdType, country);
+  if (!validation.valid && taxIdType !== "none") {
+    throw new ApiError(400, validation.reason || "Identyfikator podatkowy ma nieprawidłowy format.");
   }
+
   return {
     name,
-    nip,
+    nip: validation.normalized,
+    taxIdType,
+    taxId: validation.displayValue || validation.normalized,
+    country,
     regon: cleanStr(body.regon, 20, "regon") || null,
     address: parseAddress(body.address) as unknown as Prisma.InputJsonValue,
     email: cleanStr(body.email, 200, "email") || null,
@@ -42,7 +51,7 @@ export function parseContractorBody(body: Record<string, unknown>) {
     isVatPayer: body.isVatPayer !== false,
     notes: cleanStr(body.notes, 4000, "notes") || null,
     tags: Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean) : undefined,
-    defaultCurrency: cleanStr(body.defaultCurrency, 3, "defaultCurrency") || null,
+    defaultCurrency: cleanStr(body.defaultCurrency, 10, "defaultCurrency") || null,
     defaultPaymentTermDays: typeof body.defaultPaymentTermDays === "number" ? Math.max(0, body.defaultPaymentTermDays) : null,
     defaultDiscountPercent: typeof body.defaultDiscountPercent === "number" ? Math.max(0, Math.min(100, body.defaultDiscountPercent)) : null,
     vatStatus: cleanStr(body.vatStatus, 30, "vatStatus") || null,
@@ -79,7 +88,7 @@ export function parseProductBody(body: Record<string, unknown>) {
 const TYPES = ["sale", "purchase"] as const;
 const STATUSES = ["draft", "issued", "sent", "paid", "ksef_sent", "ksef_active"] as const;
 const CURRENCIES = ["PLN", "EUR", "USD"] as const;
-const LANGUAGES = ["PL", "EN"] as const;
+const LANGUAGES = ["PL", "EN", "PL/EN"] as const;
 const PAYMENT_METHODS = ["transfer", "cash", "card", "blik", "compensation"] as const;
 
 interface Line {
@@ -98,14 +107,23 @@ function parseLines(v: unknown): Line[] {
   return v.map((raw, idx) => {
     const l = (raw ?? {}) as Record<string, unknown>;
     const name = cleanStr(l.name, 500, `lines[${idx}].name`);
-    if (!name) throw new ApiError(400, `Pozycja ${idx + 1}: podaj nazwę.`);
-    const quantity = num(l.quantity);
-    const netPrice = num(l.netPrice);
-    if (quantity < 0 || netPrice < 0) {
-      throw new ApiError(400, `Pozycja ${idx + 1}: ilość i cena nie mogą być ujemne.`);
+    if (!name) throw new ApiError(400, `Pozycja #${idx + 1}: podaj nazwę towaru/usługi.`);
+
+    const quantity = typeof l.quantity === "number" ? l.quantity : Number(l.quantity ?? 0);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new ApiError(400, `Pozycja #${idx + 1}: ilość musi być większa od zera.`);
     }
+
+    const netPrice = typeof l.netPrice === "number" ? l.netPrice : Number(l.netPrice ?? 0);
+    if (!Number.isFinite(netPrice) || netPrice < 0) {
+      throw new ApiError(400, `Pozycja #${idx + 1}: cena netto nie może być ujemna.`);
+    }
+
     const vatRate = cleanStr(l.vatRate, 4, `lines[${idx}].vatRate`);
-    if (!VAT_RATES.includes(vatRate)) throw new ApiError(400, `Pozycja ${idx + 1}: nieprawidłowa stawka VAT.`);
+    if (!VAT_RATES.includes(vatRate)) {
+      throw new ApiError(400, `Pozycja #${idx + 1}: nieprawidłowa stawka VAT (${vatRate}).`);
+    }
+
     return {
       id: typeof l.id === "string" && l.id ? l.id : undefined,
       name,
@@ -160,14 +178,14 @@ export async function parseInvoiceBody(
 
   const contractorId = cleanStr(body.contractorId, 100, "contractorId");
   if (!contractorId || !(await opts.contractorOwnedBy(contractorId))) {
-    throw new ApiError(400, "Wybierz kontrahenta należącego do Twojego konta.");
+    throw new ApiError(400, "Wybierz kontrahenta należącego do Twojego konta lub firmy.");
   }
 
   const sellerCompanyIdRaw = cleanStr(body.sellerCompanyId, 100, "sellerCompanyId");
   let sellerCompanyId: string | null = null;
   if (sellerCompanyIdRaw) {
     if (opts.companyOwnedBy && !(await opts.companyOwnedBy(sellerCompanyIdRaw))) {
-      throw new ApiError(400, "Wybrany profil firmy nie należy do Twojego konta.");
+      throw new ApiError(400, "Wybrany profil firmy nie należy do Twojego konta lub zespołu.");
     }
     sellerCompanyId = sellerCompanyIdRaw;
   }
@@ -175,11 +193,15 @@ export async function parseInvoiceBody(
   const number = cleanStr(body.number, 50, "number");
   if (!number) throw new ApiError(400, "Podaj numer faktury.");
 
-  const currency = cleanStr(body.currency, 3, "currency") as (typeof CURRENCIES)[number];
-  if (!CURRENCIES.includes(currency)) throw new ApiError(400, "Nieprawidłowa waluta.");
+  // Waluta: PLN, EUR, USD, GBP lub dowolny kod 3-4 literowy
+  const currencyRaw = cleanStr(body.currency, 10, "currency").toUpperCase() || "PLN";
+  if (!/^[A-Z]{3,4}$/.test(currencyRaw)) {
+    throw new ApiError(400, "Nieprawidłowy kod waluty (wymagany standard 3-4 literowy, np. PLN, EUR, USD, GBP).");
+  }
+  const currency = currencyRaw;
 
-  const language = cleanStr(body.language, 2, "language") as (typeof LANGUAGES)[number];
-  if (!LANGUAGES.includes(language)) throw new ApiError(400, "Nieprawidłowy język dokumentu.");
+  const languageRaw = cleanStr(body.language, 10, "language") || "PL";
+  const language = LANGUAGES.includes(languageRaw as any) ? languageRaw : "PL";
 
   const paymentMethod = cleanStr(body.paymentMethod, 20, "paymentMethod") as (typeof PAYMENT_METHODS)[number];
   if (!PAYMENT_METHODS.includes(paymentMethod)) throw new ApiError(400, "Nieprawidłowa metoda płatności.");
@@ -189,6 +211,23 @@ export async function parseInvoiceBody(
     const v = cleanStr(body[f], 10, f);
     if (!dateRe.test(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
   }
+
+  // Pola NBP i walutowe
+  const exchangeRate = typeof body.exchangeRate === "number" && body.exchangeRate > 0 ? body.exchangeRate : null;
+  const exchangeRateUnit = typeof body.exchangeRateUnit === "number" && body.exchangeRateUnit > 0 ? body.exchangeRateUnit : 1;
+  const exchangeRateDate = cleanStr(body.exchangeRateDate, 20, "exchangeRateDate") || null;
+  const exchangeRateTable = cleanStr(body.exchangeRateTable, 100, "exchangeRateTable") || null;
+  const exchangeRateSource = cleanStr(body.exchangeRateSource, 200, "exchangeRateSource") || null;
+  const exchangeRateRule = cleanStr(body.exchangeRateRule, 50, "exchangeRateRule") || null;
+  const exchangeRateJustification = cleanStr(body.exchangeRateJustification, 1000, "exchangeRateJustification") || null;
+  const taxPointDate = cleanStr(body.taxPointDate, 20, "taxPointDate") || null;
+  const totalNetPln = typeof body.totalNetPln === "number" ? body.totalNetPln : null;
+  const totalVatPln = typeof body.totalVatPln === "number" ? body.totalVatPln : null;
+  const totalGrossPln = typeof body.totalGrossPln === "number" ? body.totalGrossPln : null;
+  const bankAccountId = cleanStr(body.bankAccountId, 100, "bankAccountId") || null;
+  const bankAccountSnapshot = body.bankAccountSnapshot ? (body.bankAccountSnapshot as unknown as Prisma.InputJsonValue) : undefined;
+  const buyerTaxIdType = cleanStr(body.buyerTaxIdType, 20, "buyerTaxIdType") || null;
+  const buyerCountry = cleanStr(body.buyerCountry, 10, "buyerCountry") || null;
 
   return {
     number,
@@ -230,6 +269,22 @@ export async function parseInvoiceBody(
     recurringPaused: Boolean(body.recurringPaused),
     recurringAutoSend: Boolean(body.recurringAutoSend),
     version: typeof body.version === "number" ? body.version + 1 : 1,
+    // Pola walutowe i bankowe
+    exchangeRate,
+    exchangeRateUnit,
+    exchangeRateDate,
+    exchangeRateTable,
+    exchangeRateSource,
+    exchangeRateRule,
+    exchangeRateJustification,
+    taxPointDate,
+    totalNetPln,
+    totalVatPln,
+    totalGrossPln,
+    bankAccountId,
+    bankAccountSnapshot,
+    buyerTaxIdType,
+    buyerCountry,
     ksef: undefined,
   };
 }

@@ -21,7 +21,9 @@ import {
   Send,
   ShieldCheck,
   Trash2,
+  History,
 } from "lucide-react";
+import { InvoiceHistoryTab } from "@/components/invoice/invoice-history-tab";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +72,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const [checkingStatus, setCheckingStatus] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
   const [emailModalOpen, setEmailModalOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"preview" | "history">("preview");
 
   const handleToggleApproval = async (targetStatus: "approved" | "pending") => {
     setApproving(true);
@@ -294,6 +297,34 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         </div>
       </div>
 
+      {/* Przełącznik zakładek: Dokument vs Historia Audytu */}
+      <div className="no-print flex items-center gap-2 border-b border-border/60 pb-3">
+        <Button
+          type="button"
+          variant={activeTab === "preview" ? "subtle" : "ghost"}
+          size="sm"
+          onClick={() => setActiveTab("preview")}
+          className="rounded-xl gap-2 text-xs font-semibold"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Podgląd dokumentu
+        </Button>
+        <Button
+          type="button"
+          variant={activeTab === "history" ? "subtle" : "ghost"}
+          size="sm"
+          onClick={() => setActiveTab("history")}
+          className="rounded-xl gap-2 text-xs font-semibold"
+        >
+          <History className="h-3.5 w-3.5" />
+          Historia i audyt zmian (Audit Log)
+        </Button>
+      </div>
+
+      {activeTab === "history" ? (
+        <InvoiceHistoryTab invoiceId={invoice.id} />
+      ) : (
+        <>
       {/* Karta Akceptacji Księgowej dla Faktur Zakupowych */}
       {invoice.type === "purchase" && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
@@ -478,6 +509,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           </CardContent>
         </Card>
       </div>
+      </>
+      )}
 
       <ConfirmDialog
         open={confirmDelete}

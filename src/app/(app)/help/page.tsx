@@ -19,6 +19,11 @@ import {
   HelpCircle,
   Send,
   Cloud,
+  CreditCard,
+  Globe,
+  History,
+  KeyRound,
+  UserCheck,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -26,7 +31,7 @@ import { Input } from "@/components/ui/input";
 
 interface HelpSection {
   id: string;
-  category: "email" | "invoices" | "ksef" | "company" | "finances" | "accountant";
+  category: "email" | "invoices" | "ksef" | "company" | "finances" | "accountant" | "team";
   categoryLabel: string;
   title: string;
   icon: React.ElementType;
@@ -367,15 +372,216 @@ const HELP_SECTIONS: HelpSection[] = [
       href: "/invoices",
     },
   },
+
+  // ── ZESPÓŁ I UPRAWNIENIA (WIELODOSTĘP) ──
+  {
+    id: "team-roles-permissions",
+    category: "team",
+    categoryLabel: "Zespół i Uprawnienia",
+    title: "Wspólna firma, zapraszanie użytkowników i role w zespole",
+    icon: UserCheck,
+    badge: "Nowość • Multi-user",
+    steps: [
+      {
+        title: "1. Otwórz ekran „Ustawienia → Zespół i uprawnienia”",
+        description:
+          "Z lewego menu bocznego wybierz „Zespół i uprawnienia” lub przejdź do Ustawień. Zobaczysz listę członków Twojej aktywnej firmy, ich role oraz statusy zaproszeń.",
+      },
+      {
+        title: "2. Wpisz e-mail i wskaż rolę",
+        description:
+          "Wpisz adres e-mail współpracownika i wybierz jedną z 4 domyślnych ról: Właściciel (pełna władza), Księgowa / Biuro (faktury, korekty, wpłaty, JPK, audyt), Pracownik / Sprzedawca (faktury i kontrahenci) lub Podgląd (tylko wgląd).",
+      },
+      {
+        title: "3. Skonfiguruj granularne uprawnienia",
+        description:
+          "Dla każdej roli możesz indywidualnie włączyć lub wyłączyć: wystawianie faktur, tworzenie korekt, rejestrację wpłat, eksporty/JPK, wysyłkę do KSeF, konta bankowe oraz zarządzanie zespołem.",
+      },
+      {
+        title: "4. Wygeneruj i wyślij bezpieczny link zaproszenia",
+        description:
+          "Kliknij „Wyślij zaproszenie”. System wygeneruje unikalny token ważny 7 dni. Możesz skopiować link do schowka i przekazać go zapraszanemu pracownikowi.",
+      },
+      {
+        title: "5. Akceptacja zaproszenia i natychmiastowe odcięcie dostępu",
+        description:
+          "Odbiorca loguje się własnym kontem (lub rejestruje nowe) i dołącza do firmy. Właściciel może w dowolnym momencie zmienić rolę lub usunąć członka — dostęp w aktywnej sesji zostaje odcięty natychmiastowo. Ostatni właściciel firmy jest bezwzględnie chroniony przed usunięciem.",
+      },
+    ],
+    quickAction: {
+      label: "Zarządzaj zespołem",
+      href: "/settings/team",
+    },
+  },
+
+  // ── FAKTURY WALUTOWE I KURSY NBP (ART. 31A) ──
+  {
+    id: "currency-invoices-nbp",
+    category: "invoices",
+    categoryLabel: "Waluty i NBP",
+    title: "Faktury walutowe i automatyczne kursy NBP (art. 31a ustawy o VAT)",
+    icon: Globe,
+    badge: "Nowość • art. 31a VAT",
+    steps: [
+      {
+        title: "1. Wybierz walutę obcą dokumentu",
+        description:
+          "W nagłówku nowej faktury zmień walutę z PLN na EUR, USD, GBP, CHF, NOK, SEK lub CAD. System automatycznie wyświetli dedykowany panel rozliczenia walutowego NBP.",
+      },
+      {
+        title: "2. Automatyczne pobranie tabeli kursowej NBP",
+        description:
+          "System łączy się z oficjalnym API Narodowego Banku Polskiego. Zgodnie z art. 31a ust. 1 i 2 ustawy o VAT pobierany jest średni kurs z ostatniego dnia roboczego poprzedzającego dzień powstania obowiązku podatkowego (lub dzień wystawienia faktury, jeśli wystawiono ją przed sprzedażą).",
+      },
+      {
+        title: "3. Obsługa weekendów i świąt państwowych",
+        description:
+          "W przypadku świąt lub weekendów algorytm automatycznie cofa się do ostatniego opublikowanego notowania NBP (brak fikcyjnych kursów 1.0 i brak błędnego kursu z bieżącego dnia).",
+      },
+      {
+        title: "4. Własny kurs podatnika z uzasadnieniem",
+        description:
+          "Jeśli stosujesz inny kurs (np. bankowy, z umowy ramowej lub celny), zaznacz opcję „Własny kurs” i podaj wartość oraz wymagane prawem uzasadnienie biznesowe.",
+      },
+      {
+        title: "5. Trwały zapis kwot w PLN i format dwujęzyczny PL/EN",
+        description:
+          "Dokument zapisuje dokładny numer tabeli, datę notowania oraz przeliczone kwoty Netto PLN, VAT PLN i Brutto PLN na potrzeby JPK_V7. Na wydruku PDF oraz w podglądzie możesz wybrać szablon dwujęzyczny PL/EN.",
+      },
+    ],
+    quickAction: {
+      label: "Wystaw fakturę walutową",
+      href: "/invoices/new",
+    },
+  },
+
+  // ── KONTRAHENCI ZAGRANICZNI (VAT UE I TIN) ──
+  {
+    id: "foreign-contractors-vat-tin",
+    category: "company",
+    categoryLabel: "Kontrahenci zagraniczni",
+    title: "Kontrahenci z Unii Europejskiej (VAT UE / VIES) oraz spoza UE (TIN)",
+    icon: Building2,
+    badge: "Nowość • UE i Świat",
+    steps: [
+      {
+        title: "1. Wybierz typ identyfikatora podatkowego",
+        description:
+          "W formularzu kontrahenta wskaż: NIP (Polska), VAT UE (kraje Unii Europejskiej), TIN / Tax ID (spoza UE, np. Ghana, USA, Wielka Brytania) lub „Brak identyfikatora”.",
+      },
+      {
+        title: "2. Podmioty z Unii Europejskiej (VIES)",
+        description:
+          "Wybierz 2-literowy kod kraju (np. DE dla Niemiec, FR dla Francji) i wpisz numer. System weryfikuje poprawność prefiksu i struktury numeru VAT UE.",
+      },
+      {
+        title: "3. Podmioty spoza UE (np. USA, Ghana, Azja)",
+        description:
+          "Wybierz typ TIN / Tax ID. Identyfikator zagraniczny zachowuje litery, cyfry oraz separatory — system nie nakłada polskiego algorytmu kontrolnego NIP i nie odcina znaków.",
+      },
+      {
+        title: "4. Stawki VAT: Odwrotne obciążenie („oo”) i eksport",
+        description:
+          "Dla wewnątrzwspólnotowego świadczenia usług (art. 100) wybierz stawkę „oo” (odwrotne obciążenie / reverse charge). Na fakturze pojawi się prawna adnotacja o rozliczeniu podatku przez nabywcę. Dla eksportu towarów zastosuj stawkę 0% lub np.",
+      },
+      {
+        title: "5. Prawidłowa struktura KSeF FA(3)",
+        description:
+          "W wygenerowanym pliku XML KSeF węzeł Podmiot2 zostaje automatycznie wypełniony jako `<KodUE><NrVatUE>` dla kontrahentów unijnych lub `<KodKraju><NrID>` dla podmiotów ze świata.",
+      },
+    ],
+    quickAction: {
+      label: "Baza Kontrahentów",
+      href: "/contractors",
+    },
+  },
+
+  // ── RACHUNKI WIELOWALUTOWE (IBAN / SWIFT) ──
+  {
+    id: "multi-currency-bank-accounts",
+    category: "finances",
+    categoryLabel: "Konta i Banki",
+    title: "Rachunki wielowalutowe, IBAN, SWIFT/BIC i zabezpieczenie kodów QR",
+    icon: CreditCard,
+    badge: "Nowość • IBAN & SWIFT",
+    steps: [
+      {
+        title: "1. Dodaj konto walutowe w profilu firmy",
+        description:
+          "W Ustawienia → Moje Firmy / NIP kliknij edycję firmy i rozwiń sekcję „Rachunki bankowe i konta walutowe”.",
+      },
+      {
+        title: "2. Wprowadź międzynarodowy numer IBAN i kod SWIFT/BIC",
+        description:
+          "Wybierz walutę konta (np. EUR, USD, GBP, PLN), wpisz numer IBAN (walidacja sumy kontrolnej MOD-97-10) oraz kod SWIFT/BIC Twojego banku (np. PKOPPLPW).",
+      },
+      {
+        title: "3. Inteligentne podstawianie konta na fakturze",
+        description:
+          "Gdy w kreatorze faktury wybierzesz walutę EUR lub USD, system automatycznie zaproponuje dedykowany rachunek dla tej waluty lub pozwoli wybrać inne konto z listy.",
+      },
+      {
+        title: "4. Blokada polskiego kodu QR dla transakcji nie-PLN",
+        description:
+          "Zgodnie z przepisami bankowymi i standardem KIR/ZBP polski kod QR do przelewów dotyczy wyłącznie złotówek (PLN). Przy fakturach walutowych generowanie kodu QR jest bezpiecznie blokowane, a na wydruku eksponowane są parametry SWIFT/BIC i IBAN.",
+      },
+    ],
+    quickAction: {
+      label: "Konfiguruj konta w Moje Firmy",
+      href: "/settings/companies",
+    },
+  },
+
+  // ── DZIENNIK AUDYTU (AUDIT LOG) ──
+  {
+    id: "audit-log-tracking",
+    category: "accountant",
+    categoryLabel: "Audyt i Bezpieczeństwo",
+    title: "Trwały dziennik audytu (Audit Log), historia zmian i ochrona współbieżności",
+    icon: History,
+    badge: "Nowość • Trwały rejestr",
+    steps: [
+      {
+        title: "1. Otwórz zakładkę „Historia i audyt zmian” w szczegółach faktury",
+        description:
+          "W widoku faktury kliknij przycisk „Historia i audyt zmian (Audit Log)” obok podglądu dokumentu.",
+      },
+      {
+        title: "2. Pełna identyfikacja tożsamości autora operacji",
+        description:
+          "Każda akcja (utworzenie, edycja kwot, zarejestrowanie wpłaty, wysyłka do KSeF, pobranie UPO, wysyłka mailowa) ma trwale przypisanego użytkownika (imię, e-mail, rola, adres IP i znacznik czasu).",
+      },
+      {
+        title: "3. Porównanie starych i nowych wartości (Field Diff)",
+        description:
+          "System rejestruje dokładny diff zmienionych pól — widzisz przekreśloną starą wartość oraz nową zatwierdzoną wartość.",
+      },
+      {
+        title: "4. Zabezpieczenie przed nadpisaniem współbieżnym (OCC Versioning)",
+        description:
+          "Dzięki mechanizmowi Optimistic Concurrency Control, jeśli dwóch użytkowników otworzy tę samą fakturę i spróbuje zapisać sprzeczne zmiany, system zablokuje kolizję i poprosi o odświeżenie najnowszej wersji.",
+      },
+      {
+        title: "5. Zabezpieczenie sekretów i nieusuwalność wpisów",
+        description:
+          "Dziennik audytu jest trwały i niemodyfikowalny. Wrażliwe dane (hasła, tokeny sesyjne, prywatne klucze) są automatycznie maskowane przed zapisaniem w bazie.",
+      },
+    ],
+    quickAction: {
+      label: "Przejdź do faktur",
+      href: "/invoices",
+    },
+  },
 ];
 
 const CATEGORIES = [
   { id: "all", label: "Wszystkie instrukcje" },
+  { id: "team", label: "Zespół i Audyt" },
   { id: "email", label: "Wysyłka e-mail" },
-  { id: "invoices", label: "Faktury i Oferty" },
+  { id: "invoices", label: "Faktury i Waluty" },
   { id: "ksef", label: "KSeF 2.0" },
-  { id: "finances", label: "Koszty i Finanse" },
-  { id: "company", label: "Logo i GUS" },
+  { id: "finances", label: "Konta i Finanse" },
+  { id: "company", label: "Kontrahenci i GUS" },
   { id: "accountant", label: "Księgowość" },
 ];
 

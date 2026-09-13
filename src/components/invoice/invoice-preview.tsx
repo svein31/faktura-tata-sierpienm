@@ -41,7 +41,7 @@ export function InvoicePreview({
   company: CompanyProfile;
   className?: string;
 }) {
-  const L = invoiceLabels[invoice.language];
+  const L = invoiceLabels[invoice.language || "PL"] || invoiceLabels.PL;
   const t = invoiceTotals(invoice);
 
   const compName = company.companyName || company.name || "—";
@@ -65,11 +65,13 @@ export function InvoicePreview({
       ? contractor?.address
       : { street: compStreet, city: compCity, postal: compPostal, country: compCountry };
   const sellerNip = invoice.type === "sale" ? company.nip : (contractor?.nip ?? "—");
-  const buyerNip = invoice.type === "sale" ? (contractor?.nip ?? "—") : company.nip;
+  const buyerNip = invoice.type === "sale" ? (contractor?.taxId || contractor?.nip || "—") : company.nip;
   const sellerRegon = invoice.type === "sale" ? (company.regon ?? "") : (contractor?.regon ?? "");
   const buyerRegon = invoice.type === "sale" ? (contractor?.regon ?? "") : (company.regon ?? "");
 
+  // Blokada polskiego kodu QR przelewowego dla transakcji nie-PLN
   const showQr =
+    invoice.currency === "PLN" &&
     invoice.paymentMethod === "transfer" &&
     (invoice.type === "sale" ? compIban : contractor?.iban);
 
@@ -237,13 +239,27 @@ export function InvoicePreview({
             </p>
             {invoice.paymentMethod === "transfer" && (
               <>
-                <p>
-                  {L.account}: <span className="font-mono font-medium">{invoice.type === "sale" ? compIban : (contractor?.iban ?? "—")}</span>
-                </p>
-                {invoice.type === "sale" && (
-                  <p className="text-muted-foreground">
-                    {L.bank}: {company.bankName}
-                  </p>
+                {invoice.bankAccountSnapshot ? (
+                  <div className="space-y-0.5 text-muted-foreground">
+                    <p>{L.bank}: <b className="text-foreground">{(invoice.bankAccountSnapshot as any).bankName || company.bankName || "—"}</b></p>
+                    <p>Beneficiary / Odbiorca: <b className="text-foreground">{(invoice.bankAccountSnapshot as any).beneficiary || sellerName}</b></p>
+                    <p>{L.account}: <span className="font-mono font-bold text-foreground">{(invoice.bankAccountSnapshot as any).accountNumber}</span></p>
+                    {(invoice.bankAccountSnapshot as any).swiftBic && (
+                      <p>SWIFT / BIC: <span className="font-mono font-medium text-foreground">{(invoice.bankAccountSnapshot as any).swiftBic}</span></p>
+                    )}
+                    <p>Waluta konta: <span className="font-medium text-foreground">{(invoice.bankAccountSnapshot as any).currency}</span></p>
+                  </div>
+                ) : (
+                  <>
+                    <p>
+                      {L.account}: <span className="font-mono font-medium">{invoice.type === "sale" ? compIban : (contractor?.iban ?? "—")}</span>
+                    </p>
+                    {invoice.type === "sale" && (
+                      <p className="text-muted-foreground">
+                        {L.bank}: {company.bankName}
+                      </p>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -251,6 +267,28 @@ export function InvoicePreview({
               {L.invoiceNo}: {invoice.number} · {L.dueDate}: {formatDate(invoice.dueDate)}
             </p>
           </div>
+
+          {invoice.currency && invoice.currency !== "PLN" && invoice.exchangeRate && (
+            <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-[11.5px] text-foreground">
+              <p className="font-semibold text-primary mb-1">
+                Przeliczenie waluty obcej wg kursu NBP (art. 31a ustawy o VAT):
+              </p>
+              <p className="text-muted-foreground">
+                Tabela: <b>{invoice.exchangeRateTable || "—"}</b> z dnia <b>{invoice.exchangeRateDate || "—"}</b>
+              </p>
+              <p>
+                Kurs: <b>1 {invoice.currency} = {(invoice.exchangeRate / (invoice.exchangeRateUnit || 1)).toFixed(4)} PLN</b>
+              </p>
+              <p className="mt-0.5 font-medium">
+                Kwota VAT w PLN: <b>{formatMoney(invoice.totalVatPln ?? (t.vat * (invoice.exchangeRate / (invoice.exchangeRateUnit || 1))), "PLN")}</b>
+              </p>
+              {invoice.exchangeRateJustification && (
+                <p className="mt-1 text-[11px] text-muted-foreground italic">
+                  Uzasadnienie: {invoice.exchangeRateJustification}
+                </p>
+              )}
+            </div>
+          )}
           <p className="mt-5 text-center text-[11px] italic text-muted-foreground">
             {L.signature}: ___________________________
           </p>

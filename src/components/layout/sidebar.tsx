@@ -39,7 +39,8 @@ const NAV_MAIN = [
 ];
 
 const NAV_SETTINGS = [
-  { href: "/accountant", label: "Księgowość & Zespół", icon: Users2 },
+  { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
+  { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },

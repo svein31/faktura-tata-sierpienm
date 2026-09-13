@@ -189,6 +189,11 @@ export function InvoiceCreator() {
   const searchParams = useSearchParams();
   const [tabConflict, setTabConflict] = React.useState(false);
   const [nbpRate, setNbpRate] = React.useState<{ rate: number; tableNumber: string; effectiveDate: string; source: string } | null>(null);
+  const [isManualRate, setIsManualRate] = React.useState(false);
+  const [manualRateInput, setManualRateInput] = React.useState("");
+  const [manualJustification, setManualJustification] = React.useState("");
+  const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>("");
+  const [newContractorTaxIdType, setNewContractorTaxIdType] = React.useState<"nip" | "vat_eu" | "tin" | "none">("nip");
 
   // Multi-tab conflict listener
   React.useEffect(() => {
@@ -237,30 +242,34 @@ export function InvoiceCreator() {
     }
   }, [searchParams, invoices, defaultCompany.id]);
 
-  // NBP rate fetcher
-  const fetchNbpRate = React.useCallback(async (curr: string, date: string) => {
+  // NBP rate fetcher zgodny z art. 31a ust. 1 i 2
+  const fetchNbpRate = React.useCallback(async (curr: string, issueDate: string, saleDate: string) => {
     if (curr === "PLN") {
       setNbpRate(null);
       return;
     }
     try {
-      const res = await fetch(`/api/nbp?currency=${curr}&date=${date}`);
+      const rule = (issueDate && saleDate && issueDate < saleDate) ? "issue_before_tax_point" : "standard";
+      const res = await fetch(`/api/nbp?currency=${curr}&issueDate=${issueDate}&saleDate=${saleDate || issueDate}&rule=${rule}`);
       if (res.ok) {
         const data = await res.json();
         setNbpRate(data);
+        if (!isManualRate) {
+          setManualRateInput(data.rate ? String(data.rate) : "");
+        }
       }
     } catch {
       // Ignored
     }
-  }, []);
+  }, [isManualRate]);
 
   React.useEffect(() => {
     if (form.currency !== "PLN") {
-      fetchNbpRate(form.currency, form.issueDate);
+      fetchNbpRate(form.currency, form.issueDate, form.saleDate);
     } else {
       setNbpRate(null);
     }
-  }, [form.currency, form.issueDate, fetchNbpRate]);
+  }, [form.currency, form.issueDate, form.saleDate, fetchNbpRate]);
 
   // ── Autosave stanu roboczego w localStorage ──
   const DRAFT_KEY = "fakturo_local_draft_v2";
@@ -413,7 +422,13 @@ export function InvoiceCreator() {
     if (form.useNewContractor) {
       const nc = form.newContractor;
       if (!nc.name.trim()) errs.push("Podaj nazwę nowego kontrahenta.");
-      if (!isValidNipFormat(nc.nip)) errs.push("Nowy kontrahent: NIP ma nieprawidłową sumę kontrolną.");
+      if (newContractorTaxIdType === "nip" && !isValidNipFormat(nc.nip)) {
+        errs.push("Nowy kontrahent: Polski NIP ma nieprawidłową sumę kontrolną.");
+      } else if (newContractorTaxIdType === "vat_eu" && !nc.nip.trim()) {
+        errs.push("Nowy kontrahent: Podaj numer VAT UE.");
+      } else if (newContractorTaxIdType === "tin" && !nc.nip.trim()) {
+        errs.push("Nowy kontrahent: Podaj zagraniczny identyfikator podatkowy (TIN / Tax ID).");
+      }
       if (!nc.street.trim() || !nc.city.trim() || !nc.postal.trim()) errs.push("Nowy kontrahent: uzupełnij adres.");
     } else if (!form.contractorId) {
       errs.push("Wybierz kontrahenta (lub dodaj nowego).");
@@ -424,6 +439,22 @@ export function InvoiceCreator() {
     const validLines = form.lines.filter((l) => l.name.trim() && l.quantity > 0);
     if (validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
     if (form.lines.some((l) => l.quantity < 0 || l.netPrice < 0)) errs.push("Ilość i cena nie mogą być ujemne.");
+
+    // Walidacja kursu walutowego dla walut obcych (art. 31a ustawy o VAT)
+    if (form.currency !== "PLN") {
+      if (isManualRate) {
+        const parsedRate = parseFloat(manualRateInput.replace(",", "."));
+        if (isNaN(parsedRate) || parsedRate <= 0) {
+          errs.push("Wpisz poprawny kurs waluty (większy od zera).");
+        }
+        if (!manualJustification.trim()) {
+          errs.push("Wpisz uzasadnienie zastosowania własnego kursu waluty (wymóg art. 31a ustawy o VAT).");
+        }
+      } else if (!nbpRate) {
+        errs.push("Pobierz oficjalny kurs waluty z NBP dla tego dokumentu.");
+      }
+    }
+
     return errs;
   };
 
@@ -434,7 +465,10 @@ export function InvoiceCreator() {
       const nc = form.newContractor;
       const c = await store.addContractor({
         name: nc.name.trim(),
-        nip: normalizeNip(nc.nip),
+        nip: newContractorTaxIdType === "nip" ? normalizeNip(nc.nip) : nc.nip.trim(),
+        taxId: newContractorTaxIdType !== "nip" && newContractorTaxIdType !== "none" ? nc.nip.trim() : undefined,
+        taxIdType: newContractorTaxIdType,
+        country: nc.country.trim() || "PL",
         regon: undefined,
         address: {
           street: nc.street.trim(),
@@ -449,6 +483,18 @@ export function InvoiceCreator() {
       });
       contractorId = c.id;
     }
+
+    const effectiveRate = form.currency !== "PLN"
+      ? (isManualRate ? parseFloat(manualRateInput.replace(",", ".")) || null : nbpRate?.rate || null)
+      : null;
+
+    const totalsCalc = invoiceTotals({ lines: form.lines as any });
+    const netPln = effectiveRate ? round2(totalsCalc.net * effectiveRate) : null;
+    const vatPln = effectiveRate ? round2(totalsCalc.vat * effectiveRate) : null;
+    const grossPln = effectiveRate ? round2(totalsCalc.gross * effectiveRate) : null;
+
+    const chosenBankAccount = effectiveSellerCompany?.bankAccounts?.find((b: any) => b.id === selectedBankAccountId);
+
     const base: InvoicePayload = {
       number: invoiceNumber,
       type: form.type,
@@ -477,6 +523,20 @@ export function InvoiceCreator() {
       recurringInterval: form.recurringInterval,
       recurringNextDate: form.recurringNextDate,
       recurringAutoSend: form.recurringAutoSend,
+      // Pola walutowe i kursowe NBP
+      exchangeRate: effectiveRate,
+      exchangeRateTable: form.currency !== "PLN" ? (isManualRate ? "Kurs własny podatnika" : nbpRate?.tableNumber || null) : null,
+      exchangeRateDate: form.currency !== "PLN" ? (isManualRate ? form.issueDate : nbpRate?.effectiveDate || null) : null,
+      exchangeRateSource: form.currency !== "PLN" ? (isManualRate ? "Własny kurs podatnika" : nbpRate?.source || null) : null,
+      exchangeRateRule: form.currency !== "PLN" ? (isManualRate ? "manual" : (form.issueDate < form.saleDate ? "art_31a_issue_date" : "art_31a_sale_date")) : null,
+      exchangeRateJustification: form.currency !== "PLN" && isManualRate ? manualJustification.trim() : null,
+      totalNetPln: netPln,
+      totalVatPln: vatPln,
+      totalGrossPln: grossPln,
+      bankAccountId: selectedBankAccountId || null,
+      bankAccountSnapshot: chosenBankAccount ? (chosenBankAccount as any) : undefined,
+      buyerTaxIdType: form.useNewContractor ? newContractorTaxIdType : (selectedContractor?.taxIdType || "nip"),
+      buyerCountry: form.useNewContractor ? form.newContractor.country : (selectedContractor?.country || "PL"),
     };
     return base;
   };
@@ -880,27 +940,89 @@ export function InvoiceCreator() {
                       placeholder="np. DemoIT Solutions Sp. z o.o."
                     />
                   </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <Label>NIP *</Label>
-                    <NipLookup
-                      nip={form.newContractor.nip}
-                      onNipChange={(v) => set({ newContractor: { ...form.newContractor, nip: v } })}
-                      onFound={(c) =>
-                        set({
-                          newContractor: {
-                            ...form.newContractor,
-                            name: c.name,
-                            nip: c.nip,
-                            street: c.address.street,
-                            city: c.address.city,
-                            postal: c.address.postal,
-                            country: c.address.country,
-                            isVatPayer: c.isVatPayer,
-                          },
-                        })
-                      }
-                    />
+                  <div className="grid gap-3 sm:grid-cols-2 sm:col-span-2">
+                    <div className="space-y-1.5">
+                      <Label>Kraj kontrahenta</Label>
+                      <Select
+                        value={form.newContractor.country}
+                        onChange={(e) => {
+                          const c = e.target.value;
+                          set({ newContractor: { ...form.newContractor, country: c } });
+                          if (c === "PL") setNewContractorTaxIdType("nip");
+                          else if (["DE", "FR", "IT", "ES", "NL", "CZ", "SK", "AT", "BE", "SE"].includes(c)) setNewContractorTaxIdType("vat_eu");
+                          else setNewContractorTaxIdType("tin");
+                        }}
+                      >
+                        <option value="PL">Polska (PL)</option>
+                        <option value="DE">Niemcy (DE)</option>
+                        <option value="GH">Ghana (GH)</option>
+                        <option value="US">Stany Zjednoczone (US)</option>
+                        <option value="GB">Wielka Brytania (GB)</option>
+                        <option value="FR">Francja (FR)</option>
+                        <option value="IT">Włochy (IT)</option>
+                        <option value="ES">Hiszpania (ES)</option>
+                        <option value="NL">Holandia (NL)</option>
+                        <option value="CZ">Czechy (CZ)</option>
+                        <option value="SK">Słowacja (SK)</option>
+                        <option value="UA">Ukraina (UA)</option>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Typ identyfikatora podatkowego</Label>
+                      <Select
+                        value={newContractorTaxIdType}
+                        onChange={(e) => setNewContractorTaxIdType(e.target.value as any)}
+                      >
+                        <option value="nip">NIP (Polski - GUS BIR)</option>
+                        <option value="vat_eu">VAT UE / VIES (Unia Europejska)</option>
+                        <option value="tin">TIN / Tax ID (Zagraniczny)</option>
+                        <option value="none">Brak (Osoba fizyczna / konsument)</option>
+                      </Select>
+                    </div>
                   </div>
+
+                  {newContractorTaxIdType !== "none" && (
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>
+                        {newContractorTaxIdType === "nip"
+                          ? "NIP *"
+                          : newContractorTaxIdType === "vat_eu"
+                            ? "Numer VAT UE (np. DE123456789) *"
+                            : "Numer TIN / Tax ID (np. Ghana TIN, US EIN) *"}
+                      </Label>
+                      {newContractorTaxIdType === "nip" ? (
+                        <NipLookup
+                          nip={form.newContractor.nip}
+                          onNipChange={(v) => set({ newContractor: { ...form.newContractor, nip: v } })}
+                          onFound={(c) =>
+                            set({
+                              newContractor: {
+                                ...form.newContractor,
+                                name: c.name,
+                                nip: c.nip,
+                                street: c.address.street,
+                                city: c.address.city,
+                                postal: c.address.postal,
+                                country: c.address.country,
+                                isVatPayer: c.isVatPayer,
+                              },
+                            })
+                          }
+                        />
+                      ) : (
+                        <Input
+                          value={form.newContractor.nip}
+                          onChange={(e) => set({ newContractor: { ...form.newContractor, nip: e.target.value } })}
+                          placeholder={
+                            newContractorTaxIdType === "vat_eu"
+                              ? "np. DE123456789"
+                              : "np. C0001234567 (Ghana TIN / US EIN)"
+                          }
+                          className="font-mono text-xs"
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <Label>Kod pocztowy *</Label>
@@ -1028,18 +1150,42 @@ export function InvoiceCreator() {
               <div className="space-y-1.5">
                 <Label>Waluta</Label>
                 <Select value={form.currency} onChange={(e) => set({ currency: e.target.value as Currency })}>
-                  {(["PLN", "EUR", "USD"] as const).map((c) => (
+                  {(["PLN", "EUR", "USD", "GBP", "CHF", "NOK", "SEK", "CAD"] as const).map((c) => (
                     <option key={c} value={c}>
-                      {currencyNames[c]}
+                      {currencyNames[c] || c}
                     </option>
                   ))}
                 </Select>
               </div>
+
+              {/* Wybór rachunku bankowego firmy */}
+              {effectiveSellerCompany?.bankAccounts && effectiveSellerCompany.bankAccounts.length > 0 && (
+                <div className="space-y-1.5 sm:col-span-3">
+                  <Label>Rachunek bankowy firmy dla tej faktury</Label>
+                  <Select
+                    value={selectedBankAccountId}
+                    onChange={(e) => setSelectedBankAccountId(e.target.value)}
+                  >
+                    <option value="">— Domyślny rachunek profilu ({effectiveSellerCompany.bankAccount || "Brak"}) —</option>
+                    {effectiveSellerCompany.bankAccounts.map((b: any) => (
+                      <option key={b.id} value={b.id}>
+                        {b.currency} · {b.bankName || "Bank"} · {b.accountNumber} {b.isDefault ? "(domyślny)" : ""}
+                      </option>
+                    ))}
+                  </Select>
+                  {form.currency !== "PLN" && !effectiveSellerCompany.bankAccounts.some((b: any) => b.currency === form.currency || b.currency === "MULTI") && (
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      Uwaga: firma nie posiada dedykowanego konta w walucie {form.currency}. Środki wpłyną na konto PLN z możliwym przewalutowaniem banku.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Przelicznik walut NBP (art. 31a ustawy o VAT) */}
             {form.currency !== "PLN" && (
-              <div className="rounded-xl border border-primary/25 bg-primary/5 p-3.5 text-xs space-y-2">
+              <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 text-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 font-semibold text-primary">
                     <TrendingUp className="h-4 w-4" />
@@ -1050,23 +1196,93 @@ export function InvoiceCreator() {
                     variant="ghost"
                     size="sm"
                     className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10"
-                    onClick={() => fetchNbpRate(form.currency, form.issueDate)}
+                    onClick={() => fetchNbpRate(form.currency, form.issueDate, form.saleDate)}
                   >
-                    Odśwież kurs
+                    Odśwież kurs z NBP
                   </Button>
                 </div>
-                {nbpRate ? (
-                  <div className="text-muted-foreground space-y-1">
-                    <p>
-                      1 {form.currency} = <span className="font-bold text-foreground">{nbpRate.rate.toFixed(4)} PLN</span> ({nbpRate.source})
+
+                <div className="text-[11.5px] text-muted-foreground">
+                  <span className="font-semibold text-foreground">Zastosowana podstawa prawna: </span>
+                  {form.issueDate && form.saleDate && form.issueDate < form.saleDate
+                    ? "art. 31a ust. 2 (faktura wystawiona przed sprzedażą — kurs z ostatniego dnia roboczego przed wystawieniem)"
+                    : "art. 31a ust. 1 (kurs z ostatniego dnia roboczego poprzedzającego datę sprzedaży / powstania obowiązku)"}
+                </div>
+
+                {nbpRate && !isManualRate ? (
+                  <div className="p-3 bg-card rounded-lg border border-border/80 space-y-1.5">
+                    <p className="font-medium text-foreground">
+                      Tabela NBP: <span className="font-bold text-primary">{nbpRate.tableNumber}</span> z dnia{" "}
+                      <span className="font-bold">{nbpRate.effectiveDate}</span>
                     </p>
-                    <p className="text-[11.5px]">
-                      Wartość w PLN: <b className="text-foreground">{formatMoney(totals.gross * nbpRate.rate, "PLN")} brutto</b> (w tym VAT: {formatMoney(totals.vat * nbpRate.rate, "PLN")})
+                    <p className="text-xs">
+                      Oficjalny średni kurs: <b className="text-foreground">1 {form.currency} = {nbpRate.rate.toFixed(4)} PLN</b>
                     </p>
+                    <div className="pt-1.5 border-t border-border/60 grid grid-cols-3 gap-2 text-[11.5px]">
+                      <div>
+                        <span className="text-muted-foreground">Netto w PLN: </span>
+                        <b className="text-foreground">{formatMoney(totals.net * nbpRate.rate, "PLN")}</b>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">VAT w PLN: </span>
+                        <b className="text-primary">{formatMoney(totals.vat * nbpRate.rate, "PLN")}</b>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Brutto w PLN: </span>
+                        <b className="text-foreground">{formatMoney(totals.gross * nbpRate.rate, "PLN")}</b>
+                      </div>
+                    </div>
                   </div>
-                ) : (
+                ) : !isManualRate ? (
                   <p className="text-muted-foreground italic">Pobieranie tabeli kursowej z NBP...</p>
-                )}
+                ) : null}
+
+                {/* Przełącznik kursu ręcznego */}
+                <div className="pt-2 border-t border-primary/20 space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isManualRate}
+                      onChange={(e) => {
+                        setIsManualRate(e.target.checked);
+                        if (!e.target.checked && nbpRate) {
+                          setManualRateInput(String(nbpRate.rate));
+                        }
+                      }}
+                      className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary"
+                    />
+                    <span className="font-semibold text-foreground">
+                      Wpisz kurs własny (modyfikacja manualna)
+                    </span>
+                  </label>
+
+                  {isManualRate && (
+                    <div className="grid gap-3 sm:grid-cols-2 p-3 bg-card rounded-lg border border-border/80">
+                      <div className="space-y-1">
+                        <Label className="text-[11.5px]">Zastosowany kurs (PLN) *</Label>
+                        <Input
+                          type="text"
+                          value={manualRateInput}
+                          onChange={(e) => setManualRateInput(e.target.value)}
+                          placeholder="np. 4.2500"
+                          className="h-8 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1 sm:col-span-2">
+                        <Label className="text-[11.5px]">
+                          Uzasadnienie zastosowania własnego kursu * (wymóg art. 31a ustawy o VAT)
+                        </Label>
+                        <Input
+                          type="text"
+                          value={manualJustification}
+                          onChange={(e) => setManualJustification(e.target.value)}
+                          placeholder="np. Zgodnie z umową handlową kurs z dnia zlecenia bankowego"
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1112,10 +1328,11 @@ export function InvoiceCreator() {
 
             <div className="space-y-1.5">
               <Label>Język dokumentu</Label>
-              <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium">
-                {(["PL", "EN"] as const).map((l) => (
+              <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium gap-1 flex-wrap">
+                {(["PL", "EN", "PL/EN"] as const).map((l) => (
                   <button
                     key={l}
+                    type="button"
                     onClick={() => set({ language: l })}
                     className={
                       form.language === l
@@ -1123,7 +1340,7 @@ export function InvoiceCreator() {
                         : "px-3 py-1 text-muted-foreground hover:text-foreground"
                     }
                   >
-                    {l === "PL" ? "Polski" : "English"}
+                    {l === "PL" ? "Polski (PL)" : l === "EN" ? "English (EN)" : "Dwujęzyczna (PL/EN)"}
                   </button>
                 ))}
               </div>

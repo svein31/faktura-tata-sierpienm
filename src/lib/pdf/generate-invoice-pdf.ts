@@ -1,8 +1,9 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "../format";
 import { invoiceLabels, paymentMethodLabel } from "../i18n";
-import type { CompanyProfile, Contractor, Invoice } from "../types";
+import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "../types";
 import { buildKsefVerificationUrl, generateQrPngBuffer, getKsefQrLabel } from "../ksef";
+import { getTaxIdLabel } from "../validation";
 
 /**
  * Bezpieczne mapowanie znaków dla standardowych fontów PDF (WinAnsi).
@@ -300,7 +301,13 @@ export async function generateInvoicePdfBuffer(
     font: fontBold,
     color: darkColor,
   });
-  page.drawText(`NIP: ${cleanText(buyerNip)}`, {
+
+  const buyerTaxIdType = contractor?.taxIdType || invoice.buyerTaxIdType || "nip";
+  const buyerCountry = contractor?.country || contractor?.address?.country || invoice.buyerCountry || "PL";
+  const buyerTaxLabel = invoice.type === "sale" ? getTaxIdLabel(buyerTaxIdType, buyerCountry, invoice.language || "PL") : L.nip;
+  const buyerTaxIdValue = invoice.type === "sale" ? (contractor?.taxId || contractor?.nip || buyerNip) : effectiveCompany.nip;
+
+  page.drawText(`${cleanText(buyerTaxLabel)}: ${cleanText(buyerTaxIdValue)}`, {
     x: buyerX + 12,
     y: y - 48,
     size: 9,
@@ -461,7 +468,14 @@ export async function generateInvoicePdfBuffer(
     color: darkColor,
   });
 
-  if (compIban) {
+  const bankSnapshot = invoice.bankAccountSnapshot as (CompanyBankAccount & { bankName?: string }) | undefined;
+  if (bankSnapshot) {
+    page.drawText(`Bank: ${cleanText(bankSnapshot.bankName || "—")}`, { x: 50, y: y - 44, size: 7, font: fontRegular, color: grayColor });
+    page.drawText(`IBAN: ${cleanText(bankSnapshot.accountNumber)}`, { x: 50, y: y - 54, size: 7.5, font: fontBold, color: darkColor });
+    if (bankSnapshot.swiftBic) {
+      page.drawText(`SWIFT: ${cleanText(bankSnapshot.swiftBic)} | Waluta: ${cleanText(bankSnapshot.currency)}`, { x: 50, y: y - 64, size: 6.5, font: fontRegular, color: grayColor });
+    }
+  } else if (compIban) {
     page.drawText("Numer konta bankowego (IBAN):", { x: 50, y: y - 48, size: 7.5, font: fontRegular, color: grayColor });
     page.drawText(cleanText(compIban), { x: 50, y: y - 62, size: 8.5, font: fontBold, color: darkColor });
   }
@@ -523,6 +537,29 @@ export async function generateInvoicePdfBuffer(
   }
 
   y -= 95;
+
+  // ── Przeliczenie NBP dla walut obcych (art. 31a ustawy o VAT) ──
+  if (invoice.currency && invoice.currency !== "PLN" && invoice.exchangeRate) {
+    const effRate = invoice.exchangeRate / (invoice.exchangeRateUnit || 1);
+    const vatPln = invoice.totalVatPln ?? (t.vat * effRate);
+    page.drawRectangle({
+      x: 40,
+      y: y - 24,
+      width: width - 80,
+      height: 22,
+      color: rgb(0.95, 0.97, 1),
+      borderColor: rgb(0.8, 0.88, 0.98),
+      borderWidth: 0.6,
+    });
+    page.drawText(cleanText(`Przeliczenie NBP (art. 31a ustawy o VAT): Tabela ${invoice.exchangeRateTable || "—"} z dn. ${invoice.exchangeRateDate || "—"} | Kurs: 1 ${invoice.currency} = ${effRate.toFixed(4)} PLN | VAT w PLN: ${vatPln.toFixed(2)} PLN`), {
+      x: 48,
+      y: y - 16,
+      size: 7,
+      font: fontBold,
+      color: rgb(0.12, 0.35, 0.75),
+    });
+    y -= 30;
+  }
 
   // ── Uwagi / KSeF info ──
   if (invoice.ksef?.number || invoice.notes || invoice.isOffline) {

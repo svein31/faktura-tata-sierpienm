@@ -1,8 +1,20 @@
 /**
- * Walidacja polskich identyfikatorów: NIP (z sumą kontrolną) oraz formatu REGON.
+ * Walidacja i formatowanie identyfikatorów podatkowych:
+ * - Polski NIP (10 cyfr z sumą wagową)
+ * - VAT UE (VIES dla krajów członkowskich UE)
+ * - Zagraniczny TIN / Tax ID (alfanumeryczny, zachowujący separatory i zera)
+ * - REGON
  */
 
+import type { TaxIdType, InvoiceLanguage } from "./types";
+
 const NIP_WEIGHTS = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+
+export const EU_COUNTRIES = new Set([
+  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
+  "FR", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT",
+  "NL", "PL", "PT", "RO", "SE", "SI", "SK"
+]);
 
 export function normalizeNip(input: string): string {
   return input.replace(/[\s-]/g, "");
@@ -53,7 +65,7 @@ export interface NipValidation {
 }
 
 export function validateNip(input: string): NipValidation {
-  const trimmed = input.trim();
+  const trimmed = (input || "").trim();
   if (!trimmed) return { valid: false, reason: "empty" };
   const normalized = normalizeNip(trimmed);
   if (!/^\d{10}$/.test(normalized)) {
@@ -65,8 +77,190 @@ export function validateNip(input: string): NipValidation {
   return { valid: true, normalized };
 }
 
-export function isVatPayerFlag(nip: string): boolean {
-  // W prawdziwej integracji status VAT-owca pochodzi z wykazu VAT (biała lista).
-  // Demo: wszyscy kontrahenci z bazy demo są płatnikami VAT.
+export function isVatPayerFlag(_nip: string): boolean {
   return true;
+}
+
+export interface TaxIdValidation {
+  valid: boolean;
+  type: TaxIdType;
+  normalized: string;
+  displayValue: string;
+  reason?: string;
+  label: string;
+}
+
+/**
+ * Uniwersalna walidacja identyfikatorów podatkowych kontrahentów krajowych i zagranicznych.
+ * Zachowuje zera wiodące, litery oraz separatory w numerach zagranicznych.
+ */
+export function validateTaxId(
+  input: string | undefined | null,
+  type: TaxIdType = "nip",
+  countryCode: string = "PL"
+): TaxIdValidation {
+  const raw = (input ?? "").trim();
+  const country = countryCode.toUpperCase();
+
+  if (type === "none") {
+    return {
+      valid: true,
+      type: "none",
+      normalized: "",
+      displayValue: "Brak",
+      label: "Brak ID",
+    };
+  }
+
+  if (!raw) {
+    return {
+      valid: false,
+      type,
+      normalized: "",
+      displayValue: "",
+      reason: "Numer identyfikatora podatkowego jest wymagany.",
+      label: getTaxIdLabel(type, country),
+    };
+  }
+
+  // 1. Polski NIP
+  if (type === "nip" || (country === "PL" && type !== "tin" && type !== "other")) {
+    const normalized = normalizeNip(raw);
+    if (!/^\d{10}$/.test(normalized)) {
+      return {
+        valid: false,
+        type: "nip",
+        normalized,
+        displayValue: raw,
+        reason: "Polski NIP musi składać się z dokładnie 10 cyfr.",
+        label: "NIP",
+      };
+    }
+    if (!isValidNipFormat(normalized)) {
+      return {
+        valid: false,
+        type: "nip",
+        normalized,
+        displayValue: raw,
+        reason: "Nieprawidłowa suma kontrolna numeru NIP.",
+        label: "NIP",
+      };
+    }
+    return {
+      valid: true,
+      type: "nip",
+      normalized,
+      displayValue: formatNip(normalized),
+      label: "NIP",
+    };
+  }
+
+  // 2. VAT UE (VIES)
+  if (type === "vat_eu") {
+    const clean = raw.replace(/\s+/g, "").toUpperCase();
+    // Sprawdź czy numer ma już prefiks kraju
+    const hasPrefix = EU_COUNTRIES.has(clean.slice(0, 2));
+    const fullVatEu = hasPrefix ? clean : `${country}${clean}`;
+
+    // Większość państw UE ma od 8 do 14 znaków po kodzie kraju
+    if (fullVatEu.length < 5 || fullVatEu.length > 18) {
+      return {
+        valid: false,
+        type: "vat_eu",
+        normalized: fullVatEu,
+        displayValue: fullVatEu,
+        reason: "Nieprawidłowa długość numeru VAT UE.",
+        label: "VAT UE",
+      };
+    }
+
+    return {
+      valid: true,
+      type: "vat_eu",
+      normalized: fullVatEu,
+      displayValue: fullVatEu,
+      label: "VAT UE",
+    };
+  }
+
+  // 3. Zagraniczny TIN / Tax ID (Ghana, USA, Wielka Brytania itp.)
+  // Zachowujemy litery, zera wiodące i separatory (np. C0001234567, GH-12345, 12-3456789)
+  if (type === "tin" || type === "other") {
+    const normalized = raw.trim();
+    if (normalized.length < 2 || normalized.length > 35) {
+      return {
+        valid: false,
+        type,
+        normalized,
+        displayValue: normalized,
+        reason: "Identyfikator podatkowy musi zawierać od 2 do 35 znaków.",
+        label: type === "tin" ? "TIN / Tax ID" : "ID podatkowy",
+      };
+    }
+
+    return {
+      valid: true,
+      type,
+      normalized,
+      displayValue: normalized,
+      label: type === "tin" ? "TIN / Tax ID" : "ID podatkowy",
+    };
+  }
+
+  return {
+    valid: true,
+    type,
+    normalized: raw,
+    displayValue: raw,
+    label: getTaxIdLabel(type, country),
+  };
+}
+
+/**
+ * Zwraca etykietę identyfikatora podatkowego zgodną z krajem i typem.
+ */
+export function getTaxIdLabel(
+  type?: TaxIdType | string | null,
+  countryCode?: string,
+  language: InvoiceLanguage = "PL"
+): string {
+  const isEn = language === "EN";
+  const isBi = language === "PL/EN";
+
+  switch (type) {
+    case "vat_eu":
+      if (isBi) return "VAT UE / EU VAT";
+      return isEn ? "EU VAT" : "VAT UE";
+    case "tin":
+      if (isBi) return "TIN / Tax ID";
+      return isEn ? "Tax ID (TIN)" : "TIN / Tax ID";
+    case "other":
+      if (isBi) return "Identyfikator / Tax ID";
+      return isEn ? "Tax Identifier" : "Identyfikator podatkowy";
+    case "none":
+      if (isBi) return "Brak ID / None";
+      return isEn ? "None" : "Brak identyfikatora";
+    case "nip":
+    default:
+      if (countryCode && countryCode !== "PL") {
+        if (isBi) return "TIN / Tax ID";
+        return isEn ? "Tax ID" : "TIN / Tax ID";
+      }
+      if (isBi) return "NIP / Tax ID";
+      return isEn ? "Tax ID (NIP)" : "NIP";
+  }
+}
+
+/**
+ * Określa czy dla danego kontrahenta można uruchomić pobieranie danych z GUS BIR.
+ * Wyłącznie dla polskich danych z NIP.
+ */
+export function shouldLookupGus(
+  type?: TaxIdType | string | null,
+  countryCode?: string | null
+): boolean {
+  if (countryCode && countryCode.toUpperCase() !== "PL") {
+    return false;
+  }
+  return !type || type === "nip";
 }
