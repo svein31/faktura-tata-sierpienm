@@ -75,8 +75,8 @@ export async function POST(req: Request) {
 
     try {
       (await cookies()).set("auth_session", token, cookieOpts);
-      cookies().set("fakturo_session", token, cookieOpts);
-      cookies().set("next-auth.session-token", token, cookieOpts);
+      (await cookies()).set("fakturo_session", token, cookieOpts);
+      (await cookies()).set("next-auth.session-token", token, cookieOpts);
     } catch {
       // ignore
     }
