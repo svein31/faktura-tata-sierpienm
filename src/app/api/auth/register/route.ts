@@ -133,13 +133,18 @@ export async function POST(req: Request) {
     const { token } = await createSession(user.id, metadata);
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
 
-    try {
-      (await cookies()).set("auth_session", token, cookieOpts);
-      cookies().set("fakturo_session", token, cookieOpts);
-      cookies().set("next-auth.session-token", token, cookieOpts);
-    } catch {
-      // ignore
-    }
+    const res = NextResponse.json(
+      {
+        success: true,
+        user: toPublicUser(user),
+        message: "Rejestracja zakończona sukcesem.",
+      },
+      { status: 201, headers: { "Cache-Control": "no-store" } }
+    );
+
+    res.cookies.set("auth_session", token, cookieOpts);
+    res.cookies.set("fakturo_session", token, cookieOpts);
+    res.cookies.set("next-auth.session-token", token, cookieOpts);
 
     // 9. Zarejestruj zgodę prawną (regulamin) w bazie danych
     const clientIp = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null;
@@ -168,18 +173,6 @@ export async function POST(req: Request) {
       });
     }
 
-    const res = NextResponse.json(
-      {
-        success: true,
-        user: toPublicUser(user),
-        message: "Rejestracja zakończona sukcesem.",
-      },
-      { status: 201, headers: { "Cache-Control": "no-store" } }
-    );
-
-    res.cookies.set("auth_session", token, cookieOpts);
-    res.cookies.set("fakturo_session", token, cookieOpts);
-    res.cookies.set("next-auth.session-token", token, cookieOpts);
     return res;
   } catch (error: unknown) {
     console.error("Błąd rejestracji:", error);
