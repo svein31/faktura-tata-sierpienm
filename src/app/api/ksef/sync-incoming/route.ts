@@ -137,236 +137,247 @@ async function getSession(userId: string, companyId: string | null) {
   return { companyProfile, session, settings, client, token: auth.accessToken };
 }
 
-/** POST /api/ksef/sync-incoming — synchronizacja faktur zakupowych z KSeF (rola nabywcy). */
-export async function POST(req: Request) {
-  try {
-    const user = await getSessionUser();
-    if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
+/**
+ * Logika synchronizacji faktur zakupowych z KSeF — wyodrębnia do wspólnego użytku.
+ * Zwraca dane synchronizacji zamiast Response obiektu.
+ */
+export async function performIncomingSync(companyId?: string | null) {
+  const user = await getSessionUser();
+  if (!user) {
+    throw new ApiError(401, "Nieautoryzowany.", "UNAUTHENTICATED");
+  }
 
-    const companyId = new URL(req.url).searchParams.get('companyId');
-    const { companyProfile, session, settings, client, token } = await getSession(user.id, companyId);
+  const { companyProfile, session, settings, client, token } = await getSession(user.id, companyId || null);
 
-    const syncTo = new Date();
-    const syncFrom = !companyId && settings?.lastIncomingSyncAt
-      ? new Date(settings.lastIncomingSyncAt.getTime() - CURSOR_OVERLAP_MS)
-      : new Date(syncTo.getTime() - DEFAULT_LOOKBACK_MS);
+  const syncTo = new Date();
+  const syncFrom = !companyId && settings?.lastIncomingSyncAt
+    ? new Date(settings.lastIncomingSyncAt.getTime() - CURSOR_OVERLAP_MS)
+    : new Date(syncTo.getTime() - DEFAULT_LOOKBACK_MS);
 
-    // ── Stronicowane pobieranie metadanych faktur (nabywca = Subject2) ──────────
-    const allHeaders: KsefInvoiceHeader[] = [];
-    for (let pageOffset = 0; pageOffset < MAX_PAGES; pageOffset += 1) {
-      const page = await client.queryIncomingInvoices(token, syncFrom, syncTo, pageOffset, PAGE_SIZE);
-      allHeaders.push(...page.invoiceHeaders);
+  // ── Stronicowane pobieranie metadanych faktur (nabywca = Subject2) ──────────
+  const allHeaders: KsefInvoiceHeader[] = [];
+  for (let pageOffset = 0; pageOffset < MAX_PAGES; pageOffset += 1) {
+    const page = await client.queryIncomingInvoices(token, syncFrom, syncTo, pageOffset, PAGE_SIZE);
+    allHeaders.push(...page.invoiceHeaders);
 
-      if (!page.hasMore) break;
+    if (!page.hasMore) break;
 
-      if (pageOffset === MAX_PAGES - 1) {
-        throw new ApiError(
-          413,
-          `Zakres zawiera ponad ${MAX_PAGES * PAGE_SIZE} faktur zakupowych. Zawęź zakres dat lub użyj eksportu asynchronicznego KSeF.`,
-          "KSEF_SYNC_RANGE_TOO_LARGE"
-        );
+    if (pageOffset === MAX_PAGES - 1) {
+      throw new ApiError(
+        413,
+        `Zakres zawiera ponad ${MAX_PAGES * PAGE_SIZE} faktur zakupowych. Zawęź zakres dat lub użyj eksportu asynchronicznego KSeF.`,
+        "KSEF_SYNC_RANGE_TOO_LARGE"
+      );
+    }
+  }
+
+  // Deduplikacja po numerze KSeF w obrębie tej odpowiedzi
+  const headerMap = new Map<string, KsefInvoiceHeader>();
+  for (const header of allHeaders) {
+    const num = extractKsefNumber(header);
+    if (num) headerMap.set(num, header);
+  }
+  const uniqueHeaders = Array.from(headerMap.values());
+  const ksefNumbers = uniqueHeaders.map(extractKsefNumber);
+
+  // Sprawdź, które numery KSeF są już w bazie dla tego użytkownika
+  const existingInDb = ksefNumbers.length
+    ? await prisma.invoice.findMany({
+        where: { ...(companyProfile ? { sellerCompanyId: companyProfile.id } : { userId: user.id }), ksefNumber: { in: ksefNumbers } },
+        select: { ksefNumber: true },
+      })
+    : [];
+  const existingSet = new Set(existingInDb.map((i) => i.ksefNumber).filter(Boolean));
+
+  // Oczyść "osieroconę" rezerwacje (utknęły bez faktury >15 min temu)
+  await prisma.ksefIncomingImport.deleteMany({
+    where: {
+      userId: user.id,
+      invoiceId: null,
+      createdAt: { lt: new Date(Date.now() - 15 * 60_000) },
+    },
+  }).catch(() => undefined);
+
+  const imported = [];
+
+  for (const header of uniqueHeaders) {
+    const ksefNumber = extractKsefNumber(header);
+    if (!ksefNumber || existingSet.has(ksefNumber)) continue;
+
+    // Atomowa rezerwacja — blokuje równoległe duplikaty (unikalny index)
+    let reservationId: string;
+    try {
+      const reservation = await prisma.ksefIncomingImport.create({
+        data: { userId: user.id, ksefReferenceNumber: `${companyProfile?.id || user.id}:${ksefNumber}` },
+      });
+      reservationId = reservation.id;
+    } catch (err) {
+      if ((err as { code?: string }).code === "P2002") continue; // już importowane
+      throw err;
+    }
+
+    try {
+      const xml = await client.downloadInvoiceXml(token, ksefNumber);
+      const parsed = parseFa3IncomingInvoice(xml, ksefNumber);
+
+      // Upsert kontrahenta-sprzedawcy
+      let contractor = await prisma.contractor.findFirst({
+        where: { userId: user.id, nip: parsed.seller.nip },
+      });
+      if (contractor) {
+        contractor = await prisma.contractor.update({
+          where: { id: contractor.id },
+          data: { name: parsed.seller.name, address: parsed.seller.address },
+        });
+      } else {
+        contractor = await prisma.contractor.create({
+          data: {
+            userId: user.id,
+            name: parsed.seller.name,
+            nip: parsed.seller.nip,
+            address: parsed.seller.address,
+            isVatPayer: true,
+          },
+        });
       }
+
+      const acquiredAt =
+        header.acquisitionDate
+        ?? header.acquisitionTimestamp
+        ?? syncTo.toISOString();
+
+      const invoice = await prisma.invoice.create({
+        data: {
+          userId: user.id,
+          number: parsed.number,
+          type: "purchase",
+          sellerCompanyId: companyProfile?.id ?? null,
+          status: "issued",
+          approvalStatus: "pending",
+          contractorId: contractor.id,
+          issueDate: parsed.issueDate,
+          saleDate: parsed.saleDate,
+          dueDate: parsed.dueDate,
+          currency: parsed.currency,
+          language: "PL",
+          paymentMethod: parsed.paymentMethod,
+          paymentTermDays: parsed.paymentTermDays,
+          lines: parsed.lines as unknown as Prisma.InputJsonValue,
+          nip: parsed.seller.nip,
+          totalNet: parsed.totalNet,
+          totalVat: parsed.totalVat,
+          totalGross: parsed.totalGross,
+          ksefNumber,
+          upoXml: extractUpo(header),
+          ksefXml: xml,
+          ksefSessionId: session.id,
+          ksef: {
+            number: ksefNumber,
+            status: "ACTIVE",
+            sentAt: acquiredAt,
+            environment: client.environment,
+          },
+        },
+        include: { sellerCompany: true },
+      });
+
+      await prisma.ksefIncomingImport.update({
+        where: { id: reservationId },
+        data: { invoiceId: invoice.id },
+      });
+
+      existingSet.add(ksefNumber);
+      imported.push(invoiceToDto(invoice));
+    } catch (err) {
+      // Zwolnij rezerwację — następna synchronizacja ponowi próbę
+      await prisma.ksefIncomingImport.delete({ where: { id: reservationId } }).catch(() => undefined);
+      throw err;
     }
+  }
 
-    // Deduplikacja po numerze KSeF w obrębie tej odpowiedzi
-    const headerMap = new Map<string, KsefInvoiceHeader>();
-    for (const header of allHeaders) {
-      const num = extractKsefNumber(header);
-      if (num) headerMap.set(num, header);
-    }
-    const uniqueHeaders = Array.from(headerMap.values());
-    const ksefNumbers = uniqueHeaders.map(extractKsefNumber);
+  // Zaktualizuj kursor synchronizacji dopiero po pomyślnym imporcie
+  if (!companyId) await prisma.ksefSettings.upsert({
+    where: { userId: user.id },
+    update: { lastIncomingSyncAt: syncTo, lastAutoSyncAt: syncTo },
+    create: {
+      userId: user.id,
+      environment: client.environment,
+      lastIncomingSyncAt: syncTo,
+      lastAutoSyncAt: syncTo,
+    },
+  });
 
-    // Sprawdź, które numery KSeF są już w bazie dla tego użytkownika
-    const existingInDb = ksefNumbers.length
-      ? await prisma.invoice.findMany({
-          where: { ...(companyProfile ? { sellerCompanyId: companyProfile.id } : { userId: user.id }), ksefNumber: { in: ksefNumbers } },
-          select: { ksefNumber: true },
-        })
-      : [];
-    const existingSet = new Set(existingInDb.map((i) => i.ksefNumber).filter(Boolean));
-
-    // Oczyść "osieroconę" rezerwacje (utknęły bez faktury >15 min temu)
-    await prisma.ksefIncomingImport.deleteMany({
-      where: {
+  // Powiadomienie e-mail i in-app jeśli zaimportowano nowe faktury
+  if (imported.length > 0) {
+    await prisma.notification.create({
+      data: {
         userId: user.id,
-        invoiceId: null,
-        createdAt: { lt: new Date(Date.now() - 15 * 60_000) },
+        kind: "ksef",
+        title: `Pobrano ${imported.length} nową(-ych) faktur zakupowych z KSeF`,
+        body: `Faktury oczekują na zatwierdzenie dla księgowości.`,
+        link: "/invoices",
       },
     }).catch(() => undefined);
 
-    const imported = [];
+    const notifyEmail = settings?.autoSyncNotifyEmail?.trim() || user.email;
+    if (notifyEmail) {
+      const rowsHtml = imported.map((inv: any) => `
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 10px; font-weight: bold;">${inv.number}</td>
+          <td style="padding: 10px; font-family: monospace; font-size: 11px;">${inv.ksefNumber || '—'}</td>
+          <td style="padding: 10px; text-align: right; font-weight: bold;">${inv.totalGross !== undefined ? Number(inv.totalGross).toFixed(2) + ' ' + (inv.currency || 'PLN') : '—'}</td>
+        </tr>
+      `).join("");
 
-    for (const header of uniqueHeaders) {
-      const ksefNumber = extractKsefNumber(header);
-      if (!ksefNumber || existingSet.has(ksefNumber)) continue;
-
-      // Atomowa rezerwacja — blokuje równoległe duplikaty (unikalny index)
-      let reservationId: string;
-      try {
-        const reservation = await prisma.ksefIncomingImport.create({
-          data: { userId: user.id, ksefReferenceNumber: `${companyProfile?.id || user.id}:${ksefNumber}` },
-        });
-        reservationId = reservation.id;
-      } catch (err) {
-        if ((err as { code?: string }).code === "P2002") continue; // już importowane
-        throw err;
-      }
-
-      try {
-        const xml = await client.downloadInvoiceXml(token, ksefNumber);
-        const parsed = parseFa3IncomingInvoice(xml, ksefNumber);
-
-        // Upsert kontrahenta-sprzedawcy
-        let contractor = await prisma.contractor.findFirst({
-          where: { userId: user.id, nip: parsed.seller.nip },
-        });
-        if (contractor) {
-          contractor = await prisma.contractor.update({
-            where: { id: contractor.id },
-            data: { name: parsed.seller.name, address: parsed.seller.address },
-          });
-        } else {
-          contractor = await prisma.contractor.create({
-            data: {
-              userId: user.id,
-              name: parsed.seller.name,
-              nip: parsed.seller.nip,
-              address: parsed.seller.address,
-              isVatPayer: true,
-            },
-          });
-        }
-
-        const acquiredAt =
-          header.acquisitionDate
-          ?? header.acquisitionTimestamp
-          ?? syncTo.toISOString();
-
-        const invoice = await prisma.invoice.create({
-          data: {
-            userId: user.id,
-            number: parsed.number,
-            type: "purchase",
-            sellerCompanyId: companyProfile?.id ?? null,
-            status: "issued",
-            approvalStatus: "pending",
-            contractorId: contractor.id,
-            issueDate: parsed.issueDate,
-            saleDate: parsed.saleDate,
-            dueDate: parsed.dueDate,
-            currency: parsed.currency,
-            language: "PL",
-            paymentMethod: parsed.paymentMethod,
-            paymentTermDays: parsed.paymentTermDays,
-            lines: parsed.lines as unknown as Prisma.InputJsonValue,
-            nip: parsed.seller.nip,
-            totalNet: parsed.totalNet,
-            totalVat: parsed.totalVat,
-            totalGross: parsed.totalGross,
-            ksefNumber,
-            upoXml: extractUpo(header),
-            ksefXml: xml,
-            ksefSessionId: session.id,
-            ksef: {
-              number: ksefNumber,
-              status: "ACTIVE",
-              sentAt: acquiredAt,
-              environment: client.environment,
-            },
-          },
-          include: { sellerCompany: true },
-        });
-
-        await prisma.ksefIncomingImport.update({
-          where: { id: reservationId },
-          data: { invoiceId: invoice.id },
-        });
-
-        existingSet.add(ksefNumber);
-        imported.push(invoiceToDto(invoice));
-      } catch (err) {
-        // Zwolnij rezerwację — następna synchronizacja ponowi próbę
-        await prisma.ksefIncomingImport.delete({ where: { id: reservationId } }).catch(() => undefined);
-        throw err;
-      }
-    }
-
-    // Zaktualizuj kursor synchronizacji dopiero po pomyślnym imporcie
-    if (!companyId) await prisma.ksefSettings.upsert({
-      where: { userId: user.id },
-      update: { lastIncomingSyncAt: syncTo, lastAutoSyncAt: syncTo },
-      create: {
-        userId: user.id,
-        environment: client.environment,
-        lastIncomingSyncAt: syncTo,
-        lastAutoSyncAt: syncTo,
-      },
-    });
-
-    // Powiadomienie e-mail i in-app jeśli zaimportowano nowe faktury
-    if (imported.length > 0) {
-      await prisma.notification.create({
-        data: {
-          userId: user.id,
-          kind: "ksef",
-          title: `Pobrano ${imported.length} nową(-ych) faktur zakupowych z KSeF`,
-          body: `Faktury oczekują na zatwierdzenie dla księgowości.`,
-          link: "/invoices",
-        },
-      }).catch(() => undefined);
-
-      const notifyEmail = settings?.autoSyncNotifyEmail?.trim() || user.email;
-      if (notifyEmail) {
-        const rowsHtml = imported.map((inv: any) => `
-          <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 10px; font-weight: bold;">${inv.number}</td>
-            <td style="padding: 10px; font-family: monospace; font-size: 11px;">${inv.ksefNumber || '—'}</td>
-            <td style="padding: 10px; text-align: right; font-weight: bold;">${inv.totalGross !== undefined ? Number(inv.totalGross).toFixed(2) + ' ' + (inv.currency || 'PLN') : '—'}</td>
-          </tr>
-        `).join("");
-
-        const appUrl = process.env.NEXTAUTH_URL || "https://fakturo.app";
-        sendEmail({
-          to: notifyEmail,
-          subject: `Nowe faktury zakupowe z KSeF (${imported.length})`,
-          html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; color: #111827; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
-              <h2 style="color: #059669; margin-top: 0;">Otrzymano nowe faktury zakupowe z KSeF</h2>
-              <p>System Fakturo pobrał <b>${imported.length}</b> nową(-ych) fakturę(-ur) kosztową(-ych) wystawioną(-ych) na Twój NIP.</p>
-              <p style="color: #4b5563; font-size: 14px;">Dokumenty oczekują na zatwierdzenie dla księgowości.</p>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
-                <thead>
-                  <tr style="background-color: #f9fafb; text-align: left; border-bottom: 2px solid #e5e7eb;">
-                    <th style="padding: 10px;">Nr faktury</th>
-                    <th style="padding: 10px;">Numer KSeF</th>
-                    <th style="padding: 10px; text-align: right;">Kwota brutto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${rowsHtml}
-                </tbody>
-              </table>
-              <div style="margin-top: 24px; text-align: center;">
-                <a href="${appUrl}/invoices" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">Przejdź do faktur i zatwierdź</a>
-              </div>
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 32px;" />
-              <p style="font-size: 11px; color: #9ca3af; text-align: center;">Wiadomość wygenerowana automatycznie przez system Fakturo.</p>
+      const appUrl = process.env.NEXTAUTH_URL || "https://fakturo.app";
+      sendEmail({
+        to: notifyEmail,
+        subject: `Nowe faktury zakupowe z KSeF (${imported.length})`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; color: #111827; background-color: #ffffff;">
+            <h2 style="color: #059669; margin-top: 0;">Otrzymano nowe faktury zakupowe z KSeF</h2>
+            <p>System Fakturo pobrał <b>${imported.length}</b> nową(-ych) fakturę(-ur) kosztową(-ych) wystawioną(-ych) na Twój NIP.</p>
+            <p style="color: #4b5563; font-size: 14px;">Dokumenty oczekują na zatwierdzenie dla księgowości.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
+              <thead>
+                <tr style="background-color: #f9fafb; text-align: left; border-bottom: 2px solid #e5e7eb;">
+                  <th style="padding: 10px;">Nr faktury</th>
+                  <th style="padding: 10px;">Numer KSeF</th>
+                  <th style="padding: 10px; text-align: right;">Kwota brutto</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+            <div style="margin-top: 24px; text-align: center;">
+              <a href="${appUrl}/invoices" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">Przejdź do fakturo.app</a>
             </div>
-          `,
-        }).catch((e) => console.error("[sync-incoming] Błąd wysyłki e-mail powiadomienia:", e));
-      }
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 32px;" />
+            <p style="font-size: 11px; color: #9ca3af; text-align: center;">Wiadomość wygenerowana automatycznie przez system Fakturo.</p>
+          </div>
+        `,
+      }).catch((e) => console.error("[sync-incoming] Błąd wysyłki e-mail powiadomienia:", e));
     }
+  }
 
-    return json({
-      success: true,
-      importedCount: imported.length,
-      foundCount: uniqueHeaders.length,
-      skippedCount: uniqueHeaders.length - imported.length,
-      syncedFrom: syncFrom.toISOString(),
-      syncedTo: syncTo.toISOString(),
-      invoices: imported,
-    });
+  return {
+    success: true,
+    importedCount: imported.length,
+    foundCount: uniqueHeaders.length,
+    skippedCount: uniqueHeaders.length - imported.length,
+    syncedFrom: syncFrom.toISOString(),
+    syncedTo: syncTo.toISOString(),
+    invoices: imported,
+  };
+}
+
+/** POST /api/ksef/sync-incoming — synchronizacja faktur zakupowych z KSeF (rola nabywcy). */
+export async function POST(req: Request) {
+  try {
+    const companyId = new URL(req.url).searchParams.get('companyId');
+    const result = await performIncomingSync(companyId);
+    return json(result);
   } catch (error) {
     if (error instanceof KsefApiError) {
       return handleApiError(new ApiError(502, error.message, "KSEF_UPSTREAM_ERROR"));
