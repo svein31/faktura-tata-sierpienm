@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { POST as syncIncomingPOST } from "../sync-incoming/route";
+import { performIncomingSync } from "../sync-incoming/route";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -48,9 +48,8 @@ export async function GET() {
       });
     }
 
-    // Czas minął — wywołujemy synchronizację
-    const syncRes = await syncIncomingPOST();
-    const syncData = await syncRes.json();
+    // Czas minął — wywołujemy synchronizację logiki biznesowej
+    const syncData = await performIncomingSync();
 
     return json({
       enabled: true,
