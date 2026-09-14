@@ -3,6 +3,7 @@ import { uid } from "@/lib/utils";
 
 export interface ParsedRawTransaction {
   date: string;
+  currency?: string;
   amount: number;
   title: string;
   senderName: string;
@@ -16,6 +17,7 @@ export interface ParsedRawTransaction {
 function cleanHeader(h: string): string {
   return h
     .toLowerCase()
+    .replace(/ł/g, "l")
     .trim()
     .replace(/["']/g, "")
     .normalize("NFD")
@@ -127,6 +129,7 @@ export function parseBankStatementCsv(csvText: string): ParsedRawTransaction[] {
   let amountCol = headers.findIndex((h) => h.includes("kwota operacji") || h.includes("kwota transakcji") || h.includes("kwota") || h.includes("amount"));
   let titleCol = headers.findIndex((h) => h.includes("tytul") || h.includes("opis") || h.includes("szczegoly") || h.includes("title"));
   let senderCol = headers.findIndex((h) => h.includes("nadawca") || h.includes("kontrahent") || h.includes("odbiorca") || h.includes("nazwa"));
+  const currencyCol = headers.findIndex(h => h.includes("waluta") || h.includes("currency"));
   let accountCol = headers.findIndex((h) => h.includes("rachunek") || h.includes("konto") || h.includes("iban") || h.includes("account"));
 
   if (dateCol === -1) dateCol = 0;
@@ -142,6 +145,9 @@ export function parseBankStatementCsv(csvText: string): ParsedRawTransaction[] {
     if (cols.length <= Math.max(dateCol, amountCol)) continue;
 
     const date = normalizeDate(cols[dateCol] || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0,10) !== date) continue;
+    const currency = currencyCol < 0 ? "PLN" : (cols[currencyCol] || "").trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(currency)) continue;
     const amount = parsePolishAmount(cols[amountCol] || "");
     const title = cols[titleCol]?.replace(/^["']|["']$/g, "").trim() || "";
     const senderName = cols[senderCol]?.replace(/^["']|["']$/g, "").trim() || "";
@@ -151,6 +157,7 @@ export function parseBankStatementCsv(csvText: string): ParsedRawTransaction[] {
     if (amount > 0 && (title || senderName)) {
       transactions.push({
         date,
+        currency,
         amount,
         title,
         senderName,
@@ -170,6 +177,7 @@ export interface MatchCandidate {
   contractorNip?: string;
   totalGross: number;
   paidAmount: number;
+  currency?: string;
 }
 
 /**
@@ -188,43 +196,24 @@ export function matchTransactionsToInvoices(
     const titleLower = tx.title.toLowerCase();
     const senderLower = tx.senderName.toLowerCase();
 
+    const matches: Array<{inv: MatchCandidate; confidence: "exact" | "high"}> = [];
     for (const inv of unpaidInvoices) {
-      const invNumLower = inv.number.toLowerCase();
-      // Usunięcie znaków specjalnych dla elastycznego porównywania (np. FV/2026/001 -> fv2026001)
-      const numClean = invNumLower.replace(/[\/\-_\s]/g, "");
-      const titleClean = titleLower.replace(/[\/\-_\s]/g, "");
-
-      const remainingAmount = Math.round((inv.totalGross - inv.paidAmount) * 100) / 100;
-      const amountMatches = Math.abs(tx.amount - remainingAmount) < 0.05 || Math.abs(tx.amount - inv.totalGross) < 0.05;
-
-      const numberInTitle = titleClean.includes(numClean) || titleLower.includes(invNumLower);
-
-      if (numberInTitle && amountMatches) {
-        matchedId = inv.id;
-        matchedNumber = inv.number;
-        matchedContractor = inv.contractorName;
-        confidence = "exact";
-        break;
-      } else if (numberInTitle) {
-        matchedId = inv.id;
-        matchedNumber = inv.number;
-        matchedContractor = inv.contractorName;
-        confidence = "high";
-      } else if (amountMatches && inv.contractorName && senderLower.includes(inv.contractorName.toLowerCase().slice(0, 10))) {
-        if (confidence === "none") {
-          matchedId = inv.id;
-          matchedNumber = inv.number;
-          matchedContractor = inv.contractorName;
-          confidence = "high";
-        }
-      } else if (amountMatches && inv.contractorNip && (titleLower.includes(inv.contractorNip) || senderLower.includes(inv.contractorNip))) {
-        if (confidence === "none") {
-          matchedId = inv.id;
-          matchedNumber = inv.number;
-          matchedContractor = inv.contractorName;
-          confidence = "high";
-        }
-      }
+      if ((inv.currency || "PLN") !== (tx.currency || "PLN")) continue;
+      const escaped = inv.number.toLowerCase().replace(/[.*+?^$(){}|[\]\\]/g, "\\$&");
+      const numberInTitle = Boolean(escaped) && new RegExp("(?:^|[^\\p{L}\\p{N}])" + escaped + "(?=$|[^\\p{L}\\p{N}/_-])", "u").test(titleLower);
+      const remaining = Math.round((inv.totalGross-inv.paidAmount)*100)/100;
+      const amountMatches = Math.abs(tx.amount-remaining)<0.01;
+      const senderMatches = (inv.contractorName && senderLower.includes(inv.contractorName.toLowerCase())) ||
+        (inv.contractorNip && (titleLower.includes(inv.contractorNip) || senderLower.includes(inv.contractorNip)));
+      if (numberInTitle || (amountMatches && senderMatches)) matches.push({inv,confidence:numberInTitle && amountMatches ? "exact":"high"});
+    }
+    if (matches.length === 1) {
+      matchedId = matches[0].inv.id;
+      matchedNumber = matches[0].inv.number;
+      matchedContractor = matches[0].inv.contractorName;
+      confidence = matches[0].confidence;
+    } else if (matches.length > 1) {
+      confidence = "low";
     }
 
     return {

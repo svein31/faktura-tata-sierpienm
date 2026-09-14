@@ -7,9 +7,11 @@
 import { ApiError, cleanStr, num } from "./api";
 import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
+import { invoiceTotals, round2 } from "./format";
+import type { InvoiceLine } from "./types";
 import type { Address } from "./types";
 
-const VAT_RATES = ["23", "8", "5", "0", "zw", "np"];
+const VAT_RATES = ["23", "8", "5", "0", "zw", "np", "oo"];
 
 /* ── Kontrahent ─────────────────────────────────────────────────────────── */
 
@@ -99,7 +101,7 @@ interface Line {
   vatRate: string;
 }
 
-function parseLines(v: unknown): Line[] {
+function parseLines(v: unknown, isCorrection = false): Line[] {
   if (!Array.isArray(v) || v.length === 0) {
     throw new ApiError(400, "Faktura musi zawierać co najmniej jedną pozycję.");
   }
@@ -114,7 +116,7 @@ function parseLines(v: unknown): Line[] {
     }
 
     const netPrice = typeof l.netPrice === "number" ? l.netPrice : Number(l.netPrice ?? 0);
-    if (!Number.isFinite(netPrice) || netPrice < 0) {
+    if (!Number.isFinite(netPrice) || (!isCorrection && netPrice < 0)) {
       throw new ApiError(400, `Pozycja #${idx + 1}: cena netto nie może być ujemna.`);
     }
 
@@ -192,10 +194,10 @@ export async function parseInvoiceBody(
   const number = cleanStr(body.number, 50, "number");
   if (!number) throw new ApiError(400, "Podaj numer faktury.");
 
-  // Waluta: PLN, EUR, USD, GBP lub dowolny kod 3-4 literowy
+  // Waluta: PLN, EUR, USD, GBP lub dowolny kod 3-literowy
   const currencyRaw = cleanStr(body.currency, 10, "currency").toUpperCase() || "PLN";
-  if (!/^[A-Z]{3,4}$/.test(currencyRaw)) {
-    throw new ApiError(400, "Nieprawidłowy kod waluty (wymagany standard 3-4 literowy, np. PLN, EUR, USD, GBP).");
+  if (!/^[A-Z]{3}$/.test(currencyRaw)) {
+    throw new ApiError(400, "Nieprawidłowy kod waluty (wymagany standard 3-literowy, np. PLN, EUR, USD, GBP).");
   }
   const currency = currencyRaw;
 
@@ -208,21 +210,25 @@ export async function parseInvoiceBody(
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
   for (const f of ["issueDate", "saleDate", "dueDate"] as const) {
     const v = cleanStr(body[f], 10, f);
-    if (!dateRe.test(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
+    if (!dateRe.test(v) || !Number.isFinite(Date.parse(v)) || new Date(v).toISOString().slice(0, 10) !== v) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
   }
 
   // Pola NBP i walutowe
-  const exchangeRate = typeof body.exchangeRate === "number" && body.exchangeRate > 0 ? body.exchangeRate : null;
-  const exchangeRateUnit = typeof body.exchangeRateUnit === "number" && body.exchangeRateUnit > 0 ? body.exchangeRateUnit : 1;
+  const exchangeRate = typeof body.exchangeRate === "number" && Number.isFinite(body.exchangeRate) && body.exchangeRate > 0 ? body.exchangeRate : null;
+  const exchangeRateUnit = typeof body.exchangeRateUnit === "number" && Number.isFinite(body.exchangeRateUnit) && body.exchangeRateUnit > 0 ? body.exchangeRateUnit : 1;
   const exchangeRateDate = cleanStr(body.exchangeRateDate, 20, "exchangeRateDate") || null;
   const exchangeRateTable = cleanStr(body.exchangeRateTable, 100, "exchangeRateTable") || null;
   const exchangeRateSource = cleanStr(body.exchangeRateSource, 200, "exchangeRateSource") || null;
   const exchangeRateRule = cleanStr(body.exchangeRateRule, 50, "exchangeRateRule") || null;
   const exchangeRateJustification = cleanStr(body.exchangeRateJustification, 1000, "exchangeRateJustification") || null;
   const taxPointDate = cleanStr(body.taxPointDate, 20, "taxPointDate") || null;
-  const totalNetPln = typeof body.totalNetPln === "number" ? body.totalNetPln : null;
-  const totalVatPln = typeof body.totalVatPln === "number" ? body.totalVatPln : null;
-  const totalGrossPln = typeof body.totalGrossPln === "number" ? body.totalGrossPln : null;
+  const lines = parseLines(body.lines, body.isCorrection === true);
+  const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
+  if (![totals.net, totals.vat, totals.gross].every(Number.isFinite)) throw new ApiError(400, "Nieprawidłowe sumy faktury.");
+  const rate = currency === "PLN" ? 1 : exchangeRate ? exchangeRate / exchangeRateUnit : null;
+  const totalNetPln = rate === null ? null : round2(totals.net * rate);
+  const totalVatPln = rate === null ? null : round2(totals.vat * rate);
+  const totalGrossPln = rate === null ? null : round2(totals.gross * rate);
   const bankAccountId = cleanStr(body.bankAccountId, 100, "bankAccountId") || null;
   const bankAccountSnapshot = body.bankAccountSnapshot ? (body.bankAccountSnapshot as unknown as Prisma.InputJsonValue) : undefined;
   const buyerTaxIdType = cleanStr(body.buyerTaxIdType, 20, "buyerTaxIdType") || null;
@@ -245,11 +251,14 @@ export async function parseInvoiceBody(
     paymentMethod,
     paymentTermDays: Math.min(Math.max(Math.round(num(body.paymentTermDays)), 0), 365),
     notes: cleanStr(body.notes, 4000, "notes") || null,
-    lines: parseLines(body.lines) as unknown as Prisma.InputJsonValue,
+    lines: lines as unknown as Prisma.InputJsonValue,
+    totalNet: totals.net,
+    totalVat: totals.vat,
+    totalGross: totals.gross,
     approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
     // Proforma & Udostępnianie
     isProforma: Boolean(body.isProforma),
-    shareToken: typeof body.shareToken === "string" && body.shareToken.trim() ? cleanStr(body.shareToken, 64, "shareToken") : undefined,
+    shareToken: undefined,
     // Korekty
     isCorrection: Boolean(body.isCorrection),
     correctionReason: cleanStr(body.correctionReason, 1000, "correctionReason") || null,

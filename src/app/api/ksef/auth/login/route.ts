@@ -1,3 +1,4 @@
+import { resolveKsefCompany } from "@/lib/ksef/company";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
@@ -14,44 +15,17 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser();
+    if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const body = await readJson(req);
 
-    // 1. Ustalenie NIP podmiotu
-    let nip = str(body.nip).replace(/\D/g, "").trim();
-    if (!nip && user) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: user.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-      if (comp?.nip) nip = comp.nip.replace(/\D/g, "").trim();
-
-      if (!nip) {
-        const company = await prisma.companySettings.findUnique({ where: { userId: user.id } });
-        if (company?.nip) nip = company.nip.replace(/\D/g, "").trim();
-      }
-    }
-    if (!nip) {
-      nip = (process.env.KSEF_NIP || "").replace(/\D/g, "").trim();
-    }
-    if (!nip || nip.length !== 10) {
-      throw new ApiError(400, "Wymagany jest poprawny 10-cyfrowy NIP podmiotu.");
-    }
-
+    const company = await resolveKsefCompany(user.id, str(body.companyId), str(body.nip).replace(/\D/g, ""));
+    const nip = company.nip.replace(/\D/g, "");
     // 2. Ustalenie środowiska
     const envInput = str(body.environment).toLowerCase() || process.env.KSEF_ENV || process.env.KSEF_ENVIRONMENT || "test";
     const environment: KsefEnvironment = envInput === "production" ? "production" : envInput === "demo" ? "demo" : "test";
 
     // 3. Ustalenie tokena KSeF
-    let token = str(body.token).trim();
-    if (!token && user) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: user.id, nip },
-      });
-      if (comp?.ksefToken) token = comp.ksefToken.trim();
-    }
-    if (!token) {
-      token = (process.env.KSEF_TOKEN || "").trim();
-    }
+    const token = str(body.token).trim() || company.ksefToken?.trim() || "";
     if (!token && environment !== "demo") {
       throw new ApiError(400, "Brak tokena autoryzacyjnego KSeF (podaj token w formularzu lub ustaw KSEF_TOKEN).");
     }
@@ -90,9 +64,7 @@ export async function POST(req: Request) {
 
     // Zaktualizuj token w profilu firmy jeśli podano
     if (token && user && environment !== "demo") {
-      const existingComp = await prisma.companyProfile.findFirst({
-        where: { userId: user.id, nip },
-      });
+      const existingComp = company;
       if (existingComp) {
         await prisma.companyProfile.update({
           where: { id: existingComp.id },

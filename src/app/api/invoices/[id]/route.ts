@@ -77,9 +77,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     // 1. Sprawdź optymistyczną blokadę współbieżności (Optimistic Concurrency Control)
     if (
-      typeof body.version === "number" &&
-      existing.version &&
-      body.version < existing.version
+      !Number.isInteger(body.version) || body.version !== (existing.version || 1)
     ) {
       throw new ApiError(
         409,
@@ -99,6 +97,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
 
     // 3. Ochrona integralności: faktury z nadanym numerem KSeF
+    if (["queued", "sending", "verify_needed"].includes(existing.ksefStatus || "")) throw new ApiError(409, "Trwa wysyłka lub weryfikacja dokumentu w KSeF.");
     if (existing.ksefNumber) {
       const allowedData: { notes?: string | null; approvalStatus?: string } = {};
       if (body.notes !== undefined) {
@@ -109,7 +108,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       }
 
       const updated = await prisma.invoice.update({
-        where: { id: existing.id },
+        where: { id: existing.id, version: existing.version },
         data: {
           ...allowedData,
           version: (existing.version || 1) + 1,
@@ -166,6 +165,9 @@ export async function PUT(req: Request, { params }: Ctx) {
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
 
+    if (data.type !== existing.type || data.sellerCompanyId !== existing.sellerCompanyId) {
+      throw new ApiError(400, "Nie można zmieniać typu ani firmy istniejącej faktury.");
+    }
     // 5. Ochrona przed duplikatem numeru przy zmianie numeru
     if (data.number !== existing.number) {
       const conflict = await prisma.invoice.findFirst({
@@ -183,7 +185,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     const nextVersion = (existing.version || 1) + 1;
 
     const invoice = await prisma.invoice.update({
-      where: { id: existing.id },
+      where: { id: existing.id, version: existing.version },
       data: {
         ...data,
         version: nextVersion,

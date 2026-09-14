@@ -63,6 +63,7 @@ export function handleApiError(e: unknown): NextResponse {
   }
   // Unikalność e-mail (P2002) — ogólny komunikat (brak enumeracji użytkowników).
   const code = (e as { code?: string })?.code;
+  if (code === "P2025" || code === "P2034") return json({ error: "Dokument zmienił się w trakcie operacji. Odśwież dane.", code: "CONFLICT" }, { status: 409 });
   if (code === "P2002") {
     return json(
       { error: "Nie udało się utworzyć konta. Spróbuj ponownie.", code: "CONFLICT" },

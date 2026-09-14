@@ -1,3 +1,4 @@
+import { resolveKsefCompany } from "@/lib/ksef/company";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, cleanStr, handleApiError, json, readJson, str } from "@/lib/api";
@@ -36,10 +37,7 @@ export async function PUT(req: Request) {
       tokenMask = `••••${t.slice(-4)}`;
 
       // Zapisz token w profilu firmy użytkownika
-      const defaultProfile = await prisma.companyProfile.findFirst({
-        where: { userId: user.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
+      const defaultProfile = await resolveKsefCompany(user.id, str(body.companyId));
 
       if (defaultProfile) {
         await prisma.companyProfile.update({

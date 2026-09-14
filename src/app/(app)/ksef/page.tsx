@@ -202,6 +202,7 @@ function KsefPageInner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: useAppStore.getState().selectedCompanyId,
           environment: envDraft,
           token: tokenDraft.trim() || undefined,
           nip: companySafe.nip || undefined,
@@ -279,6 +280,7 @@ function KsefPageInner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: useAppStore.getState().selectedCompanyId,
           xml,
           environment: ksefSafe.environment,
           invoiceId: selectedInvoiceId || undefined,
@@ -339,6 +341,7 @@ function KsefPageInner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: useAppStore.getState().selectedCompanyId,
           autoSyncEnabled,
           autoSyncIntervalHours: Number(autoSyncIntervalHours),
           autoSyncNotifyEmail: autoSyncNotifyEmail.trim(),
@@ -362,6 +365,7 @@ function KsefPageInner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: useAppStore.getState().selectedCompanyId,
           invoiceIds: [invoiceId],
           status: targetStatus,
         }),

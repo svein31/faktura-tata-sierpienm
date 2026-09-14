@@ -102,3 +102,26 @@ test("store rejects optimistic changes to purchase invoices", async () => {
   await assert.rejects(useAppStore.getState().deleteInvoice(id));
   assert.equal(useAppStore.getState().invoices.length,1);
 });
+
+test("KSeF endpoints refuse anonymous requests before database or network access", async () => {
+  for (const p of ["src/app/api/ksef/auth/route.ts","src/app/api/ksef/invoices/send/route.ts","src/app/api/ksef/test-connection/route.ts","src/app/api/ksef/queue/process/route.ts"]) {
+    routeMocks({id,type:"sale"});
+    mocks["@/lib/auth"] = {getSessionUser:async()=>null};
+    assert.equal((await load(p).POST(req())).status,401,p);
+  }
+});
+test("bank matcher rejects ambiguous amounts, wrong currency and partial invoice numbers", () => {
+  mocks = {};
+  const {parseBankStatementCsv,matchTransactionsToInvoices} = load("src/lib/banking/csv-parser.ts");
+  const a={id:"a",number:"FV/1",currency:"PLN",totalGross:100,paidAmount:0,contractorName:"Buyer"};
+  const tx={date:"2026-09-14",amount:100,title:"FV/10",senderName:"Other",currency:"PLN",raw:""};
+  assert.equal(matchTransactionsToInvoices([tx],[a])[0].matchedInvoiceId,undefined);
+  assert.equal(matchTransactionsToInvoices([{...tx,title:"FV/1",currency:"EUR"}],[a])[0].matchedInvoiceId,undefined);
+  assert.equal(matchTransactionsToInvoices([{...tx,title:"Payment",senderName:"Buyer"}],[a,{...a,id:"b",number:"FV/2"}])[0].matchedInvoiceId,undefined);
+  assert.equal(parseBankStatementCsv("Data;Kwota;Tytuł;Nadawca\n2026-02-31;100;FV/1;Buyer").length,0);
+});
+test("public invoice ID is not an access token", async () => {
+  routeMocks({id,type:"sale"});
+  const route=load("src/app/api/portal/[token]/route.ts");
+  assert.equal((await route.GET(req(),{params:Promise.resolve({token:id})})).status,404);
+});

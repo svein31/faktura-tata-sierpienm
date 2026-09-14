@@ -441,7 +441,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/ksef", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(optimistic),
+        body: JSON.stringify({ ...optimistic, companyId: get().selectedCompanyId }),
       });
       if (!res.ok) throw await apiError(res, "Nie udało się zapisać ustawień KSeF.");
       const data = (await res.json()) as { ksef: KsefSettings };

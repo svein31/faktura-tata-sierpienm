@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
         userId: user.id,
         ...data,
         version: 1,
+        shareToken: randomBytes(32).toString("hex"),
       },
       include: {
         sellerCompany: {

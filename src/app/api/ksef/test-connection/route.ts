@@ -1,3 +1,4 @@
+import { resolveKsefCompany } from "@/lib/ksef/company";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
@@ -17,6 +18,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const session = await getSessionUser();
+    if (!session) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const body = ((await readJson(req).catch(() => ({}))) || {}) as Record<string, unknown>;
 
     const envInput = (
@@ -29,32 +31,9 @@ export async function POST(req: Request) {
     const environment: KsefEnvironment =
       envInput === "production" ? "production" : envInput === "demo" ? "demo" : "test";
 
-    // Ustal NIP
-    let nip = str(body.nip).replace(/\D/g, "").trim();
-    if (!nip && session) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: session.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-      if (comp?.nip) nip = comp.nip.replace(/\D/g, "").trim();
-
-      if (!nip) {
-        const legacy = await prisma.companySettings.findUnique({ where: { userId: session.id } });
-        if (legacy?.nip) nip = legacy.nip.replace(/\D/g, "").trim();
-      }
-    }
-    if (!nip) nip = (process.env.KSEF_NIP || "5260301706").replace(/\D/g, "").trim();
-
-    // Ustal token KSeF
-    let token = str(body.token).trim();
-    if (!token && session) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: session.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-      if (comp?.ksefToken) token = comp.ksefToken.trim();
-    }
-    if (!token) token = (process.env.KSEF_TOKEN || "").trim();
+    const company = await resolveKsefCompany(session.id, str(body.companyId), str(body.nip).replace(/\D/g, ""));
+    const nip = company.nip.replace(/\D/g, "");
+    const token = str(body.token).trim() || company.ksefToken?.trim() || "";
 
     const client = new KsefClient({ environment });
     const connectivity = await client.testConnectivity();

@@ -46,6 +46,11 @@ export default function FinancesPage() {
   const [applyPaymentsImmediately, setApplyPaymentsImmediately] = React.useState(true);
   const [step, setStep] = React.useState<"upload" | "preview">("upload");
 
+  const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  React.useEffect(() => {
+    setCsvContent(""); setMatchedTransactions([]); setImportModalOpen(false); setStep("upload");
+  }, [selectedCompanyId]);
+
   // Wyliczenie Aging (starzenie należności)
   const now = new Date();
   const aging = React.useMemo(() => {
@@ -107,6 +112,7 @@ export default function FinancesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           csvContent,
+          companyId: useAppStore.getState().selectedCompanyId,
           bankFormat,
           applyPayments: false,
         }),
@@ -135,6 +141,7 @@ export default function FinancesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           csvContent,
+          companyId: useAppStore.getState().selectedCompanyId,
           bankFormat,
           applyPayments: true,
         }),
