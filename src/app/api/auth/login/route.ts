@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
-    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
+    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 
     try {
       (await cookies()).set("auth_session", token, cookieOpts);

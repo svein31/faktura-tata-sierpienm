@@ -52,11 +52,17 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/portal") ||
     isLegalPath;
 
-  // Cookie presence alone does not prove a live session; server layouts validate it.
+  // 4. Zalogowany użytkownik wchodzący na stronę logowania/rejestracji -> przekieruj na /dashboard
+  if (token && (pathname === "/login" || pathname === "/register")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
   // 5. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
   if (!token && !isPublicPath) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }

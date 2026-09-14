@@ -174,17 +174,33 @@ export interface SessionCookieOptions {
   secure?: boolean;
 }
 
-export function sessionCookieOptions(overrides?: SessionCookieOptions): {
+export function sessionCookieOptions(
+  overrides?: SessionCookieOptions,
+  req?: Request
+): {
   httpOnly: boolean;
   secure: boolean;
   sameSite: "lax";
   path: string;
   maxAge: number;
 } {
-  const prod = process.env.NODE_ENV === "production";
+  let isSecure = false;
+  if (typeof overrides?.secure === "boolean") {
+    isSecure = overrides.secure;
+  } else if (process.env.COOKIE_SECURE === "true") {
+    isSecure = true;
+  } else if (process.env.COOKIE_SECURE === "false") {
+    isSecure = false;
+  } else if (req) {
+    const proto = req.headers.get("x-forwarded-proto") || "";
+    isSecure = proto.includes("https") || req.url.startsWith("https:");
+  } else if (process.env.NEXTAUTH_URL?.startsWith("https:")) {
+    isSecure = true;
+  }
+
   return {
     httpOnly: true,
-    secure: prod,
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: overrides?.maxAge ?? SESSION_MAX_AGE_SECONDS, // 30 dni (2592000s)

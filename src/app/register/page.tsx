@@ -59,7 +59,7 @@ function RegisterForm() {
 
   React.useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   }, [status, router]);
 
@@ -116,7 +116,7 @@ function RegisterForm() {
       } catch {
         // ignore
       }
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       setError(msg ? `Błąd połączenia: ${msg}` : "Błąd sieci — spróbuj ponownie za chwilę.");

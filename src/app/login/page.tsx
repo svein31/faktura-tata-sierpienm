@@ -26,7 +26,8 @@ function LoginForm() {
 
   const expired = searchParams.get("expired");
   const already = searchParams.get("already");
-  const nextUrl = searchParams.get("next") || "/";
+  const rawNext = searchParams.get("next");
+  const nextUrl = rawNext && rawNext !== "/" && !rawNext.startsWith("/login") ? rawNext : "/dashboard";
 
   React.useEffect(() => {
     if (status === "authenticated" && !expired) {

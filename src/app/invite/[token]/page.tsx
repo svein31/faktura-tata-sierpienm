@@ -155,7 +155,7 @@ export default function InviteAcceptPage() {
         useAppStore.getState().setSelectedCompanyId(result.company.id);
       }
 
-      router.push("/");
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {

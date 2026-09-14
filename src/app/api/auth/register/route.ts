@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     // 8. Utworzenie 30-dniowej sesji
     const metadata = extractRequestMetadata(req);
     const { token } = await createSession(user.id, metadata);
-    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
+    const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 
     const res = NextResponse.json(
       {

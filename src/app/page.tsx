@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-button";
+import { getSessionUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Fakturo — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
@@ -31,7 +32,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const user = await getSessionUser();
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* ── NAWIGACJA GŁÓWNA ── */}
@@ -60,18 +63,30 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex h-9 items-center justify-center rounded-xl px-3.5 text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
-              Zaloguj się
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all"
-            >
-              Załóż konto
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all gap-1.5"
+              >
+                <span>Przejdź do aplikacji</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex h-9 items-center justify-center rounded-xl px-3.5 text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  Zaloguj się
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all"
+                >
+                  Załóż konto
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -102,13 +117,23 @@ export default function LandingPage() {
 
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <Link
-                href="/register"
-                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
-              >
-                <span>Rozpocznij bezpłatnie</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
+                >
+                  <span>Przejdź do aplikacji</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              ) : (
+                <Link
+                  href="/register"
+                  className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
+                >
+                  <span>Rozpocznij bezpłatnie</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
               <Link
                 href="/demo"
                 className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/80 px-6 text-[14px] font-medium text-foreground hover:bg-muted/70 active:scale-95 transition-all shadow-sm"
@@ -385,12 +410,20 @@ export default function LandingPage() {
               <Link href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>
-              <Link href="/login" className="hover:text-foreground transition-colors">
-                Logowanie
-              </Link>
-              <Link href="/register" className="hover:text-foreground transition-colors">
-                Rejestracja
-              </Link>
+              {user ? (
+                <Link href="/dashboard" className="hover:text-foreground transition-colors font-medium text-primary">
+                  Panel główny
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="hover:text-foreground transition-colors">
+                    Logowanie
+                  </Link>
+                  <Link href="/register" className="hover:text-foreground transition-colors">
+                    Rejestracja
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           {/* Linki prawne */}
