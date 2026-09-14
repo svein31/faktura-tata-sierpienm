@@ -5,7 +5,7 @@ import { companyProfileToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * PATCH /api/companies/[id]/set-default
@@ -19,7 +19,7 @@ export async function PATCH(_req: Request, { params }: Ctx) {
     }
 
     const existing = await prisma.companyProfile.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
     });
     if (!existing) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });

@@ -14,21 +14,17 @@ export async function POST(req: Request) {
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET || process.env.KSEF_QUEUE_SECRET;
     
-    // Zezwól na wywołanie z crona z kluczem lub z sesji użytkownika
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      // Sprawdź czy wywołujący ma aktywną sesję
-      const { getSessionUser } = await import("@/lib/auth");
-      const user = await getSessionUser();
-      if (!user) {
-        return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
-      }
-    }
+    const isCron = Boolean(cronSecret && authHeader === `Bearer ${cronSecret}`);
+    const { getSessionUser } = await import("@/lib/auth");
+    const user = isCron ? null : await getSessionUser();
+    if (!isCron && !user) return json({ error: "Nieautoryzowany." }, { status: 401 });
 
     const now = new Date();
 
     // Pobierz do 10 zadań oczekujących
     const tasks = await prisma.ksefQueueTask.findMany({
       where: {
+        ...(!isCron ? { userId: user!.id } : {}),
         status: "queued",
         OR: [
           { nextAttemptAt: null },
@@ -56,8 +52,8 @@ export async function POST(req: Request) {
 
     for (const task of tasks) {
       // Zablokuj zadanie na czas przetwarzania (5 minut)
-      await prisma.ksefQueueTask.update({
-        where: { id: task.id },
+      const claimed = await prisma.ksefQueueTask.updateMany({
+        where: { id: task.id, status: "queued" },
         data: {
           status: "processing",
           lockedUntil: new Date(Date.now() + 5 * 60_000),
@@ -66,6 +62,7 @@ export async function POST(req: Request) {
         },
       });
 
+      if (claimed.count !== 1) continue;
       const invoice = task.invoice;
       if (!invoice) {
         await prisma.ksefQueueTask.update({
@@ -264,7 +261,7 @@ export async function POST(req: Request) {
 
         // Ustal token KSeF
         const sellerNip = (invoice.sellerCompany?.nip || invoice.nip || process.env.KSEF_NIP || "").replace(/\D/g, "");
-        const ksefToken = (invoice.sellerCompany?.ksefToken || process.env.KSEF_TOKEN || "").trim();
+        const ksefToken = (invoice.sellerCompany?.ksefToken || "").trim();
 
         if (!ksefToken) {
           await prisma.ksefQueueTask.update({

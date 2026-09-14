@@ -38,17 +38,18 @@ import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-m
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Invoice } from "@/lib/types";
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
+export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const invoices = useAppStore((s) => s.invoices);
-  const invoice = invoices.find((i) => i.id === params.id);
+  const invoice = invoices.find((i) => i.id === id);
 
   if (!invoice) {
     return (
       <div className="flex flex-col items-center gap-4 py-24 text-center">
         <p className="text-lg font-semibold">Nie znaleziono faktury</p>
         <p className="max-w-md text-[13px] text-muted-foreground">
-          Dokument o identyfikatorze <code className="rounded bg-muted px-1.5 py-0.5">{params.id}</code>{" "}
+          Dokument o identyfikatorze <code className="rounded bg-muted px-1.5 py-0.5">{id}</code>{" "}
           nie istnieje lub został usunięty.
         </p>
         <Button onClick={() => router.push("/invoices")}>

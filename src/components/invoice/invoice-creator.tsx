@@ -879,7 +879,7 @@ export function InvoiceCreator() {
                     </p>
                   )}
                   <div className="flex sm:justify-end gap-1 pt-0.5">
-                    {effectiveSellerCompany.ksefToken ? (
+                    {effectiveSellerCompany.ksefTokenSet ? (
                       <Badge tone="success" className="text-[10px]">
                         <ShieldCheck className="h-3 w-3 mr-1" /> Dedykowany token KSeF
                       </Badge>

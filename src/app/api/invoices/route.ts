@@ -42,7 +42,8 @@ export async function POST(req: Request) {
 
     // Weryfikacja granularnego uprawnienia do wystawiania faktur
     if (data.sellerCompanyId) {
-      await requireCompanyAccess(data.sellerCompanyId, user.id, "canIssueInvoices");
+      const access = await requireCompanyAccess(user.id, data.sellerCompanyId, data.isCorrection ? "canCreateCorrections" : "canIssueInvoices");
+      if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
     // Ochrona przed duplikatem numeru faktury w ramach profilu sprzedawcy

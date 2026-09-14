@@ -220,7 +220,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
 
   if (!token) {
     try {
-      const store = cookies();
+      const store = await cookies();
       for (const cookieName of ["auth_session", "fakturo_session", PROD_COOKIE_NAME, DEV_COOKIE_NAME]) {
         const val = store.get(cookieName)?.value;
         if (val) {

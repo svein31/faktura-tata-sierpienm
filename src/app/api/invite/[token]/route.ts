@@ -15,14 +15,14 @@ import type { CompanyRole } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id?: string; token?: string } };
+type Ctx = { params: Promise<{ id?: string; token?: string }> };
 
 /**
  * GET /api/invite/[token] — Weryfikacja ważności zaproszenia
  */
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
-    const token = params.token;
+    const token = (await params).token;
     if (!token) return json({ error: "Brak tokena zaproszenia." }, { status: 400 });
 
     const invitation = await prisma.teamInvitation.findUnique({
@@ -73,9 +73,9 @@ export async function GET(_req: Request, { params }: { params: { token: string }
 /**
  * POST /api/invite/[token] — Akceptacja zaproszenia (zalogowany użytkownik, logowanie lub rejestracja nowego konta)
  */
-export async function POST(req: Request, { params }: { params: { token: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
-    const token = params.token;
+    const token = (await params).token;
     if (!token) return json({ error: "Brak tokena zaproszenia." }, { status: 400 });
 
     const invitation = await prisma.teamInvitation.findUnique({

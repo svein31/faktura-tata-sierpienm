@@ -55,7 +55,6 @@ export function parseContractorBody(body: Record<string, unknown>) {
     defaultPaymentTermDays: typeof body.defaultPaymentTermDays === "number" ? Math.max(0, body.defaultPaymentTermDays) : null,
     defaultDiscountPercent: typeof body.defaultDiscountPercent === "number" ? Math.max(0, Math.min(100, body.defaultDiscountPercent)) : null,
     vatStatus: cleanStr(body.vatStatus, 30, "vatStatus") || null,
-    bankAccountVerified: Boolean(body.bankAccountVerified),
   };
 }
 
@@ -157,7 +156,7 @@ export function parseCompanyProfileBody(body: Record<string, unknown>) {
     city: cleanStr(body.city, 100, "city") || null,
     postalCode: cleanStr(body.postalCode ?? body.postal, 20, "postalCode") || null,
     bankAccount: cleanStr(body.bankAccount ?? body.iban, 60, "bankAccount") || null,
-    ksefToken: cleanStr(body.ksefToken, 500, "ksefToken") || null,
+    ksefToken: body.ksefToken === undefined ? undefined : cleanStr(body.ksefToken, 500, "ksefToken") || null,
     isDefault: Boolean(body.isDefault),
     logoUrl: typeof body.logoUrl === "string" ? body.logoUrl.trim() : null,
   };

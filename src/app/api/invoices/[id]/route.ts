@@ -9,7 +9,7 @@ import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** Pomocnicza funkcja weryfikacji dostępu do faktury (własna lub z firmy zespołu). */
 async function getInvoiceWithAccess(invoiceId: string, userId: string) {
@@ -49,7 +49,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -66,7 +66,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -235,7 +235,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }

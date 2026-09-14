@@ -6,7 +6,7 @@ import { parseCompanyProfileBody } from "@/lib/parsers";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/companies/[id]
@@ -19,12 +19,12 @@ export async function GET(_req: Request, { params }: Ctx) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const company = await prisma.companyProfile.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
     });
     if (!company) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
@@ -47,12 +47,12 @@ export async function PUT(req: Request, { params }: Ctx) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const existing = await prisma.companyProfile.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
     });
     if (!existing) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
@@ -114,12 +114,12 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const existing = await prisma.companyProfile.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
     });
     if (!existing) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });

@@ -121,6 +121,7 @@ export interface CompanyProfile {
   postalCode?: string | null;
   bankAccount?: string | null;
   ksefToken?: string | null;
+  ksefTokenSet?: boolean;
   isDefault: boolean;
   logoUrl?: string | null;
   createdAt: string;

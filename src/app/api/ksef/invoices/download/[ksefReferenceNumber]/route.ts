@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     ksefReferenceNumber: string;
-  };
+  }>;
 }
 
 /**
@@ -21,7 +21,7 @@ interface RouteParams {
 export async function GET(req: Request, { params }: RouteParams) {
   try {
     const user = await getSessionUser();
-    const ksefReferenceNumber = decodeURIComponent(params.ksefReferenceNumber || "").trim();
+    const ksefReferenceNumber = decodeURIComponent((await params).ksefReferenceNumber || "").trim();
 
     if (!ksefReferenceNumber) {
       throw new ApiError(400, "Brak numeru KSeF faktury (ksefReferenceNumber).");

@@ -7,7 +7,7 @@ import { getCompanyMembership } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/invoices/[id]/pdf — Generuje i zwraca plik PDF faktury (dostępny dla wystawcy i członków firmy).
@@ -19,12 +19,12 @@ export async function GET(req: Request, { params }: Ctx) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const invoiceRecord = await prisma.invoice.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         sellerCompany: {
           include: { bankAccounts: true },
@@ -39,7 +39,7 @@ export async function GET(req: Request, { params }: Ctx) {
     // Weryfikacja dostępu: własna faktura LUB faktura firmy, w której użytkownik jest członkiem
     let hasAccess = invoiceRecord.userId === user.id;
     if (!hasAccess && invoiceRecord.sellerCompanyId) {
-      const membership = await getCompanyMembership(invoiceRecord.sellerCompanyId, user.id);
+      const membership = await getCompanyMembership(user.id, invoiceRecord.sellerCompanyId);
       hasAccess = !!membership;
     }
 

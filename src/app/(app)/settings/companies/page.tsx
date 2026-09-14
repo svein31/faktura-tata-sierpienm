@@ -42,7 +42,7 @@ export default function CompaniesSettingsPage() {
   const [settingDefaultId, setSettingDefaultId] = React.useState<string | null>(null);
 
   const defaultCompany = companies.find((c) => c.isDefault) ?? companies[0] ?? null;
-  const companiesWithKsef = companies.filter((c) => Boolean(c.ksefToken)).length;
+  const companiesWithKsef = companies.filter((c) => Boolean(c.ksefTokenSet)).length;
 
   const handleCopyNip = (nip: string) => {
     navigator.clipboard.writeText(nip);
@@ -240,7 +240,7 @@ export default function CompaniesSettingsPage() {
 
                         {/* Status KSeF & Liczba faktur */}
                         <div className="flex flex-wrap items-center gap-2 pt-1">
-                          {company.ksefToken ? (
+                          {company.ksefTokenSet ? (
                             <Badge tone="success" className="gap-1 text-[11px]">
                               <ShieldCheck className="h-3 w-3" /> Dedykowany token KSeF
                             </Badge>

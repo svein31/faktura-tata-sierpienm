@@ -1,3 +1,4 @@
+import { requireCompanyAccess } from "@/lib/permissions";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -49,7 +50,17 @@ function extractUpo(header: KsefInvoiceHeader): string | null {
  *    jako fallbacku dla tokenów per-user — to zapobiega wyciekowi poświadczeń
  *    między użytkownikami/firmami.
  */
-async function getSession(userId: string) {
+async function getSession(userId: string, companyId: string | null) {
+  if (companyId) {
+    const access = await requireCompanyAccess(userId, companyId, 'canSendKsef');
+    if (!access.ok) throw new ApiError(access.status, access.error);
+  }
+  const companyProfile = companyId
+    ? await prisma.companyProfile.findUnique({ where: { id: companyId } })
+    : await prisma.companyProfile.findFirst({ where: { userId }, orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] });
+  const companySettings = companyProfile ? null : await prisma.companySettings.findUnique({ where: { userId } });
+  const nip = (companyProfile?.nip || companySettings?.nip || '').replace(/\D/g, '');
+  const ksefToken = (companyProfile?.ksefToken || '').trim();
   const settings = await prisma.ksefSettings.findUnique({ where: { userId } });
   const environment = asEnvironment(
     settings?.environment ?? process.env.KSEF_ENV ?? process.env.KSEF_ENVIRONMENT
@@ -60,6 +71,7 @@ async function getSession(userId: string) {
   const activeSession = await prisma.ksefSession.findFirst({
     where: {
       userId,
+      nip,
       environment,
       status: "ACTIVE",
       validUntil: { gt: now },
@@ -70,24 +82,13 @@ async function getSession(userId: string) {
 
   if (activeSession?.accessToken) {
     return {
+      companyProfile,
       session: activeSession,
       settings,
       client: new KsefClient({ environment, timeoutMs: 25_000 }),
       token: activeSession.accessToken,
     };
   }
-
-  // Pobierz NIP i token tylko z profili firmy należących do tego użytkownika.
-  const [companyProfile, companySettings] = await Promise.all([
-    prisma.companyProfile.findFirst({
-      where: { userId },
-      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-    }),
-    prisma.companySettings.findUnique({ where: { userId } }),
-  ]);
-
-  const nip = (companyProfile?.nip || companySettings?.nip || "").replace(/\D/g, "");
-  const ksefToken = (companyProfile?.ksefToken || "").trim();
 
   if (nip.length !== 10) {
     throw new ApiError(
@@ -133,19 +134,20 @@ async function getSession(userId: string) {
     },
   });
 
-  return { session, settings, client, token: auth.accessToken };
+  return { companyProfile, session, settings, client, token: auth.accessToken };
 }
 
 /** POST /api/ksef/sync-incoming — synchronizacja faktur zakupowych z KSeF (rola nabywcy). */
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const { session, settings, client, token } = await getSession(user.id);
+    const companyId = new URL(req.url).searchParams.get('companyId');
+    const { companyProfile, session, settings, client, token } = await getSession(user.id, companyId);
 
     const syncTo = new Date();
-    const syncFrom = settings?.lastIncomingSyncAt
+    const syncFrom = !companyId && settings?.lastIncomingSyncAt
       ? new Date(settings.lastIncomingSyncAt.getTime() - CURSOR_OVERLAP_MS)
       : new Date(syncTo.getTime() - DEFAULT_LOOKBACK_MS);
 
@@ -178,7 +180,7 @@ export async function POST() {
     // Sprawdź, które numery KSeF są już w bazie dla tego użytkownika
     const existingInDb = ksefNumbers.length
       ? await prisma.invoice.findMany({
-          where: { userId: user.id, ksefNumber: { in: ksefNumbers } },
+          where: { ...(companyProfile ? { sellerCompanyId: companyProfile.id } : { userId: user.id }), ksefNumber: { in: ksefNumbers } },
           select: { ksefNumber: true },
         })
       : [];
@@ -203,7 +205,7 @@ export async function POST() {
       let reservationId: string;
       try {
         const reservation = await prisma.ksefIncomingImport.create({
-          data: { userId: user.id, ksefReferenceNumber: ksefNumber },
+          data: { userId: user.id, ksefReferenceNumber: `${companyProfile?.id || user.id}:${ksefNumber}` },
         });
         reservationId = reservation.id;
       } catch (err) {
@@ -246,6 +248,7 @@ export async function POST() {
             userId: user.id,
             number: parsed.number,
             type: "purchase",
+            sellerCompanyId: companyProfile?.id ?? null,
             status: "issued",
             approvalStatus: "pending",
             contractorId: contractor.id,
@@ -290,7 +293,7 @@ export async function POST() {
     }
 
     // Zaktualizuj kursor synchronizacji dopiero po pomyślnym imporcie
-    await prisma.ksefSettings.upsert({
+    if (!companyId) await prisma.ksefSettings.upsert({
       where: { userId: user.id },
       update: { lastIncomingSyncAt: syncTo, lastAutoSyncAt: syncTo },
       create: {

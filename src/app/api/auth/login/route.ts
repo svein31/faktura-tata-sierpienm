@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 });
 
     try {
-      cookies().set("auth_session", token, cookieOpts);
+      (await cookies()).set("auth_session", token, cookieOpts);
       cookies().set("fakturo_session", token, cookieOpts);
       cookies().set("next-auth.session-token", token, cookieOpts);
     } catch {

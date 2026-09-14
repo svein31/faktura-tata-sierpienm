@@ -210,7 +210,7 @@ export default function InvoicesPage() {
   const syncIncomingInvoices = async () => {
     setSyncingIncoming(true);
     try {
-      const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
+      const res = await fetch("/api/ksef/sync-incoming?companyId=" + encodeURIComponent(useAppStore.getState().selectedCompanyId || ""), { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.success) {
         toast("error", "Nie udało się pobrać faktur z KSeF", data.error ?? data.message ?? "Błąd API KSeF.");

@@ -145,7 +145,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
           city: initialData.city || "",
           postalCode: initialData.postalCode || initialData.postal || "",
           bankAccount: initialData.bankAccount || initialData.iban || "",
-          ksefToken: initialData.ksefToken || "",
+          ksefToken: "",
           isDefault: Boolean(initialData.isDefault),
           logoUrl: initialData.logoUrl || "",
         });
@@ -255,7 +255,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         city: form.city.trim() || null,
         postalCode: form.postalCode.trim() || null,
         bankAccount: form.bankAccount.trim() || null,
-        ksefToken: form.ksefToken.trim() || null,
+        ...(form.ksefToken.trim() ? { ksefToken: form.ksefToken.trim() } : {}),
         isDefault: form.isDefault,
         logoUrl: form.logoUrl.trim() || null,
       };
@@ -602,7 +602,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
             type="password"
             value={form.ksefToken}
             onChange={(e) => setField("ksefToken", e.target.value)}
-            placeholder={isEditing && initialData?.ksefToken ? "•••••••••••••••• (zapisany token)" : "Wklej token autoryzacyjny KSeF..."}
+            placeholder={isEditing && initialData?.ksefTokenSet ? "•••••••••••••••• (zapisany token)" : "Wklej token autoryzacyjny KSeF..."}
             className="font-mono text-[12px]"
           />
           <p className="text-[11px] text-muted-foreground">

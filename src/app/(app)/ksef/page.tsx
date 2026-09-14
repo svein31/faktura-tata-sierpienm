@@ -317,7 +317,7 @@ function KsefPageInner() {
   const handleSyncIncoming = async () => {
     setSyncingIncoming(true);
     try {
-      const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
+      const res = await fetch("/api/ksef/sync-incoming?companyId=" + encodeURIComponent(useAppStore.getState().selectedCompanyId || ""), { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.success) {
         toast("error", "Błąd synchronizacji KSeF", data.error || data.message || "Nie udało się pobrać zakupów.");
