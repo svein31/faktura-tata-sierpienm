@@ -155,7 +155,7 @@ export async function GET() {
       prisma.invoice.findMany({
         where: {
           OR: [
-            { userId: user.id },
+            { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] },
             { sellerCompanyId: { in: accessibleCompanyIds } },
           ],
         },

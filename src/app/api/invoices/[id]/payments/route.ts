@@ -1,3 +1,4 @@
+import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, num, str } from "@/lib/api";
@@ -25,12 +26,12 @@ async function getInvoiceWithAccess(invoiceId: string, userId: string) {
 
   if (!invoice) return null;
 
-  if (invoice.userId === userId) {
+  if (!invoice.sellerCompanyId && invoice.userId === userId) {
     return { invoice, isDirectOwner: true };
   }
 
   if (invoice.sellerCompanyId) {
-    const membership = await getCompanyMembership(invoice.sellerCompanyId, userId);
+    const membership = await getCompanyMembership(userId, invoice.sellerCompanyId);
     if (membership) {
       return { invoice, isDirectOwner: false };
     }
@@ -76,11 +77,13 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const { invoice, isDirectOwner } = result;
+    const { invoice } = result;
+    if (invoice.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
 
     // Sprawdź uprawnienie do rejestracji płatności w firmie
-    if (!isDirectOwner && invoice.sellerCompanyId) {
-      await requireCompanyAccess(invoice.sellerCompanyId, user.id, "canRecordPayments");
+    if (invoice.sellerCompanyId) {
+      const access = await requireCompanyAccess(user.id, invoice.sellerCompanyId, "canRecordPayments");
+        if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
     const body = await readJson(req);

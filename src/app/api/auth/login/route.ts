@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     try {
       cookies().set("auth_session", token, cookieOpts);
       cookies().set("fakturo_session", token, cookieOpts);
-      cookies().set("next-auth.session-token", token, { ...cookieOpts, secure: false });
+      cookies().set("next-auth.session-token", token, cookieOpts);
     } catch {
       // ignore
     }
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 
     res.cookies.set("auth_session", token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
-    res.cookies.set("next-auth.session-token", token, { ...cookieOpts, secure: false });
+    res.cookies.set("next-auth.session-token", token, cookieOpts);
     return res;
   } catch (error: unknown) {
     console.error("Błąd logowania:", error);

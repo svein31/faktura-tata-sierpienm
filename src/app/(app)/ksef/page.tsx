@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
@@ -113,7 +114,8 @@ function KsefPageInner() {
   const toast = useToast();
   const searchParams = useSearchParams();
   const store = useAppStore();
-  const { ksef, updateKsef, company, updateCompany, invoices, contractors } = store;
+  const { ksef, updateKsef, company, updateCompany, contractors } = store;
+  const invoices = useCompanyInvoices();
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefSafe = ksef ?? {
     environment: "demo" as KsefEnv,

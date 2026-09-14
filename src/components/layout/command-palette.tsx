@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,8 @@ interface CommandAction {
 
 export function CommandPalette() {
   const router = useRouter();
-  const { invoices, contractors, products } = useAppStore();
+  const { contractors, products } = useAppStore();
+  const invoices = useCompanyInvoices();
 
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");

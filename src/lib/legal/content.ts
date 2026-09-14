@@ -45,7 +45,7 @@ export const TERMS_OF_SERVICE: LegalDocument = {
    ${OPERATOR_CONFIG.companyName}
    Forma prawna: ${OPERATOR_CONFIG.legalForm}
    Adres: ${OPERATOR_CONFIG.addressStreet}, ${OPERATOR_CONFIG.addressPostal} ${OPERATOR_CONFIG.addressCity}, ${OPERATOR_CONFIG.addressCountry}
-   NIP: ${OPERATOR_CONFIG.nip} | REGON: ${OPERATOR_CONFIG.regon} | Rejestr: ${OPERATOR_CONFIG.krs}
+   NIP: ${OPERATOR_CONFIG.nip}${OPERATOR_CONFIG.regon ? ` | REGON: ${OPERATOR_CONFIG.regon}` : ""}${OPERATOR_CONFIG.krs ? ` | Rejestr: ${OPERATOR_CONFIG.krs}` : ""}
    Adres poczty elektronicznej do kontaktu: ${OPERATOR_CONFIG.emailContact}
    Adres poczty elektronicznej ds. wsparcia i reklamacji: ${OPERATOR_CONFIG.emailComplaints}
 3. Regulamin jest udostępniany nieodpłatnie każdemu Użytkownikowi przed zawarciem umowy pod adresem ${OPERATOR_CONFIG.serviceUrl}/regulamin w formie umożliwiającej jego pozyskanie, odtworzenie, utrwalenie oraz wydrukowanie.

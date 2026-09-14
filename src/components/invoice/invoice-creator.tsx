@@ -177,6 +177,7 @@ export function InvoiceCreator() {
   const ksefEnv = ksef?.environment ?? "demo";
 
   const defaultCompany =
+    companies.find((c) => c.id === store.selectedCompanyId) ??
     companies.find((c) => c.isDefault) ??
     companies[0] ??
     company ??
@@ -337,6 +338,13 @@ export function InvoiceCreator() {
       setForm((f) => ({ ...f, sellerCompanyId: defaultCompany.id }));
     }
   }, [form.sellerCompanyId, defaultCompany.id]);
+
+  React.useEffect(() => {
+    if ((!draftInvoice || draftInvoiceIsNew) && store.selectedCompanyId) {
+      setForm((f) => ({ ...f, sellerCompanyId: store.selectedCompanyId! }));
+      setSelectedBankAccountId("");
+    }
+  }, [store.selectedCompanyId, draftInvoice, draftInvoiceIsNew]);
 
   const effectiveSellerCompany: CompanyProfile =
     companies.find((c) => c.id === form.sellerCompanyId) ?? defaultCompany ?? EMPTY_COMPANY;

@@ -5,7 +5,7 @@
 
 import "server-only";
 
-import { createHmac, randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
@@ -31,9 +31,6 @@ export const LEGACY_COOKIES = [
 const BCRYPT_ROUNDS = 12;
 export const MIN_PASSWORD_LENGTH = 8;
 
-export function getAuthSecret(): string {
-  return process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "fakturo-ksef-jwt-secret-key-30d-session";
-}
 
 export interface FullUserWithRelations extends User {
   company?: CompanySettings | null;
@@ -125,7 +122,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function normalizeEmail(raw: string): string {
-  return (raw || "").trim().toLowerCase();
+  return (typeof raw === "string" ? raw : "").trim().toLowerCase();
 }
 
 /** Walidacja formatu e-mail + minimalnej długości hasła */
@@ -138,79 +135,6 @@ export function validateCredentials(email: string, password: string): { ok: bool
     return { ok: false, reason: "weak_password" };
   }
   return { ok: true };
-}
-
-/* ── JWT Token Signature & Verification ─────────────────────────────────── */
-
-interface JwtPayload {
-  userId: string;
-  email: string;
-  name?: string | null;
-  iat: number;
-  exp: number;
-}
-
-function base64UrlEncode(str: string): string {
-  return Buffer.from(str)
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-function base64UrlDecode(str: string): string {
-  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  while (base64.length % 4) {
-    base64 += "=";
-  }
-  return Buffer.from(base64, "base64").toString("utf8");
-}
-
-export function signJwt(payload: Omit<JwtPayload, "iat" | "exp">, expiresInSeconds = SESSION_MAX_AGE_SECONDS): string {
-  const secret = getAuthSecret();
-  const now = Math.floor(Date.now() / 1000);
-  const fullPayload: JwtPayload = {
-    ...payload,
-    iat: now,
-    exp: now + expiresInSeconds,
-  };
-
-  const header = { alg: "HS256", typ: "JWT" };
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
-  const dataToSign = `${encodedHeader}.${encodedPayload}`;
-
-  const signature = createHmac("sha256", secret).update(dataToSign).digest("base64url");
-  return `${dataToSign}.${signature}`;
-}
-
-export function verifyJwt(token: string): JwtPayload | null {
-  try {
-    if (!token || typeof token !== "string") return null;
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-
-    const [encodedHeader, encodedPayload, signature] = parts;
-    const secret = getAuthSecret();
-    const dataToSign = `${encodedHeader}.${encodedPayload}`;
-    const expectedSignature = createHmac("sha256", secret).update(dataToSign).digest("base64url");
-
-    if (signature !== expectedSignature) {
-      return null;
-    }
-
-    const payload = JSON.parse(base64UrlDecode(encodedPayload)) as JwtPayload;
-    if (!payload.userId || !payload.exp) return null;
-
-    const now = Math.floor(Date.now() / 1000);
-    if (payload.exp < now) {
-      return null;
-    }
-
-    return payload;
-  } catch {
-    return null;
-  }
 }
 
 /* ── Tokeny i Sesje ─────────────────────────────────────────────────────── */
@@ -231,35 +155,16 @@ export async function createSession(
   userId: string,
   metadata?: CreateSessionMetadata
 ): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, email: true, name: true },
-  });
-
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  const token = signJwt({
-    userId,
-    email: user?.email || "",
-    name: user?.name,
+  const token = generateSessionToken();
+  const session = await prisma.session.create({
+    data: {
+      sessionToken: token, userId, expiresAt,
+      userAgent: metadata?.userAgent || null,
+      ipAddress: metadata?.ipAddress || null,
+    },
   });
-
-  let sessionId = token;
-  try {
-    const session = await prisma.session.create({
-      data: {
-        sessionToken: token,
-        userId,
-        expiresAt,
-        userAgent: metadata?.userAgent || null,
-        ipAddress: metadata?.ipAddress || null,
-      },
-    });
-    sessionId = session.id;
-  } catch {
-    // Jeśli zapis w tabeli sesji z jakiegoś powodu się nie powiedzie, token JWT i tak zapewnia autoryzację
-  }
-
-  return { token, expiresAt, sessionId };
+  return { token, expiresAt, sessionId: session.id };
 }
 
 /* ── Cookie Options dla Netlify i Localhost ──────────────────────────────── */
@@ -330,23 +235,6 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
 
   if (!token) return null;
 
-  // 1. Sprawdź czy to podpisany token JWT
-  const jwtPayload = verifyJwt(token);
-  if (jwtPayload?.userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: jwtPayload.userId },
-      include: {
-        company: true,
-        companyProfiles: true,
-        ksef: true,
-      },
-    });
-
-    if (user) {
-      return { user, sessionId: token };
-    }
-  }
-
   // 2. Fallback: wyszukaj w tabeli Session w bazie danych
   try {
     const session = await prisma.session.findUnique({
@@ -363,7 +251,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
     });
 
     if (session) {
-      if (session.expiresAt.getTime() < Date.now()) {
+      if (session.expiresAt.getTime() <= Date.now()) {
         await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
         return null;
       }

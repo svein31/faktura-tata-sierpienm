@@ -42,23 +42,23 @@ export interface OperatorConfig {
  * wyświetlane są czytelne znaczniki [PLACEHOLDER] zgodnie z wymogiem RODO/UŚUDE.
  */
 export const OPERATOR_CONFIG: OperatorConfig = {
-  serviceName: "Fakturo",
+  serviceName: "FakturaProsto",
   serviceUrl: "https://fakturaprosto.pl",
-  companyName: "[NAZWA OPERATORA / FIRMA PRZEDSIĘBIORCY]",
-  legalForm: "[FORMA PRAWNA - NP. JEDNOOSOBOWA DZIAŁALNOŚĆ GOSPODARCZA / SP. Z O.O.]",
-  nip: "[NIP OPERATORA]",
-  regon: "[REGON OPERATORA]",
-  krs: "[KRS LUB WPIS DO CEIDG]",
-  addressStreet: "[ULICA I NUMER LOKALU]",
-  addressPostal: "[KOD POCZTOWY]",
-  addressCity: "[MIEJSCOWOŚĆ]",
+  companyName: "MICHAŁ WYCZAŁEK-JAGIEŁŁO GEOMATIC",
+  legalForm: "Jednoosobowa działalność gospodarcza",
+  nip: "7831574888",
+  regon: "",
+  krs: "",
+  addressStreet: "ul. Ogórkowa 63S",
+  addressPostal: "61-546",
+  addressCity: "Warszawa",
   addressCountry: "Polska",
-  emailContact: "kontakt@fakturaprosto.pl",
-  emailSupport: "pomoc@fakturaprosto.pl",
-  emailPrivacy: "prywatnosc@fakturaprosto.pl",
-  emailComplaints: "reklamacje@fakturaprosto.pl",
-  phone: "[NUMER TELEFONU KONTAKTOWEGO]",
-  isConfigured: false,
+  emailContact: "faktura.prosto@gmail.com",
+  emailSupport: "faktura.prosto@gmail.com",
+  emailPrivacy: "faktura.prosto@gmail.com",
+  emailComplaints: "faktura.prosto@gmail.com",
+  phone: "",
+  isConfigured: true,
 };
 
 export interface SubprocessorInfo {

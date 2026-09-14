@@ -19,5 +19,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run db:generate
+      - run: node --test scripts/test-requested-fixes.cjs
       - run: npm run build
       - run: npm run typecheck

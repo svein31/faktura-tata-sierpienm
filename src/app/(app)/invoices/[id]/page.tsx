@@ -112,6 +112,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const totals = invoiceTotals(invoice);
 
   const handleMarkPaid = () => {
+    if (invoice.type === 'purchase') return;
     void updateInvoice(invoice.id, { status: "paid" })
       .then(() => toast("success", "Oznaczono jako opłaconą", invoice.number))
       .catch((e: Error) => toast("error", "Nie udało się zapisać", e.message));
@@ -182,6 +183,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   };
 
   const handleEdit = () => {
+    if (invoice.type === 'purchase') return;
     setDraft({ ...invoice }, false);
     router.push("/invoices/new");
   };
@@ -241,11 +243,11 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           <Button variant="outline" size="sm" onClick={exports.exportJson} className="rounded-xl gap-1.5 text-xs">
             <FileJson2 className="h-3.5 w-3.5" /> JSON
           </Button>
-          <Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl gap-1.5 text-xs">
+          {invoice.type !== "purchase" && (<Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl gap-1.5 text-xs">
             <Pencil className="h-3.5 w-3.5" /> Edytuj
-          </Button>
+          </Button>)}
 
-          {status !== "paid" && status !== "draft" && (
+          {invoice.type !== "purchase" && status !== "paid" && status !== "draft" && (
             <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl gap-1.5 text-xs">
               <CheckCircle2 className="h-3.5 w-3.5" /> Oznacz opłaconą
             </Button>
@@ -286,14 +288,14 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             </Button>
           )}
 
-          <Button
+          {invoice.type !== "purchase" && (<Button
             variant="ghost"
             size="icon"
             onClick={() => setConfirmDelete(true)}
             className="rounded-xl text-muted-foreground hover:text-rose-500 h-9 w-9"
           >
             <Trash2 className="h-4 w-4" />
-          </Button>
+          </Button>)}
         </div>
       </div>
 

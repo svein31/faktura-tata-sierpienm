@@ -13,6 +13,8 @@ import type {
   Product,
 } from "./types";
 import { todayISO } from "./utils";
+import { resolveSelectedCompany } from "./company-selection";
+import { PURCHASE_INVOICE_READ_ONLY } from "./invoice-policy";
 
 /**
  * Store = cache UI. Backend (Prisma/SQLite przez API) jest JEDYNYM źródłem
@@ -130,7 +132,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       notificationPrefs: NotificationPrefs;
     };
     const companies = data.companies ?? (data.company ? [data.company] : []);
-    const defaultComp = companies.find((c) => c.isDefault) ?? companies[0] ?? data.company ?? null;
+    const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
 
     set({
       company: defaultComp,
@@ -163,12 +165,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         notificationPrefs: NotificationPrefs;
       };
       const companies = data.companies ?? (data.company ? [data.company] : []);
-      const defaultComp = companies.find((c) => c.isDefault) ?? companies[0] ?? data.company ?? null;
+      const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
 
       set({
         company: defaultComp,
         companies,
-        selectedCompanyId: get().selectedCompanyId || defaultComp?.id || null,
+        selectedCompanyId: defaultComp?.id ?? null,
         ksef: data.ksef,
         contractors: data.contractors,
         products: data.products,
@@ -201,14 +203,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Zarządzanie spółkami (Multi-Company) — Optimistic UI ────────────────── */
 
   fetchCompanies: async () => {
-    const res = await fetch("/api/companies", { cache: "no-store" });
+    const res = await fetch("/api/data", { cache: "no-store" });
     if (!res.ok) throw await apiError(res, "Nie udało się pobrać listy firm.");
     const data = (await res.json()) as { companies: CompanyProfile[] };
-    const defaultComp = data.companies.find((c) => c.isDefault) ?? data.companies[0] ?? null;
+    const defaultComp = resolveSelectedCompany(data.companies, get().selectedCompanyId);
     set({
       companies: data.companies,
       company: defaultComp,
-      selectedCompanyId: get().selectedCompanyId || defaultComp?.id || null,
+      selectedCompanyId: defaultComp?.id ?? null,
     });
     return data.companies;
   },
@@ -247,7 +249,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({
       companies: optimisticList,
-      company: optDefaultComp,
+      company: optimisticCompany,
       selectedCompanyId: tempId,
     });
 
@@ -261,7 +263,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const data = (await res.json()) as { company: CompanyProfile };
 
       const finalList = get().companies.map((x) => (x.id === tempId ? data.company : x));
-      const finalDefault = finalList.find((x) => x.isDefault) ?? finalList[0] ?? data.company;
+      const finalDefault = resolveSelectedCompany(finalList, get().selectedCompanyId?.startsWith('temp_') ? data.company.id : get().selectedCompanyId);
 
       set({
         companies: finalList,
@@ -293,7 +295,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (patch.isDefault) return { ...x, isDefault: false };
       return x;
     });
-    const optDefaultComp = optimisticList.find((x) => x.isDefault) ?? optimisticList[0] ?? previousCompany;
+    const optDefaultComp = resolveSelectedCompany(optimisticList, get().selectedCompanyId);
 
     set({
       companies: optimisticList,
@@ -309,8 +311,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!res.ok) throw await apiError(res, "Nie udało się zaktualizować firmy.");
       const data = (await res.json()) as { company: CompanyProfile };
 
-      const finalList = get().companies.map((x) => (x.id === id ? data.company : x));
-      const finalDefault = finalList.find((x) => x.isDefault) ?? finalList[0] ?? data.company;
+      const finalList = get().companies.map((x) => (x.id === id ? { ...x, ...data.company } : x));
+      const finalDefault = resolveSelectedCompany(finalList, get().selectedCompanyId?.startsWith('temp_') ? data.company.id : get().selectedCompanyId);
 
       set({
         companies: finalList,
@@ -334,7 +336,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const previousSelectedId = get().selectedCompanyId;
 
     const optimisticList = previousCompanies.filter((x) => x.id !== id);
-    const optDefaultComp = optimisticList.find((x) => x.isDefault) ?? optimisticList[0] ?? null;
+    const optDefaultComp = resolveSelectedCompany(optimisticList, get().selectedCompanyId);
 
     set({
       companies: optimisticList,
@@ -392,7 +394,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  setSelectedCompanyId: (id) => set({ selectedCompanyId: id }),
+  setSelectedCompanyId: (id) => {
+    const company = resolveSelectedCompany(get().companies, id);
+    set({ company, selectedCompanyId: company?.id ?? null });
+  },
 
   /* ── Ustawienia ─────────────────────────────────────────────────────── */
 
@@ -604,6 +609,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateInvoice: async (id, patch) => {
+    if (get().invoices.find((i) => i.id === id)?.type === 'purchase') throw new Error(PURCHASE_INVOICE_READ_ONLY);
     const previousInvoices = get().invoices;
     const existing = previousInvoices.find((i) => i.id === id);
     if (!existing) throw new Error("Nie znaleziono faktury.");
@@ -629,6 +635,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteInvoice: async (id) => {
+    if (get().invoices.find((i) => i.id === id)?.type === 'purchase') throw new Error(PURCHASE_INVOICE_READ_ONLY);
     const previousInvoices = get().invoices;
     set({ invoices: previousInvoices.filter((i) => i.id !== id) });
 
