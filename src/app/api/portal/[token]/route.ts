@@ -11,6 +11,7 @@ interface RouteContext {
 export async function GET(_req: Request, context: RouteContext) {
   try {
     const { token } = await context.params;
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(token)) return json({ error: "Nie znaleziono dokumentu." }, { status: 404 });
     if (!token) {
       return json({ error: "Brak tokenu dostępu." }, { status: 400 });
     }
@@ -18,7 +19,8 @@ export async function GET(_req: Request, context: RouteContext) {
     // 1. Sprawdź fakturę (po shareToken lub id)
     const invoice = await prisma.invoice.findFirst({
       where: {
-        OR: [{ shareToken: token }, { id: token }],
+        shareToken: token,
+        type: "sale",
       },
     });
 

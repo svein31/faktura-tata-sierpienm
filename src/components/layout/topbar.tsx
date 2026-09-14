@@ -151,6 +151,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                         type="button"
                         onClick={() => {
                           setSelectedCompanyId(c.id);
+                    if (/^\/invoices\/(?!new(?:\/|$))[^/]+$/.test(pathname)) router.push("/invoices");
                           setShowCompanyMenu(false);
                         }}
                         className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${

@@ -2,71 +2,51 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
+import { getCompanyMembership } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 
-/**
- * POST /api/invoices/approve
- *
- * Ręczne zatwierdzanie faktur zakupowych dla księgowości (pojedynczo lub masowo):
- * body: { invoiceIds: string[], status?: "approved" | "pending" }
- */
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser();
-    if (!user) {
-      return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
-    }
-
+    if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const body = await readJson(req);
-    const rawIds = Array.isArray(body.invoiceIds)
-      ? body.invoiceIds
-      : typeof body.invoiceId === "string"
-      ? [body.invoiceId]
-      : [];
-
-    const status = body.status === "pending" ? "pending" : "approved";
-    const validIds = rawIds.filter((id): id is string => typeof id === "string" && /^[0-9a-fA-F]{24}$/.test(id));
-
-    if (validIds.length === 0) {
-      throw new ApiError(400, "Nie podano prawidłowych identyfikatorów faktur.");
+    const rawIds = Array.isArray(body.invoiceIds) ? body.invoiceIds : [body.invoiceId];
+    if (!rawIds.length || rawIds.length > 200 || rawIds.some((id) => typeof id !== "string" || !/^[0-9a-fA-F]{24}$/.test(id))) {
+      throw new ApiError(400, "Nie podano prawidłowych identyfikatorów faktur (maksymalnie 200).");
     }
-
-    const now = new Date();
-    const approvedBy = user.name || user.email;
-
-    // Aktualizacja w bazie dla faktur należących do użytkownika
+    if (body.status !== undefined && body.status !== "pending" && body.status !== "approved") {
+      throw new ApiError(400, "Nieprawidłowy status akceptacji.");
+    }
+    const ids = [...new Set(rawIds)] as string[];
+    const status = body.status === "pending" ? "pending" : "approved";
+    const invoices = await prisma.invoice.findMany({ where: { id: { in: ids } } });
+    if (invoices.length !== ids.length) throw new ApiError(404, "Nie znaleziono faktury.");
+    // Validate the entire batch before writing anything.
+    for (const invoice of invoices) {
+      if (invoice.type !== "purchase") throw new ApiError(400, "Akceptacja dotyczy tylko faktur kosztowych.");
+      if (invoice.sellerCompanyId) {
+        const membership = await getCompanyMembership(user.id, invoice.sellerCompanyId);
+        if (!membership || (membership.role !== "owner" && membership.role !== "accountant")) {
+          throw new ApiError(403, "Brak uprawnień do akceptacji faktury.");
+        }
+      } else if (invoice.userId !== user.id) {
+        throw new ApiError(403, "Brak dostępu do faktury.");
+      }
+    }
     await prisma.invoice.updateMany({
-      where: {
-        id: { in: validIds },
-        userId: user.id,
-      },
+      where: { id: { in: ids }, type: "purchase" },
       data: {
         approvalStatus: status,
-        approvedAt: status === "approved" ? now : null,
-        approvedBy: status === "approved" ? approvedBy : null,
+        approvedAt: status === "approved" ? new Date() : null,
+        approvedBy: status === "approved" ? user.name || user.email : null,
+        version: { increment: 1 },
       },
     });
-
-    const updatedInvoices = await prisma.invoice.findMany({
-      where: {
-        id: { in: validIds },
-        userId: user.id,
-      },
+    const updated = await prisma.invoice.findMany({
+      where: { id: { in: ids } },
       include: { sellerCompany: true },
     });
-
-    return json({
-      success: true,
-      status,
-      count: updatedInvoices.length,
-      invoices: updatedInvoices.map(invoiceToDto),
-      message:
-        status === "approved"
-          ? `Zaakceptowano ${updatedInvoices.length} faktur dla księgowości.`
-          : `Cofnięto akceptację ${updatedInvoices.length} faktur.`,
-    });
-  } catch (e) {
-    return handleApiError(e);
-  }
+    return json({ success: true, status, count: updated.length, invoices: updated.map(invoiceToDto) });
+  } catch (e) { return handleApiError(e); }
 }

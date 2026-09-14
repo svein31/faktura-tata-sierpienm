@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     if (companyId) {
       // Weryfikacja czy użytkownik ma dostęp do wskazanej firmy
-      const membership = await getCompanyMembership(companyId, user.id);
+      const membership = await getCompanyMembership(user.id, companyId);
       if (!membership) {
         throw new ApiError(403, "Brak dostępu do dziennika zdarzeń tej firmy.");
       }
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       // Sprawdź uprawnienia do faktury: własna lub należąca do firmy, w której jest członkiem
       let hasAccess = invoice.userId === user.id;
       if (!hasAccess && invoice.sellerCompanyId) {
-        const mem = await getCompanyMembership(invoice.sellerCompanyId, user.id);
+        const mem = await getCompanyMembership(user.id, invoice.sellerCompanyId);
         hasAccess = !!mem;
       }
 

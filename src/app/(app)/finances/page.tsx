@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import Link from "next/link";
@@ -34,7 +35,8 @@ import type { BankStatementTransaction, Invoice } from "@/lib/types";
 
 export default function FinancesPage() {
   const toast = useToast();
-  const { invoices, contractors, revalidate } = useAppStore();
+  const { contractors, revalidate } = useAppStore();
+  const invoices = useCompanyInvoices();
 
   const [importModalOpen, setImportModalOpen] = React.useState(false);
   const [csvContent, setCsvContent] = React.useState("");

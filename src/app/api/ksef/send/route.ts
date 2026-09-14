@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     if (!session) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const body = await readJson(req);
-    let xml = str(body.xml).trim();
+    let xml = "";
     const envInput = (
       str(body.environment) ||
       process.env.KSEF_ENV ||
@@ -45,9 +45,10 @@ export async function POST(req: Request) {
     const invoiceNumber = str(body.invoiceNumber);
 
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(invoiceId);
+    if (!isObjectId) throw new ApiError(400, "Wymagany identyfikator faktury.");
     const orConds = [
       ...(isObjectId ? [{ id: invoiceId }] : []),
-      ...(invoiceNumber ? [{ number: invoiceNumber }] : []),
+      
     ];
 
     // Pobierz firmy, do których użytkownik ma dostęp
@@ -69,14 +70,15 @@ export async function POST(req: Request) {
       include: { sellerCompany: true },
     });
 
-    if (!invoice && !xml) {
+    if (!invoice) {
       throw new ApiError(404, "Nie znaleziono faktury do wysyłki.");
     }
 
     // Weryfikacja uprawnienia do wysyłki KSeF w zespole
     if (invoice?.sellerCompanyId) {
       const { requireCompanyAccess } = await import("@/lib/permissions");
-      await requireCompanyAccess(invoice.sellerCompanyId, session.id, "canSendKsef");
+      const access = await requireCompanyAccess(session.id, invoice.sellerCompanyId, "canSendKsef");
+      if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
     // Blokada logiczna: faktury zakupowe (FZ) nie mogą być wysyłane do KSeF jako faktury sprzedaży
@@ -139,23 +141,7 @@ export async function POST(req: Request) {
 
       // Jeśli nie ma XML lub był to stary mock XML, wygeneruj pełny FA(3)
       if (!xml || !xml.includes("http://crd.gov.pl/wzor/2025/06/25/13775/")) {
-        const invoiceData: Invoice = {
-          id: invoice.id,
-          number: invoice.number,
-          type: invoice.type as any,
-          status: invoice.status as any,
-          contractorId: invoice.contractorId,
-          issueDate: invoice.issueDate,
-          saleDate: invoice.saleDate,
-          dueDate: invoice.dueDate,
-          currency: invoice.currency as any,
-          language: invoice.language as any,
-          paymentMethod: invoice.paymentMethod as any,
-          paymentTermDays: invoice.paymentTermDays,
-          notes: invoice.notes || undefined,
-          lines: (invoice.lines as any) || [],
-          createdAt: invoice.createdAt.toISOString(),
-        };
+        const invoiceData = invoiceToDto(invoice);
 
         if (sellerProfile) {
           xml = buildFa3Xml({
@@ -185,7 +171,7 @@ export async function POST(req: Request) {
       if (settings?.nip) sellerNip = settings.nip.replace(/\D/g, "");
     }
     if (!sellerNip || sellerNip.length !== 10) {
-      sellerNip = "5260301706"; // fallback demonstracyjny
+      throw new ApiError(400, "Uzupełnij NIP sprzedawcy.");
     }
 
     // ── TRYB DEMO: natychmiastowa symulacja z generowaniem UPO ──

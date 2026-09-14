@@ -8,7 +8,7 @@ import type { CompanyRole } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * PUT /api/team/members/[id] — Aktualizacja roli i uprawnień członka zespołu
@@ -19,7 +19,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const member = await prisma.companyMember.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         user: { select: { id: true, name: true, email: true } },
         company: { select: { id: true, companyName: true } },
@@ -110,7 +110,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const member = await prisma.companyMember.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         user: { select: { id: true, name: true, email: true } },
         company: { select: { id: true, companyName: true } },

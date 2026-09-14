@@ -10,7 +10,7 @@ export const runtime = "nodejs";
  * GET /api/invoices/[id]/email-history
  * Zwraca pełną historię wysyłek e-mail dla danej faktury.
  */
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getSessionUser();
     if (!user) {
@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
       select: { id: true },
     });
 
@@ -30,7 +30,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     }
 
     const logs = await prisma.invoiceEmailLog.findMany({
-      where: { invoiceId: params.id, userId: user.id },
+      where: { invoiceId: (await params).id, userId: user.id },
       orderBy: { sentAt: "desc" },
       include: {
         user: { select: { name: true, email: true } },

@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import { motion } from "framer-motion";
@@ -74,7 +75,8 @@ function MiniStat({
 }
 
 export default function AnalyticsPage() {
-  const { invoices, contractors } = useAppStore();
+  const { contractors } = useAppStore();
+  const invoices = useCompanyInvoices();
 
   const sales = invoices.filter((i) => i.type === "sale" && i.status !== "draft");
 

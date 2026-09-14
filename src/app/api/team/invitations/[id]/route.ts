@@ -6,7 +6,7 @@ import { recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * DELETE /api/team/invitations/[id] — Odwołanie zaproszenia do zespołu
@@ -17,7 +17,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const invitation = await prisma.teamInvitation.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         company: { select: { id: true, companyName: true } },
       },

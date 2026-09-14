@@ -4,11 +4,11 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     elementReferenceNumber: string;
-  };
+  }>;
 }
 
 export async function GET(req: Request, { params }: RouteParams) {
-  return getStatus(req, { params: { refNumber: params.elementReferenceNumber } });
+  return getStatus(req, { params: Promise.resolve({ refNumber: (await params).elementReferenceNumber }) });
 }

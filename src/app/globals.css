@@ -173,3 +173,6 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Keep the hosting badge clear of mobile invoice actions. */
+iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }

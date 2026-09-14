@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import Link from "next/link";
@@ -53,7 +54,11 @@ const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> =
 export default function InvoicesPage() {
   const router = useRouter();
   const toast = useToast();
-  const { invoices, contractors, setDraft, deleteInvoice, company, ksef, approveInvoices } = useAppStore();
+  const { contractors, setDraft, deleteInvoice, company, ksef, approveInvoices } = useAppStore();
+  const companyInvoices = useCompanyInvoices();
+  const allInvoices = useAppStore((s) => s.invoices);
+  const [showUnassigned, setShowUnassigned] = React.useState(false);
+  const invoices = showUnassigned ? allInvoices.filter((i) => !i.sellerCompanyId) : companyInvoices;
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
@@ -66,6 +71,11 @@ export default function InvoicesPage() {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [approving, setApproving] = React.useState(false);
   const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
+
+  const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
+  React.useEffect(() => {
+    setShowUnassigned(false); setSelectedIds([]); setToDelete(null); setConfirmKsef(null); setSelectedForEmail(null);
+  }, [selectedCompanyId]);
 
   const filtered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -96,7 +106,7 @@ export default function InvoicesPage() {
     if (selectedIds.length === 0) return;
     setApproving(true);
     try {
-      await approveInvoices(selectedIds, status);
+      await approveInvoices(selectedIds.filter((id) => invoices.some((i) => i.id === id && i.type === "purchase")), status);
       toast(
         "success",
         status === "approved" ? "Zaakceptowano zaznaczone faktury" : "Cofnięto akceptację",
@@ -121,7 +131,7 @@ export default function InvoicesPage() {
 
   const editInvoice = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
-    if (!inv) return;
+    if (!inv || inv.type === "purchase") return;
     if (inv.ksefNumber || inv.ksef?.number) {
       toast("info", "Faktura zarejestrowana w KSeF", "Dokument posiada status KSeF — edycja pól fiskalnych jest zablokowana.");
     }
@@ -131,7 +141,7 @@ export default function InvoicesPage() {
 
   const duplicateInvoice = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
-    if (!inv) return;
+    if (!inv || inv.type === "purchase") return;
     const copy: Invoice = {
       ...inv,
       number: "",
@@ -200,7 +210,7 @@ export default function InvoicesPage() {
   const syncIncomingInvoices = async () => {
     setSyncingIncoming(true);
     try {
-      const res = await fetch("/api/ksef/sync-incoming", { method: "POST" });
+      const res = await fetch("/api/ksef/sync-incoming?companyId=" + encodeURIComponent(useAppStore.getState().selectedCompanyId || ""), { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.success) {
         toast("error", "Nie udało się pobrać faktur z KSeF", data.error ?? data.message ?? "Błąd API KSeF.");
@@ -230,6 +240,7 @@ export default function InvoicesPage() {
         description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {allInvoices.some((i) => !i.sellerCompanyId) && <Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
             <Button
               variant="subtle"
               onClick={syncIncomingInvoices}
@@ -688,7 +699,7 @@ export default function InvoicesPage() {
                             <Mail className="h-3.5 w-3.5" />
                           </Button>
 
-                          <Button
+                          {inv.type !== "purchase" && (<Button
                             variant="ghost"
                             size="icon"
                             onClick={() => editInvoice(inv.id)}
@@ -696,9 +707,9 @@ export default function InvoicesPage() {
                             className="h-8 w-8 rounded-lg"
                           >
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>)}
 
-                          <Button
+                          {inv.type !== "purchase" && (<Button
                             variant="ghost"
                             size="icon"
                             onClick={() => duplicateInvoice(inv.id)}
@@ -706,9 +717,9 @@ export default function InvoicesPage() {
                             className="h-8 w-8 rounded-lg"
                           >
                             <Copy className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>)}
 
-                          <Button
+                          {inv.type !== "purchase" && (<Button
                             variant="ghost"
                             size="icon"
                             onClick={() => setToDelete(inv.id)}
@@ -716,7 +727,7 @@ export default function InvoicesPage() {
                             className="h-8 w-8 rounded-lg text-muted-foreground hover:text-rose-500"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          </Button>)}
                         </div>
                       </td>
                     </motion.tr>

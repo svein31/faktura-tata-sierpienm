@@ -6,7 +6,7 @@ import { parseContractorBody } from "@/lib/parsers";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** PUT /api/contractors/[id] — edycja (tylko własny rekord). */
 export async function PUT(req: Request, { params }: Ctx) {
@@ -14,7 +14,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const existing = await prisma.contractor.findFirst({ where: { id: params.id, userId: user.id } });
+    const existing = await prisma.contractor.findFirst({ where: { id: (await params).id, userId: user.id } });
     if (!existing) return json({ error: "Nie znaleziono kontrahenta.", code: "NOT_FOUND" }, { status: 404 });
 
     const body = await readJson(req);
@@ -37,7 +37,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const existing = await prisma.contractor.findFirst({ where: { id: params.id, userId: user.id } });
+    const existing = await prisma.contractor.findFirst({ where: { id: (await params).id, userId: user.id } });
     if (!existing) return json({ error: "Nie znaleziono kontrahenta.", code: "NOT_FOUND" }, { status: 404 });
 
     await prisma.contractor.delete({ where: { id: existing.id } });

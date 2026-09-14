@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     refNumber: string;
-  };
+  }>;
 }
 
 /**
@@ -21,7 +21,7 @@ interface RouteParams {
 export async function GET(req: Request, { params }: RouteParams) {
   try {
     const user = await getSessionUser();
-    const refNumber = decodeURIComponent(params.refNumber || "").trim();
+    const refNumber = decodeURIComponent((await params).refNumber || "").trim();
 
     if (!refNumber) {
       throw new ApiError(400, "Brak numeru referencyjnego faktury (refNumber).");

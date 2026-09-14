@@ -52,10 +52,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/portal") ||
     isLegalPath;
 
-  // 4. Zalogowany użytkownik wchodzący na stronę powitalną lub auth -> przekieruj na /dashboard
-  if (token && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  // Cookie presence alone does not prove a live session; server layouts validate it.
 
   // 5. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
   if (!token && !isPublicPath) {

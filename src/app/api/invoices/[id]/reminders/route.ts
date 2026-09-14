@@ -7,7 +7,7 @@ import type { InvoiceLine } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/invoices/[id]/reminders — Podgląd treści wezwania / przypomnienia o płatności
@@ -17,12 +17,12 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
       include: { sellerCompany: true },
     });
 
@@ -66,12 +66,12 @@ export async function POST(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    if (!/^[0-9a-fA-F]{24}$/.test(params.id)) {
+    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
     const invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: (await params).id, userId: user.id },
     });
 
     if (!invoice) {

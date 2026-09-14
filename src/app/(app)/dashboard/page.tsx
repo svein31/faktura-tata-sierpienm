@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import Link from "next/link";
@@ -124,7 +125,8 @@ function ActionCard({ title, count, subtext, icon, filterHref, delay = 0 }: Acti
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { invoices, contractors, company, ksef } = useAppStore();
+  const { contractors, company, ksef } = useAppStore();
+  const invoices = useCompanyInvoices();
   const today = todayISO();
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefSafe = ksef ?? {

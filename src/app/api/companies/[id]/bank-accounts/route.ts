@@ -8,7 +8,7 @@ import { recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/companies/[id]/bank-accounts — Pobieranie listy rachunków bankowych firmy
@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const companyId = params.id;
+    const companyId = (await params).id;
     const access = await requireCompanyAccess(user.id, companyId);
     if (!access.ok) {
       return json({ error: access.error, code: access.code }, { status: access.status });
@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const companyId = params.id;
+    const companyId = (await params).id;
     const access = await requireCompanyAccess(user.id, companyId, "canManageBankAccounts");
     if (!access.ok) {
       return json({ error: access.error, code: access.code }, { status: access.status });
@@ -127,7 +127,7 @@ export async function DELETE(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const companyId = params.id;
+    const companyId = (await params).id;
     const access = await requireCompanyAccess(user.id, companyId, "canManageBankAccounts");
     if (!access.ok) {
       return json({ error: access.error, code: access.code }, { status: access.status });

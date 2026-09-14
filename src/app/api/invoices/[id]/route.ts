@@ -1,3 +1,4 @@
+import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -8,7 +9,7 @@ import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** Pomocnicza funkcja weryfikacji dostępu do faktury (własna lub z firmy zespołu). */
 async function getInvoiceWithAccess(invoiceId: string, userId: string) {
@@ -27,13 +28,13 @@ async function getInvoiceWithAccess(invoiceId: string, userId: string) {
   if (!invoice) return null;
 
   // Własna faktura
-  if (invoice.userId === userId) {
+  if (!invoice.sellerCompanyId && invoice.userId === userId) {
     return { invoice, membership: null, isDirectOwner: true };
   }
 
   // Faktura powiązana ze spółką
   if (invoice.sellerCompanyId) {
-    const membership = await getCompanyMembership(invoice.sellerCompanyId, userId);
+    const membership = await getCompanyMembership(userId, invoice.sellerCompanyId);
     if (membership) {
       return { invoice, membership, isDirectOwner: false };
     }
@@ -48,7 +49,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -65,12 +66,13 @@ export async function PUT(req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const { invoice: existing, membership, isDirectOwner } = result;
+    const { invoice: existing } = result;
+    if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
     const body = await readJson(req);
 
     // 1. Sprawdź optymistyczną blokadę współbieżności (Optimistic Concurrency Control)
@@ -86,11 +88,13 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
 
     // 2. Weryfikacja uprawnień do edycji
-    if (!isDirectOwner && existing.sellerCompanyId) {
+    if (existing.sellerCompanyId) {
       if (existing.isCorrection || body.isCorrection) {
-        await requireCompanyAccess(existing.sellerCompanyId, user.id, "canCreateCorrections");
+        const access = await requireCompanyAccess(user.id, existing.sellerCompanyId, "canCreateCorrections");
+        if (!access.ok) throw new ApiError(access.status, access.error);
       } else {
-        await requireCompanyAccess(existing.sellerCompanyId, user.id, "canIssueInvoices");
+        const access = await requireCompanyAccess(user.id, existing.sellerCompanyId, "canIssueInvoices");
+        if (!access.ok) throw new ApiError(access.status, access.error);
       }
     }
 
@@ -231,20 +235,22 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const result = await getInvoiceWithAccess(params.id, user.id);
+    const result = await getInvoiceWithAccess((await params).id, user.id);
     if (!result) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const { invoice: existing, isDirectOwner } = result;
+    const { invoice: existing } = result;
+    if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
 
     // Uprawnienia
-    if (!isDirectOwner && existing.sellerCompanyId) {
-      await requireCompanyAccess(existing.sellerCompanyId, user.id, "canIssueInvoices");
+    if (existing.sellerCompanyId) {
+      const access = await requireCompanyAccess(user.id, existing.sellerCompanyId, "canIssueInvoices");
+        if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
     // Ochrona integralności księgowej: zabronione usuwanie wystawionych dokumentów
-    const isDraft = existing.status === "draft" || existing.documentStatus === "draft";
+    const isDraft = existing.status === "draft" && existing.documentStatus === "draft";
     if (!isDraft && !existing.isProforma) {
       throw new ApiError(
         400,

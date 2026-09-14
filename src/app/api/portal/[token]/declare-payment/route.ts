@@ -10,6 +10,7 @@ interface RouteContext {
 export async function POST(req: Request, context: RouteContext) {
   try {
     const { token } = await context.params;
+    if (!/^[A-Za-z0-9_-]{32,128}$/.test(token)) return json({ error: "Nie znaleziono dokumentu." }, { status: 404 });
     const body = await readJson(req);
 
     const declaredDate = typeof body.declaredDate === "string" ? body.declaredDate.trim() : "";
@@ -21,7 +22,8 @@ export async function POST(req: Request, context: RouteContext) {
 
     const invoice = await prisma.invoice.findFirst({
       where: {
-        OR: [{ shareToken: token }, { id: token }],
+        shareToken: token,
+        type: "sale",
       },
     });
 
