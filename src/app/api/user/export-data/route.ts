@@ -25,6 +25,7 @@ export async function GET(req: Request) {
       where: { id: userId },
       include: {
         company: true,
+        ocrDrafts: { where: { expiresAt: { gt: new Date() } } },
         companyProfiles: true,
         legalConsents: {
           orderBy: { acceptedAt: "desc" },
@@ -116,6 +117,7 @@ export async function GET(req: Request) {
         count: (invoices as unknown[]).length,
         note: "Pełne dane faktur dostępne w eksporcie CSV/JSON z panelu aplikacji.",
       },
+      ocrDrafts: user.ocrDrafts,
       contractors_count: (contractors as unknown[]).length,
     };
 

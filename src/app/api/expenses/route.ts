@@ -1,3 +1,4 @@
+import { businessAccess } from "@/lib/business/access";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -10,8 +11,13 @@ export async function GET(req: Request) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
+    const companyId = new URL(req.url).searchParams.get('companyId');
+    const scope = companyId ? await businessAccess(req) : null;
     const expenses = await prisma.expense.findMany({
-      where: { userId: user.id },
+      where: scope ? { OR: [
+        { companyId: scope.companyId },
+        ...(scope.ownerId === user.id ? [{ userId: user.id, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] : []),
+      ] } : { userId: user.id, OR: [{ companyId: null }, { companyId: { isSet: false } }] },
       orderBy: { issueDate: "desc" },
     });
 
@@ -26,6 +32,8 @@ export async function POST(req: Request) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
+    const scope = new URL(req.url).searchParams.has('companyId') ? await businessAccess(req, 'write') : null;
+    if (!scope && user.role === 'viewer') return json({error:'Brak uprawnień do edycji.'},{status:403});
     const body = await readJson(req);
     const contractorName = String(body.contractorName || "").trim();
     if (!contractorName) {
@@ -50,7 +58,8 @@ export async function POST(req: Request) {
 
     const expense = await prisma.expense.create({
       data: {
-        userId: user.id,
+        userId: scope?.ownerId || user.id,
+        companyId: scope?.companyId,
         number,
         contractorName,
         nip,

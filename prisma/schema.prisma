@@ -50,6 +50,7 @@ model User {
   termsAcceptedAt     DateTime?
   termsAcceptedVersion String?
   legalConsents       LegalConsent[]
+  ocrDrafts           OcrDraft[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -201,6 +202,8 @@ model CompanyProfile {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   invoices       Invoice[]
+  ocrDrafts      OcrDraft[]
+  ocrQuotas      OcrQuota[]
   members        CompanyMember[]
   invitations    TeamInvitation[]
   bankAccounts   CompanyBankAccount[]
@@ -516,6 +519,12 @@ model Order {
 }
 
 model Expense {
+  companyId      String? @db.ObjectId
+  saleDate       String?
+  iban           String?
+  lines          Json?
+  ocrDocumentKey String? // Unique partial index managed by OCR migration.
+  ocrDraftId     String?
   id             String            @id @default(auto()) @map("_id") @db.ObjectId
   userId         String            @db.ObjectId
   user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -646,3 +655,33 @@ model LegalConsent {
 
 
 
+
+/// Temporary OCR draft. Original bytes are never persisted or logged.
+model OcrDraft {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String @db.ObjectId
+  company     CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId      String @db.ObjectId
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileHash    String
+  filename    String
+  mimeType    String
+  provider    String
+  data        Json
+  warnings    Json
+  status      String @default("review")
+  expenseId   String? @db.ObjectId
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  confirmedAt DateTime?
+  @@index([companyId, createdAt])
+}
+
+/// Atomic per-company hourly budget, independent of provider success.
+model OcrQuota {
+  id        String @id @map("_id")
+  companyId String @db.ObjectId
+  company   CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  attempts  Int @default(0)
+  expiresAt DateTime
+}

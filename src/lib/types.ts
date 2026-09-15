@@ -376,6 +376,11 @@ export interface Order {
 }
 
 export interface Expense {
+  companyId?: string | null;
+  saleDate?: string | null;
+  iban?: string | null;
+  lines?: unknown;
+  ocrDraftId?: string | null;
   id: string;
   number: string;
   contractorName: string;
@@ -555,3 +560,4 @@ export const EMPTY_COMPANY: CompanyProfile = {
   email: "",
   phone: "",
 };
+

@@ -16,7 +16,10 @@
     "seed:demo": "node scripts/seed-demo.mjs",
     "test:integration": "node scripts/integration-test.mjs",
     "test:email": "npx tsx scripts/test-email-system.mjs",
-    "test:fixes": "node --test scripts/test-requested-fixes.cjs"
+    "test:fixes": "node --test scripts/test-requested-fixes.cjs",
+    "test:ocr": "node --test scripts/test-ocr.cjs",
+    "test:ocr:db": "node scripts/test-ocr-db.cjs",
+    "db:migrate:ocr": "node scripts/migrations/20260915-02-ocr.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

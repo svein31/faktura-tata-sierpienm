@@ -425,6 +425,11 @@ export function orderToDto(ord: DbOrder): Order {
 
 export function expenseToDto(e: DbExpense): Expense {
   return {
+    companyId: e.companyId,
+    saleDate: e.saleDate,
+    iban: e.iban,
+    lines: e.lines,
+    ocrDraftId: e.ocrDraftId,
     id: e.id,
     number: e.number,
     contractorName: e.contractorName,
@@ -479,3 +484,4 @@ export function prefsToDto(p: NotificationPreference | null): NotificationPrefs 
     soundEnabled: p?.soundEnabled ?? true,
   };
 }
+

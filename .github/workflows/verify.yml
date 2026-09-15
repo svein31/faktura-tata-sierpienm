@@ -29,6 +29,8 @@ jobs:
             git push origin HEAD:"${GITHUB_REF_NAME}"
           fi
       - run: npm run db:generate
-      - run: node --test scripts/test-requested-fixes.cjs
+      - run: node --test scripts/test-requested-fixes.cjs scripts/test-ocr.cjs
+      - run: npm run test:ocr:db
       - run: npm run build
       - run: npm run typecheck
+

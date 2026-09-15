@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useAppStore } from "@/lib/store";
+import { OcrImport } from "@/components/expenses/ocr-import";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Receipt,
@@ -50,6 +52,8 @@ const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
 
 export default function ExpensesPage() {
   const toast = useToast();
+  const companyId = useAppStore(s => s.selectedCompanyId);
+  const expensesUrl = companyId ? `/api/expenses?companyId=${companyId}` : "/api/expenses";
 
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -78,7 +82,7 @@ export default function ExpensesPage() {
   const fetchExpenses = React.useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/expenses");
+      const res = await fetch(expensesUrl);
       if (!res.ok) throw new Error("Błąd pobierania kosztów");
       const data = await res.json();
       setExpenses(data.expenses || []);
@@ -87,7 +91,7 @@ export default function ExpensesPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, expensesUrl]);
 
   React.useEffect(() => {
     fetchExpenses();
@@ -172,7 +176,7 @@ export default function ExpensesPage() {
 
     try {
       setFormSaving(true);
-      const res = await fetch("/api/expenses", {
+      const res = await fetch(expensesUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -317,6 +321,8 @@ export default function ExpensesPage() {
           </div>
         }
       />
+
+      <OcrImport onSaved={fetchExpenses} />
 
       {/* Karty podsumowania */}
       <div
@@ -512,6 +518,7 @@ export default function ExpensesPage() {
                       >
                         <td style={{ padding: "0.75rem 1rem" }}>
                           <div style={{ fontWeight: 600, color: "var(--foreground)" }}>{item.number}</div>
+                          {!item.companyId && <small style={{color:"var(--muted)"}}>Koszt historyczny — bez przypisania do firmy</small>}
                           {item.description && (
                             <div style={{ fontSize: "0.75rem", color: "var(--muted)", maxWidth: "220px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                               {item.description}

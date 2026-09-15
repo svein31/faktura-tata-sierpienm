@@ -1,3 +1,6 @@
+import { normalizeInvoice } from "@/lib/ocr/contract";
+import { createHash } from "node:crypto";
+import { expenseAccess } from "@/lib/business/expense-access";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -9,14 +12,15 @@ interface RouteContext {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_req: Request, context: RouteContext) {
+export async function GET(req: Request, context: RouteContext) {
   try {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await context.params;
+    await expenseAccess(req, id, req.method !== "GET");
     const expense = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id },
       include: {
         comments: {
           orderBy: { createdAt: "asc" },
@@ -43,8 +47,9 @@ export async function PUT(req: Request, context: RouteContext) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await context.params;
+    await expenseAccess(req, id, req.method !== "GET");
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id },
     });
 
     if (!existing) {
@@ -52,11 +57,13 @@ export async function PUT(req: Request, context: RouteContext) {
     }
 
     const body = await readJson(req);
+    const normalized = existing.ocrDraftId ? normalizeInvoice({ ...existing, ...body }, true).data : null;
+    if (normalized) Object.assign(body, normalized);
     const contractorName = typeof body.contractorName === "string" && body.contractorName.trim() ? body.contractorName.trim() : existing.contractorName;
     const number = typeof body.number === "string" && body.number.trim() ? body.number.trim() : existing.number;
-    const nip = typeof body.nip === "string" ? body.nip.trim() : existing.nip;
+    const nip = normalized ? normalized.nip : typeof body.nip === "string" ? body.nip.trim() : existing.nip;
     const issueDate = typeof body.issueDate === "string" && body.issueDate.trim() ? body.issueDate.trim() : existing.issueDate;
-    const dueDate = typeof body.dueDate === "string" ? body.dueDate.trim() : existing.dueDate;
+    const dueDate = normalized ? normalized.dueDate : typeof body.dueDate === "string" ? body.dueDate.trim() : existing.dueDate;
     const category = typeof body.category === "string" ? body.category : existing.category;
     const description = typeof body.description === "string" ? body.description.trim() : existing.description;
     const totalGross = typeof body.totalGross === "number" ? body.totalGross : existing.totalGross;
@@ -74,6 +81,12 @@ export async function PUT(req: Request, context: RouteContext) {
     const updated = await prisma.expense.update({
       where: { id },
       data: {
+        ...(normalized ? {
+          saleDate: normalized.saleDate,
+          iban: normalized.iban,
+          lines: JSON.parse(JSON.stringify(normalized.lines)),
+          ocrDocumentKey: createHash('sha256').update(JSON.stringify([existing.companyId, normalized.nip || normalized.contractorName, normalized.number])).digest('hex'),
+        } : {}),
         contractorName,
         number,
         nip,
@@ -105,8 +118,9 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await context.params;
+    await expenseAccess(req, id, req.method !== "GET");
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id },
     });
 
     if (!existing) {
@@ -148,14 +162,15 @@ export async function PATCH(req: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_req: Request, context: RouteContext) {
+export async function DELETE(req: Request, context: RouteContext) {
   try {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await context.params;
+    await expenseAccess(req, id, req.method !== "GET");
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id },
     });
 
     if (!existing) {
