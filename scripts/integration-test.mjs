@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import { spawn, execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { PrismaClient } from '@prisma/client';
 
 // Always an isolated replica set; never use an inherited production database URL.
+console.log('[integration] Starting isolated MongoDB replica set');
 const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 const databaseUrl = mongo.getUri('fakturo_integration');
 const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
@@ -12,18 +13,23 @@ const port = 41000 + Math.floor(Math.random() * 1000);
 const base = `http://127.0.0.1:${port}`;
 let server, logs = '';
 async function api(method, path, body, cookie) {
-  const res = await fetch(base + path, { method, headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  console.log(`[integration] ${method} ${path}`);
+  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
 }
 try {
-  execFileSync(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'pipe' });
+  console.log('[integration] Initializing test database');
+  const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
+  const [pushCode] = await once(push, 'exit');
+  assert.equal(pushCode, 0, 'Test schema initialization must succeed');
+  console.log('[integration] Starting application');
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', MFA_ENCRYPTION_KEY: '11'.repeat(32) }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
   server.stderr.on('data', data => { logs += data; });
   let ready = false;
   for (let i = 0; i < 120; i++) {
     if (server.exitCode !== null) throw new Error(logs);
-    try { ready = (await fetch(base + '/api/health')).ok; } catch { /* startup */ }
+    try { ready = (await fetch(base + '/api/health', { signal: AbortSignal.timeout(2000) })).ok; } catch { /* startup */ }
     if (ready) break;
     await new Promise(resolve => setTimeout(resolve, 250));
   }
@@ -71,6 +77,6 @@ try {
   console.log('PASS: MongoDB HTTP auth, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {
-  if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); await stopped; }
+  if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }
   await db.$disconnect(); await mongo.stop();
 }
