@@ -47,3 +47,9 @@ Istniejące pola harmonogramu faktury są używane przez serwerowy generator. In
 Netlify: `netlify/functions/fakturo-scheduler.mjs` uruchamia generator co 15 minut; ustawić `CRON_SECRET` i `APP_URL` (HTTPS; na Netlify może użyć `URL`). Inny hosting: cron wysyła POST `/api/recurring/process` z `Authorization: Bearer <CRON_SECRET>` co 15 minut. Migracja `003-recurring-occurrences`. Endpoint nie przyjmuje uwierzytelnienia zwykłą sesją.
 
 Ręcznie: utworzyć cykl z ekranu „Faktury cykliczne” lub kreatora, uruchomić harmonogram dwukrotnie, sprawdzić jeden dokument, daty końca miesiąca, wstrzymanie i odebrane uprawnienia. Automatyczna wysyłka KSeF pozostaje zależna od opisanej osobno zgodności istniejącego XML z XSD.
+
+## 7. Mini-CRM
+
+Ekran kontrahentów: notatki, edycja i wyszukiwanie tagów, historia dokumentów z paginacją oraz należności, zobowiązania i saldo osobno dla walut i wybranej firmy. Odczyt istniejących kwot rozliczeń; brak operacji zapisu płatności. Proformy, szkice i anulowane dokumenty nie zwiększają salda. Nie wymaga migracji.
+
+Ręcznie: zapisać/usunąć tagi i notatkę, wyszukać tag, otworzyć historię, przełączyć firmę, porównać salda PLN/EUR oraz dokument częściowo rozliczony i korektę ujemną.

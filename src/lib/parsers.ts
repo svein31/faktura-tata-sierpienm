@@ -53,7 +53,7 @@ export function parseContractorBody(body: Record<string, unknown>) {
     bankName: cleanStr(body.bankName, 200, "bankName") || null,
     isVatPayer: body.isVatPayer !== false,
     notes: cleanStr(body.notes, 4000, "notes") || null,
-    tags: Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean) : undefined,
+    tags: Array.isArray(body.tags) ? [...new Set(body.tags.slice(0, 30).map(t => cleanStr(t, 60, "tag")).filter(Boolean))] : undefined,
     defaultCurrency: cleanStr(body.defaultCurrency, 10, "defaultCurrency") || null,
     defaultPaymentTermDays: typeof body.defaultPaymentTermDays === "number" ? Math.max(0, body.defaultPaymentTermDays) : null,
     defaultDiscountPercent: typeof body.defaultDiscountPercent === "number" ? Math.max(0, Math.min(100, body.defaultDiscountPercent)) : null,

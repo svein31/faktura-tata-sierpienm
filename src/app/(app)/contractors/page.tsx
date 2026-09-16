@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { contractorHistory } from "@/lib/crm";
+import { formatMoney, invoiceTotals } from "@/lib/format";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Pencil, Plus, Search, Trash2, UserPlus, Users } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -27,6 +30,7 @@ interface ContractorDraft {
   bankName: string;
   isVatPayer: boolean;
   notes: string;
+  tags: string;
 }
 
 const emptyDraft: ContractorDraft = {
@@ -40,14 +44,19 @@ const emptyDraft: ContractorDraft = {
   bankName: "",
   isVatPayer: true,
   notes: "",
+  tags: "",
 };
 
 export default function ContractorsPage() {
   const toast = useToast();
-  const { contractors: allContractors, selectedCompanyId, addContractor, updateContractor, deleteContractor } = useAppStore();
+  const { contractors: allContractors, invoices, selectedCompanyId, addContractor, updateContractor, deleteContractor } = useAppStore();
 
   const contractors = allContractors.filter(item => !item.companyId || item.companyId === selectedCompanyId);
 
+  const [historyId, setHistoryId] = React.useState<string | null>(null);
+  const [historyPage, setHistoryPage] = React.useState(0);
+  React.useEffect(() => { setHistoryId(null); setHistoryPage(0); }, [selectedCompanyId]);
+  const crm = contractorHistory(invoices, historyId || "", selectedCompanyId || null);
   const [search, setSearch] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
@@ -57,7 +66,7 @@ export default function ContractorsPage() {
   const filtered = contractors.filter((c) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    return `${c.name} ${c.nip} ${c.address.city} ${c.address.street}`
+    return `${c.name} ${c.nip} ${c.address.city} ${c.address.street} ${(c.tags || []).join(" ")}`
       .toLowerCase()
       .includes(q);
   });
@@ -81,6 +90,7 @@ export default function ContractorsPage() {
       bankName: c.bankName ?? "",
       isVatPayer: c.isVatPayer,
       notes: c.notes ?? "",
+      tags: (c.tags || []).join(", "),
     });
     setDialogOpen(true);
   };
@@ -110,6 +120,7 @@ export default function ContractorsPage() {
       bankName: draft.bankName.trim() || undefined,
       isVatPayer: draft.isVatPayer,
       notes: draft.notes.trim() || undefined,
+      tags: [...new Set(draft.tags.split(",").map(t => t.trim()).filter(Boolean))],
     };
     try {
       if (editingId) {
@@ -176,6 +187,8 @@ export default function ContractorsPage() {
                   </div>
                   <div className="flex-1 px-4 pb-3 text-[12px] text-muted-foreground space-y-0.5">
                     <p>{c.address.street}</p>
+                    <p>{(c.tags || []).map(tag => <Badge key={tag}>{tag}</Badge>)}</p>
+                    {c.notes && <p className="whitespace-pre-wrap">{c.notes}</p>}
                     <p>
                       {c.address.postal} {c.address.city} &middot; {c.address.country}
                     </p>
@@ -184,9 +197,7 @@ export default function ContractorsPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1 rounded-b-2xl border-t border-border/60 bg-muted/30 p-2">
-                    <span className="px-1.5 text-[11px] text-muted-foreground">
-                      {useAppStore.getState().invoices.filter((i) => i.contractorId === c.id).length} faktur
-                    </span>
+                    <Button variant="ghost" onClick={() => { setHistoryId(c.id); setHistoryPage(0); }}>Historia i saldo ({invoices.filter(i => i.contractorId === c.id && (i.sellerCompanyId || null) === (selectedCompanyId || null)).length})</Button>
                     <div className="flex gap-0.5">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edytuj">
                         <Pencil className="h-3.5 w-3.5" />
@@ -363,6 +374,8 @@ export default function ContractorsPage() {
             </Select>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
+            <Label>Tagi (oddzielone przecinkami)</Label>
+            <Input value={draft.tags} onChange={e => setDraft({ ...draft, tags: e.target.value })} placeholder="np. stały klient, hurt" />
             <Label>Uwagi</Label>
             <Textarea
               value={draft.notes}
@@ -372,6 +385,17 @@ export default function ContractorsPage() {
             />
           </div>
         </div>
+      </Dialog>
+
+      <Dialog open={!!historyId} onClose={() => setHistoryId(null)} title="Historia i saldo kontrahenta" size="lg">
+        <p className="mb-3 text-sm">{contractors.find(c => c.id === historyId)?.name} — wybrana firma</p>
+        {crm.balances.map(b => <p key={b.currency}>Należności: {formatMoney(b.receivable, b.currency)} · Zobowiązania: {formatMoney(b.payable, b.currency)} · Saldo: {formatMoney(b.receivable - b.payable, b.currency)}</p>)}
+        <p className="my-2 text-xs text-muted-foreground">Saldo według zapisanych rozliczeń. Szkice, anulowane dokumenty i proformy pominięte. Kwoty ujemne oznaczają nadpłatę lub korektę.</p>
+        <div className="max-h-80 overflow-auto"><table className="w-full text-sm"><thead><tr><th>Numer</th><th>Data</th><th>Typ / status</th><th>Brutto</th></tr></thead><tbody>
+          {crm.history.slice(historyPage * 20, (historyPage + 1) * 20).map(i => <tr key={i.id}><td><Link className="underline" href={`/invoices/${i.id}`}>{i.number}</Link></td><td>{i.issueDate}</td><td>{i.isProforma ? "Proforma" : i.type === "sale" ? "Sprzedaż" : "Zakup"} / {i.documentStatus || i.status}</td><td>{formatMoney(invoiceTotals(i).gross, i.currency)}</td></tr>)}
+        </tbody></table></div>
+        {!crm.history.length && <p>Brak faktur w tej firmie.</p>}
+        <div className="mt-3 flex gap-2"><Button disabled={!historyPage} onClick={() => setHistoryPage(p => p - 1)}>Poprzednie</Button><Button disabled={(historyPage + 1) * 20 >= crm.history.length} onClick={() => setHistoryPage(p => p + 1)}>Następne</Button></div>
       </Dialog>
 
       <ConfirmDialog
@@ -386,7 +410,7 @@ export default function ContractorsPage() {
           }
         }}
         title="Usunąć kontrahenta?"
-        description="Faktury powiązane z tym kontrahentem zostaną w systemie (bez przypisanej nazwy)."
+        description="Kontrahenta z historią faktur nie można usunąć."
       />
     </div>
   );
