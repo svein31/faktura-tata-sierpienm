@@ -685,3 +685,43 @@ model RecurringOccurrence {
   createdAt     DateTime @default(now())
   @@unique([templateId, scheduledDate])
 }
+
+model PublicApiKey {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  name String
+  tokenHash String @unique
+  prefix String
+  revoked Boolean @default(false)
+  windowStart DateTime @default(now())
+  requests Int @default(0)
+  createdAt DateTime @default(now())
+  @@index([companyId])
+}
+model StatusWebhook {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  url String
+  encryptedSecret String
+  active Boolean @default(true)
+  scanCursor String?
+  leaseUntil DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([companyId])
+}
+model WebhookDelivery {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  webhookId String @db.ObjectId
+  eventKey String @unique
+  payload String
+  status String @default("pending")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  leaseUntil DateTime @default(now())
+  lastError String?
+  createdAt DateTime @default(now())
+  @@index([status, nextAttemptAt])
+  @@index([webhookId])
+}

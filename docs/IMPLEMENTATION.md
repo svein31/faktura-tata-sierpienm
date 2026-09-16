@@ -53,3 +53,7 @@ Ręcznie: utworzyć cykl z ekranu „Faktury cykliczne” lub kreatora, uruchomi
 Ekran kontrahentów: notatki, edycja i wyszukiwanie tagów, historia dokumentów z paginacją oraz należności, zobowiązania i saldo osobno dla walut i wybranej firmy. Odczyt istniejących kwot rozliczeń; brak operacji zapisu płatności. Proformy, szkice i anulowane dokumenty nie zwiększają salda. Nie wymaga migracji.
 
 Ręcznie: zapisać/usunąć tagi i notatkę, wyszukać tag, otworzyć historię, przełączyć firmę, porównać salda PLN/EUR oraz dokument częściowo rozliczony i korektę ujemną.
+
+## 8. API i webhooki
+
+Publiczny REST odczytu statusów KSeF, klucze przypisane do firmy, limit bazy danych, panel integracji, podpisane migawki statusów, trwała kolejka ponowień. Konfiguracja, ograniczenia i ręczne testy: `INTEGRATIONS.md`. Migracja 004, `WEBHOOK_ENCRYPTION_KEY`, istniejący `CRON_SECRET`.

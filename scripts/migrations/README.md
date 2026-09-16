@@ -22,3 +22,5 @@ Tworzy unikalny indeks `UserMfa.userId`. Nowe pole sesji `mfaVerifiedAt` jest op
 ### 003-recurring-occurrences
 
 Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin oraz wygenerowana faktura. `down` usuwa wyłącznie indeksy utworzone przez migrację, zachowuje powiązania i wszystkie faktury. Przed rollbackiem zatrzymać zadanie cron; ponownie włączyć dopiero po `up`. Nowe pola harmonogramu na fakturze są opcjonalne i nie wymagają masowego nadpisania danych.
+
+- `004-integrations`: indeksy kluczy API, endpointów i kolejki webhooków. Down zachowuje dane; wcześniej wyłączyć scheduler i webhooki.

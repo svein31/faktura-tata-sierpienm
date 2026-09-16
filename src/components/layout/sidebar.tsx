@@ -40,6 +40,7 @@ const NAV_MAIN = [
 ];
 
 const NAV_SETTINGS = [
+  { href: "/settings/integrations", label: "API i webhooki", icon: BookOpen },
   { href: "/audit", label: "Dziennik zmian", icon: BookOpen },
   { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
