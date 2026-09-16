@@ -57,3 +57,13 @@ Ręcznie: zapisać/usunąć tagi i notatkę, wyszukać tag, otworzyć historię,
 ## 8. API i webhooki
 
 Publiczny REST odczytu statusów KSeF, klucze przypisane do firmy, limit bazy danych, panel integracji, podpisane migawki statusów, trwała kolejka ponowień. Konfiguracja, ograniczenia i ręczne testy: `INTEGRATIONS.md`. Migracja 004, `WEBHOOK_ENCRYPTION_KEY`, istniejący `CRON_SECRET`.
+
+## 9. Automatyczne przypomnienia o terminie
+
+Nowy ekran „Przypomnienia e-mail” włącza harmonogram osobno dla faktury VAT. Trzy etapy: 3 dni przed terminem, w dniu terminu, 7 dni po. Po przerwie wysyła tylko aktualny etap, bez serii zaległych wiadomości. Przed wysłaniem ponownie sprawdza role, kwotę, aktualny termin i adres kontrahenta. Korzysta z istniejącego modułu poczty SMTP/Resend; nowe opcje pojedynczej próby i sygnału przerwania nie zmieniają zachowania pozostałych wywołań. Nie zapisuje wpłat ani nie zmienia statusów płatności.
+
+Trwały dziennik i unikalny klucz faktura/termin/etap; niepewny wynik pozostaje `verify_needed`, bez automatycznego ponawiania. Jawne ponowienie dostępne po sprawdzeniu logów dostawcy (możliwy duplikat). `sent` oznacza przyjęcie przez dostawcę, nie gwarancję doręczenia. Wyłączenie zatrzymuje kolejne próby, nie cofa wiadomości już przekazanej.
+
+Migracja 005; konfiguracja istniejącego SMTP lub Resend oraz CRON_SECRET. Osobny cron Netlify co 15 min, poza Netlify POST `/api/due-reminders/process`. Przed rollbackiem wyłączyć cron; down zachowuje dziennik i ustawienia, usuwa tylko nowe indeksy.
+
+Ręcznie: skrzynka testowa, faktury z terminami trzech etapów, dwukrotne wywołanie crona, opłacenie przed wysyłką, wyłączenie, odebranie roli, niepoprawny adres, awaria SMTP i jawne ponowienie po sprawdzeniu dostawcy. Istniejący starszy ręczny endpoint reminders nie był zmieniany; ten moduł używa nowego endpointu i rzeczywistej wysyłki.

@@ -725,3 +725,30 @@ model WebhookDelivery {
   @@index([status, nextAttemptAt])
   @@index([webhookId])
 }
+
+model DueReminderSetting {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId String @unique @db.ObjectId
+  companyId String @db.ObjectId
+  userId String @db.ObjectId
+  enabled Boolean @default(false)
+  nextCheckAt DateTime @default(now())
+  @@index([companyId])
+}
+model DueReminderDelivery {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  settingId String @db.ObjectId
+  companyId String @db.ObjectId
+  eventKey String @unique
+  dueDate String
+  stage String
+  status String @default("pending")
+  recipient String?
+  messageId String?
+  error String?
+  startedAt DateTime?
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([companyId])
+  @@index([status, createdAt])
+}

@@ -7,6 +7,8 @@ export interface EmailAttachment {
 }
 
 export interface SendEmailOptions {
+  singleAttempt?: boolean;
+  signal?: AbortSignal;
   to: string | string[];
   cc?: string | string[];
   bcc?: string | string[];
@@ -135,6 +137,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       if (replyTo) payload.reply_to = replyTo;
 
       const res = await fetch("https://api.resend.com/emails", {
+        signal: options.signal,
         method: "POST",
         headers: {
           Authorization: `Bearer ${resendApiKey}`,
@@ -201,7 +204,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     };
 
     let lastErr: any = null;
-    const maxAttempts = 3;
+    const maxAttempts = options.singleAttempt ? 1 : 3;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -235,4 +238,5 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
   configErr.code = "EMAIL_NOT_CONFIGURED";
   throw configErr;
 }
+
 

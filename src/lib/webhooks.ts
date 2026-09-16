@@ -18,7 +18,7 @@ export async function processStatusWebhooks() {
         if (!invoice.ksefStatus || ["none", "draft"].includes(invoice.ksefStatus)) continue;
         const state = { invoiceId: invoice.id, companyId: hook.companyId, number: invoice.number, status: invoice.ksefStatus, ksefNumber: invoice.ksefNumber, referenceNumber: invoice.referenceNumber };
         const eventKey = tokenHash(`${hook.id}:${JSON.stringify(state)}`);
-        await prisma.webhookDelivery.upsert({ where: { eventKey }, update: {}, create: { webhookId: hook.id, eventKey, payload: JSON.stringify({ id: eventKey, type: "ksef.status", observedAt: now.toISOString(), data: state }) } });
+        await prisma.webhookDelivery.upsert({ where: { eventKey }, update: {}, create: { webhookId: hook.id, eventKey, nextAttemptAt: now, payload: JSON.stringify({ id: eventKey, type: "ksef.status", observedAt: now.toISOString(), data: state }) } });
         queued++;
       }
       await prisma.statusWebhook.update({ where: { id: hook.id }, data: { scanCursor: invoices.length === 50 ? invoices[49].id : null, leaseUntil: now } });

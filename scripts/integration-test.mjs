@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { createServer } from 'node:net';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { PrismaClient } from '@prisma/client';
 import { MongoClient, ObjectId } from 'mongodb';
@@ -20,12 +21,25 @@ const port = 41000 + Math.floor(Math.random() * 1000);
 const base = `http://127.0.0.1:${port}`;
 const mongoClient = new MongoClient(databaseUrl);
 let server, logs = '';
+const deliveredEmails = [], smtpSockets = new Set();
+const smtp = createServer(socket => {
+  smtpSockets.add(socket);socket.once('close',()=>smtpSockets.delete(socket));
+  let buffer='', collecting=false, message=[];
+  socket.setEncoding('utf8');socket.write('220 localhost integration\r\n');
+  socket.on('data',chunk=>{buffer+=chunk;let index;while((index=buffer.indexOf('\r\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+2);
+    if(collecting){if(line==='.') {deliveredEmails.push(message.join('\n'));message=[];collecting=false;socket.write('250 queued\r\n');}else message.push(line);}
+    else if(/^DATA/i.test(line)){collecting=true;socket.write('354 send data\r\n');}
+    else if(/^QUIT/i.test(line))socket.end('221 bye\r\n');
+    else socket.write('250 OK\r\n');
+  }});
+});
 async function api(method, path, body, cookie, extraHeaders = {}) {
   console.log(`[integration] ${method} ${path}`);
   const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...extraHeaders, ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
 }
 try {
+  smtp.listen(0,'127.0.0.1'); await once(smtp,'listening');
   await mongoClient.connect();
   const migrationDb = mongoClient.db('migration_checks');
   const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
@@ -62,13 +76,19 @@ try {
   await migrateData(migrationDb, 'down', '004-integrations');
   assert.equal(await migrationDb.collection('PublicApiKey').countDocuments(), 1);
   await migrateData(migrationDb, 'up', '004-integrations');
+  await migrateData(migrationDb, 'up', '005-due-reminders');
+  await migrateData(migrationDb, 'up', '005-due-reminders');
+  await migrationDb.collection('DueReminderDelivery').insertOne({eventKey:'keep',status:'sent'});
+  await migrateData(migrationDb, 'down', '005-due-reminders');
+  assert.equal(await migrationDb.collection('DueReminderDelivery').countDocuments(),1);
+  await migrateData(migrationDb, 'up', '005-due-reminders');
   console.log('[integration] PASS migrations up/up/down/up preserve business data');
   console.log('[integration] Initializing test database');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   console.log('[integration] Starting application');
-  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
   server.stderr.on('data', data => { logs += data; });
   let ready = false;
@@ -209,6 +229,22 @@ try {
   assert.equal((await api('POST','/api/integrations',{companyId,action:'disableWebhook',id:hook.data.id},a.cookie)).res.status,200);
   assert.equal((await api('POST','/api/integrations',{companyId,action:'revokeKey',id:apiKey.data.id},a.cookie)).res.status,200);
   assert.equal((await api('GET','/api/v1/ksef/statuses',undefined,undefined,apiHeaders)).res.status,401);
+  const reminderInvoice=await api('POST','/api/invoices',{...invoice.data.invoice,number:'REM/1',dueDate:warsawDate()},a.cookie);
+  assert.equal(reminderInvoice.res.status,201,JSON.stringify(reminderInvoice.data));
+  const reminderId=reminderInvoice.data.invoice.id;
+  await db.contractor.update({where:{id:reminderInvoice.data.invoice.contractorId},data:{email:'customer@example.test'}});
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},b.cookie)).res.status,403);
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},a.cookie)).res.status,200);
+  assert.equal((await api('POST','/api/due-reminders/process',{})).res.status,401);
+  const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
+  assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
+  assert.equal(deliveredEmails.length,1);
+  assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
+  await db.dueReminderSetting.update({where:{invoiceId:reminderId},data:{nextCheckAt:new Date(0)}});
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:false},a.cookie)).res.status,200);
   const credentials = { email: 'a@example.com', password: 'Integration123!' };
   const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
   assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));
@@ -253,5 +289,6 @@ try {
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }
+  for(const socket of smtpSockets) socket.destroy(); smtp.close();
   await db.$disconnect(); await mongoClient.close(); await mongo.stop();
 }
