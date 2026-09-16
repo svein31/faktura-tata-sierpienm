@@ -5,6 +5,10 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { PrismaClient } from '@prisma/client';
 import { MongoClient, ObjectId } from 'mongodb';
 import { migrateData } from './migrate-data.mjs';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+require('./register-ts.cjs');
+const { totpAt } = require('../src/lib/totp.ts');
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
@@ -26,13 +30,21 @@ try {
   const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
   await migrationDb.collection('CompanyProfile').insertOne({ _id: fixtureCompany, userId: fixtureOwner });
   await migrationDb.collection('Contractor').insertOne({ _id: fixtureContact, userId: fixtureOwner, name: 'Preserved' });
-  await migrateData(migrationDb); await migrateData(migrationDb);
+  await migrateData(migrationDb, 'up', '001-company-catalog'); await migrateData(migrationDb, 'up', '001-company-catalog');
   assert.equal(String((await migrationDb.collection('Contractor').findOne({ _id: fixtureContact })).companyId), String(fixtureCompany));
   await migrationDb.collection('Contractor').updateOne({ _id: fixtureContact }, { $set: { name: 'Edited after migration' } });
   await migrateData(migrationDb, 'down', '001-company-catalog');
   const rolledBack = await migrationDb.collection('Contractor').findOne({ _id: fixtureContact });
   assert.equal(Object.hasOwn(rolledBack, 'companyId'), false); assert.equal(rolledBack.name, 'Edited after migration');
-  await migrateData(migrationDb);
+  await migrateData(migrationDb, 'up', '001-company-catalog');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrationDb.collection('UserMfa').insertOne({ userId: fixtureOwner, enabledAt: new Date(), encryptedSecret: 'preserve' });
+  await assert.rejects(migrateData(migrationDb, 'down', '002-user-mfa'), /Disable MFA/);
+  await migrationDb.collection('UserMfa').updateOne({ userId: fixtureOwner }, { $set: { enabledAt: null } });
+  await migrateData(migrationDb, 'down', '002-user-mfa');
+  assert.equal((await migrationDb.collection('UserMfa').findOne({ userId: fixtureOwner })).encryptedSecret, 'preserve');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
   console.log('[integration] PASS migrations up/up/down/up preserve business data');
   console.log('[integration] Initializing test database');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
@@ -129,7 +141,47 @@ try {
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
-  console.log('PASS: MongoDB HTTP auth, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
+  const credentials = { email: 'a@example.com', password: 'Integration123!' };
+  const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
+  assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));
+  assert.ok(setupMfa.data.qrDataUrl.startsWith('data:image/png;base64,'));
+  const activationCode = totpAt(setupMfa.data.secret, Date.now());
+  const enabledMfa = await api('POST', '/api/auth/mfa', { action: 'enable', password: credentials.password, code: activationCode }, a.cookie);
+  assert.equal(enabledMfa.res.status, 200, JSON.stringify(enabledMfa.data));
+  assert.equal(enabledMfa.data.recoveryCodes.length, 8);
+  const storedMfa = await db.userMfa.findUniqueOrThrow({ where: { userId: a.data.user.id } });
+  assert.notEqual(storedMfa.encryptedSecret, setupMfa.data.secret);
+  assert.ok(!storedMfa.recoveryHashes.includes(enabledMfa.data.recoveryCodes[0]));
+  assert.equal((await api('GET', '/api/data', undefined, login.cookie)).res.status, 401);
+  assert.equal((await api('GET', '/api/data', undefined, a.cookie)).res.status, 200);
+  const invite = await db.teamInvitation.create({ data: { companyId: company2.data.company.id, userId: b.data.user.id, email: credentials.email, role: 'viewer', token: 'mfa-invitation-fixture', expiresAt: new Date(Date.now() + 60000) } });
+  const invitedLogin = await api('POST', '/api/invite/mfa-invitation-fixture', { password: credentials.password });
+  assert.equal(invitedLogin.data.code, 'MFA_REQUIRED');
+  assert.equal((await db.teamInvitation.findUniqueOrThrow({ where: { id: invite.id } })).status, 'pending');
+
+  await db.session.create({ data: { userId: a.data.user.id, sessionToken: 'unverified-session-fixture', expiresAt: new Date(Date.now() + 60000) } });
+  assert.equal((await api('GET', '/api/data', undefined, 'auth_session=unverified-session-fixture')).res.status, 401);
+  const needMfa = await api('POST', '/api/auth/login', credentials);
+  assert.equal(needMfa.data.code, 'MFA_REQUIRED'); assert.equal(needMfa.cookie, undefined);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: 'invalid' })).res.status, 401);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: activationCode })).res.status, 401);
+  const freshCode = totpAt(setupMfa.data.secret, Date.now() + 30000);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: freshCode })).res.status, 200);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: freshCode })).res.status, 401);
+  const recovery = enabledMfa.data.recoveryCodes;
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[0] })).res.status, 200);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[0] })).res.status, 401);
+  for (let i = 0; i < 5; i++) await api('POST', '/api/auth/login', { ...credentials, code: 'invalid' });
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[1] })).res.status, 429);
+  // Advance the persisted cooldown in this isolated test database.
+  await db.userMfa.update({ where: { userId: a.data.user.id }, data: { lockedUntil: new Date(0) } });
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[1] })).res.status, 200);
+  const disabledMfa = await api('POST', '/api/auth/mfa', { action: 'disable', password: credentials.password, code: recovery[2] }, a.cookie);
+  assert.equal(disabledMfa.res.status, 200); assert.equal(disabledMfa.data.enabled, false);
+  assert.equal((await api('POST', '/api/auth/login', credentials)).res.status, 200);
+  const mfaAudit = JSON.stringify(await db.auditLog.findMany({ where: { action: { startsWith: 'mfa_' } } }));
+  assert.ok(!mfaAudit.includes(setupMfa.data.secret)); assert.ok(!mfaAudit.includes(recovery[0]));
+  console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }

@@ -20,6 +20,8 @@ function LoginForm() {
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [code, setCode] = React.useState("");
+  const [mfaRequired, setMfaRequired] = React.useState(false);
   const [showPw, setShowPw] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -53,10 +55,10 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, password }),
+        body: JSON.stringify({ email: cleanEmail, password, code }),
       });
 
-      let data: { error?: string; user?: { name: string } } = {};
+      let data: { code?: string; error?: string; user?: { name: string } } = {};
       try {
         const text = await res.text();
         try {
@@ -69,6 +71,7 @@ function LoginForm() {
       }
 
       if (!res.ok) {
+        if (data.code?.startsWith("MFA_")) setMfaRequired(true);
         setError(data.error || "Nieprawidłowy e-mail lub hasło.");
         setBusy(false);
         return;
@@ -158,6 +161,10 @@ function LoginForm() {
             </div>
           </div>
 
+          {mfaRequired && <div className="space-y-1.5">
+            <Label htmlFor="mfa-code">Kod 2FA lub kod odzyskiwania</Label>
+            <Input id="mfa-code" autoComplete="one-time-code" value={code} onChange={e => setCode(e.target.value)} maxLength={40} autoFocus />
+          </div>}
           {error && (
             <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
@@ -216,3 +223,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

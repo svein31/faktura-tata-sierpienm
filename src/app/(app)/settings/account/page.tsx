@@ -1,4 +1,5 @@
 "use client";
+import { MfaSettings } from "@/components/mfa-settings";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -274,6 +275,8 @@ export default function AccountSettingsPage() {
           { value: "privacy", label: "Prywatność i zgody", icon: <Shield className="h-3.5 w-3.5" /> },
         ]}
       />
+
+      {activeTab === "security" && <MfaSettings />}
 
       <AnimatePresence mode="wait">
         {/* ── 1. BEZPIECZEŃSTWO I HASŁO ── */}
@@ -866,3 +869,4 @@ export default function AccountSettingsPage() {
     </div>
   );
 }
+

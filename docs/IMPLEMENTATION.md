@@ -25,3 +25,11 @@ Migracja: `001-company-catalog`, jawne `up`/`down`, opis w instrukcji migracji. 
 Audyt utworzenia, edycji i usunięcia faktury/profilu/katalogu jest zapisywany razem z operacją w transakcji. Zmiany wersji dokumentu nie nadpisują równoległego zapisu. Logi filtrują równocześnie firmę i dokument, uwzględniają odebrane członkostwo i obsługują stronicowanie. Maskowanie obejmuje zagnieżdżone tokeny i sekrety. Usunięcie pustej firmy zachowuje historię zamiast kasować ją kaskadowo (`SetNull`, zachowanie nowego klienta Prisma, bez modyfikacji istniejących danych). Dodano ekran „Dziennik zmian”.
 
 Ręcznie: edycja faktury w dwóch kartach, filtr firma/dokument, starsze wpisy, odebranie dostępu, zmiana tokena KSeF (wartość ma być ukryta). Usunąć pustą firmę i sprawdzić zachowanie wpisów w bazie. Moduły płatności nie były edytowane.
+
+## 4. 2FA TOTP
+
+Ustawienia konta umożliwiają konfigurację kodem QR lub kluczem, potwierdzenie TOTP, wyłączenie oraz odnowienie kodów odzyskiwania. Sekret jest szyfrowany AES-256-GCM z powiązaniem z użytkownikiem, kody odzyskiwania są haszowane i jednorazowe. Baza pilnuje limitu prób i zapobiega ponownemu użyciu kodu TOTP. Sesje są powiązane z konkretną aktywacją 2FA; włączenie/zmiana unieważnia pozostałe sesje. Login nie tworzy sesji przed drugim składnikiem. Reset hasła nie usuwa MFA.
+
+Konfiguracja serwera: trwały `MFA_ENCRYPTION_KEY` = 32 losowe bajty zapisane jako 64 znaki hex, np. wygenerowane lokalnie `openssl rand -hex 32`; przechowywać w menedżerze sekretów i kopii zapasowej. Nie zmieniać bez migracji ponownego szyfrowania. Migracja `002-user-mfa`; brak klucza blokuje konfigurację 2FA. Źródło algorytmu: RFC 6238, testy oficjalnych wektorów SHA-1.
+
+Ręcznie: skan QR, aktywacja, ponowne logowanie, błędny/powtórzony kod, kod odzyskiwania użyty dwa razy, wyłączenie z hasłem i kodem. Sprawdzić wylogowanie drugiej przeglądarki oraz brak sekretów w audycie.

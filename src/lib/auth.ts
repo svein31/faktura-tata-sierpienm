@@ -11,6 +11,7 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prisma/client";
 import { prisma } from "./db";
+import { ApiError } from "./api";
 
 /** 30 dni w sekundach (30 * 24 * 3600) = 2592000s */
 export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
@@ -144,6 +145,7 @@ export function generateSessionToken(): string {
 }
 
 export interface CreateSessionMetadata {
+  mfaVerifiedAt?: Date;
   userAgent?: string | null;
   ipAddress?: string | null;
 }
@@ -155,11 +157,14 @@ export async function createSession(
   userId: string,
   metadata?: CreateSessionMetadata
 ): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
+  const mfa = await prisma.userMfa.findUnique({ where: { userId }, select: { enabledAt: true } });
+  if (mfa?.enabledAt && metadata?.mfaVerifiedAt?.getTime() !== mfa.enabledAt.getTime()) throw new ApiError(401, "Zaloguj się z kodem 2FA, a następnie ponów operację.", "MFA_REQUIRED");
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
   const token = generateSessionToken();
   const session = await prisma.session.create({
     data: {
       sessionToken: token, userId, expiresAt,
+      mfaVerifiedAt: metadata?.mfaVerifiedAt,
       userAgent: metadata?.userAgent || null,
       ipAddress: metadata?.ipAddress || null,
     },
@@ -258,6 +263,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
       include: {
         user: {
           include: {
+            mfa: { select: { enabledAt: true } },
             company: true,
             companyProfiles: true,
             ksef: true,
@@ -267,6 +273,8 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
     });
 
     if (session) {
+      const mfaEnabledAt = session.user.mfa?.enabledAt;
+      if (mfaEnabledAt && (!session.mfaVerifiedAt || session.mfaVerifiedAt.getTime() !== mfaEnabledAt.getTime())) return null;
       if (session.expiresAt.getTime() <= Date.now()) {
         await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
         return null;
@@ -288,3 +296,4 @@ export const getSessionUser = cache(async (): Promise<FullUserWithRelations | nu
 export async function requireApiUser(): Promise<SessionUser> {
   return getSession();
 }
+

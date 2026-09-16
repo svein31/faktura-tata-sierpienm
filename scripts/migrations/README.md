@@ -14,3 +14,7 @@ Po awarii operator sprawdza stan migracji i blokadę `_fakturoMigrationLocks` pr
 ### 001-company-catalog
 
 Dodaje indeksy `Contractor.companyId` i `Product.companyId`. Rekordy konta mającego dokładnie jedną własną firmę przypisuje do tej firmy; kontrahenta powiązanego z dokumentem innej firmy pomija. Nie zgaduje przypisania przy wielu firmach. Plan zachowuje identyfikatory i rozróżnienie brak pola/null; rollback przywraca wyłącznie te przypisania, które nadal odpowiadają wartości migracji, i usuwa wyłącznie indeksy utworzone przez migrację. Nie usuwa kontrahentów, produktów ani nowych danych. Limit 20 000 wpisów chroni rozmiar pojedynczego checkpointu; dla większej bazy trzeba podzielić migrację danych przed uruchomieniem. Kod i migracja nie zmieniają kolekcji płatności.
+
+### 002-user-mfa
+
+Tworzy unikalny indeks `UserMfa.userId`. Nowe pole sesji `mfaVerifiedAt` jest opcjonalne; brak pola oznacza sesję bez 2FA. Migracja nie włącza 2FA żadnemu użytkownikowi. `down` usuwa wyłącznie indeks utworzony przez `up`, zachowuje dane. Cofnięcie wsparcia MFA jest blokowane, dopóki istnieją aktywne konfiguracje: użytkownicy muszą wcześniej wyłączyć 2FA przez uwierzytelnione ustawienia. Nie wolno wycofać kodu bramki 2FA przy aktywnej ochronie kont. Operacje indeksów wykonywać w oknie serwisowym.
