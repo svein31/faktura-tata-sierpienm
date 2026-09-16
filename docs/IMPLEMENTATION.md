@@ -33,3 +33,9 @@ Ustawienia konta umożliwiają konfigurację kodem QR lub kluczem, potwierdzenie
 Konfiguracja serwera: trwały `MFA_ENCRYPTION_KEY` = 32 losowe bajty zapisane jako 64 znaki hex, np. wygenerowane lokalnie `openssl rand -hex 32`; przechowywać w menedżerze sekretów i kopii zapasowej. Nie zmieniać bez migracji ponownego szyfrowania. Migracja `002-user-mfa`; brak klucza blokuje konfigurację 2FA. Źródło algorytmu: RFC 6238, testy oficjalnych wektorów SHA-1.
 
 Ręcznie: skan QR, aktywacja, ponowne logowanie, błędny/powtórzony kod, kod odzyskiwania użyty dwa razy, wyłączenie z hasłem i kodem. Sprawdzić wylogowanie drugiej przeglądarki oraz brak sekretów w audycie.
+
+## 5. Waluty i NBP
+
+Rozszerzono istniejący moduł NBP i parser faktur. Serwer wyznacza oficjalny kurs oraz kwoty PLN zamiast ufać wartościom z formularza. Zachowuje numer tabeli, datę publikacji i podstawę kursu. Weekendy/święta cofają wyszukiwanie do poprzedniej publikacji; awaria, błędna odpowiedź lub timeout nie podstawiają kursu 1. Istniejący kurs ręczny wymaga dodatniej wartości i uzasadnienia. Waluta PLN usuwa obce metadane kursowe. API: https://api.nbp.pl/.
+
+Ręcznie: EUR/USD, faktura poniedziałkowa, zmiana daty i waluty na PLN, niedostępność NBP, uzasadniony kurs ręczny; porównać zapis z PDF/XML. Istniejące faktury nie są przeliczane migracją, nowe kolumny nie są potrzebne.

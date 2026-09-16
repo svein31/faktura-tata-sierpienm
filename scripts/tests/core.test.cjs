@@ -11,7 +11,7 @@ test('FA(3) preserves corrections and escapes text', () => {
 test('NBP uses previous published rate and rejects outage', async () => {
   const previous = global.fetch, dates = [];
   try {
-    global.fetch = async url => { dates.push(url); return String(url).includes('2026-09-11') ? Response.json({ rates: [{ mid: 4.25, effectiveDate: '2026-09-11', no: '177/A/NBP/2026' }] }) : new Response('', {status:404}); };
+    global.fetch = async url => { dates.push(url); return String(url).includes('2026-09-11') ? Response.json({ code: 'EUR', rates: [{ mid: 4.25, effectiveDate: '2026-09-11', no: '177/A/NBP/2026' }] }) : new Response('', {status:404}); };
     const result = await getEffectiveNbpRate({currency:'EUR', issueDate:'2026-09-14'});
     assert.equal(result.rate,4.25); assert.equal(result.effectiveDate,'2026-09-11'); assert.equal(dates.length,3);
     global.fetch = async () => new Response('', {status:503});

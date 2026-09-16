@@ -115,6 +115,12 @@ function toIsoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+export function isIsoCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 /**
  * Pobiera oficjalny średni kurs NBP dla danej waluty i daty referencyjnej,
  * cofając się do ostatniego opublikowanego dnia roboczego przed wskazaną datą.
@@ -133,6 +139,9 @@ export async function getEffectiveNbpRate(options: {
   rule?: ExchangeRateRule;
 }): Promise<ExchangeRateResult> {
   const curr = options.currency.toUpperCase().trim();
+  if (!/^[A-Z]{3}$/.test(curr)) throw new Error("Nieprawidłowy kod waluty ISO 4217.");
+  for (const date of [options.issueDate, options.saleDate, options.taxPointDate]) if (date && !isIsoCalendarDate(date)) throw new Error(`Nieprawidłowa data: ${date}`);
+  if (!options.issueDate) throw new Error("Brak daty wystawienia.");
 
   if (curr === "PLN") {
     return {
@@ -164,6 +173,7 @@ export async function getEffectiveNbpRate(options: {
   // Zgodnie z prawem stosujemy kurs z dnia POPRZEDZAJĄCEGO dzień zdarzenia (ostatni roboczy dzień przed)
   baseDate.setUTCDate(baseDate.getUTCDate() - 1);
 
+  const signal = AbortSignal.timeout(15_000);
   const tablesToTry: Array<"a" | "b"> = ["a", "b"];
 
   for (const tableType of tablesToTry) {
@@ -180,6 +190,7 @@ export async function getEffectiveNbpRate(options: {
         res = await fetch(url, {
           headers: { Accept: "application/json" },
           cache: "no-store",
+          signal,
         });
       } catch (networkError: any) {
         throw new NbpApiError(
@@ -200,10 +211,12 @@ export async function getEffectiveNbpRate(options: {
         continue;
       }
 
+      if (!res.ok) throw new NbpApiError(`Błąd odpowiedzi NBP (HTTP ${res.status}).`, res.status);
       if (res.ok) {
         const data = (await res.json()) as NbpRateResponse;
         if (data.rates && data.rates.length > 0) {
           const rateItem = data.rates[0];
+          if (data.code !== curr || !Number.isFinite(rateItem.mid) || rateItem.mid <= 0 || rateItem.effectiveDate !== dateStr || !rateItem.no) throw new NbpApiError("NBP zwrócił nieprawidłowy kurs lub datę tabeli.", 502);
           const unit = CURRENCY_UNITS[curr] || 1;
           const tableName = `Tabela ${tableType.toUpperCase()} nr ${rateItem.no} z dnia ${rateItem.effectiveDate}`;
 
@@ -220,6 +233,7 @@ export async function getEffectiveNbpRate(options: {
             calculationNote: `${unit} ${curr} = ${rateItem.mid.toFixed(4)} PLN (NBP ${rateItem.no} z ${rateItem.effectiveDate})`,
           };
         }
+        throw new NbpApiError("NBP zwrócił pustą odpowiedź kursową.", 502);
       }
     }
   }
@@ -238,3 +252,4 @@ export function convertToPln(amount: number, rate: number, unit: number = 1): nu
   const effectiveRate = rate / (unit > 0 ? unit : 1);
   return Math.round((amount * effectiveRate + Number.EPSILON) * 100) / 100;
 }
+

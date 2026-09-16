@@ -7,6 +7,9 @@
 import { ApiError, cleanStr, num } from "./api";
 import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
+import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
+import { invoiceTotals } from "./format";
+import type { ExchangeRateRule, InvoiceLine } from "./types";
 import type { Address } from "./types";
 
 const VAT_RATES = ["23", "8", "5", "0", "zw", "np"];
@@ -192,10 +195,10 @@ export async function parseInvoiceBody(
   const number = cleanStr(body.number, 50, "number");
   if (!number) throw new ApiError(400, "Podaj numer faktury.");
 
-  // Waluta: PLN, EUR, USD, GBP lub dowolny kod 3-4 literowy
+  // Waluta: PLN, EUR, USD, GBP lub dowolny kod trzyliterowy
   const currencyRaw = cleanStr(body.currency, 10, "currency").toUpperCase() || "PLN";
-  if (!/^[A-Z]{3,4}$/.test(currencyRaw)) {
-    throw new ApiError(400, "Nieprawidłowy kod waluty (wymagany standard 3-4 literowy, np. PLN, EUR, USD, GBP).");
+  if (!/^[A-Z]{3}$/.test(currencyRaw)) {
+    throw new ApiError(400, "Nieprawidłowy kod waluty (wymagany standard trzyliterowy, np. PLN, EUR, USD, GBP).");
   }
   const currency = currencyRaw;
 
@@ -208,21 +211,42 @@ export async function parseInvoiceBody(
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
   for (const f of ["issueDate", "saleDate", "dueDate"] as const) {
     const v = cleanStr(body[f], 10, f);
-    if (!dateRe.test(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
+    if (!dateRe.test(v) || !isIsoCalendarDate(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
   }
 
-  // Pola NBP i walutowe
-  const exchangeRate = typeof body.exchangeRate === "number" && body.exchangeRate > 0 ? body.exchangeRate : null;
-  const exchangeRateUnit = typeof body.exchangeRateUnit === "number" && body.exchangeRateUnit > 0 ? body.exchangeRateUnit : 1;
-  const exchangeRateDate = cleanStr(body.exchangeRateDate, 20, "exchangeRateDate") || null;
-  const exchangeRateTable = cleanStr(body.exchangeRateTable, 100, "exchangeRateTable") || null;
-  const exchangeRateSource = cleanStr(body.exchangeRateSource, 200, "exchangeRateSource") || null;
-  const exchangeRateRule = cleanStr(body.exchangeRateRule, 50, "exchangeRateRule") || null;
-  const exchangeRateJustification = cleanStr(body.exchangeRateJustification, 1000, "exchangeRateJustification") || null;
-  const taxPointDate = cleanStr(body.taxPointDate, 20, "taxPointDate") || null;
-  const totalNetPln = typeof body.totalNetPln === "number" ? body.totalNetPln : null;
-  const totalVatPln = typeof body.totalVatPln === "number" ? body.totalVatPln : null;
-  const totalGrossPln = typeof body.totalGrossPln === "number" ? body.totalGrossPln : null;
+  // Rate provenance and PLN totals are authoritative on the server.
+  const lines = parseLines(body.lines);
+  const taxPointDate = cleanStr(body.taxPointDate, 10, "taxPointDate") || null;
+  if (taxPointDate && !isIsoCalendarDate(taxPointDate)) throw new ApiError(400, "Nieprawidłowa data obowiązku podatkowego.");
+  let exchangeRate: number | null = null, exchangeRateUnit = 1;
+  let exchangeRateDate: string | null = null, exchangeRateTable: string | null = null, exchangeRateSource: string | null = null;
+  let exchangeRateRule = cleanStr(body.exchangeRateRule, 50, "exchangeRateRule") || null;
+  let exchangeRateJustification = cleanStr(body.exchangeRateJustification, 1000, "exchangeRateJustification") || null;
+  if (exchangeRateRule && !["manual", "art_31a_sale_date", "art_31a_issue_date", "art_31a_tax_point"].includes(exchangeRateRule)) throw new ApiError(400, "Nieprawidłowa reguła kursu.");
+  if (currency !== "PLN") {
+    if (exchangeRateRule === "manual") {
+      if (typeof body.exchangeRate !== "number" || !Number.isFinite(body.exchangeRate) || body.exchangeRate <= 0 || !exchangeRateJustification) throw new ApiError(400, "Kurs ręczny wymaga dodatniej wartości i uzasadnienia.");
+      exchangeRate = body.exchangeRate;
+      exchangeRateUnit = body.exchangeRateUnit === undefined ? 1 : Number(body.exchangeRateUnit);
+      if (!Number.isFinite(exchangeRateUnit) || exchangeRateUnit <= 0) throw new ApiError(400, "Nieprawidłowa jednostka kursu.");
+      exchangeRateDate = cleanStr(body.exchangeRateDate, 10, "exchangeRateDate") || String(body.issueDate);
+      if (!isIsoCalendarDate(exchangeRateDate)) throw new ApiError(400, "Nieprawidłowa data kursu ręcznego.");
+      exchangeRateTable = "Kurs własny podatnika"; exchangeRateSource = "Własny kurs podatnika";
+    } else {
+      if (exchangeRateRule === "art_31a_tax_point" && !taxPointDate) throw new ApiError(400, "Podaj datę obowiązku podatkowego.");
+      try {
+        const rate = await getEffectiveNbpRate({ currency, issueDate: String(body.issueDate), saleDate: String(body.saleDate), taxPointDate: taxPointDate || undefined, rule: exchangeRateRule as ExchangeRateRule | undefined });
+        exchangeRate = rate.rate; exchangeRateUnit = rate.unit; exchangeRateDate = rate.effectiveDate;
+        exchangeRateTable = rate.tableNumber; exchangeRateSource = rate.source; exchangeRateRule = rate.rule;
+        exchangeRateJustification = null;
+      } catch (error) { throw new ApiError(502, error instanceof Error ? error.message : "Nie udało się pobrać kursu NBP.", "NBP_UNAVAILABLE"); }
+    }
+  } else { exchangeRateRule = null; exchangeRateJustification = null; }
+  const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
+  const totalNetPln = currency === "PLN" ? totals.net : convertToPln(totals.net, exchangeRate!, exchangeRateUnit);
+  const totalVatPln = currency === "PLN" ? totals.vat : convertToPln(totals.vat, exchangeRate!, exchangeRateUnit);
+  const totalGrossPln = currency === "PLN" ? totals.gross : convertToPln(totals.gross, exchangeRate!, exchangeRateUnit);
+  if (![totalNetPln, totalVatPln, totalGrossPln].every(value => Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER / 100)) throw new ApiError(400, "Kwoty po przeliczeniu przekraczają obsługiwany zakres.");
   const bankAccountId = cleanStr(body.bankAccountId, 100, "bankAccountId") || null;
   const bankAccountSnapshot = body.bankAccountSnapshot ? (body.bankAccountSnapshot as unknown as Prisma.InputJsonValue) : undefined;
   const buyerTaxIdType = cleanStr(body.buyerTaxIdType, 20, "buyerTaxIdType") || null;
@@ -245,7 +269,7 @@ export async function parseInvoiceBody(
     paymentMethod,
     paymentTermDays: Math.min(Math.max(Math.round(num(body.paymentTermDays)), 0), 365),
     notes: cleanStr(body.notes, 4000, "notes") || null,
-    lines: parseLines(body.lines) as unknown as Prisma.InputJsonValue,
+    lines: lines as unknown as Prisma.InputJsonValue,
     approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
     // Proforma & Udostępnianie
     isProforma: Boolean(body.isProforma),
@@ -277,6 +301,9 @@ export async function parseInvoiceBody(
     exchangeRateRule,
     exchangeRateJustification,
     taxPointDate,
+    totalNet: totals.net,
+    totalVat: totals.vat,
+    totalGross: totals.gross,
     totalNetPln,
     totalVatPln,
     totalGrossPln,
@@ -287,3 +314,4 @@ export async function parseInvoiceBody(
     ksef: undefined,
   };
 }
+

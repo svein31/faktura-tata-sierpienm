@@ -141,6 +141,10 @@ try {
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
+  const fx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/1', currency: 'EUR', exchangeRateRule: 'manual', exchangeRate: 4.25, exchangeRateJustification: 'Kurs dokumentu źródłowego', totalGrossPln: 1 }, a.cookie);
+  assert.equal(fx.res.status, 201, JSON.stringify(fx.data)); assert.equal(fx.data.invoice.totalGrossPln, 522.75);
+  const invalidFx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/2', currency: 'USD', exchangeRateRule: 'manual', exchangeRate: 4.25 }, a.cookie);
+  assert.equal(invalidFx.res.status, 400); assert.equal(await db.invoice.count({ where: { number: 'FX/2' } }), 0);
   const credentials = { email: 'a@example.com', password: 'Integration123!' };
   const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
   assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));
