@@ -46,7 +46,7 @@ try {
   const company = await api('POST', '/api/companies', { companyName: 'Firma A', nip: '5260301706' }, a.cookie);
   assert.equal(company.res.status, 201, JSON.stringify(company.data));
   const companyId = company.data.company.id;
-  const contractor = await api('POST', '/api/contractors', { name: 'Nabywca', nip: '5250001009', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } }, a.cookie);
+  const contractor = await api('POST', '/api/contractors', { name: 'Nabywca', nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } }, a.cookie);
   assert.equal(contractor.res.status, 201, JSON.stringify(contractor.data));
   const invoice = await api('POST', '/api/invoices', {
     number: 'FS/2026/1', type: 'sale', status: 'draft', sellerCompanyId: companyId, contractorId: contractor.data.contractor.id,
