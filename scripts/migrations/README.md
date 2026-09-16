@@ -10,3 +10,7 @@ Przed wdrożeniem wykonać snapshot bazy. Migracje testować up → up → down 
 Nie uruchamiać starych migracji SQLite z `prisma/migrations` na MongoDB. `prisma db push` służy do inicjalizacji pustych baz testowych; produkcyjne zmiany danych i indeksów przechodzą przez ten runner. Runner nie modyfikuje modeli ani kolekcji płatności/bankowości.
 
 Po awarii operator sprawdza stan migracji i blokadę `_fakturoMigrationLocks` przed jej ręcznym usunięciem. Nie ma automatycznego wygaszania blokady w trakcie długiej migracji.
+
+### 001-company-catalog
+
+Dodaje indeksy `Contractor.companyId` i `Product.companyId`. Rekordy konta mającego dokładnie jedną własną firmę przypisuje do tej firmy; kontrahenta powiązanego z dokumentem innej firmy pomija. Nie zgaduje przypisania przy wielu firmach. Plan zachowuje identyfikatory i rozróżnienie brak pola/null; rollback przywraca wyłącznie te przypisania, które nadal odpowiadają wartości migracji, i usuwa wyłącznie indeksy utworzone przez migrację. Nie usuwa kontrahentów, produktów ani nowych danych. Limit 20 000 wpisów chroni rozmiar pojedynczego checkpointu; dla większej bazy trzeba podzielić migrację danych przed uruchomieniem. Kod i migracja nie zmieniają kolekcji płatności.

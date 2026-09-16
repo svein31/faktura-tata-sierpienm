@@ -1,3 +1,4 @@
+import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -148,23 +149,17 @@ export async function PUT(req: Request, { params }: Ctx) {
       select: { companyId: true, company: { select: { userId: true } } },
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
-    const accessibleOwnerUserIds = memberships.map((m) => m.company.userId);
 
     const data = await parseInvoiceBody(body, {
-      contractorOwnedBy: async (id) =>
-        (await prisma.contractor.count({
-          where: {
-            id,
-            OR: [
-              { userId: user.id },
-              ...(accessibleOwnerUserIds.length > 0 ? [{ userId: { in: accessibleOwnerUserIds } }] : []),
-            ],
-          },
-        })) > 0,
+      contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
+
+    if (data.sellerCompanyId !== existing.sellerCompanyId) {
+      throw new ApiError(400, "Nie można przenieść zapisanej faktury do innej firmy. Utwórz nowy dokument w wybranej firmie.");
+    }
 
     // 5. Ochrona przed duplikatem numeru przy zmianie numeru
     if (data.number !== existing.number) {
@@ -287,3 +282,4 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return handleApiError(e);
   }
 }
+

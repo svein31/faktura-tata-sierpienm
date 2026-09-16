@@ -1,3 +1,5 @@
+import { accessibleCompanyIds } from "@/lib/company-scope";
+import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -18,11 +20,14 @@ export async function GET() {
     }
 
     const companies = await prisma.companyProfile.findMany({
-      where: { userId: user.id },
+      where: { id: { in: await accessibleCompanyIds(user.id) } },
       orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
 
-    return json({ companies: companies.map(companyProfileToDto) });
+    return json({ companies: await Promise.all(companies.map(async company => {
+      const membership = await getCompanyMembership(user.id, company.id);
+      return { ...companyProfileToDto(company), currentUserRole: membership?.role, currentUserPermissions: membership?.permissions };
+    })) });
   } catch (e) {
     return handleApiError(e);
   }
@@ -84,3 +89,4 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
+

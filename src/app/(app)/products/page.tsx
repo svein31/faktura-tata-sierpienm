@@ -35,7 +35,9 @@ const emptyDraft: ProductDraft = {
 
 export default function ProductsPage() {
   const toast = useToast();
-  const { products, addProduct, updateProduct, deleteProduct } = useAppStore();
+  const { products: allProducts, selectedCompanyId, addProduct, updateProduct, deleteProduct } = useAppStore();
+
+  const products = allProducts.filter(item => !item.companyId || item.companyId === selectedCompanyId);
 
   const [search, setSearch] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -308,3 +310,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

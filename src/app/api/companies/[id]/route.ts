@@ -1,3 +1,4 @@
+import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -23,9 +24,9 @@ export async function GET(_req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const company = await prisma.companyProfile.findFirst({
-      where: { id: (await params).id, userId: user.id },
-    });
+    const membership = await getCompanyMembership(user.id, (await params).id);
+    if (!membership) return json({ error: "Nie znaleziono firmy." }, { status: 404 });
+    const company = await prisma.companyProfile.findUnique({ where: { id: membership.company.id } });
     if (!company) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -159,3 +160,4 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return handleApiError(e);
   }
 }
+

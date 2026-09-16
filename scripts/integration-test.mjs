@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { PrismaClient } from '@prisma/client';
+import { MongoClient, ObjectId } from 'mongodb';
+import { migrateData } from './migrate-data.mjs';
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
@@ -11,6 +13,7 @@ const databaseUrl = mongo.getUri('fakturo_integration');
 const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 const port = 41000 + Math.floor(Math.random() * 1000);
 const base = `http://127.0.0.1:${port}`;
+const mongoClient = new MongoClient(databaseUrl);
 let server, logs = '';
 async function api(method, path, body, cookie) {
   console.log(`[integration] ${method} ${path}`);
@@ -18,6 +21,19 @@ async function api(method, path, body, cookie) {
   return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
 }
 try {
+  await mongoClient.connect();
+  const migrationDb = mongoClient.db('migration_checks');
+  const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
+  await migrationDb.collection('CompanyProfile').insertOne({ _id: fixtureCompany, userId: fixtureOwner });
+  await migrationDb.collection('Contractor').insertOne({ _id: fixtureContact, userId: fixtureOwner, name: 'Preserved' });
+  await migrateData(migrationDb); await migrateData(migrationDb);
+  assert.equal(String((await migrationDb.collection('Contractor').findOne({ _id: fixtureContact })).companyId), String(fixtureCompany));
+  await migrationDb.collection('Contractor').updateOne({ _id: fixtureContact }, { $set: { name: 'Edited after migration' } });
+  await migrateData(migrationDb, 'down', '001-company-catalog');
+  const rolledBack = await migrationDb.collection('Contractor').findOne({ _id: fixtureContact });
+  assert.equal(Object.hasOwn(rolledBack, 'companyId'), false); assert.equal(rolledBack.name, 'Edited after migration');
+  await migrateData(migrationDb);
+  console.log('[integration] PASS migrations up/up/down/up preserve business data');
   console.log('[integration] Initializing test database');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
@@ -58,7 +74,26 @@ try {
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, a.cookie)).res.status, 200);
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
   assert.equal((await api('GET', '/api/data', undefined, b.cookie)).data.invoices.length, 0);
+  const company2 = await api('POST', '/api/companies', { companyName: 'Firma prywatna', nip: '5250001003' }, a.cookie);
+  assert.equal(company2.res.status, 201);
+  const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
+  assert.equal(privateContact.res.status, 201);
+  const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);
+  assert.equal(sharedContact.res.status, 201);
   await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'viewer', canIssueInvoices: false } });
+  const visible = (await api('GET', '/api/data', undefined, b.cookie)).data;
+  assert.ok(visible.contractors.some(c => c.id === sharedContact.data.contractor.id));
+  assert.ok(visible.contractors.some(c => c.id === contractor.data.contractor.id));
+  assert.ok(!visible.contractors.some(c => c.id === privateContact.data.contractor.id));
+  const listed = await api('GET', '/api/companies', undefined, b.cookie);
+  assert.deepEqual(listed.data.companies.map(c => c.id), [companyId]);
+  assert.equal((await api('GET', `/api/companies/${companyId}`, undefined, b.cookie)).res.status, 200);
+  assert.equal((await api('GET', `/api/companies/${company2.data.company.id}`, undefined, b.cookie)).res.status, 404);
+  assert.equal((await api('PUT', `/api/contractors/${sharedContact.data.contractor.id}`, { name: 'Forbidden' }, b.cookie)).res.status, 403);
+  assert.equal((await api('POST', '/api/contractors', { name: 'Forbidden', nip: '5250001003', companyId }, b.cookie)).res.status, 403);
+  const crossCompany = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FORBIDDEN', contractorId: privateContact.data.contractor.id }, a.cookie);
+  assert.equal(crossCompany.res.status, 400);
+
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 200);
   assert.equal((await api('PUT', `/api/invoices/${invoiceId}`, { version: 1, notes: 'Forbidden' }, b.cookie)).res.status, 403);
   assert.equal((await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, b.cookie)).res.status, 403);
@@ -83,5 +118,5 @@ try {
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }
-  await db.$disconnect(); await mongo.stop();
+  await db.$disconnect(); await mongoClient.close(); await mongo.stop();
 }

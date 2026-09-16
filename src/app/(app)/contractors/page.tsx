@@ -44,7 +44,9 @@ const emptyDraft: ContractorDraft = {
 
 export default function ContractorsPage() {
   const toast = useToast();
-  const { contractors, addContractor, updateContractor, deleteContractor } = useAppStore();
+  const { contractors: allContractors, selectedCompanyId, addContractor, updateContractor, deleteContractor } = useAppStore();
+
+  const contractors = allContractors.filter(item => !item.companyId || item.companyId === selectedCompanyId);
 
   const [search, setSearch] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -389,3 +391,4 @@ export default function ContractorsPage() {
     </div>
   );
 }
+
