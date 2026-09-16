@@ -16,7 +16,7 @@ export async function plan(db) {
     for await (const record of db.collection(collection).find({ companyId: null }, { projection: { userId: 1, companyId: 1 } })) {
       const owned = owners.get(String(record.userId)) || [];
       if (owned.length !== 1) continue;
-      if (collection === 'Contractor' && await db.collection('Invoice').countDocuments({ contractorId: record._id, sellerCompanyId: { $nin: [owned[0], null] } })) continue;
+      if (collection === 'Contractor' && await db.collection('Invoice').countDocuments({ contractorId: String(record._id), sellerCompanyId: { $nin: [owned[0], null] } })) continue;
       records.push({ collection, id: String(record._id), companyId: String(owned[0]), wasNull: Object.hasOwn(record, 'companyId') });
       // Keep the durable checkpoint below MongoDB's document limit. No mutation has run yet.
       if (records.length > 20000) throw new Error('Catalog migration exceeds 20,000 records: split the data migration before applying it.');

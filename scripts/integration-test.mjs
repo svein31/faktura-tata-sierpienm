@@ -30,8 +30,12 @@ try {
   const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
   await migrationDb.collection('CompanyProfile').insertOne({ _id: fixtureCompany, userId: fixtureOwner });
   await migrationDb.collection('Contractor').insertOne({ _id: fixtureContact, userId: fixtureOwner, name: 'Preserved' });
+  const crossContact = new ObjectId();
+  await migrationDb.collection('Contractor').insertOne({ _id: crossContact, userId: fixtureOwner, name: 'Multiple companies' });
+  await migrationDb.collection('Invoice').insertOne({ contractorId: String(crossContact), sellerCompanyId: new ObjectId() });
   await migrateData(migrationDb, 'up', '001-company-catalog'); await migrateData(migrationDb, 'up', '001-company-catalog');
   assert.equal(String((await migrationDb.collection('Contractor').findOne({ _id: fixtureContact })).companyId), String(fixtureCompany));
+  assert.equal(Object.hasOwn(await migrationDb.collection('Contractor').findOne({ _id: crossContact }), 'companyId'), false);
   await migrationDb.collection('Contractor').updateOne({ _id: fixtureContact }, { $set: { name: 'Edited after migration' } });
   await migrateData(migrationDb, 'down', '001-company-catalog');
   const rolledBack = await migrationDb.collection('Contractor').findOne({ _id: fixtureContact });
