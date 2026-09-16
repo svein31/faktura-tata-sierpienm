@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/audit";
 import { accessibleCompanyIds } from "@/lib/company-scope";
 import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
@@ -59,30 +60,13 @@ export async function POST(req: Request) {
     const existingCount = await prisma.companyProfile.count({ where: { userId: user.id } });
     const shouldBeDefault = data.isDefault || existingCount === 0;
 
-    let company;
-    if (shouldBeDefault && existingCount > 0) {
-      company = await prisma.$transaction(async (tx) => {
-        await tx.companyProfile.updateMany({
-          where: { userId: user.id },
-          data: { isDefault: false },
-        });
-        return tx.companyProfile.create({
-          data: {
-            userId: user.id,
-            ...data,
-            isDefault: true,
-          },
-        });
-      });
-    } else {
-      company = await prisma.companyProfile.create({
-        data: {
-          userId: user.id,
-          ...data,
-          isDefault: shouldBeDefault,
-        },
-      });
-    }
+    const company = await prisma.$transaction(async tx => {
+      if (shouldBeDefault && existingCount > 0) await tx.companyProfile.updateMany({ where: { userId: user.id }, data: { isDefault: false } });
+      const created = await tx.companyProfile.create({ data: { userId: user.id, ...data, isDefault: shouldBeDefault } });
+      await recordAuditLog({ client: tx, companyId: created.id, userId: user.id, userName: user.name, userEmail: user.email,
+        action: "company_created", entityType: "company", entityId: created.id, details: { companyName: created.companyName, nip: created.nip } });
+      return created;
+    });
 
     return json({ company: companyProfileToDto(company) }, { status: 201 });
   } catch (e) {

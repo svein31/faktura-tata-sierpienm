@@ -443,7 +443,7 @@ model KsefQueueTask {
 model AuditLog {
   id          String          @id @default(auto()) @map("_id") @db.ObjectId
   companyId   String?         @db.ObjectId
-  company     CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company     CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: SetNull)
   documentId  String?
   userId      String?         @db.ObjectId
   user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)

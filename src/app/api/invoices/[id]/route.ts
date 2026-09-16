@@ -109,8 +109,9 @@ export async function PUT(req: Request, { params }: Ctx) {
         allowedData.approvalStatus = body.approvalStatus.trim();
       }
 
-      const updated = await prisma.invoice.update({
-        where: { id: existing.id },
+    const updated = await prisma.$transaction(async tx => {
+      const updated = await tx.invoice.update({
+        where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
         data: {
           ...allowedData,
           version: (existing.version || 1) + 1,
@@ -128,6 +129,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
       // Zapis w audycie
       await recordAuditLog({
+        client: tx,
         companyId: existing.sellerCompanyId || undefined,
         documentId: existing.id,
         userId: user.id,
@@ -139,6 +141,9 @@ export async function PUT(req: Request, { params }: Ctx) {
         description: `Zaktualizowano notatki/status faktury KSeF ${existing.number}`,
         diff: diffResult.diff,
       });
+
+    return updated;
+    });
 
       return json({ invoice: invoiceToDto(updated) });
     }
@@ -177,8 +182,9 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const nextVersion = (existing.version || 1) + 1;
 
-    const invoice = await prisma.invoice.update({
-      where: { id: existing.id },
+    const invoice = await prisma.$transaction(async tx => {
+    const invoice = await tx.invoice.update({
+      where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
         ...data,
         version: nextVersion,
@@ -206,6 +212,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     });
 
     await recordAuditLog({
+        client: tx,
       companyId: invoice.sellerCompanyId || undefined,
       documentId: invoice.id,
       userId: user.id,
@@ -218,8 +225,12 @@ export async function PUT(req: Request, { params }: Ctx) {
       diff: diffResult.diff,
     });
 
+    return invoice;
+    });
+
     return json({ invoice: invoiceToDto(invoice) });
   } catch (e) {
+    if (["P2025", "P2034"].includes((e as { code?: string }).code || "")) return handleApiError(new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane."));
     return handleApiError(e);
   }
 }
@@ -257,10 +268,12 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       throw new ApiError(400, `Faktura posiada zarejestrowany numer KSeF (${existing.ksefNumber}) i nie może zostać usunięta.`);
     }
 
-    await prisma.invoice.delete({ where: { id: existing.id } });
+    await prisma.$transaction(async tx => {
+    await tx.invoice.delete({ where: { id: existing.id } });
 
     // Zapis w audycie
     await recordAuditLog({
+        client: tx,
       companyId: existing.sellerCompanyId || undefined,
       documentId: existing.id,
       userId: user.id,
@@ -275,6 +288,8 @@ export async function DELETE(_req: Request, { params }: Ctx) {
         currency: existing.currency,
         status: existing.status,
       },
+    });
+
     });
 
     return json({ ok: true });

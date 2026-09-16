@@ -61,7 +61,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const invoice = await prisma.invoice.create({
+    const invoice = await prisma.$transaction(async tx => {
+    const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
         ...data,
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
 
     // Zarejestruj utworzenie dokumentu w trwałym dzienniku zdarzeń
     await recordAuditLog({
+      client: tx,
       companyId: invoice.sellerCompanyId || undefined,
       documentId: invoice.id,
       userId: user.id,
@@ -92,6 +94,9 @@ export async function POST(req: Request) {
         exchangeRate: invoice.exchangeRate,
         exchangeRateTable: invoice.exchangeRateTable,
       },
+    });
+
+    return invoice;
     });
 
     return json({ invoice: invoiceToDto(invoice) }, { status: 201 });

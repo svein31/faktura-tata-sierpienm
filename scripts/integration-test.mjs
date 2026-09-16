@@ -97,10 +97,25 @@ try {
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 200);
   assert.equal((await api('PUT', `/api/invoices/${invoiceId}`, { version: 1, notes: 'Forbidden' }, b.cookie)).res.status, 403);
   assert.equal((await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, b.cookie)).res.status, 403);
+  const historic = await db.auditLog.create({ data: { companyId, userId: b.data.user.id, documentId: invoiceId, action: 'fixture_previous_access', entityType: 'invoice', entityId: invoiceId } });
   await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
+  assert.ok(!(await api('GET', '/api/audit', undefined, b.cookie)).data.logs.some(log => log.id === historic.id));
+  assert.equal((await api('GET', `/api/audit?documentId=${invoiceId}`, undefined, b.cookie)).data.logs.length, 0);
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
   const audit = await api('GET', `/api/audit?companyId=${companyId}`, undefined, a.cookie);
   assert.ok(audit.data.logs.some(log => log.action === 'invoice_created'));
+  const edits = await Promise.all(['A', 'B'].map(notes => api('PUT', `/api/invoices/${invoiceId}`, { ...invoice.data.invoice, notes, version: 1 }, a.cookie)));
+  assert.deepEqual(edits.map(result => result.res.status).sort(), [200, 409]);
+  const filteredAudit = await api('GET', `/api/audit?companyId=${companyId}&documentId=${invoiceId}&limit=1`, undefined, a.cookie);
+  assert.equal(filteredAudit.data.logs.length, 1); assert.equal(filteredAudit.data.logs[0].documentId, invoiceId);
+  assert.ok(filteredAudit.data.nextCursor);
+  const olderAudit = await api('GET', `/api/audit?companyId=${companyId}&documentId=${invoiceId}&limit=1&cursor=${filteredAudit.data.nextCursor}`, undefined, a.cookie);
+  assert.notEqual(olderAudit.data.logs[0].id, filteredAudit.data.logs[0].id);
+  const emptyCompany = await api('POST', '/api/companies', { companyName: 'Do usunięcia', nip: '5260301706' }, b.cookie);
+  assert.equal(emptyCompany.res.status, 201);
+  assert.equal((await api('DELETE', `/api/companies/${emptyCompany.data.company.id}`, undefined, b.cookie)).res.status, 200);
+  assert.ok(await db.auditLog.count({ where: { entityId: emptyCompany.data.company.id } }) >= 2);
+
   const concurrent = await Promise.all([1, 2].map(() => api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie)));
   assert.ok(concurrent.some(result => result.res.status === 200));
   assert.ok(concurrent.every(result => [200, 409].includes(result.res.status)));

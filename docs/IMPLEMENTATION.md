@@ -19,3 +19,9 @@ Ręcznie: odebrać pracownikowi `canSendKsef` po dodaniu zadania; sprawdzić odm
 Istniejący przełącznik profili filtruje katalogi oraz wybór kontrahenta/produktu na fakturze. Nowe rekordy należą do aktywnej firmy. Lista i szczegóły firm uwzględniają członkostwo w zespole. Backend sprawdza firmę kontrahenta oraz uprawnienia do zapisu katalogu; zapisanej faktury nie można przenieść między firmami. Starsi kontrahenci powiązani z fakturą pozostają widoczni członkom jej firmy; pozostałe dane konta są prywatne. Zmiany katalogu zapisują audyt w tej samej transakcji. Usunięcie kontrahenta z historią faktur jest blokowane.
 
 Migracja: `001-company-catalog`, jawne `up`/`down`, opis w instrukcji migracji. Ręcznie: utworzyć dwie firmy i osobne katalogi, przełączać profile, zaprosić podgląd do jednej firmy, sprawdzić brak danych drugiej i odmowę edycji. Odebrać członkostwo i odświeżyć dane. Sprawdzić wybór kontrahenta na nowej fakturze i historię starych dokumentów.
+
+## 3. Dziennik zmian
+
+Audyt utworzenia, edycji i usunięcia faktury/profilu/katalogu jest zapisywany razem z operacją w transakcji. Zmiany wersji dokumentu nie nadpisują równoległego zapisu. Logi filtrują równocześnie firmę i dokument, uwzględniają odebrane członkostwo i obsługują stronicowanie. Maskowanie obejmuje zagnieżdżone tokeny i sekrety. Usunięcie pustej firmy zachowuje historię zamiast kasować ją kaskadowo (`SetNull`, zachowanie nowego klienta Prisma, bez modyfikacji istniejących danych). Dodano ekran „Dziennik zmian”.
+
+Ręcznie: edycja faktury w dwóch kartach, filtr firma/dokument, starsze wpisy, odebranie dostępu, zmiana tokena KSeF (wartość ma być ukryta). Usunąć pustą firmę i sprawdzić zachowanie wpisów w bazie. Moduły płatności nie były edytowane.

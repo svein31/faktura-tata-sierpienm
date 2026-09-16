@@ -39,6 +39,7 @@ const NAV_MAIN = [
 ];
 
 const NAV_SETTINGS = [
+  { href: "/audit", label: "Dziennik zmian", icon: BookOpen },
   { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
@@ -260,3 +261,4 @@ export function MobileSidebar({
     </AnimatePresence>
   );
 }
+
