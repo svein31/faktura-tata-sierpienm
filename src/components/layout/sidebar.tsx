@@ -28,6 +28,7 @@ import { useSessionUser } from "@/lib/session-context";
 
 const NAV_MAIN = [
   { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
+  { href: "/recurring", label: "Faktury cykliczne", icon: FileText },
   { href: "/invoices", label: "Faktury", icon: FileText },
   { href: "/offers", label: "Oferty", icon: FileCheck2 },
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },

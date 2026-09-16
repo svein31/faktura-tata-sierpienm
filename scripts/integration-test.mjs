@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 require('./register-ts.cjs');
 const { totpAt } = require('../src/lib/totp.ts');
+const { warsawDate } = require('../src/lib/scheduling.ts');
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
@@ -19,9 +20,9 @@ const port = 41000 + Math.floor(Math.random() * 1000);
 const base = `http://127.0.0.1:${port}`;
 const mongoClient = new MongoClient(databaseUrl);
 let server, logs = '';
-async function api(method, path, body, cookie) {
+async function api(method, path, body, cookie, extraHeaders = {}) {
   console.log(`[integration] ${method} ${path}`);
-  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...extraHeaders, ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
 }
 try {
@@ -49,6 +50,12 @@ try {
   await migrateData(migrationDb, 'down', '002-user-mfa');
   assert.equal((await migrationDb.collection('UserMfa').findOne({ userId: fixtureOwner })).encryptedSecret, 'preserve');
   await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
+  await migrationDb.collection('RecurringOccurrence').insertOne({ templateId: fixtureContact, scheduledDate: '2026-09-15', invoiceId: new ObjectId() });
+  await migrateData(migrationDb, 'down', '003-recurring-occurrences');
+  assert.equal(await migrationDb.collection('RecurringOccurrence').countDocuments(), 1);
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
   console.log('[integration] PASS migrations up/up/down/up preserve business data');
   console.log('[integration] Initializing test database');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
@@ -149,6 +156,28 @@ try {
   assert.equal(fx.res.status, 201, JSON.stringify(fx.data)); assert.equal(fx.data.invoice.totalGrossPln, 522.75);
   const invalidFx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/2', currency: 'USD', exchangeRateRule: 'manual', exchangeRate: 4.25 }, a.cookie);
   assert.equal(invalidFx.res.status, 400); assert.equal(await db.invoice.count({ where: { number: 'FX/2' } }), 0);
+  assert.equal((await api('POST', '/api/recurring/process', {})).res.status, 401);
+  assert.equal((await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { nextDate: warsawDate(), interval: 'monthly' }, b.cookie)).res.status, 403);
+  const schedule = await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { nextDate: warsawDate(), interval: 'monthly', autoSend: false }, a.cookie);
+  assert.equal(schedule.res.status, 200, JSON.stringify(schedule.data));
+  const cronHeaders = { Authorization: 'Bearer integration-cron-secret' };
+  const generated = await Promise.all([1, 2].map(() => api('POST', '/api/recurring/process', {}, undefined, cronHeaders)));
+  assert.ok(generated.every(result => result.res.status === 200));
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  const occurrence = await db.recurringOccurrence.findFirstOrThrow({ where: { templateId: invoiceId } });
+  const child = await db.invoice.findUniqueOrThrow({ where: { id: occurrence.invoiceId } });
+  assert.equal(child.sellerCompanyId, companyId); assert.equal(child.totalGross, 123); assert.equal(child.ksefNumber, null); assert.equal(child.isRecurring, false);
+  assert.match(child.number, /^CYK\//);
+  await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: true, nextDate: warsawDate() }, a.cookie);
+  await api('POST', '/api/recurring/process', {}, undefined, cronHeaders);
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'employee', canIssueInvoices: true } });
+  assert.equal((await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: false, nextDate: warsawDate() }, b.cookie)).res.status, 200);
+  await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
+  const revokedSchedule = await api('POST', '/api/recurring/process', {}, undefined, cronHeaders);
+  assert.ok(revokedSchedule.data.results.some(result => result.templateId === invoiceId && result.error));
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: true }, a.cookie);
   const credentials = { email: 'a@example.com', password: 'Integration123!' };
   const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
   assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));

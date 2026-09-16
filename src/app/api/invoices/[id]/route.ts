@@ -166,6 +166,8 @@ export async function PUT(req: Request, { params }: Ctx) {
       throw new ApiError(400, "Nie można przenieść zapisanej faktury do innej firmy. Utwórz nowy dokument w wybranej firmie.");
     }
 
+    if (data.isRecurring && data.recurringNextDate === existing.recurringNextDate) data.recurringAnchorDay = existing.recurringAnchorDay ?? data.recurringAnchorDay;
+
     // 5. Ochrona przed duplikatem numeru przy zmianie numeru
     if (data.number !== existing.number) {
       const conflict = await prisma.invoice.findFirst({
@@ -188,6 +190,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       data: {
         ...data,
         version: nextVersion,
+        recurringUserId: data.isRecurring ? user.id : null,
       },
       include: {
         sellerCompany: { include: { bankAccounts: true } },

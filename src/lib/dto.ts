@@ -244,6 +244,8 @@ export function invoiceToDto(
     qrCodeII: i.qrCodeII ?? undefined,
     isRecurring: i.isRecurring ?? false,
     recurringInterval: i.recurringInterval ?? undefined,
+    recurringAnchorDay: i.recurringAnchorDay,
+    recurringLastError: i.recurringLastError,
     recurringNextDate: i.recurringNextDate ?? undefined,
     recurringPaused: i.recurringPaused ?? false,
     recurringAutoSend: i.recurringAutoSend ?? false,

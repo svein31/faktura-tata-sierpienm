@@ -67,6 +67,7 @@ export async function POST(req: Request) {
         userId: user.id,
         ...data,
         version: 1,
+        recurringUserId: data.isRecurring ? user.id : null,
       },
       include: {
         sellerCompany: {

@@ -39,3 +39,11 @@ Ręcznie: skan QR, aktywacja, ponowne logowanie, błędny/powtórzony kod, kod o
 Rozszerzono istniejący moduł NBP i parser faktur. Serwer wyznacza oficjalny kurs oraz kwoty PLN zamiast ufać wartościom z formularza. Zachowuje numer tabeli, datę publikacji i podstawę kursu. Weekendy/święta cofają wyszukiwanie do poprzedniej publikacji; awaria, błędna odpowiedź lub timeout nie podstawiają kursu 1. Istniejący kurs ręczny wymaga dodatniej wartości i uzasadnienia. Waluta PLN usuwa obce metadane kursowe. API: https://api.nbp.pl/.
 
 Ręcznie: EUR/USD, faktura poniedziałkowa, zmiana daty i waluty na PLN, niedostępność NBP, uzasadniony kurs ręczny; porównać zapis z PDF/XML. Istniejące faktury nie są przeliczane migracją, nowe kolumny nie są potrzebne.
+
+## 6. Faktury cykliczne
+
+Istniejące pola harmonogramu faktury są używane przez serwerowy generator. Interwały: tydzień, miesiąc, kwartał, rok; zachowanie dnia kotwiczącego (31 stycznia → 28 lutego → 31 marca), daty Europe/Warsaw. Unikalne wystąpienie i transakcja chronią przed dwukrotnym generowaniem. Generator ponownie sprawdza role, pobiera aktualny właściwy kurs NBP, nie kopiuje numeru KSeF ani wpłat. Nowy dokument otrzymuje serię `CYK/data/idŹródła`. Po przerwie nadrabia jeden okres na harmonogram i uruchomienie, z bieżącą datą wystawienia oraz datą sprzedaży z harmonogramu. Błędy są widoczne na ekranie cykli; wstrzymanie/wznowienie podlega audytowi. Opcjonalne kolejkowanie używa istniejącej kolejki KSeF i środowiska autora harmonogramu.
+
+Netlify: `netlify/functions/fakturo-scheduler.mjs` uruchamia generator co 15 minut; ustawić `CRON_SECRET` i `APP_URL` (HTTPS; na Netlify może użyć `URL`). Inny hosting: cron wysyła POST `/api/recurring/process` z `Authorization: Bearer <CRON_SECRET>` co 15 minut. Migracja `003-recurring-occurrences`. Endpoint nie przyjmuje uwierzytelnienia zwykłą sesją.
+
+Ręcznie: utworzyć cykl z ekranu „Faktury cykliczne” lub kreatora, uruchomić harmonogram dwukrotnie, sprawdzić jeden dokument, daty końca miesiąca, wstrzymanie i odebrane uprawnienia. Automatyczna wysyłka KSeF pozostaje zależna od opisanej osobno zgodności istniejącego XML z XSD.

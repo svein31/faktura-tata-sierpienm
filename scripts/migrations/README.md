@@ -18,3 +18,7 @@ Dodaje indeksy `Contractor.companyId` i `Product.companyId`. Rekordy konta mają
 ### 002-user-mfa
 
 Tworzy unikalny indeks `UserMfa.userId`. Nowe pole sesji `mfaVerifiedAt` jest opcjonalne; brak pola oznacza sesję bez 2FA. Migracja nie włącza 2FA żadnemu użytkownikowi. `down` usuwa wyłącznie indeks utworzony przez `up`, zachowuje dane. Cofnięcie wsparcia MFA jest blokowane, dopóki istnieją aktywne konfiguracje: użytkownicy muszą wcześniej wyłączyć 2FA przez uwierzytelnione ustawienia. Nie wolno wycofać kodu bramki 2FA przy aktywnej ochronie kont. Operacje indeksów wykonywać w oknie serwisowym.
+
+### 003-recurring-occurrences
+
+Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin oraz wygenerowana faktura. `down` usuwa wyłącznie indeksy utworzone przez migrację, zachowuje powiązania i wszystkie faktury. Przed rollbackiem zatrzymać zadanie cron; ponownie włączyć dopiero po `up`. Nowe pola harmonogramu na fakturze są opcjonalne i nie wymagają masowego nadpisania danych.

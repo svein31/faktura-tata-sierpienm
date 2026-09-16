@@ -264,6 +264,8 @@ export interface Invoice {
   // Faktury cykliczne
   isRecurring?: boolean;
   recurringInterval?: string;
+  recurringAnchorDay?: number | null;
+  recurringLastError?: string | null;
   recurringNextDate?: string;
   recurringPaused?: boolean;
   recurringAutoSend?: boolean;

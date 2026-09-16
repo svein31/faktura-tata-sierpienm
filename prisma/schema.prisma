@@ -264,6 +264,10 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  recurringAnchorDay Int?
+  recurringUserId String? @db.ObjectId
+  recurringLastAttemptAt DateTime?
+  recurringLastError String?
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
   userId          String          @db.ObjectId
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -670,4 +674,14 @@ model UserMfa {
   lockedUntil     DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+/// Idempotencja: jeden wygenerowany dokument na termin harmonogramu.
+model RecurringOccurrence {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  templateId    String   @db.ObjectId
+  scheduledDate String
+  invoiceId     String   @unique @db.ObjectId
+  createdAt     DateTime @default(now())
+  @@unique([templateId, scheduledDate])
 }

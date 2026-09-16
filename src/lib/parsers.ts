@@ -214,6 +214,12 @@ export async function parseInvoiceBody(
     if (!dateRe.test(v) || !isIsoCalendarDate(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
   }
 
+  if (body.isRecurring) {
+    if (type !== "sale" || body.isCorrection || !sellerCompanyId) throw new ApiError(400, "Harmonogram wymaga faktury sprzedaży przypisanej do firmy, bez korekty.");
+    if (!["weekly", "monthly", "quarterly", "yearly"].includes(String(body.recurringInterval)) || !isIsoCalendarDate(String(body.recurringNextDate))) throw new ApiError(400, "Nieprawidłowy harmonogram cykliczny.");
+    if (body.isProforma && body.recurringAutoSend) throw new ApiError(400, "Proforma nie podlega automatycznej wysyłce KSeF.");
+  }
+
   // Rate provenance and PLN totals are authoritative on the server.
   const lines = parseLines(body.lines);
   const taxPointDate = cleanStr(body.taxPointDate, 10, "taxPointDate") || null;
@@ -287,6 +293,7 @@ export async function parseInvoiceBody(
     offlineReason: cleanStr(body.offlineReason, 500, "offlineReason") || null,
     // Cykliczne
     isRecurring: Boolean(body.isRecurring),
+    recurringAnchorDay: body.isRecurring ? Number(String(body.recurringNextDate).slice(8, 10)) : null,
     recurringInterval: cleanStr(body.recurringInterval, 20, "recurringInterval") || null,
     recurringNextDate: cleanStr(body.recurringNextDate, 20, "recurringNextDate") || null,
     recurringPaused: Boolean(body.recurringPaused),
