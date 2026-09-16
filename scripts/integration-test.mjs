@@ -61,14 +61,19 @@ try {
   await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'viewer', canIssueInvoices: false } });
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 200);
   assert.equal((await api('PUT', `/api/invoices/${invoiceId}`, { version: 1, notes: 'Forbidden' }, b.cookie)).res.status, 403);
+  assert.equal((await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, b.cookie)).res.status, 403);
   await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
   const audit = await api('GET', `/api/audit?companyId=${companyId}`, undefined, a.cookie);
   assert.ok(audit.data.logs.some(log => log.action === 'invoice_created'));
-  const enqueue = await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie);
-  assert.equal(enqueue.res.status, 200, JSON.stringify(enqueue.data));
+  const concurrent = await Promise.all([1, 2].map(() => api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie)));
+  assert.ok(concurrent.some(result => result.res.status === 200));
+  assert.ok(concurrent.every(result => [200, 409].includes(result.res.status)));
+  assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
   const again = await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie);
   assert.equal(again.data.alreadyQueued, true);
+  // Legacy MongoDB tasks may omit optional fields entirely (not the same as null).
+  await db.ksefQueueTask.updateMany({ where: { invoiceId }, data: { lockedUntil: { unset: true }, nextAttemptAt: { unset: true } } });
   const processed = await api('POST', '/api/ksef/queue/process', {}, a.cookie);
   assert.equal(processed.res.status, 200, JSON.stringify(processed.data));
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
