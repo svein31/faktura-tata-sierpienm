@@ -202,7 +202,6 @@ export function TwoFactorAuthCard() {
               <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-5 items-center">
                 {/* Kod QR */}
                 <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/60 bg-[#07090e] shadow-inner text-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={qrImageSrc}
                     alt="Kod QR 2FA"

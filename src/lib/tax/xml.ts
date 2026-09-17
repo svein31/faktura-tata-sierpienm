@@ -36,7 +36,6 @@ export function esc(value: string | number | null | undefined): string {
 /** Usuwa znaki sterujące niedozwolone w XML 1.0 oraz normalizuje białe znaki. */
 export function sanitizeText(value: string | null | undefined): string {
   return String(value ?? "")
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
     .replace(/\s+/g, " ")
     .trim();
