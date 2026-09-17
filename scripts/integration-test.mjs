@@ -120,6 +120,41 @@ try {
   }, a.cookie);
   assert.equal(invoice.res.status, 201, JSON.stringify(invoice.data));
   const invoiceId = invoice.data.invoice.id;
+  const proforma = await api('POST', '/api/invoices', {
+    ...invoice.data.invoice, number: 'PF/2026/1', status: 'draft', documentStatus: 'draft', isProforma: true,
+    isRecurring: false, isCorrection: false,
+  }, a.cookie);
+  assert.equal(proforma.res.status, 201, JSON.stringify(proforma.data));
+  const proformaId = proforma.data.invoice.id;
+  const firstAdvance = await api('POST', '/api/invoice-settlements', {
+    sourceId: proformaId, kind: 'advance', amountNet: 60, number: 'ZA/2026/1', issueDate: '2026-09-15',
+    receivedDate: '2026-09-15', receiptConfirmed: true, requestId: 'advance-request-0001',
+  }, a.cookie);
+  assert.equal(firstAdvance.res.status, 201, JSON.stringify(firstAdvance.data));
+  assert.equal(firstAdvance.data.invoice.documentKind, 'advance');
+  assert.equal(firstAdvance.data.invoice.totalNet, 60);
+  const repeatedAdvance = await api('POST', '/api/invoice-settlements', {
+    sourceId: proformaId, kind: 'advance', amountNet: 60, number: 'ZA/2026/1', issueDate: '2026-09-15',
+    receivedDate: '2026-09-15', receiptConfirmed: true, requestId: 'advance-request-0001',
+  }, a.cookie);
+  assert.equal(repeatedAdvance.res.status, 200); assert.equal(repeatedAdvance.data.invoice.id, firstAdvance.data.invoice.id);
+  const secondAdvance = await api('POST', '/api/invoice-settlements', {
+    sourceId: proformaId, kind: 'advance', amountNet: 40, number: 'ZA/2026/2', issueDate: '2026-09-16',
+    receivedDate: '2026-09-16', receiptConfirmed: true, requestId: 'advance-request-0002',
+  }, a.cookie);
+  assert.equal(secondAdvance.res.status, 201, JSON.stringify(secondAdvance.data));
+  const finalSettlement = await api('POST', '/api/invoice-settlements', {
+    sourceId: proformaId, kind: 'final', number: 'FK/2026/1', issueDate: '2026-09-17', requestId: 'final-request-0001',
+  }, a.cookie);
+  assert.equal(finalSettlement.res.status, 201, JSON.stringify(finalSettlement.data));
+  assert.equal(finalSettlement.data.invoice.documentKind, 'final');
+  assert.equal(finalSettlement.data.invoice.totalNet, 0);
+  assert.equal((await api('POST', '/api/invoice-settlements', {
+    sourceId: proformaId, kind: 'final', number: 'FK/2026/2', issueDate: '2026-09-17', requestId: 'final-request-0002',
+  }, a.cookie)).res.status, 409);
+  assert.equal((await api('PUT', `/api/invoices/${proformaId}`, { version: 3, notes: 'locked' }, a.cookie)).res.status, 409);
+  assert.equal((await api('DELETE', `/api/invoices/${proformaId}`, undefined, a.cookie)).res.status, 409);
+  assert.equal((await api('PUT', `/api/invoices/${firstAdvance.data.invoice.id}`, { version: 1, notes: 'locked' }, a.cookie)).res.status, 409);
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, a.cookie)).res.status, 200);
   assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
   assert.equal((await api('GET', '/api/data', undefined, b.cookie)).data.invoices.length, 0);

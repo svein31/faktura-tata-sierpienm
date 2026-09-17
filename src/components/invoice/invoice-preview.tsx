@@ -98,7 +98,7 @@ export function InvoicePreview({
                   ? "FAKTURA KORYGUJĄCA (KOR)"
                   : invoice.isProforma
                     ? "FAKTURA PROFORMA"
-                    : invoice.type === "purchase"
+                    : invoice.documentKind === "advance" ? "FAKTURA ZALICZKOWA" : invoice.documentKind === "final" ? "FAKTURA KOŃCOWA" : invoice.type === "purchase"
                       ? L.purchaseDoc
                       : L.saleDoc}
               </span>
@@ -338,3 +338,4 @@ export function InvoicePreview({
     </div>
   );
 }
+

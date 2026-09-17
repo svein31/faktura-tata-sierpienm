@@ -13,7 +13,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono faktury.");
     const invoice = await prisma.invoice.findUnique({ where: { id } });
-    if (!invoice?.sellerCompanyId || invoice.type !== "sale" || invoice.isCorrection) throw new ApiError(400, "Nie można utworzyć harmonogramu dla tego dokumentu.");
+    if (!invoice?.sellerCompanyId || invoice.documentKind === "advance" || invoice.documentKind === "final" || invoice.type !== "sale" || invoice.isCorrection) throw new ApiError(400, "Nie można utworzyć harmonogramu dla tego dokumentu.");
     const access = await requireCompanyAccess(user.id, invoice.sellerCompanyId, "canIssueInvoices");
     if (!access.ok) throw new ApiError(access.status, access.error);
     const body = await readJson(req), interval = String(body.interval ?? invoice.recurringInterval ?? "monthly"), nextDate = String(body.nextDate ?? invoice.recurringNextDate ?? "");

@@ -27,6 +27,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { useSessionUser } from "@/lib/session-context";
 
 const NAV_MAIN = [
+  { href: "/advances", label: "Proformy i zaliczki", icon: FileText },
   { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
   { href: "/recurring", label: "Faktury cykliczne", icon: FileText },

@@ -87,10 +87,12 @@ export function round2(n: number): number {
 }
 
 export function lineNet(line: InvoiceLine): number {
+  if (Number.isFinite(line.settlementNet) && Number.isFinite(line.settlementVat)) return round2(line.settlementNet!);
   return round2(line.quantity * line.netPrice);
 }
 
 export function lineVat(line: InvoiceLine): number {
+  if (Number.isFinite(line.settlementNet) && Number.isFinite(line.settlementVat)) return round2(line.settlementVat!);
   return round2((lineNet(line) * vatPercent(line.vatRate)) / 100);
 }
 
@@ -127,3 +129,4 @@ export function monthLabel(key: string): string {
   const d = new Date(y, m - 1, 1);
   return d.toLocaleDateString("pl-PL", { month: "short", year: "2-digit" });
 }
+

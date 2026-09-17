@@ -264,6 +264,9 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  documentKind String?
+  advanceReceivedDate String?
+  settlementMetadata Json?
   recurringAnchorDay Int?
   recurringUserId String? @db.ObjectId
   recurringLastAttemptAt DateTime?
@@ -751,4 +754,16 @@ model DueReminderDelivery {
   createdAt DateTime @default(now())
   @@index([companyId])
   @@index([status, createdAt])
+}
+
+model InvoiceSettlement {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ invoiceId String @unique @db.ObjectId
+ sourceId String @db.ObjectId
+ companyId String @db.ObjectId
+ kind String
+ requestKey String @unique
+ finalKey String @unique
+ createdAt DateTime @default(now())
+ @@index([sourceId])
 }

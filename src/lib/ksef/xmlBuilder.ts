@@ -7,6 +7,7 @@ import { FA3_NAMESPACE, FA3_SCHEMA_VERSION, FA3_SYSTEM_CODE, FA3_FORM_VARIANT, P
 import type { CompanyProfile, Contractor, Invoice, InvoiceLine, VatRate } from "../types";
 import { lineGross, lineNet, lineVat, round2 } from "../format";
 import { EU_COUNTRIES } from "../validation";
+import { warsawDate } from "../scheduling";
 
 const EU_COUNTRIES_LIST = Array.from(EU_COUNTRIES);
 
@@ -254,9 +255,15 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
   // Sekcja Płatności (Platnosc)
   const paymentMethodCode = PAYMENT_METHOD_CODES[invoice.paymentMethod] || "6";
   const ibanClean = cleanIban(seller.iban);
-  const paymentStatusXml = invoice.status === "paid"
-    ? `      <Zaplacono>1</Zaplacono>\n`
-    : `      <DoZaplaty>${totals.totalGross.toFixed(2)}</DoZaplaty>\n`;
+  const isPaid = invoice.status === "paid" || invoice.paymentStatus === "paid";
+  const actualDates = (invoice.payments || []).filter(payment => payment.amount > 0)
+    .map(payment => new Date(payment.paidAt)).filter(date => !Number.isNaN(date.getTime()));
+  if (invoice.documentKind === "advance" && invoice.advanceReceivedDate) actualDates.push(new Date(`${invoice.advanceReceivedDate}T12:00:00Z`));
+  const actualPaidAt = actualDates.length ? new Date(Math.max(...actualDates.map(date => date.getTime()))) : null;
+  if (isPaid && !actualPaidAt) throw new Error("Faktura oznaczona jako opłacona wymaga rzeczywistej daty zapłaty do eksportu FA(3).");
+  const paymentStatusXml = isPaid && actualPaidAt
+    ? `      <Zaplacono>1</Zaplacono>\n      <DataZaplaty>${warsawDate(actualPaidAt)}</DataZaplaty>\n`
+    : "";
 
   const bankAccountXml = ibanClean
     ? `      <RachunekBankowy>
@@ -265,9 +272,7 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
       </RachunekBankowy>\n`
     : "";
 
-  const paymentTermDescription = invoice.paymentTermDays
-    ? `Termin płatności: ${invoice.paymentTermDays} dni`
-    : `Termin płatności do: ${invoice.dueDate}`;
+
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Faktura xmlns="${FA3_NAMESPACE}" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -309,6 +314,8 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
       ${buyer.email ? `<Email>${esc(buyer.email)}</Email>` : ""}
       ${buyer.phone ? `<Telefon>${esc(buyer.phone)}</Telefon>` : ""}
     </DaneKontaktowe>` : ""}
+    <JST>2</JST>
+    <GV>2</GV>
   </Podmiot2>
 
   <Fa>
@@ -329,25 +336,25 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
         <P_22N>1</P_22N>
       </NoweSrodkiTransportu>
       <P_23>2</P_23>
-      <P_PMarzy>
+      <PMarzy>
         <P_PMarzyN>1</P_PMarzyN>
-      </P_PMarzy>
+      </PMarzy>
     </Adnotacje>
-    <RodzajFaktury>${invoice.isCorrection ? "KOR" : "VAT"}</RodzajFaktury>
+    <RodzajFaktury>${invoice.isCorrection ? "KOR" : invoice.documentKind === "advance" ? "ZAL" : invoice.documentKind === "final" && invoice.settlementMetadata?.advances.length ? "ROZ" : "VAT"}</RodzajFaktury>
 ${invoice.isCorrection ? `    <PrzyczynaKorekty>${esc(invoice.correctionReason || "Korekta pozycji faktury")}</PrzyczynaKorekty>
     <DaneFaKorygowanej>
       <DataWystFaKorygowanej>${invoice.originalIssueDate || invoice.issueDate}</DataWystFaKorygowanej>
       <NrFaKorygowanej>${esc(invoice.originalInvoiceNumber || "FA/ORYG")}</NrFaKorygowanej>
-      ${invoice.originalKsefNumber ? `<NrKSeF>${esc(invoice.originalKsefNumber)}</NrKSeF>` : `<NrKSeFN>1</NrKSeFN>`}
+      ${invoice.originalKsefNumber ? `<NrKSeF>1</NrKSeF><NrKSeFFaKorygowanej>${esc(invoice.originalKsefNumber)}</NrKSeFFaKorygowanej>` : `<NrKSeFN>1</NrKSeFN>`}
     </DaneFaKorygowanej>
-` : ""}${faWierszeXml}
+` : ""}${(invoice.settlementMetadata?.advances || []).map(a => `<FakturaZaliczkowa>${a.ksefNumber ? `<NrKSeFFaZaliczkowej>${esc(a.ksefNumber)}</NrKSeFFaZaliczkowej>` : `<NrKSeFZN>1</NrKSeFZN><NrFaZaliczkowej>${esc(a.number)}</NrFaZaliczkowej>`}</FakturaZaliczkowa>`).join("")}${invoice.documentKind === "advance" ? "" : faWierszeXml}
     <Platnosc>
-${paymentStatusXml}      <FormaPlatnosci>${paymentMethodCode}</FormaPlatnosci>
-      <TerminPlatnosci>
+${paymentStatusXml}      <TerminPlatnosci>
         <Termin>${invoice.dueDate || invoice.issueDate}</Termin>
-        <TerminOpis>${esc(paymentTermDescription)}</TerminOpis>
       </TerminPlatnosci>
+      <FormaPlatnosci>${paymentMethodCode}</FormaPlatnosci>
 ${bankAccountXml}    </Platnosc>
+${invoice.documentKind === "advance" && invoice.settlementMetadata ? `<Zamowienie><WartoscZamowienia>${calculateFa3Totals(invoice.settlementMetadata.orderLines).totalGross.toFixed(2)}</WartoscZamowienia>${invoice.settlementMetadata.orderLines.map((l,i)=>`<ZamowienieWiersz><NrWierszaZam>${i+1}</NrWierszaZam><P_7Z>${esc(l.name)}</P_7Z><P_8AZ>${esc(l.unit)}</P_8AZ><P_8BZ>${l.quantity}</P_8BZ><P_9AZ>${l.netPrice}</P_9AZ><P_11NettoZ>${lineNet(l).toFixed(2)}</P_11NettoZ><P_11VatZ>${lineVat(l).toFixed(2)}</P_11VatZ><P_12Z>${mapVatRateToP12(l.vatRate)}</P_12Z></ZamowienieWiersz>`).join("")}</Zamowienie>` : ""}
   </Fa>
 </Faktura>
 `;
@@ -411,7 +418,7 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
     issues.push({ severity: "error", path: "/Faktura/Podmiot2", message: "Brak sekcji nabywcy <Podmiot2>." });
   }
 
-  if (!trimmed.includes("<FaWiersz>")) {
+  if (!trimmed.includes("<FaWiersz>") && !(trimmed.includes("<RodzajFaktury>ZAL</RodzajFaktury>") && trimmed.includes("<ZamowienieWiersz>"))) {
     issues.push({ severity: "error", path: "/Faktura/Fa/FaWiersz", message: "Faktura musi zawierać co najmniej jeden wiersz <FaWiersz>." });
   }
 
@@ -479,6 +486,8 @@ export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
       <AdresL1>ul. Testowa 1</AdresL1>
       <AdresL2>00-950 Warszawa</AdresL2>
     </Adres>
+    <JST>2</JST>
+    <GV>2</GV>
   </Podmiot2>
   <Fa>
     <KodWaluty>PLN</KodWaluty>
@@ -500,9 +509,9 @@ export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
         <P_22N>1</P_22N>
       </NoweSrodkiTransportu>
       <P_23>2</P_23>
-      <P_PMarzy>
+      <PMarzy>
         <P_PMarzyN>1</P_PMarzyN>
-      </P_PMarzy>
+      </PMarzy>
     </Adnotacje>
     <RodzajFaktury>VAT</RodzajFaktury>
     <FaWiersz>
@@ -515,16 +524,15 @@ export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
       <P_12>23</P_12>
     </FaWiersz>
     <Platnosc>
-      <DoZaplaty>1230.00</DoZaplaty>
-      <FormaPlatnosci>6</FormaPlatnosci>
       <TerminPlatnosci>
         <Termin>2026-09-23</Termin>
-        <TerminOpis>Przelew 14 dni</TerminOpis>
       </TerminPlatnosci>
+      <FormaPlatnosci>6</FormaPlatnosci>
       <RachunekBankowy>
         <NrRB>12105000996711111111111111</NrRB>
       </RachunekBankowy>
     </Platnosc>
   </Fa>
 </Faktura>`;
+
 

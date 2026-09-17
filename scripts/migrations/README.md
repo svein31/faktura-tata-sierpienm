@@ -26,3 +26,5 @@ Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin 
 - `004-integrations`: indeksy kluczy API, endpointów i kolejki webhooków. Down zachowuje dane; wcześniej wyłączyć scheduler i webhooki.
 
 - `005-due-reminders`: indeksy konfiguracji i dziennika wiadomości. Down po wyłączeniu crona; dane pozostają.
+
+- `006-invoice-settlements`: indeksy ledgeru `InvoiceSettlement` (dokument źródłowy, faktura, idempotencyjny request oraz pojedyncza faktura końcowa). Migracja nie usuwa proform, faktur zaliczkowych ani końcowych; `down` usuwa wyłącznie indeksy utworzone przez `up`. Przed rollbackiem wyłączyć moduł rozliczeń, a po ponownym `up` zweryfikować unikalność `requestKey` i `finalKey`.

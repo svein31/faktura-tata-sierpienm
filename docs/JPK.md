@@ -1,6 +1,6 @@
 # Eksport JPK
 
-JPK_FA(4): wystawione faktury sprzedaży wybranej firmy/waluty według daty wystawienia. Kwoty w walucie dokumentu, VAT walutowy również PLN wg zapisanego kursu; korekty ze znakami wartości zapisanych pozycji. Proformy, szkice i anulowane dokumenty pomijane. Adres podatnika uzupełniany jawnie, bez zgadywania podziału ulicy i numeru. Brak migracji.
+JPK_FA(4): wystawione faktury sprzedaży wybranej firmy/waluty według daty wystawienia. Kwoty w walucie dokumentu, VAT walutowy również PLN wg zapisanego kursu; korekty ze znakami wartości zapisanych pozycji. Proformy, szkice i anulowane dokumenty pomijane. Faktury zaliczkowe są ujmowane jako `ZAL` z sekcją `Zamowienie`, a dokumenty końcowe zachowują referencje `FakturaZaliczkowa` i pozycje rozliczenia. Adres podatnika uzupełniany jawnie, bez zgadywania podziału ulicy i numeru. Brak migracji.
 
 JPK_VAT: część ewidencyjna JPK_V7M(3), od lutego 2026, bez deklaracji VAT. Plik przeznaczony do księgowości, NIE kompletny pierwotny JPK_V7M do złożenia. Okres według daty wystawienia; księgowość musi uzgodnić go z okresem obowiązku podatkowego i odliczenia. Dokument nie jest automatycznie podpisywany ani składany do MF.
 

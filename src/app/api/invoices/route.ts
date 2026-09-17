@@ -16,6 +16,10 @@ export async function POST(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const body = await readJson(req);
+    if (body.isCorrection && typeof body.originalInvoiceId === "string" && /^[a-f0-9]{24}$/i.test(body.originalInvoiceId)) {
+      const original = await prisma.invoice.findUnique({where:{id:body.originalInvoiceId},select:{documentKind:true}});
+      if (original?.documentKind === "advance" || original?.documentKind === "final") throw new ApiError(400,"Korekta rozliczenia zaliczki wymaga odrębnego przeliczenia całego rozliczenia; ten formularz obsługuje korekty zwykłych faktur.");
+    }
 
     // Sprawdź firmy powiązane z użytkownikiem
     const memberships = await prisma.companyMember.findMany({

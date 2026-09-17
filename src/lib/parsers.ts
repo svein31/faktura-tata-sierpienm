@@ -100,9 +100,11 @@ interface Line {
   unit: string;
   netPrice: number;
   vatRate: string;
+  settlementNet?: number;
+  settlementVat?: number;
 }
 
-function parseLines(v: unknown): Line[] {
+function parseLines(v: unknown, allowSettlementLines = false): Line[] {
   if (!Array.isArray(v) || v.length === 0) {
     throw new ApiError(400, "Faktura musi zawierać co najmniej jedną pozycję.");
   }
@@ -117,8 +119,14 @@ function parseLines(v: unknown): Line[] {
     }
 
     const netPrice = typeof l.netPrice === "number" ? l.netPrice : Number(l.netPrice ?? 0);
-    if (!Number.isFinite(netPrice) || netPrice < 0) {
+    const settlementNet = typeof l.settlementNet === "number" ? l.settlementNet : Number(l.settlementNet ?? NaN);
+    const settlementVat = typeof l.settlementVat === "number" ? l.settlementVat : Number(l.settlementVat ?? NaN);
+    const hasSettlement = allowSettlementLines && Number.isFinite(settlementNet) && Number.isFinite(settlementVat);
+    if (!Number.isFinite(netPrice) || (!hasSettlement && netPrice < 0)) {
       throw new ApiError(400, `Pozycja #${idx + 1}: cena netto nie może być ujemna.`);
+    }
+    if (hasSettlement && (![settlementNet, settlementVat].every(value => Math.abs(value) <= Number.MAX_SAFE_INTEGER / 100) || (settlementNet !== 0 && settlementVat !== 0 && Math.sign(settlementNet) !== Math.sign(settlementVat)))) {
+      throw new ApiError(400, `Pozycja #${idx + 1}: nieprawidłowa kwota rozliczenia.`);
     }
 
     const vatRate = cleanStr(l.vatRate, 4, `lines[${idx}].vatRate`);
@@ -133,6 +141,7 @@ function parseLines(v: unknown): Line[] {
       unit: cleanStr(l.unit, 30, `lines[${idx}].unit`) || "szt.",
       netPrice: Math.round(netPrice * 100) / 100,
       vatRate,
+      ...(hasSettlement ? { settlementNet: Math.round(settlementNet * 100) / 100, settlementVat: Math.round(settlementVat * 100) / 100 } : {}),
     };
   });
 }
@@ -170,6 +179,7 @@ export async function parseInvoiceBody(
   opts: {
     contractorOwnedBy: (id: string) => Promise<boolean>;
     companyOwnedBy?: (id: string) => Promise<boolean>;
+    allowSettlementLines?: boolean;
   }
 ) {
   const type = cleanStr(body.type, 10, "type") as (typeof TYPES)[number];
@@ -221,7 +231,7 @@ export async function parseInvoiceBody(
   }
 
   // Rate provenance and PLN totals are authoritative on the server.
-  const lines = parseLines(body.lines);
+  const lines = parseLines(body.lines, opts.allowSettlementLines === true);
   const taxPointDate = cleanStr(body.taxPointDate, 10, "taxPointDate") || null;
   if (taxPointDate && !isIsoCalendarDate(taxPointDate)) throw new ApiError(400, "Nieprawidłowa data obowiązku podatkowego.");
   let exchangeRate: number | null = null, exchangeRateUnit = 1;
@@ -321,4 +331,3 @@ export async function parseInvoiceBody(
     ksef: undefined,
   };
 }
-

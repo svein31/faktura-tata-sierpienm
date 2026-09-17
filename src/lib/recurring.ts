@@ -17,7 +17,7 @@ export async function generateRecurringInvoices(now = new Date()) {
     if (Date.now() - started > 20_000) break;
     try {
       const actorId = template.recurringUserId || template.userId, companyId = template.sellerCompanyId;
-      if (!companyId || template.type !== "sale" || template.isCorrection) throw new Error("Harmonogram wymaga faktury sprzedaży przypisanej do firmy.");
+      if (template.documentKind === "advance" || template.documentKind === "final" || !companyId || template.type !== "sale" || template.isCorrection) throw new Error("Harmonogram wymaga faktury sprzedaży przypisanej do firmy.");
       const access = await requireCompanyAccess(actorId, companyId, "canIssueInvoices");
       if (!access.ok) throw new Error(access.error);
       if (template.recurringAutoSend && (template.isProforma || !(await requireCompanyAccess(actorId, companyId, "canSendKsef")).ok)) throw new Error("Brak uprawnienia do automatycznej wysyłki KSeF.");

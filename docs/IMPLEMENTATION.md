@@ -71,3 +71,11 @@ Ręcznie: skrzynka testowa, faktury z terminami trzech etapów, dwukrotne wywoł
 ## 10. Eksport JPK
 
 JPK_FA(4) i ewidencja JPK_V7M(3), walidacja XSD w testach, uprawnienie canExport i audit. Szczegółowy zakres podstawowy, wymagane dane, ograniczenie do części ewidencyjnej VAT i testy ręczne: `JPK.md`. Brak migracji.
+
+## 11. Proformy, zaliczki i faktura końcowa
+
+Ekran `/advances` i `POST /api/invoice-settlements` prowadzą rozliczenie proformy sprzedaży: kwota netto zaliczki jest rozdzielana na stawki VAT, a faktura końcowa dodaje podpisane pozycje ujemne dla każdej wcześniejszej zaliczki. `InvoiceSettlement` przechowuje źródło, dokument, rodzaj i klucze idempotencji; CAS wersji proformy blokuje równoległe rozliczenia, a unikalny `finalKey` pozwala tylko na jeden finał. Zaliczki wymagają potwierdzonej rzeczywistej daty otrzymania. Dla EUR/USD parser wyznacza kurs NBP według reguły dokumentu (ręczny kurs jest dziedziczony wyłącznie z uzasadnionej proformy). Dokumenty rozliczenia i proformy po pierwszym rozliczeniu są zablokowane przed edycją/usunięciem i nie mogą być cykliczne ani korygowane zwykłym formularzem.
+
+Migracja `006-invoice-settlements` dodaje wyłącznie indeksy ledgeru i ma odwracalne `down` bez kasowania danych. Testy obejmują alokację groszy, uzgodnienie netto/brutto, parser podpisanych pozycji i FA(3) z `ZAL`/`ROZ` oraz referencjami zaliczek.
+
+Ręcznie: utworzyć proformę PLN i EUR, wystawić dwie częściowe zaliczki, sprawdzić sumy oraz próbę przekroczenia wartości, wystawić finał i potwierdzić blokadę ponownego finału/edycji/usunięcia. Zweryfikować datę otrzymania, kurs NBP, numery zaliczek w XML i wpis audytu. Moduł nie wykonuje przelewów ani nie modyfikuje rejestru płatności.

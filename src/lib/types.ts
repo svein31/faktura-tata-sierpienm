@@ -190,6 +190,8 @@ export interface Product {
 }
 
 export interface InvoiceLine {
+  settlementNet?: number;
+  settlementVat?: number;
   id: string;
   name: string;
   quantity: number;
@@ -210,6 +212,10 @@ export interface KsefInfo {
 }
 
 export interface Invoice {
+  documentKind?: "advance" | "final" | "vat";
+  advanceReceivedDate?: string;
+  settlementMetadata?: { sourceId: string; sourceNumber: string; orderLines: InvoiceLine[]; advances: {id:string;number:string;ksefNumber?:string|null;gross:number}[] };
+
   id: string;
   number: string;
   type: InvoiceType;

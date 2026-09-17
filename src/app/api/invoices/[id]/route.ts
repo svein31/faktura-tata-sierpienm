@@ -74,6 +74,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const { invoice: existing } = result;
     if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
+    if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
     const body = await readJson(req);
 
     // 1. Sprawdź optymistyczną blokadę współbieżności (Optimistic Concurrency Control)
@@ -251,6 +252,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
     const { invoice: existing } = result;
     if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
+    if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
 
     // Uprawnienia
     if (existing.sellerCompanyId) {
@@ -272,6 +274,11 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     await prisma.$transaction(async tx => {
+    const claimed = await tx.invoice.updateMany({
+      where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
+      data: { version: (existing.version || 1) + 1 },
+    });
+    if (!claimed.count) throw new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane.");
     await tx.invoice.delete({ where: { id: existing.id } });
 
     // Zapis w audycie
@@ -300,4 +307,3 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return handleApiError(e);
   }
 }
-

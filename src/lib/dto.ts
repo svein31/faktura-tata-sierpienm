@@ -195,6 +195,9 @@ export function invoiceToDto(
   return {
     id: i.id,
     number: i.number,
+    documentKind: (i.documentKind || "vat") as Invoice["documentKind"],
+    advanceReceivedDate: i.advanceReceivedDate || undefined,
+    settlementMetadata: (i.settlementMetadata || undefined) as unknown as Invoice["settlementMetadata"],
     type: (i.type === "purchase" ? "purchase" : "sale") as Invoice["type"],
     status: i.status as Invoice["status"],
     contractorId: i.contractorId,
