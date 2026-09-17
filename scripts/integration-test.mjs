@@ -229,7 +229,7 @@ try {
   assert.equal((await api('POST','/api/integrations',{companyId,action:'disableWebhook',id:hook.data.id},a.cookie)).res.status,200);
   assert.equal((await api('POST','/api/integrations',{companyId,action:'revokeKey',id:apiKey.data.id},a.cookie)).res.status,200);
   assert.equal((await api('GET','/api/v1/ksef/statuses',undefined,undefined,apiHeaders)).res.status,401);
-  const reminderInvoice=await api('POST','/api/invoices',{...invoice.data.invoice,number:'REM/1',dueDate:warsawDate()},a.cookie);
+  const reminderInvoice=await api('POST','/api/invoices',{...invoice.data.invoice,number:'REM/1',status:'issued',documentStatus:'issued',dueDate:warsawDate()},a.cookie);
   assert.equal(reminderInvoice.res.status,201,JSON.stringify(reminderInvoice.data));
   const reminderId=reminderInvoice.data.invoice.id;
   await db.contractor.update({where:{id:reminderInvoice.data.invoice.contractorId},data:{email:'customer@example.test'}});
@@ -238,7 +238,7 @@ try {
   assert.equal((await api('POST','/api/due-reminders/process',{})).res.status,401);
   const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
   assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
-  assert.equal(deliveredEmails.length,1);
+  assert.equal(deliveredEmails.length,1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
   assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
   await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
   await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
