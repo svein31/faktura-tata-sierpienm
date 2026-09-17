@@ -3,7 +3,7 @@
  * 
  * Konfiguracja systemu prawnego, metadanych operatora, wersji dokumentów,
  * inwentarza plików cookies oraz wykazu podwykonawców (podprocesorów)
- * dla serwisu Fakturo (https://fakturaprosto.pl).
+ * dla serwisu FakturaProsto (https://fakturaprosto.pl).
  */
 
 export const LEGAL_VERSIONS = {
@@ -74,7 +74,7 @@ export interface SubprocessorInfo {
 
 /**
  * Rzeczywisty wykaz podwykonawców (podprocesorów) biorących udział
- * w przetwarzaniu danych na zlecenie w ramach serwisu Fakturo.
+ * w przetwarzaniu danych na zlecenie w ramach serwisu FakturaProsto.
  */
 export const SUBPROCESSORS: SubprocessorInfo[] = [
   {
@@ -124,7 +124,7 @@ export interface CookieItem {
  */
 export const COOKIE_INVENTORY: CookieItem[] = [
   {
-    name: "auth_session / fakturo_session",
+    name: "auth_session / fakturaprosto_session / fakturo_session",
     category: "essential",
     categoryLabel: "Niezbędne (techniczne)",
     provider: "fakturaprosto.pl (własne)",
@@ -142,7 +142,7 @@ export const COOKIE_INVENTORY: CookieItem[] = [
     type: "cookie",
   },
   {
-    name: "fakturo_consent",
+    name: "fakturaprosto_consent / fakturo_consent",
     category: "essential",
     categoryLabel: "Niezbędne (techniczne)",
     provider: "fakturaprosto.pl (własne)",
@@ -151,7 +151,7 @@ export const COOKIE_INVENTORY: CookieItem[] = [
     type: "cookie",
   },
   {
-    name: "fakturo-theme",
+    name: "fakturaprosto-theme / fakturo-theme",
     category: "essential",
     categoryLabel: "Niezbędne (funkcjonalne)",
     provider: "fakturaprosto.pl (własne)",

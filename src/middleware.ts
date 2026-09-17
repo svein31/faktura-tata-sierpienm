@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export const COOKIE_NAMES = [
+  "fakturaprosto_session",
   "auth_session",
   "fakturo_session",
   "__Secure-next-auth.session-token",

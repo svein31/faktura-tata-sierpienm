@@ -43,7 +43,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const router = useRouter();
   const user = useSessionUser();
   const match = TITLES.find((t) => t.re.test(pathname));
-  const title = match?.title ?? "Fakturo";
+  const title = match?.title ?? "FakturaProsto";
 
   const { companies, company, selectedCompanyId, setSelectedCompanyId } = useAppStore();
   const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);

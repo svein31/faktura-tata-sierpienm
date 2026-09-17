@@ -98,14 +98,14 @@ export function TwoFactorAuthCard() {
   };
 
   const handleDownloadBackupCodes = () => {
-    const text = `KODY ZAPASOWE 2FA - FAKTURO (${sessionUser.email})\nData wygenerowania: ${new Date().toLocaleString("pl-PL")}\n\nKażdy kod może być użyty tylko raz:\n` +
+    const text = `KODY ZAPASOWE 2FA - FAKTURAPROSTO (${sessionUser.email})\nData wygenerowania: ${new Date().toLocaleString("pl-PL")}\n\nKażdy kod może być użyty tylko raz:\n` +
       backupCodes.map((c, i) => `${i + 1}. ${c}`).join("\n") +
       "\n\nPrzechowuj ten plik w bezpiecznym miejscu!";
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `kody_ratunkowe_fakturo_${sessionUser.email}.txt`;
+    a.download = `kody_ratunkowe_fakturaprosto_${sessionUser.email}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -141,7 +141,7 @@ export function TwoFactorAuthCard() {
     toast("info", "2FA wyłączone", "Uwierzytelnianie dwuskładnikowe zostało dezaktywowane.");
   };
 
-  const otpAuthUrl = `otpauth://totp/Fakturo:${encodeURIComponent(sessionUser.email)}?secret=${secret}&issuer=Fakturo`;
+  const otpAuthUrl = `otpauth://totp/FakturaProsto:${encodeURIComponent(sessionUser.email)}?secret=${secret}&issuer=FakturaProsto`;
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(otpAuthUrl)}&bgcolor=0c1017&color=ffffff&margin=1`;
 
   return (

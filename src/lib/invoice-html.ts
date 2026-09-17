@@ -198,7 +198,7 @@ export function buildInvoiceHtmlString(
 
   ${invoice.notes ? `<div style="margin-top:14px;font-size:12px;color:#6b7280;"><b>${esc(L.notes)}:</b><br/>${esc(invoice.notes)}</div>` : ""}
 
-  <div class="foot">Fakturo · ${esc(L.invoice)} ${esc(invoice.number)} · Wygenerowano: ${new Date().toLocaleString("pl-PL")}</div>
+  <div class="foot">FakturaProsto · ${esc(L.invoice)} ${esc(invoice.number)} · Wygenerowano: ${new Date().toLocaleString("pl-PL")}</div>
 </div>
 <script>window.onload = function(){ if (window.__autoPrint) window.print(); };</script>
 </body>

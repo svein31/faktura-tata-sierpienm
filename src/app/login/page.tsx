@@ -103,7 +103,7 @@ function LoginForm() {
         <div className="mb-7 flex flex-col items-center text-center">
           <Logo />
           <h1 className="mt-4 text-xl font-bold tracking-tight text-foreground">
-            Zaloguj się do Fakturo
+            Zaloguj się do FakturaProsto
           </h1>
           <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-relaxed">
             Faktury VAT, kontrahenci i KSeF w jednym miejscu.

@@ -23,7 +23,7 @@ import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-b
 import { getSessionUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Fakturo — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
+  title: "FakturaProsto — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
   description:
     "Bezpieczna platforma do wystawiania polskich faktur VAT zgodnych z KSeF API 2.0 i schematem FA(3). Pobieranie danych z GUS, natychmiastowe UPO i audytowalność.",
   robots: {
@@ -190,7 +190,7 @@ export default async function LandingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
               <div>
                 <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Sprzedawca</p>
-                <p className="mt-1 font-bold text-foreground text-sm">Fakturo Sp. z o.o.</p>
+                <p className="mt-1 font-bold text-foreground text-sm">FakturaProsto Sp. z o.o.</p>
                 <p className="text-muted-foreground">NIP: 5260301706 · ul. Przykładowa 10, 00-001 Warszawa</p>
                 <p className="text-muted-foreground mt-0.5">Rachunek: 12 1050 0099 6711 1111 1111 1111</p>
               </div>
@@ -404,7 +404,7 @@ export default async function LandingPage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <Logo compact />
-              <span>© {new Date().getFullYear()} Fakturo. Wszelkie prawa zastrzeżone.</span>
+              <span>© {new Date().getFullYear()} FakturaProsto. Wszelkie prawa zastrzeżone.</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <Link href="/demo" className="hover:text-foreground transition-colors">

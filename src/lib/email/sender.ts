@@ -39,7 +39,7 @@ export function getEmailConfigStatus(): {
   from: string;
   host?: string;
 } {
-  const from = process.env.EMAIL_FROM || "Fakturo <faktury@fakturo.app>";
+  const from = process.env.EMAIL_FROM || "FakturaProsto <faktury@fakturaprosto.pl>";
   if (process.env.RESEND_API_KEY?.trim()) {
     return { configured: true, provider: "resend", from };
   }
@@ -81,7 +81,7 @@ function isTransientError(error: any): boolean {
  */
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
   const { subject, text, html, attachments = [], replyTo } = options;
-  const from = options.from || process.env.EMAIL_FROM || "Fakturo <faktury@fakturo.app>";
+  const from = options.from || process.env.EMAIL_FROM || "FakturaProsto <faktury@fakturaprosto.pl>";
 
   // Parsowanie i walidacja adresów odbiorców
   const toList = parseEmailList(options.to);

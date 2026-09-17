@@ -19,7 +19,7 @@ export function invoiceToJson(invoice: Invoice, company: CompanyProfile): string
   const t = invoiceTotals(invoice);
   const payload = {
     meta: {
-      app: "Fakturo",
+      app: "FakturaProsto",
       version: "2.0.0",
       schema: "FA(3)",
       exportDate: new Date().toISOString(),

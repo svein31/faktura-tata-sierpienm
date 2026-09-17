@@ -23,6 +23,7 @@ export const DEV_COOKIE_NAME = "next-auth.session-token";
 export const SESSION_COOKIE = "auth_session";
 
 export const LEGACY_COOKIES = [
+  "fakturaprosto_session",
   "auth_session",
   "fakturo_session",
   DEV_COOKIE_NAME,
@@ -234,7 +235,7 @@ export type SessionUser = { user: FullUserWithRelations; sessionId: string } | n
 
 /**
  * Odczyt sesji z ciasteczka (JWT / DB session) + weryfikacja w bazie Prisma.
- * Obsługuje nazwy ciasteczek standardowe: auth_session, fakturo_session, NextAuth.
+ * Obsługuje nazwy ciasteczek standardowe: fakturaprosto_session, auth_session, fakturo_session, NextAuth.
  */
 export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
   let token = explicitToken;
@@ -242,7 +243,7 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
   if (!token) {
     try {
       const store = await cookies();
-      for (const cookieName of ["auth_session", "fakturo_session", PROD_COOKIE_NAME, DEV_COOKIE_NAME]) {
+      for (const cookieName of ["fakturaprosto_session", "auth_session", "fakturo_session", PROD_COOKIE_NAME, DEV_COOKIE_NAME]) {
         const val = store.get(cookieName)?.value;
         if (val) {
           token = val;

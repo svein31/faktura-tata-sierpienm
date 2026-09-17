@@ -89,7 +89,7 @@ await asyncTest("Testowy transport SMTP (bezpieczny, bez kontaktu z realnymi kon
   });
 
   const mailOptions = {
-    from: "Fakturo <faktury@testowa-domena.pl>",
+    from: "FakturaProsto <faktury@testowa-domena.pl>",
     to: "kontrahent-test@fikcyjna-domena-testowa.pl",
     cc: "dw@fikcyjna-domena-testowa.pl",
     replyTo: "sprzedawca@testowa-domena.pl",

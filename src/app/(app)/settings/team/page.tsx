@@ -331,7 +331,7 @@ export default function TeamSettingsPage() {
                     className="mt-1 text-xs"
                   />
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    Zaproszenie zadziała zarówno dla nowego użytkownika, jak i osoby mającej już konto w Fakturo.
+                    Zaproszenie zadziała zarówno dla nowego użytkownika, jak i osoby mającej już konto w FakturaProsto.
                   </p>
                 </div>
 

@@ -159,7 +159,7 @@ export default function PortalDocumentPage() {
         <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
             <span style={{ fontSize: "0.8125rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
-              Portal Kontrahenta • Fakturo
+              Portal Kontrahenta • FakturaProsto
             </span>
             <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0f172a" }}>
               {docTitle} {docNumber}

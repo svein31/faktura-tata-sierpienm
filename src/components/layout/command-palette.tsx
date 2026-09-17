@@ -579,7 +579,7 @@ export function CommandPalette() {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span>Fakturo Global Search</span>
+                <span>FakturaProsto Global Search</span>
               </div>
             </div>
           </motion.div>

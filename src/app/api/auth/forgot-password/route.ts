@@ -77,10 +77,10 @@ export async function POST(req: Request) {
       if (process.env.RESEND_API_KEY || process.env.SMTP_HOST) {
         await sendEmail({
           to: user.email,
-          subject: "Reset hasła w aplikacji Fakturo",
+          subject: "Reset hasła w aplikacji FakturaProsto",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1e293b;">
-              <h2 style="color: #0f172a; margin-bottom: 16px;">Odzyskiwanie hasła do Fakturo</h2>
+              <h2 style="color: #0f172a; margin-bottom: 16px;">Odzyskiwanie hasła do FakturaProsto</h2>
               <p>Otrzymaliśmy prośbę o zresetowanie hasła dla konta <strong>${user.email}</strong>.</p>
               <p>Kliknij poniższy przycisk, aby ustawić nowe hasło. Link jest ważny przez 60 minut i może być użyty tylko raz:</p>
               <div style="margin: 28px 0; text-align: center;">
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
               </div>
               <p style="font-size: 13px; color: #64748b;">Jeśli to nie Ty prosiłeś o zmianę hasła, zignoruj tę wiadomość. Twoje dotychczasowe hasło pozostaje bezpieczne.</p>
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-              <p style="font-size: 11px; color: #94a3b8;">Fakturo — Faktury VAT & KSeF 2.0</p>
+              <p style="font-size: 11px; color: #94a3b8;">FakturaProsto — Faktury VAT & KSeF 2.0</p>
             </div>
           `,
         });

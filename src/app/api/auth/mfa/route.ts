@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         const updated = await prisma.userMfa.updateMany({ where: { id: existing.id, enabledAt: null }, data });
         if (!updated.count) throw new ApiError(409, "Konfiguracja 2FA została zmieniona. Odśwież stronę.");
       } else await prisma.userMfa.create({ data: { userId: user.id, ...data } });
-      const uri = `otpauth://totp/${encodeURIComponent(`Fakturo:${user.email}`)}?secret=${secret}&issuer=Fakturo&algorithm=SHA1&digits=6&period=30`;
+      const uri = `otpauth://totp/${encodeURIComponent(`FakturaProsto:${user.email}`)}?secret=${secret}&issuer=FakturaProsto&algorithm=SHA1&digits=6&period=30`;
       return json({ secret, qrDataUrl: await QRCode.toDataURL(uri), expiresInSeconds: 600 }, { headers: { "Cache-Control": "no-store" } });
     }
     if (!["enable", "disable", "recovery"].includes(action)) throw new ApiError(400, "Nieprawidłowa operacja 2FA.");

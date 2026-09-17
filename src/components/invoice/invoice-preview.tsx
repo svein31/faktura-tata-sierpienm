@@ -345,7 +345,7 @@ export function InvoicePreview({
       </div>
 
       <p className="mt-6 border-t border-border pt-3 text-center text-[10.5px] text-muted-foreground">
-        Fakturo · {L.invoice} {invoice.number} · {L.currency}: {invoice.currency} ·{" "}
+        FakturaProsto · {L.invoice} {invoice.number} · {L.currency}: {invoice.currency} ·{" "}
         {new Date().toLocaleDateString("pl-PL")}
       </p>
     </div>

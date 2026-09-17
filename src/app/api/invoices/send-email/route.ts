@@ -184,7 +184,7 @@ function buildEmailHtml(
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 32px;text-align:center;">
             <div style="font-size:11px;color:#94a3b8;line-height:1.6;">
-              Wiadomość wygenerowana automatycznie przez system <strong style="color:#3b82f6;">Fakturo</strong>.
+              Wiadomość wygenerowana automatycznie przez system <strong style="color:#3b82f6;">FakturaProsto</strong>.
             </div>
           </td>
         </tr>

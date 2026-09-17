@@ -75,7 +75,7 @@ const ETD_NAMESPACE =
 const XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
 
 /** Nazwa systemu wpisywana do nagłówka pliku. */
-export const JPK_SYSTEM_NAME = "Fakturo 2.0";
+export const JPK_SYSTEM_NAME = "FakturaProsto 2.0";
 
 export const JPK_V7_VARIANTS: Record<string, JpkV7Variant> = {
   "JPK_V7M(3)": {

@@ -1,4 +1,4 @@
-# Fakturo — wieloużytkownikowe faktury VAT + KSeF (SaaS)
+# FakturaProsto — wieloużytkownikowe faktury VAT + KSeF (SaaS)
 
 Premium SaaS do polskich faktur VAT i Krajowego Systemu e-Faktur (KSeF).
 Aplikacja full-stack (Next.js App Router + Prisma/SQLite) z prawdziwą

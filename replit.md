@@ -1,8 +1,8 @@
-# Fakturo
+# FakturaProsto
 
 ## Project overview
 
-Fakturo is a Polish VAT invoicing SaaS built with Next.js App Router,
+FakturaProsto is a Polish VAT invoicing SaaS built with Next.js App Router,
 Prisma, and SQLite. The project includes authentication, invoice management,
 notifications, and demo-mode KSeF/GUS integrations.
 

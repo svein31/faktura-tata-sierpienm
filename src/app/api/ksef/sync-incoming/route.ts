@@ -329,14 +329,14 @@ export async function performIncomingSync(companyId?: string | null) {
         </tr>
       `).join("");
 
-      const appUrl = process.env.NEXTAUTH_URL || "https://fakturo.app";
+      const appUrl = process.env.NEXTAUTH_URL || "https://fakturaprosto.pl";
       sendEmail({
         to: notifyEmail,
         subject: `Nowe faktury zakupowe z KSeF (${imported.length})`,
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; padding: 24px; color: #111827; background-color: #ffffff;">
             <h2 style="color: #059669; margin-top: 0;">Otrzymano nowe faktury zakupowe z KSeF</h2>
-            <p>System Fakturo pobrał <b>${imported.length}</b> nową(-ych) fakturę(-ur) kosztową(-ych) wystawioną(-ych) na Twój NIP.</p>
+            <p>System FakturaProsto pobrał <b>${imported.length}</b> nową(-ych) fakturę(-ur) kosztową(-ych) wystawioną(-ych) na Twój NIP.</p>
             <p style="color: #4b5563; font-size: 14px;">Dokumenty oczekują na zatwierdzenie dla księgowości.</p>
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">
               <thead>
@@ -351,10 +351,10 @@ export async function performIncomingSync(companyId?: string | null) {
               </tbody>
             </table>
             <div style="margin-top: 24px; text-align: center;">
-              <a href="${appUrl}/invoices" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">Przejdź do fakturo.app</a>
+              <a href="${appUrl}/invoices" style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px 24px; font-weight: bold; border-radius: 8px; text-decoration: none;">Przejdź do FakturaProsto</a>
             </div>
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 32px;" />
-            <p style="font-size: 11px; color: #9ca3af; text-align: center;">Wiadomość wygenerowana automatycznie przez system Fakturo.</p>
+            <p style="font-size: 11px; color: #9ca3af; text-align: center;">Wiadomość wygenerowana automatycznie przez system FakturaProsto.</p>
           </div>
         `,
       }).catch((e) => console.error("[sync-incoming] Błąd wysyłki e-mail powiadomienia:", e));

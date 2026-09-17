@@ -370,7 +370,7 @@ export function SendInvoiceEmailModal({
                   </p>
                   <pre className="mt-1.5 p-2 rounded bg-muted/70 text-[10.5px] font-mono overflow-x-auto text-foreground">
 {`RESEND_API_KEY = "re_twoj_klucz_z_resend_com"
-EMAIL_FROM     = "Fakturo <faktury@twojadomena.pl>"  # lub na start: "Fakturo <onboarding@resend.dev>"`}
+EMAIL_FROM     = "FakturaProsto <faktury@twojadomena.pl>"  # lub na start: "FakturaProsto <onboarding@resend.dev>"`}
                   </pre>
                 </div>
 
@@ -385,7 +385,7 @@ SMTP_PORT   = 465
 SMTP_SECURE = true
 SMTP_USER   = "faktury@twojadomena.pl"
 SMTP_PASS   = "haslo_do_skrzynki"
-EMAIL_FROM  = "Fakturo <faktury@twojadomena.pl>"`}
+EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                   </pre>
                 </div>
 
@@ -609,7 +609,7 @@ EMAIL_FROM  = "Fakturo <faktury@twojadomena.pl>"`}
                 <div className="flex items-center justify-between text-xs font-semibold border-b border-border/60 pb-2">
                   <span>Podgląd formatu HTML</span>
                   <Badge tone="outline" className="text-[10px]">
-                    Szablon Fakturo
+                    Szablon FakturaProsto
                   </Badge>
                 </div>
                 <div className="text-xs text-foreground space-y-2 bg-white dark:bg-slate-950 p-4 rounded-xl border border-border/70 shadow-xs">

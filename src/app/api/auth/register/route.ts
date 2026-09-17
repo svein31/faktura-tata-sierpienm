@@ -142,6 +142,7 @@ export async function POST(req: Request) {
       { status: 201, headers: { "Cache-Control": "no-store" } }
     );
 
+    res.cookies.set("fakturaprosto_session", token, cookieOpts);
     res.cookies.set("auth_session", token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
     res.cookies.set("next-auth.session-token", token, cookieOpts);

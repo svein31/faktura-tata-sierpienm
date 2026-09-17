@@ -171,7 +171,7 @@ export default function DemoPage() {
         invoice: invoiceDto,
         seller: DEMO_SELLER,
         buyer: currentBuyer,
-        systemInfo: "Fakturo Demo Simulator 2.0",
+        systemInfo: "FakturaProsto Demo Simulator 2.0",
       });
     } catch {
       return "<!-- Błąd generowania XML -->";

@@ -39,7 +39,15 @@ export async function processStatusWebhooks() {
       if (!hook?.active) { await prisma.webhookDelivery.update({ where: { id: delivery.id }, data: { status: "cancelled" } }); continue; }
       await requireIntegrationOwner(hook.userId, hook.companyId);
       const timestamp = String(Math.floor(Date.now() / 1000));
-      await sendWebhook(hook.url, delivery.payload, { "X-Fakturo-Event": delivery.eventKey, "X-Fakturo-Timestamp": timestamp, "X-Fakturo-Signature": `sha256=${webhookSignature(openWebhook(hook.encryptedSecret, hook.companyId), timestamp, delivery.payload)}` });
+      const sig = `sha256=${webhookSignature(openWebhook(hook.encryptedSecret, hook.companyId), timestamp, delivery.payload)}`;
+      await sendWebhook(hook.url, delivery.payload, {
+        "X-FakturaProsto-Event": delivery.eventKey,
+        "X-FakturaProsto-Timestamp": timestamp,
+        "X-FakturaProsto-Signature": sig,
+        "X-Fakturo-Event": delivery.eventKey,
+        "X-Fakturo-Timestamp": timestamp,
+        "X-Fakturo-Signature": sig,
+      });
       await prisma.webhookDelivery.update({ where: { id: delivery.id }, data: { status: "delivered", lastError: null } }); sent++;
     } catch (error) {
       await prisma.webhookDelivery.update({ where: { id: delivery.id }, data: { status: delivery.attempts >= 7 ? "failed" : "pending", nextAttemptAt: new Date(Date.now() + Math.min(86400000, 60000 * 2 ** delivery.attempts)), lastError: (error instanceof Error ? error.message : "Błąd wysyłania").slice(0,300) } });

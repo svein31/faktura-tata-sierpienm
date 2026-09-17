@@ -1,8 +1,8 @@
 {
-  "name": "fakturo-ksef",
+  "name": "fakturaprosto-ksef",
   "version": "2.0.0",
   "private": true,
-  "description": "Premium SaaS \u2014 wielou\u017cytkownikowe polskie faktury i KSeF (Next.js App Router + Prisma/MongoDB)",
+  "description": "FakturaProsto — wieloużytkownikowe polskie faktury VAT i KSeF 2.0 (Next.js App Router + Prisma/MongoDB)",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

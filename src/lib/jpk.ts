@@ -72,7 +72,7 @@ export function buildJpk(invoices:Invoice[],contractors:Contractor[],company:Com
  }
  if(!o.noSpecialCodes)throw new ApiError(400,"Potwierdź brak obowiązku GTU i procedur szczególnych dla tego eksportu.");
  if(rows.some(i=>i.type==="purchase")&&!o.fullDeduction)throw new ApiError(400,"Potwierdź pełne odliczenie VAT i brak środków trwałych w zakupach.");
- const header=`<Naglowek><KodFormularza kodSystemowy="JPK_V7M (3)" wersjaSchemy="1-0E">JPK_VAT</KodFormularza><WariantFormularza>3</WariantFormularza>${tag("DataWytworzeniaJPK",now.toISOString())}<NazwaSystemu>Fakturo</NazwaSystemu><CelZlozenia poz="P_7">1</CelZlozenia>${tag("KodUrzedu",o.office)}${tag("Rok",o.dateFrom.slice(0,4))}${tag("Miesiac",Number(o.dateFrom.slice(5,7)))}</Naglowek>`;
+ const header=`<Naglowek><KodFormularza kodSystemowy="JPK_V7M (3)" wersjaSchemy="1-0E">JPK_VAT</KodFormularza><WariantFormularza>3</WariantFormularza>${tag("DataWytworzeniaJPK",now.toISOString())}<NazwaSystemu>FakturaProsto</NazwaSystemu><CelZlozenia poz="P_7">1</CelZlozenia>${tag("KodUrzedu",o.office)}${tag("Rok",o.dateFrom.slice(0,4))}${tag("Miesiac",Number(o.dateFrom.slice(5,7)))}</Naglowek>`;
  const person=o.individual?`<OsobaFizyczna>${tag("etd:NIP",company.nip)}${tag("etd:ImiePierwsze",o.firstName)}${tag("etd:Nazwisko",o.lastName)}${tag("etd:DataUrodzenia",o.birthDate)}${tag("Email",o.email)}</OsobaFizyczna>`:`<OsobaNiefizyczna>${tag("NIP",company.nip)}${tag("PelnaNazwa",company.companyName)}${tag("Email",o.email)}</OsobaNiefizyczna>`;
  let saleCount=0,purchaseCount=0,saleVat=0,purchaseVat=0;
  const ksef=(i:Invoice)=>{

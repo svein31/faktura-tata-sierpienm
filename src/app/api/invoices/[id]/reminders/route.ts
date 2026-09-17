@@ -42,7 +42,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     const remaining = Math.max(0, totals.gross - paidAmount);
 
     const subject = `Przypomnienie o płatności: Faktura ${invoice.number}`;
-    const message = `Szanowni Państwo,\n\nUprzejmie przypominamy o upływie terminu płatności dla faktury ${invoice.number} z dnia ${invoice.issueDate}.\n\nTermin płatności minął: ${invoice.dueDate || "—"}.\nKwota do zapłaty: ${formatMoney(remaining, (invoice.currency as any) || "PLN")}.\n\nProsimy o uregulowanie należności na rachunek bankowy:\n${invoice.sellerCompany?.bankAccount || "Zgodnie z fakturą"}\n\nJeśli płatność została już zrealizowana, prosimy o zignorowanie tej wiadomości.\n\nZ poważaniem,\n${invoice.sellerCompany?.companyName || user.name || "Fakturo"}`;
+    const message = `Szanowni Państwo,\n\nUprzejmie przypominamy o upływie terminu płatności dla faktury ${invoice.number} z dnia ${invoice.issueDate}.\n\nTermin płatności minął: ${invoice.dueDate || "—"}.\nKwota do zapłaty: ${formatMoney(remaining, (invoice.currency as any) || "PLN")}.\n\nProsimy o uregulowanie należności na rachunek bankowy:\n${invoice.sellerCompany?.bankAccount || "Zgodnie z fakturą"}\n\nJeśli płatność została już zrealizowana, prosimy o zignorowanie tej wiadomości.\n\nZ poważaniem,\n${invoice.sellerCompany?.companyName || user.name || "FakturaProsto"}`;
 
     return json({
       subject,

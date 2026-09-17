@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 
 console.log("================================================================================");
-console.log("🚀 START: Weryfikacja funkcjonalna nowych modułów Fakturo");
+console.log("🚀 START: Weryfikacja funkcjonalna nowych modułów FakturaProsto");
 console.log("================================================================================");
 
 // -----------------------------------------------------------------------------

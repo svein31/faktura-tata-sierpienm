@@ -74,7 +74,7 @@ const TOUR_STEPS: TourStep[] = [
     iconColor: "text-emerald-400",
     iconBg: "bg-emerald-500/15 border-emerald-500/30",
     description:
-      "Fakturo jest w 100% zintegrowane z Krajowym Systemem e-Faktur w najnowszym schemacie FA(3). Możesz testować wysyłkę na środowisku demo lub od razu przejść na produkcję.",
+      "FakturaProsto jest w 100% zintegrowane z Krajowym Systemem e-Faktur w najnowszym schemacie FA(3). Możesz testować wysyłkę na środowisku demo lub od razu przejść na produkcję.",
     highlights: [
       "Kolejkowanie asynchroniczne i odporność na awarie bramki",
       "Automatyczne pobieranie i archiwizacja plików UPO (XML)",

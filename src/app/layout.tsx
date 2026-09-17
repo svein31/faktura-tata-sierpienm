@@ -14,8 +14,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Fakturo — Faktury VAT & KSeF 2.0",
-    template: "%s · Fakturo",
+    default: "FakturaProsto — Faktury VAT & KSeF 2.0",
+    template: "%s · FakturaProsto",
   },
   description:
     "Fintech-grade platforma do wystawiania polskich faktur VAT, integracji z Krajowym Systemem e-Faktur (KSeF) i bazą GUS BIR.",
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 
 const themeScript = `
 try {
-  var t = localStorage.getItem('fakturo-theme') || 'dark';
+  var t = localStorage.getItem('fakturaprosto-theme') || localStorage.getItem('fakturo-theme') || 'dark';
   var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';

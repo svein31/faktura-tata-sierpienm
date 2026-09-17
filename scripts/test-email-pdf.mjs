@@ -62,7 +62,7 @@ async function runTest() {
     id: "comp_1",
     userId: "user_1",
     nip: "1112223344",
-    companyName: "Fakturo Dev Studio Sp. z o.o.",
+    companyName: "FakturaProsto Dev Studio Sp. z o.o.",
     street: "ul. Prosta",
     buildingNumber: "10",
     flatNumber: "4",

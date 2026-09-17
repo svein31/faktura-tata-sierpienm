@@ -84,6 +84,7 @@ export async function POST(req: Request) {
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 
     try {
+      (await cookies()).set("fakturaprosto_session", token, cookieOpts);
       (await cookies()).set("auth_session", token, cookieOpts);
       (await cookies()).set("fakturo_session", token, cookieOpts);
       (await cookies()).set("next-auth.session-token", token, cookieOpts);
@@ -100,6 +101,7 @@ export async function POST(req: Request) {
       { status: 200, headers: { "Cache-Control": "no-store" } }
     );
 
+    res.cookies.set("fakturaprosto_session", token, cookieOpts);
     res.cookies.set("auth_session", token, cookieOpts);
     res.cookies.set("fakturo_session", token, cookieOpts);
     res.cookies.set("next-auth.session-token", token, cookieOpts);

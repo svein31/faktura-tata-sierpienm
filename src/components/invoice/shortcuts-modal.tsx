@@ -55,7 +55,7 @@ export function ShortcutsModal({ open, onClose }: ShortcutsModalProps) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground">Skróty klawiszowe</h3>
-              <p className="text-xs text-muted-foreground">Szybkie wystawianie dokumentów w Fakturo</p>
+              <p className="text-xs text-muted-foreground">Szybkie wystawianie dokumentów w FakturaProsto</p>
             </div>
           </div>
           <button

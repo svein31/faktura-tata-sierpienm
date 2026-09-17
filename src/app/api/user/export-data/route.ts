@@ -80,7 +80,7 @@ export async function GET(req: Request) {
     const exportData = {
       _metadata: {
         exportDate: new Date().toISOString(),
-        exportedBy: "FakturoProsto — Eksport danych RODO (art. 20)",
+        exportedBy: "FakturaProsto — Eksport danych RODO (art. 20)",
         serviceUrl: "https://fakturaprosto.pl",
         format: "application/json",
         version: "1.0.0",
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
     };
 
     // Zwróć jako plik JSON do pobrania
-    const filename = `fakturo-export-${user.email?.replace("@", "_at_")}-${new Date().toISOString().split("T")[0]}.json`;
+    const filename = `fakturaprosto-export-${user.email?.replace("@", "_at_")}-${new Date().toISOString().split("T")[0]}.json`;
 
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,

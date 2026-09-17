@@ -1,4 +1,4 @@
-/* Fakturo — minimalny service worker.
+/* FakturaProsto — minimalny service worker.
  *
  * Nie przechwytuje ruchu sieciowego (brak handlera fetch = domyślne zachowanie).
  * Obsługuje tylko kliknięcia w powiadomienia (Notification API) — dzięki temu

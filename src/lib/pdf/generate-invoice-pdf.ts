@@ -46,7 +46,7 @@ export async function generateInvoicePdfBuffer(
 
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(`Faktura ${invoice.number}`);
-  pdfDoc.setAuthor(effectiveCompany.companyName || effectiveCompany.name || "Fakturo");
+  pdfDoc.setAuthor(effectiveCompany.companyName || effectiveCompany.name || "FakturaProsto");
 
   const page = pdfDoc.addPage([595.28, 841.89]); // A4 (points)
   const { width, height } = page.getSize();
@@ -625,7 +625,7 @@ export async function generateInvoicePdfBuffer(
     thickness: 0.5,
     color: borderColor,
   });
-  page.drawText("Dokument wygenerowany elektronicznie w systemie Fakturo (zgodny z KSeF FA/3).", {
+  page.drawText("Dokument wygenerowany elektronicznie w systemie FakturaProsto (zgodny z KSeF FA/3).", {
     x: 40,
     y: 32,
     size: 7.5,

@@ -1,4 +1,4 @@
-# Wdrożenie modułów Fakturo
+# Wdrożenie modułów FakturaProsto
 
 Zmiany dedykowanych modułów płatności i bankowości są wyłączone. Edycje wspólnych plików obejmują wyłącznie zaakceptowany zakres fakturowania, autoryzacji i automatyzacji.
 

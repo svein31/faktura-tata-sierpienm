@@ -364,7 +364,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "2. Dodaj klucz Resend API",
-        description: "Wpisz zmienną RESEND_API_KEY (twój klucz re_... z resend.com) oraz EMAIL_FROM (np. Fakturo <onboarding@resend.dev>).",
+        description: "Wpisz zmienną RESEND_API_KEY (twój klucz re_... z resend.com) oraz EMAIL_FROM (np. FakturaProsto <onboarding@resend.dev>).",
       },
       {
         title: "3. Trigger deploy",
@@ -695,7 +695,7 @@ export default function HelpPage() {
     <div className="space-y-6 pb-16">
       {/* Nagłówek strony */}
       <PageHeader
-        title="Instrukcja obsługi Fakturo"
+        title="Instrukcja obsługi FakturaProsto"
         description="Krótki, szczegółowy przewodnik krok po kroku po wszystkich funkcjach systemu fakturowania, KSeF i finansów."
         actions={
           <div className="flex items-center gap-2">

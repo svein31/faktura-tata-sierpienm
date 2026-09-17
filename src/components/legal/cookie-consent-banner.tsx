@@ -163,7 +163,7 @@ export function CookieConsentBanner() {
             {/* Treść modalu */}
             <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-600 dark:text-slate-300">
               <p className="leading-relaxed">
-                Szanujemy Twoją prywatność. Serwis FakturoProsto stosuje wyłącznie technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — technologie ułatwiające korzystanie z serwisu (np. zapamiętywanie wybranego motywu graficznego).
+                Szanujemy Twoją prywatność. Serwis FakturaProsto stosuje wyłącznie technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — technologie ułatwiające korzystanie z serwisu (np. zapamiętywanie wybranego motywu graficznego).
               </p>
 
               {/* Kategoria 1: Niezbędne (Zawsze aktywne) */}

@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
   try {
     const dateStr = new Date().toISOString().slice(0, 10);
     const mfRes = await fetch(`https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${dateStr}`, {
-      headers: { Accept: "application/json", "User-Agent": "Fakturo/2.0" },
+      headers: { Accept: "application/json", "User-Agent": "FakturaProsto/2.0" },
       next: { revalidate: 3600 },
     });
 

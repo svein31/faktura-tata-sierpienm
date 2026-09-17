@@ -172,7 +172,7 @@ export function OnboardingBanner({
           <div>
             <div className="flex items-center gap-2">
               <h4 className="font-semibold text-sm text-foreground">
-                Witaj w Fakturo! Ukończ szybką konfigurację konta
+                Witaj w FakturaProsto! Ukończ szybką konfigurację konta
               </h4>
               <Badge tone="accent" className="text-[10px]">
                 Start

@@ -120,7 +120,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
             </Link>
             <span className="hidden sm:inline-block text-slate-300 dark:text-slate-700">|</span>
             <div className="flex items-center gap-2">
-              <span className="font-black tracking-tight text-blue-600 dark:text-blue-400">FakturoProsto</span>
+              <span className="font-black tracking-tight text-blue-600 dark:text-blue-400">FakturaProsto</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700">
                 Centrum Prawne
               </span>

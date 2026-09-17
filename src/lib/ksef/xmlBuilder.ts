@@ -149,7 +149,7 @@ export function mapVatRateToP12(rate: VatRate): string {
  * Główna funkcja budująca poprawny XML schematu FA(3)
  */
 export function buildFa3Xml(options: Fa3BuildOptions): string {
-  const { invoice, seller, buyer, systemInfo = "Fakturo KSeF 2.0", generationDate = new Date() } = options;
+  const { invoice, seller, buyer, systemInfo = "FakturaProsto KSeF 2.0", generationDate = new Date() } = options;
   const totals = calculateFa3Totals(invoice.lines);
   const sellerNip = cleanNip(seller.nip);
   const buyerNip = buyer ? cleanNip(buyer.nip) : "";
@@ -459,7 +459,7 @@ export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
     <KodFormularza kodSystemowy="${FA3_SYSTEM_CODE}" wersjaSchemy="${FA3_SCHEMA_VERSION}">FA</KodFormularza>
     <WariantFormularza>${FA3_FORM_VARIANT}</WariantFormularza>
     <DataWytworzeniaFa>2026-09-09T09:00:00Z</DataWytworzeniaFa>
-    <SystemInfo>Fakturo KSeF 2.0</SystemInfo>
+    <SystemInfo>FakturaProsto KSeF 2.0</SystemInfo>
   </Naglowek>
   <Podmiot1>
     <PrefiksPodatnika>PL</PrefiksPodatnika>

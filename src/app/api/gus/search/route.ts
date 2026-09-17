@@ -86,7 +86,7 @@ async function lookupWhiteListMf(nip: string) {
     const res = await fetch(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "Fakturo-App/2.0",
+        "User-Agent": "FakturaProsto-App/2.0",
       },
       next: { revalidate: 3600 },
     });

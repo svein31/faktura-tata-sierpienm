@@ -1,7 +1,7 @@
 /**
  * src/lib/legal/content.ts
  * 
- * Oficjalne treści dokumentów prawnych serwisu Fakturo (https://fakturaprosto.pl).
+ * Oficjalne treści dokumentów prawnych serwisu FakturaProsto (https://fakturaprosto.pl).
  * Opracowane w oparciu o aktualne przepisy:
  * - RODO (Rozporządzenie Parlamentu Europejskiego i Rady (UE) 2016/679)
  * - Prawo komunikacji elektronicznej (ustawa z 12 lipca 2024 r., Dz.U. 2024 poz. 1221)
@@ -36,11 +36,11 @@ export const TERMS_OF_SERVICE: LegalDocument = {
   shortTitle: "Regulamin",
   version: LEGAL_VERSIONS.terms,
   effectiveDate: EFFECTIVE_DATE,
-  description: "Warunki korzystania z platformy Fakturo, rejestracji kont, wystawiania faktur, integracji KSeF oraz praw i obowiązków stron.",
+  description: "Warunki korzystania z platformy FakturaProsto, rejestracji kont, wystawiania faktur, integracji KSeF oraz praw i obowiązków stron.",
   sections: [
     {
       title: "§ 1. Postanowienia ogólne i dane Operatora",
-      content: `1. Niniejszy Regulamin określa zasady i warunki techniczne świadczenia usług drogą elektroniczną za pośrednictwem serwisu internetowego Fakturo, dostępnego pod adresem internetowym ${OPERATOR_CONFIG.serviceUrl}.
+      content: `1. Niniejszy Regulamin określa zasady i warunki techniczne świadczenia usług drogą elektroniczną za pośrednictwem serwisu internetowego FakturaProsto, dostępnego pod adresem internetowym ${OPERATOR_CONFIG.serviceUrl}.
 2. Operatorem Serwisu i Usługodawcą jest:
    ${OPERATOR_CONFIG.companyName}
    Forma prawna: ${OPERATOR_CONFIG.legalForm}
@@ -189,7 +189,7 @@ export const PRIVACY_POLICY: LegalDocument = {
   shortTitle: "Polityka Prywatności",
   version: LEGAL_VERSIONS.privacy,
   effectiveDate: EFFECTIVE_DATE,
-  description: "Zasady przetwarzania danych osobowych w serwisie Fakturo, prawa przysługujące osobom, których dane dotyczą, okresy retencji, transfery danych i środki bezpieczeństwa.",
+  description: "Zasady przetwarzania danych osobowych w serwisie FakturaProsto, prawa przysługujące osobom, których dane dotyczą, okresy retencji, transfery danych i środki bezpieczeństwa.",
   sections: [
     {
       title: "1. Kto jest kim? Role Administratora i Podmiotu Przetwarzającego",
@@ -328,10 +328,10 @@ export const COOKIE_POLICY: LegalDocument = {
 
 | Nazwa pliku / klucza | Typ | Kategoria | Cel i funkcja | Czas życia |
 |---|---|---|---|---|
-| **auth_session** / **fakturo_session** | Cookie (HttpOnly, Secure) | Niezbędne | Utrzymanie aktywnej sesji zalogowanego Użytkownika, zabezpieczenie przed atakami CSRF. | 30 dni lub do wylogowania |
+| **auth_session** / **fakturaprosto_session** / **fakturo_session** | Cookie (HttpOnly, Secure) | Niezbędne | Utrzymanie aktywnej sesji zalogowanego Użytkownika, zabezpieczenie przed atakami CSRF. | 30 dni lub do wylogowania |
 | **__Secure-next-auth.session-token** | Cookie (HttpOnly, Secure) | Niezbędne | Bezpieczny token sesyjny frameworka NextAuth. | 30 dni |
-| **fakturo_consent** | Cookie | Niezbędne | Zapamiętanie decyzji Użytkownika w przedmiocie zgód na pliki cookies (CMP). | 12 miesięcy |
-| **fakturo-theme** | LocalStorage | Niezbędne | Zapamiętanie wybranego trybu graficznego (ciemny / jasny) w celu uniknięcia migotania ekranu. | Trwałe (do wyczyszczenia) |
+| **fakturaprosto_consent** / **fakturo_consent** | Cookie | Niezbędne | Zapamiętanie decyzji Użytkownika w przedmiocie zgód na pliki cookies (CMP). | 12 miesięcy |
+| **fakturaprosto-theme** / **fakturo-theme** | LocalStorage | Niezbędne | Zapamiętanie wybranego trybu graficznego (ciemny / jasny) w celu uniknięcia migotania ekranu. | Trwałe (do wyczyszczenia) |
 | **pref_currency / pref_payment_terms** | LocalStorage | Funkcjonalne (opcjonalne) | Zapamiętanie preferowanych domyślnych ustawień wystawiania faktur (np. waluta EUR, termin 14 dni). | Trwałe |
 
 *Aktualny stan*: W Serwisie nie są wdrożone żadne zewnętrzne piksele śledzące (np. Meta Pixel) ani skrypty analityczne stron trzecich przesyłające dane poza infrastrukturę Operatora.`,
@@ -366,7 +366,7 @@ export const DPA_AGREEMENT: LegalDocument = {
     {
       title: "§ 1. Przedmiot i charakter umowy",
       content: `1. Niniejsza Umowa Powierzenia Przetwarzania Danych Osobowych (dalej: „Umowa DPA”) zostaje zawarta na podstawie art. 28 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO) pomiędzy:
-   a) **Klientem** korzystającym z konta firmowego w Serwisie Fakturo — występującym w roli **Administratora Danych Osobowych** (dalej: „Administrator”), a
+   a) **Klientem** korzystającym z konta firmowego w Serwisie FakturaProsto — występującym w roli **Administratora Danych Osobowych** (dalej: „Administrator”), a
    b) **Operatorem**: ${OPERATOR_CONFIG.companyName}, NIP: ${OPERATOR_CONFIG.nip} — występującym w roli **Podmiotu Przetwarzającego** (dalej: „Podmiot Przetwarzający”).
 2. Zawarcie Umowy DPA następuje z chwilą akceptacji Regulaminu Serwisu przez osobę upoważnioną do reprezentacji Klienta i utworzenia Konta firmowego. Umowa DPA stanowi integralną część umowy o świadczenie usług.
 3. Przedmiotem niniejszej Umowy jest powierzenie Podmiotowi Przetwarzającemu przetwarzania danych osobowych wprowadzanych przez Administratora do Serwisu w celu i w zakresie niezbędnym do świadczenia Usług fakturowania, ewidencji, integracji z KSeF i obsługi dokumentów.`,
@@ -442,11 +442,11 @@ export const SUBPROCESSORS_DOCUMENT: LegalDocument = {
   shortTitle: "Podwykonawcy",
   version: LEGAL_VERSIONS.subprocessors,
   effectiveDate: EFFECTIVE_DATE,
-  description: "Zestawienie podmiotów trzecich biorących udział w przetwarzaniu danych w infrastrukturze Fakturo, ich lokalizacja, rola i zabezpieczenia transferu.",
+  description: "Zestawienie podmiotów trzecich biorących udział w przetwarzaniu danych w infrastrukturze FakturaProsto, ich lokalizacja, rola i zabezpieczenia transferu.",
   sections: [
     {
       title: "1. Zasady doboru i nadzoru nad podwykonawcami",
-      content: `Zgodnie z art. 28 ust. 2 i ust. 4 RODO oraz § 5 Umowy Powierzenia Przetwarzania Danych (DPA), publikujemy aktualny, pełny wykaz podmiotów trzecich, z których usług korzystamy w celu zapewnienia sprawnego i bezpiecznego działania platformy Fakturo (${OPERATOR_CONFIG.serviceUrl}).
+      content: `Zgodnie z art. 28 ust. 2 i ust. 4 RODO oraz § 5 Umowy Powierzenia Przetwarzania Danych (DPA), publikujemy aktualny, pełny wykaz podmiotów trzecich, z których usług korzystamy w celu zapewnienia sprawnego i bezpiecznego działania platformy FakturaProsto (${OPERATOR_CONFIG.serviceUrl}).
 
 Każdy z wymienionych podwykonawców został zweryfikowany pod kątem stosowania odpowiednich środków technicznych i organizacyjnych, a współpraca opiera się na wiążących umowach powierzenia danych (Data Processing Agreements — DPA) lub standardowych klauzulach umownych zatwierdzonych przez Komisję Europejską.`,
     },

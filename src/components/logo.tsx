@@ -25,10 +25,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
       {!compact && (
         <div className="leading-none">
           <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-bold tracking-tight text-foreground">Fakturo</span>
-            <span className="rounded bg-primary/10 px-1 py-0.2 text-[9px] font-semibold uppercase tracking-wider text-primary">
-              Pro
-            </span>
+            <span className="text-[15px] font-bold tracking-tight text-foreground">FakturaProsto</span>
           </div>
           <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
             VAT &amp; KSeF 2.0
