@@ -245,6 +245,11 @@ try {
   await db.dueReminderSetting.update({where:{invoiceId:reminderId},data:{nextCheckAt:new Date(0)}});
   await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
   assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:false},a.cookie)).res.status,200);
+  const jpkBody={companyId,format:'fa',dateFrom:'2026-09-01',dateTo:'2026-09-30',office:'1471',currency:'PLN',normalDomestic:true,address:{Wojewodztwo:'mazowieckie',Powiat:'Warszawa',Gmina:'Warszawa',NrDomu:'1',Miejscowosc:'Warszawa',KodPocztowy:'00-001'}};
+  assert.equal((await api('POST','/api/jpk',jpkBody,b.cookie)).res.status,403);
+  const jpkResponse=await fetch(base+'/api/jpk',{method:'POST',headers:{'Content-Type':'application/json',Cookie:a.cookie},body:JSON.stringify(jpkBody)});
+  const jpkXml=await jpkResponse.text();assert.equal(jpkResponse.status,200,jpkXml);assert.match(jpkXml,/<JPK /);assert.match(jpkXml,/<P_2A>REM\/1<\/P_2A>/);
+  assert.ok(await db.auditLog.count({where:{companyId,action:'jpk_exported'}})>0);
   const credentials = { email: 'a@example.com', password: 'Integration123!' };
   const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
   assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));

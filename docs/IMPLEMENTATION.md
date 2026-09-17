@@ -67,3 +67,7 @@ Trwały dziennik i unikalny klucz faktura/termin/etap; niepewny wynik pozostaje 
 Migracja 005; konfiguracja istniejącego SMTP lub Resend oraz CRON_SECRET. Osobny cron Netlify co 15 min, poza Netlify POST `/api/due-reminders/process`. Przed rollbackiem wyłączyć cron; down zachowuje dziennik i ustawienia, usuwa tylko nowe indeksy.
 
 Ręcznie: skrzynka testowa, faktury z terminami trzech etapów, dwukrotne wywołanie crona, opłacenie przed wysyłką, wyłączenie, odebranie roli, niepoprawny adres, awaria SMTP i jawne ponowienie po sprawdzeniu dostawcy. Istniejący starszy ręczny endpoint reminders nie był zmieniany; ten moduł używa nowego endpointu i rzeczywistej wysyłki.
+
+## 10. Eksport JPK
+
+JPK_FA(4) i ewidencja JPK_V7M(3), walidacja XSD w testach, uprawnienie canExport i audit. Szczegółowy zakres podstawowy, wymagane dane, ograniczenie do części ewidencyjnej VAT i testy ręczne: `JPK.md`. Brak migracji.
