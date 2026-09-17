@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Clock,
   FileCheck2,
+  Repeat,
 } from "lucide-react";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -62,7 +63,7 @@ export default function InvoicesPage() {
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
-  const [typeFilter, setTypeFilter] = React.useState<"all" | InvoiceType>("all");
+  const [typeFilter, setTypeFilter] = React.useState<"all" | "sale" | "purchase" | "proforma">("all");
   const [approvalFilter, setApprovalFilter] = React.useState<"all" | "pending" | "approved">("all");
   const [currencyFilter, setCurrencyFilter] = React.useState<"all" | "PLN" | "EUR" | "USD">("all");
   const [toDelete, setToDelete] = React.useState<string | null>(null);
@@ -82,7 +83,9 @@ export default function InvoicesPage() {
     return [...invoices]
       .sort((a, b) => b.issueDate.localeCompare(a.issueDate))
       .filter((inv) => {
-        if (typeFilter !== "all" && inv.type !== typeFilter) return false;
+        if (typeFilter === "proforma" && !inv.isProforma) return false;
+        if (typeFilter === "sale" && (inv.type !== "sale" || inv.isProforma)) return false;
+        if (typeFilter === "purchase" && inv.type !== "purchase") return false;
         if (currencyFilter !== "all" && inv.currency !== currencyFilter) return false;
         if (approvalFilter !== "all" && inv.type === "purchase") {
           const isAppr = inv.approvalStatus === "approved";
@@ -129,6 +132,141 @@ export default function InvoicesPage() {
     }
   };
 
+  const [bulkSendingKsef, setBulkSendingKsef] = React.useState(false);
+
+  const handleBulkSendKsef = async () => {
+    const eligible = invoices.filter(
+      (i) => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && !i.ksefNumber && !i.ksef?.number
+    );
+    if (eligible.length === 0) {
+      toast("info", "Brak faktur do wysłania", "Zaznaczone faktury są już zarejestrowane w KSeF, są proformami lub fakturami zakupowymi.");
+      return;
+    }
+
+    setBulkSendingKsef(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    const state = useAppStore.getState();
+    const currentEnv = state.ksef?.environment ?? "demo";
+
+    for (const inv of eligible) {
+      try {
+        const ctr = getContractor(state.contractors, inv.contractorId);
+        const xml = buildFa3Xml({
+          invoice: inv,
+          seller: state.company ?? EMPTY_COMPANY,
+          buyer: ctr,
+        });
+
+        const res = await fetch("/api/ksef/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            xml,
+            environment: currentEnv,
+            invoiceId: inv.id,
+            invoiceNumber: inv.number,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success && data.ksefNumber) {
+          if (data.invoice) {
+            useAppStore.getState().applyInvoice(data.invoice);
+          } else {
+            useAppStore.getState().setInvoiceKsef(inv.id, {
+              number: data.ksefNumber,
+              status: data.status ?? "ACTIVE",
+              sentAt: data.timestamp ?? new Date().toISOString(),
+              environment: currentEnv,
+            });
+          }
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch {
+        failCount++;
+      }
+    }
+
+    setBulkSendingKsef(false);
+    if (successCount > 0) {
+      toast("success", "Zbiorcza wysyłka KSeF zakończona", `Pomyślnie wysłano ${successCount} faktur${failCount > 0 ? `, ${failCount} z błędami` : ""}.`);
+    } else {
+      toast("error", "Błąd wysyłki KSeF", "Nie udało się przesłać zaznaczonych dokumentów do bramki KSeF.");
+    }
+    setSelectedIds([]);
+  };
+
+  const handleBulkExportCsv = () => {
+    const selectedInvoices = invoices.filter((i) => selectedIds.includes(i.id));
+    if (selectedInvoices.length === 0) return;
+
+    const headers = [
+      "Typ",
+      "Numer",
+      "Data wystawienia",
+      "Termin platnosci",
+      "Kontrahent",
+      "NIP",
+      "Waluta",
+      "Wartosc Netto",
+      "Wartosc VAT",
+      "Wartosc Brutto",
+      "Status platnosci",
+      "Numer KSeF",
+    ];
+
+    const rows = selectedInvoices.map((inv) => {
+      const ctr = getContractor(contractors, inv.contractorId);
+      const t = invoiceTotals(inv);
+      return [
+        inv.isProforma ? "Proforma" : inv.type === "purchase" ? "Zakup" : "Sprzedaz",
+        `"${inv.number}"`,
+        inv.issueDate,
+        inv.dueDate,
+        `"${ctr?.name || ""}"`,
+        `"${ctr?.nip || ""}"`,
+        inv.currency,
+        (inv.totalNet ?? t.net).toFixed(2),
+        (inv.totalVat ?? t.vat).toFixed(2),
+        (inv.totalGross ?? t.gross).toFixed(2),
+        inv.paymentStatus === "paid" || inv.status === "paid" ? "Oplacona" : "Nieoplacona",
+        `"${inv.ksefNumber || inv.ksef?.number || ""}"`,
+      ].join(";");
+    });
+
+    const csv = "\uFEFF" + [headers.join(";"), ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Faktury_Eksport_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast("success", "Wyeksportowano faktury", `Pobrano zestawienie CSV z ${selectedInvoices.length} dokumentami.`);
+  };
+
+  const handleBulkMarkPaid = async () => {
+    const selectedInvoices = invoices.filter(
+      (i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "paid"
+    );
+    if (selectedInvoices.length === 0) {
+      toast("info", "Brak faktur do oznaczenia", "Wszystkie zaznaczone faktury sprzedaży są już opłacone.");
+      return;
+    }
+
+    for (const inv of selectedInvoices) {
+      try {
+        await useAppStore.getState().updateInvoice(inv.id, { status: "paid" });
+      } catch {}
+    }
+    toast("success", "Oznaczono jako opłacone", `Zaktualizowano status ${selectedInvoices.length} dokumentów.`);
+    setSelectedIds([]);
+  };
+
   const editInvoice = (id: string) => {
     const inv = invoices.find((i) => i.id === id);
     if (!inv || inv.type === "purchase") return;
@@ -153,6 +291,29 @@ export default function InvoicesPage() {
     setDraft(copy, true);
     router.push("/invoices/new");
     toast("info", "Duplikat utworzony", "Wypełnij dane i zapisz jako nową fakturę.");
+  };
+
+  const handleConvertProformaToVat = (proforma: Invoice) => {
+    const copy: Invoice = {
+      ...proforma,
+      number: "",
+      type: "sale",
+      isProforma: false,
+      status: "draft",
+      notes: proforma.notes
+        ? `${proforma.notes}\nWystawiono na podstawie proformy ${proforma.number}`
+        : `Wystawiono na podstawie proformy ${proforma.number}`,
+      issueDate: new Date().toISOString().slice(0, 10),
+      saleDate: new Date().toISOString().slice(0, 10),
+      dueDate: new Date(Date.now() + (proforma.paymentTermDays || 14) * 86400000).toISOString().slice(0, 10),
+      ksef: undefined,
+      ksefNumber: null,
+      createdAt: new Date().toISOString(),
+    };
+    delete (copy as Partial<Invoice>).id;
+    setDraft(copy, false);
+    router.push("/invoices/new");
+    toast("info", "Konwersja proformy", `Tworzenie faktury VAT na podstawie proformy ${proforma.number}.`);
   };
 
   const sendToKsef = async (id: string) => {
@@ -241,6 +402,12 @@ export default function InvoicesPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {allInvoices.some((i) => !i.sellerCompanyId) && <Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
+            <Link href="/invoices/recurring">
+              <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs border-border/70">
+                <Repeat className="h-3.5 w-3.5 text-purple-400" />
+                <span>Cykliczne (MRR)</span>
+              </Button>
+            </Link>
             <Button
               variant="subtle"
               onClick={syncIncomingInvoices}
@@ -328,6 +495,28 @@ export default function InvoicesPage() {
                 </span>
               )}
             </button>
+
+            {/* Zakładka Proformy */}
+            <button
+              type="button"
+              onClick={() => {
+                setTypeFilter("proforma");
+                setApprovalFilter("all");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                typeFilter === "proforma"
+                  ? "bg-background text-amber-500 shadow-xs ring-1 ring-border/80"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5 text-amber-500" />
+              <span>Proformy</span>
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                typeFilter === "proforma" ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+              }`}>
+                {invoices.filter((i) => i.isProforma).length}
+              </span>
+            </button>
           </div>
 
           {/* Pod-zakładki akceptacji księgowej dla FZ */}
@@ -391,37 +580,81 @@ export default function InvoicesPage() {
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 px-4 shadow-sm"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 px-4 shadow-sm"
         >
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
             <span>
-              Zaznaczono: <b>{selectedIds.length}</b> dokument(ów)
+              Zaznaczono: <b>{selectedIds.length}</b> z {filtered.length} dokumentów
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => handleBulkApprove("approved")}
-              loading={approving}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
-            >
-              <Check className="h-3.5 w-3.5" /> Akceptuj dla księgowości
-            </Button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Wyślij do KSeF dla sprzedaży */}
+            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && !i.ksefNumber && !i.ksef?.number) && (
+              <Button
+                size="sm"
+                onClick={handleBulkSendKsef}
+                loading={bulkSendingKsef}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
+                title="Prześlij zaznaczone faktury sprzedaży do KSeF"
+              >
+                <Send className="h-3.5 w-3.5" /> Wyślij do KSeF
+              </Button>
+            )}
+
+            {/* Eksport CSV */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleBulkApprove("pending")}
-              loading={approving}
-              className="rounded-xl text-xs h-8 text-muted-foreground hover:text-foreground"
+              onClick={handleBulkExportCsv}
+              className="rounded-xl text-xs h-8 gap-1.5 font-medium shadow-2xs"
+              title="Pobierz zestawienie zaznaczonych dokumentów w formacie CSV"
             >
-              Cofnij akceptację
+              <Download className="h-3.5 w-3.5" /> Eksport CSV
             </Button>
+
+            {/* Oznacz jako opłacone */}
+            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "paid") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkMarkPaid}
+                className="rounded-xl text-xs h-8 gap-1.5 font-medium text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 shadow-2xs"
+                title="Oznacz zaznaczone faktury jako opłacone"
+              >
+                <Check className="h-3.5 w-3.5" /> Oznacz opłacone
+              </Button>
+            )}
+
+            {/* Akceptacja dla księgowości (faktury zakupowe) */}
+            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "purchase") && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => handleBulkApprove("approved")}
+                  loading={approving}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
+                >
+                  <Check className="h-3.5 w-3.5" /> Akceptuj FZ
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkApprove("pending")}
+                  loading={approving}
+                  className="rounded-xl text-xs h-8 text-muted-foreground hover:text-foreground"
+                >
+                  Cofnij akceptację
+                </Button>
+              </>
+            )}
+
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSelectedIds([])}
-              className="rounded-xl text-xs h-8 text-muted-foreground"
+              className="rounded-xl text-xs h-8 text-muted-foreground hover:text-foreground"
             >
               Odznacz
             </Button>
@@ -674,6 +907,20 @@ export default function InvoicesPage() {
                               className="h-8 w-8 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
                             >
                               <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+
+                          {/* Konwersja proformy na fakturę VAT */}
+                          {inv.isProforma && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleConvertProformaToVat(inv)}
+                              title="Wystaw Fakturę VAT na podstawie proformy"
+                              className="h-8 px-2 text-xs text-amber-500 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500/10 gap-1 rounded-xl font-medium"
+                            >
+                              <FileCheck2 className="h-3.5 w-3.5" />
+                              <span>Wystaw VAT</span>
                             </Button>
                           )}
 

@@ -1,5 +1,4 @@
 "use client";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -18,17 +17,32 @@ import {
   Receipt,
   Users2,
   Building2,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertOctagon,
+  Copy,
+  Check,
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useAppStore } from "@/lib/store";
-import { formatMoney } from "@/lib/format";
+import { useAppStore, getContractor } from "@/lib/store";
+import { useCompanyInvoices } from "@/lib/use-company-invoices";
+import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 
-interface CommandAction {
+type SearchCategory = "all" | "invoices" | "contractors" | "actions" | "nav";
+
+interface CommandItem {
   id: string;
-  category: "Nawigacja" | "Szybkie akcje" | "Faktury" | "Kontrahenci" | "Produkty";
+  category: "Faktury" | "Kontrahenci" | "Szybkie akcje" | "Nawigacja" | "Produkty";
+  categoryKey: SearchCategory;
   title: string;
   subtitle?: string;
+  badge?: string;
+  badgeTone?: "success" | "warning" | "danger" | "info" | "neutral";
+  amount?: string;
+  date?: string;
+  nip?: string;
   icon: LucideIcon;
   onSelect: () => void;
 }
@@ -40,8 +54,11 @@ export function CommandPalette() {
 
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   // Otwieranie na Ctrl+K / Cmd+K lub zdarzenie globalne
   React.useEffect(() => {
@@ -64,24 +81,28 @@ export function CommandPalette() {
     };
   }, [open]);
 
-  // Focus po otwarciu
+  // Focus i reset po otwarciu
   React.useEffect(() => {
     if (open) {
       setQuery("");
+      setActiveCategory("all");
       setSelectedIndex(0);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
 
-  // Zbudowanie listy dostępnych elementów
-  const actions: CommandAction[] = React.useMemo(() => {
-    const list: CommandAction[] = [
-      // Szybkie akcje
+  // Zbudowanie bazy przeszukiwalnych elementów
+  const allItems: CommandItem[] = React.useMemo(() => {
+    const list: CommandItem[] = [];
+
+    // 1. SZYBKIE AKCJE
+    list.push(
       {
         id: "act-new-invoice",
         category: "Szybkie akcje",
-        title: "Wystaw nową fakturę",
-        subtitle: "Przejdź do kreatora faktury VAT lub Proformy",
+        categoryKey: "actions",
+        title: "Wystaw nową fakturę VAT",
+        subtitle: "Otwórz kreator faktury ze schematem KSeF FA(3)",
         icon: Plus,
         onSelect: () => {
           router.push("/invoices/new");
@@ -89,10 +110,23 @@ export function CommandPalette() {
         },
       },
       {
+        id: "act-calendar",
+        category: "Szybkie akcje",
+        categoryKey: "actions",
+        title: "Terminarz i kalendarz płatności",
+        subtitle: "Nadchodzące należności, wydatki i terminy ZUS/VAT",
+        icon: Calendar,
+        onSelect: () => {
+          router.push("/calendar");
+          setOpen(false);
+        },
+      },
+      {
         id: "act-new-offer",
         category: "Szybkie akcje",
+        categoryKey: "actions",
         title: "Utwórz ofertę handlową",
-        subtitle: "Wycena z pozycjami i 1-click konwersją",
+        subtitle: "Wycena z pozycjami i 1-click konwersją do faktury",
         icon: FileCheck2,
         onSelect: () => {
           router.push("/offers");
@@ -100,21 +134,11 @@ export function CommandPalette() {
         },
       },
       {
-        id: "act-new-order",
-        category: "Szybkie akcje",
-        title: "Dodaj zlecenie / projekt",
-        subtitle: "Kanban zleceń, etapy i licznik czasu pracy",
-        icon: Briefcase,
-        onSelect: () => {
-          router.push("/orders");
-          setOpen(false);
-        },
-      },
-      {
         id: "act-new-expense",
         category: "Szybkie akcje",
-        title: "Zarejestruj koszt / wydatek",
-        subtitle: "Faktura kosztowa, paragon, opis dla księgowości",
+        categoryKey: "actions",
+        title: "Dodaj koszt / wydatek (FZ)",
+        subtitle: "Faktura zakupowa, OCR, akceptacja księgowa",
         icon: Receipt,
         onSelect: () => {
           router.push("/expenses");
@@ -122,10 +146,11 @@ export function CommandPalette() {
         },
       },
       {
-        id: "act-import-bank",
+        id: "act-bank-import",
         category: "Szybkie akcje",
+        categoryKey: "actions",
         title: "Import wyciągu bankowego CSV",
-        subtitle: "Automatyczne parowanie wpłat mBank, ING, PKO, Santander",
+        subtitle: "Parowanie wpłat z fakturami",
         icon: DollarSign,
         onSelect: () => {
           router.push("/finances");
@@ -135,20 +160,25 @@ export function CommandPalette() {
       {
         id: "act-accountant-pack",
         category: "Szybkie akcje",
-        title: "Paczka dla biura rachunkowego & Zespół",
-        subtitle: "Miesięczny bilans VAT i dochodu, darmowe zaproszenia",
+        categoryKey: "actions",
+        title: "Paczka dla księgowej & JPK",
+        subtitle: "Eksport ewidencji, deklaracje i JPK_V7",
         icon: Users2,
         onSelect: () => {
           router.push("/accountant");
           setOpen(false);
         },
-      },
-      // Główne moduły
+      }
+    );
+
+    // 2. GŁÓWNA NAWIGACJA
+    list.push(
       {
         id: "nav-invoices",
         category: "Nawigacja",
+        categoryKey: "nav",
         title: "Lista faktur",
-        subtitle: "/invoices",
+        subtitle: "/invoices — wszystkie dokumenty sprzedaży i zakupów",
         icon: FileText,
         onSelect: () => {
           router.push("/invoices");
@@ -158,8 +188,9 @@ export function CommandPalette() {
       {
         id: "nav-contractors",
         category: "Nawigacja",
-        title: "Baza kontrahentów",
-        subtitle: "/contractors",
+        categoryKey: "nav",
+        title: "Baza kontrahentów (CRM)",
+        subtitle: "/contractors — kartoteki, scoring, limity kupieckie",
         icon: Users,
         onSelect: () => {
           router.push("/contractors");
@@ -169,8 +200,9 @@ export function CommandPalette() {
       {
         id: "nav-products",
         category: "Nawigacja",
+        categoryKey: "nav",
         title: "Katalog produktów i usług",
-        subtitle: "/products",
+        subtitle: "/products — stawki VAT, GTU, stany magazynowe",
         icon: Package,
         onSelect: () => {
           router.push("/products");
@@ -180,8 +212,9 @@ export function CommandPalette() {
       {
         id: "nav-ksef",
         category: "Nawigacja",
-        title: "Centrum KSeF",
-        subtitle: "Wysyłka, pobieranie z KSeF, tokeny i UPO",
+        categoryKey: "nav",
+        title: "Centrum KSeF 2.0",
+        subtitle: "/ksef — bramka MF, tokeny, certyfikaty i UPO",
         icon: ShieldCheck,
         onSelect: () => {
           router.push("/ksef");
@@ -191,257 +224,339 @@ export function CommandPalette() {
       {
         id: "nav-companies",
         category: "Nawigacja",
-        title: "Moje Firmy / NIP",
-        subtitle: "/settings/companies",
+        categoryKey: "nav",
+        title: "Moje Firmy / Spółki (Multi-firma)",
+        subtitle: "/settings/companies — zarządzanie podmiotami i NIP",
         icon: Building2,
         onSelect: () => {
           router.push("/settings/companies");
           setOpen(false);
         },
-      },
-    ];
+      }
+    );
 
-    // Ostatnie faktury
-    invoices.slice(0, 8).forEach((inv) => {
-      const contractor = contractors.find((c) => c.id === inv.contractorId);
+    // 3. WSZYSTKIE FAKTURY (BEZ SZTUCZNEGO LIMITU!)
+    for (const inv of invoices) {
+      const contractor = getContractor(contractors, inv.contractorId);
+      const totals = invoiceTotals(inv);
+      const isPaid = inv.paymentStatus === "paid" || inv.status === "paid";
+      const isKsefAccepted = inv.ksefStatus === "accepted" || Boolean(inv.ksefNumber);
+      const isKsefRejected = inv.ksefStatus === "rejected";
+
+      let badge = "Wystawiona";
+      let badgeTone: CommandItem["badgeTone"] = "neutral";
+
+      if (inv.isProforma) {
+        badge = "Proforma";
+        badgeTone = "info";
+      } else if (isKsefAccepted) {
+        badge = "KSeF OK";
+        badgeTone = "success";
+      } else if (isKsefRejected) {
+        badge = "KSeF Błąd";
+        badgeTone = "danger";
+      } else if (isPaid) {
+        badge = "Opłacona";
+        badgeTone = "success";
+      } else if (inv.dueDate && inv.dueDate < new Date().toISOString().slice(0, 10)) {
+        badge = "Zaległa";
+        badgeTone = "danger";
+      }
+
       list.push({
         id: `inv-${inv.id}`,
         category: "Faktury",
-        title: `${inv.isProforma ? "Proforma " : "Faktura "}${inv.number}`,
-        subtitle: `${contractor?.name || "Kontrahent"} • ${formatMoney(inv.totalGross || 0, inv.currency)}`,
-        icon: FileText,
+        categoryKey: "invoices",
+        title: `${inv.isProforma ? "Proforma " : inv.type === "purchase" ? "Zakup " : "Faktura "}${inv.number || "bez numeru"}`,
+        subtitle: `${contractor?.name || "Kontrahent nieokreślony"}${contractor?.nip ? ` • NIP: ${contractor.nip}` : ""}`,
+        badge,
+        badgeTone,
+        amount: formatMoney(inv.totalGross ?? totals.gross, inv.currency),
+        date: formatDate(inv.issueDate),
+        nip: contractor?.nip || "",
+        icon: inv.type === "purchase" ? Receipt : FileText,
         onSelect: () => {
           router.push(`/invoices/${inv.id}`);
           setOpen(false);
         },
       });
-    });
+    }
 
-    // Kontrahenci
-    contractors.slice(0, 6).forEach((c) => {
+    // 4. WSZYSCY KONTRAHENCI (BEZ LIMITU!)
+    for (const c of contractors) {
+      const address = typeof c.address === "object" && c.address !== null ? (c.address as any) : {};
+      const city = address.city ? ` • ${address.city}` : "";
+
       list.push({
         id: `cont-${c.id}`,
         category: "Kontrahenci",
+        categoryKey: "contractors",
         title: c.name,
-        subtitle: `NIP: ${c.nip} • ${c.email || ""}`,
+        subtitle: `NIP: ${c.nip}${city}${c.email ? ` • ${c.email}` : ""}`,
+        badge: c.isVatPayer ? "VAT czynny" : "Zwolniony",
+        badgeTone: c.isVatPayer ? "success" : "neutral",
+        nip: c.nip,
         icon: Users,
         onSelect: () => {
           router.push(`/contractors`);
           setOpen(false);
         },
       });
-    });
+    }
 
-    // Produkty
-    products.slice(0, 6).forEach((p) => {
+    // 5. PRODUKTY I USŁUGI
+    for (const p of products) {
       list.push({
         id: `prod-${p.id}`,
         category: "Produkty",
+        categoryKey: "all",
         title: p.name,
-        subtitle: `${formatMoney(p.netPrice, "PLN")} netto / ${p.unit}`,
+        subtitle: `${formatMoney(p.netPrice, "PLN")} netto / ${p.unit} • VAT ${p.vatRate}%`,
+        amount: formatMoney(p.netPrice, "PLN"),
         icon: Package,
         onSelect: () => {
           router.push(`/products`);
           setOpen(false);
         },
       });
-    });
+    }
 
     return list;
   }, [invoices, contractors, products, router]);
 
-  // Filtrowanie po wpisanej frazie
+  // Filtrowanie po zapytaniu i wybranej kategorii
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return actions;
-    const q = query.toLowerCase();
-    return actions.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        (a.subtitle && a.subtitle.toLowerCase().includes(q)) ||
-        a.category.toLowerCase().includes(q)
-    );
-  }, [actions, query]);
+    let result = allItems;
+
+    if (activeCategory !== "all") {
+      result = result.filter((item) => item.categoryKey === activeCategory);
+    }
+
+    if (!query.trim()) {
+      // Domyślny widok: najpierw akcje, potem najnowsze faktury i kontrahenci
+      return result.slice(0, 30);
+    }
+
+    const q = query.trim().toLowerCase();
+    const cleanQ = q.replace(/[^0-9a-z]/gi, "");
+
+    return result.filter((item) => {
+      if (item.title.toLowerCase().includes(q)) return true;
+      if (item.subtitle && item.subtitle.toLowerCase().includes(q)) return true;
+      if (item.nip && cleanQ && item.nip.replace(/[^0-9]/g, "").includes(cleanQ)) return true;
+      if (item.amount && item.amount.toLowerCase().includes(q)) return true;
+      if (item.badge && item.badge.toLowerCase().includes(q)) return true;
+      return false;
+    });
+  }, [allItems, activeCategory, query]);
+
+  // Reset wybranego indeksu przy zmianie wyników
+  React.useEffect(() => {
+    setSelectedIndex(0);
+  }, [filtered.length, query, activeCategory]);
 
   // Obsługa klawiatury
   const handleKeyNavigation = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev + 1 < filtered.length ? prev + 1 : 0));
+      scrollSelectedIntoView((selectedIndex + 1) % filtered.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : filtered.length - 1));
+      scrollSelectedIntoView((selectedIndex - 1 + filtered.length) % filtered.length);
     } else if (e.key === "Enter" && filtered[selectedIndex]) {
       e.preventDefault();
       filtered[selectedIndex].onSelect();
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const categories: SearchCategory[] = ["all", "invoices", "contractors", "actions"];
+      const nextIdx = (categories.indexOf(activeCategory) + (e.shiftKey ? -1 : 1) + categories.length) % categories.length;
+      setActiveCategory(categories[nextIdx]);
     }
+  };
+
+  const scrollSelectedIntoView = (index: number) => {
+    if (!listRef.current) return;
+    const el = listRef.current.children[index] as HTMLElement | undefined;
+    if (el) {
+      el.scrollIntoView({ block: "nearest" });
+    }
+  };
+
+  const copyNip = (e: React.MouseEvent, nip: string, id: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(nip);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
   };
 
   return (
     <AnimatePresence>
       {open && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            paddingTop: "12vh",
-            paddingLeft: "1rem",
-            paddingRight: "1rem",
-            background: "rgba(15, 23, 42, 0.45)",
-            backdropFilter: "blur(6px)",
-          }}
+          className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] px-4 bg-black/65 backdrop-blur-md"
           onClick={() => setOpen(false)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -10 }}
+            initial={{ opacity: 0, scale: 0.96, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -10 }}
-            transition={{ duration: 0.15 }}
-            style={{
-              width: "100%",
-              maxWidth: "600px",
-              background: "var(--card)",
-              borderRadius: "14px",
-              border: "1px solid var(--border)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              overflow: "hidden",
-            }}
+            exit={{ opacity: 0, scale: 0.96, y: -8 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="w-full max-w-2xl rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Pole wyszukiwania */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "0.85rem 1.15rem",
-                borderBottom: "1px solid var(--border)",
-                gap: "0.75rem",
-              }}
-            >
-              <Search size={18} style={{ color: "var(--muted)" }} />
+            {/* Pasek Wyszukiwania */}
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/60 bg-muted/20">
+              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Szukaj faktury, kontrahenta, usługi lub wpisz polecenie..."
                 value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setSelectedIndex(0);
-                }}
+                onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyNavigation}
-                style={{
-                  flex: 1,
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  fontSize: "0.9375rem",
-                  color: "var(--foreground)",
-                }}
+                placeholder="Szukaj faktury (numer, kwota), kontrahenta (NIP, nazwa), polecenia…"
+                className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
               />
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--muted)",
-                  background: "var(--surface-sunken)",
-                  padding: "0.2rem 0.45rem",
-                  borderRadius: "4px",
-                  fontWeight: 600,
-                }}
-              >
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                 ESC
-              </span>
+              </kbd>
             </div>
 
-            {/* Wyniki */}
+            {/* Zakładki / Filtry kategorii */}
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/50 bg-card/40 text-xs overflow-x-auto">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 mr-1 hidden sm:inline">
+                Filtr:
+              </span>
+              {[
+                { key: "all", label: "Wszystko" },
+                { key: "invoices", label: `Faktury (${invoices.length})` },
+                { key: "contractors", label: `Kontrahenci (${contractors.length})` },
+                { key: "actions", label: "Szybkie akcje" },
+                { key: "nav", label: "Nawigacja" },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveCategory(tab.key as SearchCategory)}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                    activeCategory === tab.key
+                      ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Lista Wyników */}
             <div
-              style={{
-                maxHeight: "380px",
-                overflowY: "auto",
-                padding: "0.5rem",
-              }}
+              ref={listRef}
+              className="max-h-[380px] overflow-y-auto p-2 space-y-1 divide-y divide-border/20"
             >
               {filtered.length === 0 ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted)", fontSize: "0.875rem" }}>
-                  Brak wyników dla frazy &bdquo;{query}&rdquo;
+                <div className="py-12 text-center text-xs text-muted-foreground">
+                  Nie znaleziono wyników dla &bdquo;<strong className="text-foreground">{query}</strong>&rdquo;.
+                  <p className="mt-1 text-[11px] text-muted-foreground/80">
+                    Sprawdź numer faktury, fragment NIP lub nazwę kontrahenta.
+                  </p>
                 </div>
               ) : (
                 filtered.map((item, idx) => {
                   const Icon = item.icon;
                   const isSelected = idx === selectedIndex;
+
                   return (
                     <div
                       key={item.id}
                       onClick={() => item.onSelect()}
                       onMouseEnter={() => setSelectedIndex(idx)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "0.65rem 0.85rem",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        background: isSelected ? "var(--surface-sunken)" : "transparent",
-                        transition: "background 0.1s ease",
-                      }}
+                      className={`flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
+                        isSelected
+                          ? "bg-primary/10 border border-primary/25 shadow-2xs"
+                          : "hover:bg-muted/40 border border-transparent"
+                      }`}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div
-                          style={{
-                            padding: "0.4rem",
-                            borderRadius: "6px",
-                            background: isSelected ? "var(--primary)" : "var(--surface-sunken)",
-                            color: isSelected ? "#ffffff" : "var(--foreground)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                            isSelected
+                              ? "bg-primary text-primary-foreground shadow-2xs"
+                              : "bg-muted/60 text-muted-foreground border border-border/50"
+                          }`}
                         >
-                          <Icon size={16} />
+                          <Icon className="h-4 w-4" />
                         </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontSize: "0.875rem",
-                              fontWeight: 600,
-                              color: "var(--foreground)",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {item.title}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-bold text-foreground truncate">
+                              {item.title}
+                            </span>
+                            {item.badge && (
+                              <span
+                                className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${
+                                  item.badgeTone === "success"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
+                                    : item.badgeTone === "danger"
+                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25"
+                                    : item.badgeTone === "info"
+                                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25"
+                                    : "bg-muted text-muted-foreground border-border/70"
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground/60 tracking-wider">
+                              {item.category}
+                            </span>
                           </div>
+
                           {item.subtitle && (
-                            <div
-                              style={{
-                                fontSize: "0.75rem",
-                                color: "var(--muted)",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
+                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                               {item.subtitle}
-                            </div>
+                            </p>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <span
-                          style={{
-                            fontSize: "0.6875rem",
-                            color: "var(--muted)",
-                            textTransform: "uppercase",
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          {item.category}
-                        </span>
-                        {isSelected && <ArrowRight size={14} color="var(--primary)" />}
+                      {/* Prawa strona: kwota, data, akcja */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.amount && (
+                          <span className="text-xs font-bold text-foreground tabular-nums">
+                            {item.amount}
+                          </span>
+                        )}
+
+                        {item.nip && (
+                          <button
+                            type="button"
+                            onClick={(e) => copyNip(e, item.nip!, item.id)}
+                            title="Kopiuj NIP"
+                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                          >
+                            {copiedId === item.id ? (
+                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        )}
+
+                        {isSelected && (
+                          <ArrowRight className="h-3.5 w-3.5 text-primary ml-1" />
+                        )}
                       </div>
                     </div>
                   );
@@ -449,24 +564,17 @@ export function CommandPalette() {
               )}
             </div>
 
-            {/* Stopka */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.5rem 1rem",
-                borderTop: "1px solid var(--border)",
-                fontSize: "0.75rem",
-                color: "var(--muted)",
-                background: "var(--surface-sunken)",
-              }}
-            >
-              <div style={{ display: "flex", gap: "0.75rem" }}>
-                <span>↑↓ Wybierz</span>
-                <span>↵ Przejdź</span>
+            {/* Stopka z podpowiedziami klawiatury */}
+            <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/20 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-3">
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↑↓</kbd> Nawiguj</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↵</kbd> Otwórz</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">Tab</kbd> Zmień filtr</span>
               </div>
-              <div>Fakturo • Szybka nawigacja</div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span>Fakturo Global Search</span>
+              </div>
             </div>
           </motion.div>
         </div>

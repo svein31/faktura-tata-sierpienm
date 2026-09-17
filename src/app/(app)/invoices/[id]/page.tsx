@@ -24,6 +24,7 @@ import {
   History,
 } from "lucide-react";
 import { InvoiceHistoryTab } from "@/components/invoice/invoice-history-tab";
+import { InvoiceStatusTimeline } from "@/components/invoice/invoice-status-timeline";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -328,7 +329,18 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         <InvoiceHistoryTab invoiceId={invoice.id} />
       ) : (
         <>
-      {/* Karta Akceptacji Księgowej dla Faktur Zakupowych */}
+          {/* Wizualna oś czasu KSeF 2.0 */}
+          <div className="no-print">
+            <InvoiceStatusTimeline
+              invoice={invoice}
+              onRefreshStatus={handleCheckKsefStatus}
+              onDownloadUpo={handleDownloadUpo}
+              onDownloadXml={handleDownloadXml}
+              isRefreshing={checkingStatus}
+            />
+          </div>
+
+          {/* Karta Akceptacji Księgowej dla Faktur Zakupowych */}
       {invoice.type === "purchase" && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
           <Card className={`rounded-3xl border shadow-xs overflow-hidden ${

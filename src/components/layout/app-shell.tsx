@@ -9,6 +9,7 @@ import { Topbar } from "./topbar";
 import { BottomNav } from "./bottom-nav";
 import { CommandPalette } from "./command-palette";
 import { TermsUpdateModal } from "@/components/legal/terms-update-modal";
+import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 
 /**
  * Powłoka aplikacji (tylko dla zalogowanych — strona (app) przechodzi
@@ -22,6 +23,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
       <div className="min-h-screen bg-background text-foreground overflow-x-hidden antialiased selection:bg-primary/20 selection:text-primary">
         <CommandPalette />
         <TermsUpdateModal />
+        <OnboardingTour />
         <Sidebar />
         <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
         <div className="lg:pl-64 flex min-h-screen flex-col">

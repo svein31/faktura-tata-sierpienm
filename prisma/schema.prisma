@@ -51,6 +51,26 @@ model User {
   termsAcceptedAt     DateTime?
   termsAcceptedVersion String?
   legalConsents       LegalConsent[]
+  // Podatki / ZUS / JPK (sekcja 3)
+  taxProfile          TaxProfile?
+  taxSettlements      TaxSettlement[]
+  jpkExports          JpkExport[]
+  whitelistChecks     WhitelistCheck[]
+  // Magazyn WMS (sekcja 4)
+  warehouses          Warehouse[]
+  stockItems          StockItem[]
+  stockDocuments      StockDocument[]
+  stockMovements      StockMovement[]
+  stocktakings        Stocktaking[]
+  // Integracje bank / e-commerce / API (sekcja 5)
+  bankConnections     BankConnection[]
+  bankTransactions    BankTransaction[]
+  ecommerceIntegrations EcommerceIntegration[]
+  ecommerceOrders     EcommerceOrder[]
+  apiKeys             ApiKey[]
+  webhooks            Webhook[]
+  // PWA / OCR (sekcja 7)
+  expenseScans        ExpenseScan[]
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
@@ -166,6 +186,33 @@ model Contractor {
   taxIdType              String?   @default("nip") // "nip" | "vat_eu" | "tin" | "other" | "none"
   taxId                  String?   // Pełny identyfikator zachowujący litery, separatory i zera wiodące
   country                String?   @default("PL")
+
+  // ── CRM 360° (sekcja 6) ────────────────────────────────────────────────
+  /// Limit kupiecki — maksymalna dopuszczalna suma nierozliczonych należności
+  creditLimit            Float?    @default(0)
+  creditLimitCurrency    String?   @default("PLN")
+  /// true = blokuje wystawienie faktury po przekroczeniu limitu, false = tylko ostrzega
+  creditLimitBlocking    Boolean?  @default(false)
+  /// Indywidualny cennik: [{ productId?, sku?, name, netPrice?, discountPercent?, currency }]
+  priceListItems         Json?
+  priceListValidFrom     String?
+  priceListValidTo       String?
+  /// Scoring terminowości płatności (wyliczany z historii faktur)
+  scoreAvgDelayDays      Float?
+  scoreMaxDelayDays      Float?
+  scoreOnTimeRatio       Float?    // 0..1
+  scorePaymentRating     String?   // excellent | good | average | risky | critical | no_data
+  scorePoints            Int?      // 0..100
+  scoreUpdatedAt         DateTime?
+  /// Metryki 360° (cache — pełne dane liczone w /api/contractors/[id]/crm)
+  annualTurnoverNet      Float?    @default(0)
+  annualMarginNet        Float?    @default(0)
+  annualMarginPercent    Float?    @default(0)
+  openReceivables        Float?    @default(0)
+  lifetimeTurnoverNet    Float?    @default(0)
+  lastInvoiceDate        String?
+  statsUpdatedAt         DateTime?
+
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
@@ -185,10 +232,24 @@ model Product {
   netPrice    Float    @default(0)
   vatRate     String   @default("23")
   description String?
+
+  // ── Magazyn WMS (sekcja 4) ────────────────────────────────────────────
+  /// true = pozycja magazynowa (towar). false = usługa — nie generuje WZ/PZ.
+  isStockTracked Boolean @default(false)
+  /// Minimalny stan — poniżej tej wartości generowany jest alert niskiego stanu
+  minQuantity    Float   @default(0)
+  purchasePrice  Float   @default(0)
+  gtuCode        String? // domyślny kod GTU dla pozycji (GTU_01 … GTU_13)
+  pkwiu          String?
+  cnCode         String?
+  isSplitPaymentGoods Boolean @default(false) // towar z zał. 15 → MPP
+  stockItems     StockItem[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
+  @@index([sku])
 }
 
 model CompanyProfile {
@@ -357,6 +418,22 @@ model Invoice {
   bankAccountSnapshot       Json?
   buyerTaxIdType            String?
   buyerCountry              String?
+
+  // Pola ewidencji JPK_V7M(3) / JPK_V7K(3) — sekcja 3
+  gtuCodes                  String[] @default([]) // GTU_01 … GTU_13
+  jpkProcedures             String[] @default([]) // WSTO_EE | IED | TP | TT_WNT | TT_D | MR_T | MR_UZ | I_42 | I_63 | B_SPV | B_SPV_DOSTAWA | B_MPV_PROWIZJA
+  jpkDocumentType           String?  // RO | WEW | FP (puste = zwykła faktura)
+  isSplitPayment            Boolean? @default(false) // MPP — mechanizm podzielonej płatności (art. 108a, zał. 15)
+  isWstoEe                  Boolean? @default(false) // WSTO / usługi TBE
+  vatRegisterPeriod         String?  // "YYYY-MM" — okres ujęcia w ewidencji VAT
+
+  // Magazyn (sekcja 4) — wygenerowany dokument WZ
+  stockDocumentId           String?  @db.ObjectId
+  stockDocumentNumber       String?
+
+  // CRM / e-commerce (sekcje 5–6)
+  sourceChannel             String?  @default("manual") // manual | api | allegro | woocommerce | shopify | recurring | ocr
+  appliedDiscountPercent    Float?   @default(0)
 
   // Relacje
   payments        PaymentRecord[]
@@ -552,6 +629,25 @@ model Expense {
   workflowStatus String            @default("to_verify") // to_verify | verified | sent_to_accountant
   isKsefSource   Boolean           @default(false)
   ksefRefNumber  String?
+
+  // Pola ewidencji zakupu JPK_V7M(3) — sekcja 3
+  contractorNip       String?  // alias techniczny NrDostawcy
+  purchaseDocType     String?  // MK | VAT_RR | WEW
+  isImport            Boolean? @default(false) // procedura IMP (art. 33a)
+  vatDeductible       Boolean? @default(true)
+  vatDeductiblePercent Float?  @default(100) // np. 50 dla samochodów osobowych
+  isFixedAsset        Boolean? @default(false) // K_40/K_41 vs K_42/K_43
+  vatRegisterPeriod   String?  // "YYYY-MM"
+  receivedAt          String?  // DataWplywu
+
+  // Magazyn (sekcja 4) — wygenerowany dokument PZ
+  stockDocumentId     String?  @db.ObjectId
+  stockDocumentNumber String?
+
+  // OCR / skan z aparatu (sekcja 7)
+  scanId              String?  @db.ObjectId
+  ocrConfidence       Float?
+
   comments       DocumentComment[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -657,6 +753,770 @@ model LegalConsent {
 
   @@index([userId, documentType])
   @@index([documentType, documentVersion])
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SEKCJA 3 — PODATKI / ZUS REAL-TIME + JPK
+// ════════════════════════════════════════════════════════════════════════
+
+/// Profil podatkowy firmy — forma opodatkowania, ZUS, VAT, dane do JPK
+model TaxProfile {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  /// "ryczalt" | "liniowy" | "skala"
+  taxationForm        String  @default("skala")
+  /// Stawka ryczałtu w % — 8.5 | 12 | 15 (pełny katalog: 2, 3, 5.5, 8.5, 10, 12, 14, 15, 17)
+  ryczaltRate         Float?  @default(8.5)
+  /// Dodatkowa stawka 12.5% od nadwyżki ponad 100 000 zł (art. 12 ust. 1 pkt 4 — najem)
+  ryczaltSurchargeEnabled Boolean @default(false)
+
+  // ── VAT ──
+  vatPayer            Boolean @default(true)
+  /// "monthly" → JPK_V7M | "quarterly" → JPK_V7K
+  vatPeriod           String  @default("monthly")
+  /// Kod urzędu skarbowego (4 znaki, np. "1471") — wymagany w nagłówku JPK
+  taxOfficeCode       String  @default("")
+  /// Dane do Podmiot1 w JPK
+  jpkEntityType       String  @default("nonPhysical") // nonPhysical | physical
+  jpkFirstName        String?
+  jpkLastName         String?
+  jpkBirthDate        String?
+  jpkEmail            String  @default("")
+  jpkPhone            String?
+
+  // ── ZUS ──
+  /// "full" (duży ZUS) | "preferential" (30% min. wynagr., 24 mies.) | "ulga_na_start" | "maly_zus_plus" | "none"
+  zusScheme           String  @default("full")
+  /// Dobrowolne ubezpieczenie chorobowe (2,45%)
+  zusSickness         Boolean @default(true)
+  /// Fundusz Pracy i FS (2,45%) — zwolnienie: K 55+/M 60+ lub podstawa < min. wynagrodzenia
+  zusLabourFund       Boolean @default(true)
+  /// Stopa wypadkowa w % (standard 1,67% dla ≤ 9 ubezpieczonych)
+  zusAccidentRate     Float   @default(1.67)
+  /// Podstawa dla Małego ZUS Plus (ustalana indywidualnie)
+  zusCustomSocialBase Float?
+  /// Wakacje składkowe — miesiąc (1..12), w którym składki społeczne finansuje budżet
+  zusHolidayMonth     Int?
+  /// Składki społeczne w KUP (true) albo odliczane od dochodu (false)
+  socialInCosts       Boolean @default(false)
+
+  // ── PIT ──
+  /// "monthly" | "quarterly" (mali podatnicy / rozpoczynający działalność)
+  pitAdvancePeriod    String  @default("monthly")
+  /// Stosowanie kwoty zmniejszającej podatek (3 600 zł/rok) — tylko skala
+  applyTaxReducingAmount Boolean @default(true)
+  /// Strata z lat poprzednich do odliczenia
+  lossCarryForward    Float   @default(0)
+  /// Nadpłata / zaliczki wpłacone od początku roku (narastająco)
+  paidAdvancesYtd     Float   @default(0)
+
+  // ── Biała Lista VAT ──
+  /// Próg weryfikacji w PLN — art. 19 Prawa przedsiębiorców (domyślnie 15 000)
+  whitelistThreshold  Float   @default(15000)
+  whitelistAutoCheck  Boolean @default(true)
+
+  /// Nadpisania parametrów rocznych: { "2026": { minWage, averageWage, … } }
+  parameterOverrides  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Migawka rozliczenia podatkowo-ZUS-owego za okres (miesiąc / kwartał)
+model TaxSettlement {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  periodYear  Int
+  periodMonth Int // 1..12 (dla kwartału — ostatni miesiąc okresu)
+  periodLabel String // np. "2026-03"
+
+  taxationForm String
+  ryczaltRate  Float?
+
+  // Podstawy
+  revenueNet  Float @default(0) // przychód netto (FV sprzedaż)
+  costsNet    Float @default(0) // koszty netto (wydatki)
+  incomeBase  Float @default(0) // dochód = FV − koszty
+  revenueYtd  Float @default(0)
+  costsYtd    Float @default(0)
+  incomeYtd   Float @default(0)
+
+  // ZUS
+  zusSocialBase   Float @default(0)
+  zusPension      Float @default(0) // emerytalna 19,52%
+  zusDisability   Float @default(0) // rentowa 8,00%
+  zusSickness     Float @default(0) // chorobowa 2,45%
+  zusAccident     Float @default(0) // wypadkowa 1,67%
+  zusLabourFund   Float @default(0) // FP + FS 2,45%
+  zusSocialTotal  Float @default(0)
+  zusHealthBase   Float @default(0)
+  zusHealth       Float @default(0) // składka zdrowotna
+  zusTotal        Float @default(0)
+
+  // PIT
+  pitBase         Float @default(0)
+  pitRateApplied  Float @default(0)
+  pitTaxYtd       Float @default(0)
+  pitAdvance      Float @default(0) // zaliczka do zapłaty za okres
+  pitAdvanceRounded Float @default(0) // zaokrąglona do pełnych złotych
+  pitDeferred     Boolean @default(false) // nie przekroczono progu 1 000 zł
+
+  // VAT
+  vatDue          Float @default(0) // P_51
+  vatToCarry      Float @default(0) // P_62
+
+  totalDue        Float @default(0) // ZUS + PIT + VAT
+  /// Termin płatności — 20. dzień miesiąca następującego po okresie ("YYYY-MM-20")
+  dueDate         String
+  daysLeft        Int   @default(0)
+
+  breakdown Json? // pełny ślad obliczeniowy (kroki + podstawy prawne)
+  paid      Boolean   @default(false)
+  paidAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, periodLabel])
+  @@index([userId, periodYear])
+}
+
+/// Wygenerowany plik JPK (V7M / V7K / FA)
+model JpkExport {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  /// "JPK_V7M" | "JPK_V7K" | "JPK_FA"
+  kind           String
+  /// kodSystemowy, np. "JPK_V7M (3)" | "JPK_V7K (3)" | "JPK_FA (4)"
+  systemCode     String
+  schemaVersion  String // wersjaSchemy, np. "1-0E"
+  variant        String // WariantFormularza, np. "3" | "4"
+  namespaceUri   String
+
+  periodYear    Int
+  periodMonth   Int?
+  periodQuarter Int?
+  periodFrom    String? // JPK_FA — DataOd
+  periodTo      String? // JPK_FA — DataDo
+  /// CelZlozenia: 1 = złożenie pierwotne, 2 = korekta
+  purpose       Int     @default(1)
+  correctionReason String?
+
+  fileName  String
+  xml       String
+  sizeBytes Int    @default(0)
+  checksum  String // SHA-256 pliku — dowód integralności
+
+  invoiceCount Int   @default(0)
+  expenseCount Int   @default(0)
+  totalNet     Float @default(0)
+  totalVat     Float @default(0)
+  totalGross   Float @default(0)
+  outputVat    Float @default(0) // PodatekNalezny
+  inputVat     Float @default(0) // PodatekNaliczony
+  vatDue       Float @default(0) // P_51
+
+  gtuSummary       Json? // { "GTU_01": 3, … }
+  procedureSummary Json? // { "WSTO_EE": 1, "TP": 2, … }
+  validationIssues Json? // [{ level, code, message, row? }]
+  isValid          Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind, periodYear])
+  @@index([checksum])
+}
+
+/// Dowód weryfikacji rachunku w Wykazie podatników VAT (Biała Lista, wl-api.mf.gov.pl)
+/// Retencja: min. 5 lat (art. 70 § 1 Ordynacji podatkowej) — dowód należytej staranności.
+model WhitelistCheck {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nip           String
+  accountNumber String // NRB 26 cyfr, bez "PL" i spacji
+  /// Data, na którą weryfikowano (parametr `date`, YYYY-MM-DD) — dzień zlecenia przelewu
+  checkDate     String
+  /// Kwota płatności, która wywołała weryfikację
+  amount        Float?
+  currency      String  @default("PLN")
+  /// Próg obowiązujący w momencie weryfikacji (domyślnie 15 000 PLN)
+  threshold     Float   @default(15000)
+  thresholdExceeded Boolean @default(true)
+
+  /// "check" | "search"
+  endpoint      String  @default("check")
+  /// "assigned" | "not_assigned" | "not_found" | "virtual_account" | "error"
+  result        String
+  /// Surowa wartosć z API: "TAK" | "NIE"
+  accountAssigned String?
+  /// "Czynny" | "Zwolniony" | "Niezarejestrowany"
+  subjectStatus String?
+  subjectName   String?
+  hasVirtualAccounts Boolean @default(false)
+  /// Unikalny identyfikator zapytania MF — dowód przed organem podatkowym
+  requestId     String?
+  /// requestDateTime z API (format dd-MM-yyyy HH:mm:ss, konwertowany na ISO)
+  requestDateTime DateTime?
+
+  invoiceId String? @db.ObjectId
+  expenseId String? @db.ObjectId
+  bankTransactionId String? @db.ObjectId
+
+  /// Zawiadomienie ZAW-NR złożone (wyłączenie odpowiedzialności, art. 117ba § 3 pkt 1 OP)
+  zawNrFiled   Boolean   @default(false)
+  zawNrFiledAt DateTime?
+
+  errorCode    String? // np. WL-101
+  errorMessage String?
+  rawResponse  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([nip, accountNumber, checkDate])
+  @@index([requestId])
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SEKCJA 4 — MAGAZYN (WMS)
+// ════════════════════════════════════════════════════════════════════════
+
+model Warehouse {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  name      String
+  code      String  @default("MAG")
+  address   Json?
+  isDefault Boolean @default(false)
+  isActive  Boolean @default(true)
+  notes     String?
+
+  stockItems     StockItem[]
+  stockDocuments StockDocument[]
+  stockMovements StockMovement[]
+  stocktakings   Stocktaking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, code])
+  @@index([userId])
+}
+
+/// Stan magazynowy pozycji w danym magazynie (żywy licznik)
+model StockItem {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  warehouseId String    @db.ObjectId
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  productId   String?   @db.ObjectId
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  sku  String
+  name String
+  unit String @default("szt.")
+
+  /// Stan bieżący
+  quantity     Float @default(0)
+  /// Ilość zarezerwowana (faktury w statusie draft/ready)
+  reserved     Float @default(0)
+  /// Próg alertu niskiego stanu
+  minQuantity  Float @default(0)
+  /// Średnia ważona cena zakupu netto (wycena rozchodu)
+  avgPurchasePrice  Float @default(0)
+  lastPurchasePrice Float @default(0)
+  /// Wartość magazynowa = quantity × avgPurchasePrice
+  valueNet     Float @default(0)
+  location     String?
+
+  lastMovementAt DateTime?
+  lowStockAlertedAt DateTime?
+
+  movements StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([warehouseId, sku])
+  @@index([userId])
+  @@index([userId, quantity])
+}
+
+/// Dokument magazynowy: WZ | PZ | RW | PW | MM
+model StockDocument {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  warehouseId String    @db.ObjectId
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  number String
+  /// WZ (wydanie zewnętrzne) | PZ (przyjęcie zewnętrzne) | RW (rozchód wewnętrzny)
+  /// | PW (przychód wewnętrzny) | MM (przesunięcie międzymagazynowe)
+  type   String
+  /// "out" | "in" | "transfer"
+  direction String
+  /// draft | issued | cancelled
+  status    String @default("issued")
+  issueDate String
+
+  /// invoice | expense | manual | stocktaking | ecommerce | api
+  sourceType   String  @default("manual")
+  sourceId     String?
+  sourceNumber String?
+  /// true = dokument utworzony automatycznie (WZ przy FV, PZ przy FZ)
+  isAutomatic  Boolean @default(false)
+
+  contractorId   String?
+  contractorName String?
+
+  /// Magazyn docelowy dla MM
+  targetWarehouseId   String? @db.ObjectId
+  targetWarehouseName String?
+  /// Dokument sparowany (MM tworzy parę wydanie + przyjęcie)
+  pairedDocumentId    String? @db.ObjectId
+
+  /// [{ stockItemId, productId, sku, name, unit, quantity, unitPriceNet, valueNet }]
+  lines Json
+  totalQuantity Float @default(0)
+  totalValueNet Float @default(0)
+
+  notes      String?
+  issuedBy   String?
+  receivedBy String?
+  cancelledAt DateTime?
+  cancelReason String?
+
+  movements StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, number])
+  @@index([userId, type])
+  @@index([userId, issueDate])
+  @@index([sourceType, sourceId])
+}
+
+/// Nieusuwalny ślad każdej zmiany stanu magazynowego
+model StockMovement {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  warehouseId String    @db.ObjectId
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  stockItemId String    @db.ObjectId
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  documentId     String?        @db.ObjectId
+  document       StockDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  documentNumber String?
+  documentType   String?
+
+  sku  String
+  name String
+  /// Zmiana ilości: dodatnia (przyjęcie) / ujemna (wydanie)
+  quantityChange Float
+  quantityBefore Float @default(0)
+  quantityAfter  Float @default(0)
+  unitPriceNet   Float @default(0)
+  valueNet       Float @default(0)
+  reason         String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([stockItemId, createdAt])
+  @@index([documentId])
+}
+
+/// Remanent / inwentaryzacja (spis z natury)
+model Stocktaking {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  warehouseId String    @db.ObjectId
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  number    String
+  /// open | counting | closed | cancelled
+  status    String @default("open")
+  countDate String
+
+  /// [{ stockItemId, sku, name, unit, expectedQuantity, countedQuantity, diffQuantity,
+  ///    unitPriceNet, expectedValueNet, countedValueNet, diffValueNet, counted }]
+  lines Json
+
+  totalExpectedQuantity Float @default(0)
+  totalCountedQuantity  Float @default(0)
+  totalDiffQuantity     Float @default(0)
+  totalExpectedValueNet Float @default(0)
+  totalCountedValueNet  Float @default(0)
+  totalDiffValueNet     Float @default(0)
+  shortageValueNet      Float @default(0) // niedobór → RW
+  surplusValueNet       Float @default(0) // nadwyżka → PW
+
+  /// Numery dokumentów korygujących wygenerowanych przy zamknięciu remanentu
+  adjustmentDocumentIds     String[] @default([])
+  adjustmentDocumentNumbers String[] @default([])
+
+  notes    String?
+  closedAt DateTime?
+  closedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, number])
+  @@index([userId, status])
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SEKCJA 5 — INTEGRACJE BANK / E-COMMERCE / PUBLICZNE API
+// ════════════════════════════════════════════════════════════════════════
+
+/// Połączenie Open Banking PSD2 / AISP (GoCardless Bank Account Data — dawniej Nordigen, albo Tink)
+model BankConnection {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  /// "gocardless" | "tink"
+  provider        String
+  institutionId   String
+  institutionName String @default("")
+  institutionBic  String?
+  countryCode     String @default("PL")
+
+  /// GoCardless: requisition id | Tink: credentials id
+  externalRefId String?
+  /// Własny identyfikator referencyjny przekazany do dostawcy
+  reference     String?
+  /// URL do autoryzacji w banku (SCA)
+  authLink      String?
+
+  /// pending | linked | expired | revoked | error
+  status           String    @default("pending")
+  consentGivenAt   DateTime?
+  consentExpiresAt DateTime?
+  /// Maksymalna liczba dni historii transakcji udęostepniona przez bank
+  maxHistoryDays   Int       @default(90)
+
+  /// [{ id, iban, currency, name, ownerName, product }]
+  accounts Json?
+
+  /// Auto-import 1×/dobę — zgodnie z limitem PSD2 dla dostępu bez obecności użytkownika
+  syncIntervalHours Int      @default(24)
+  autoSyncEnabled   Boolean  @default(true)
+  autoMatchEnabled  Boolean  @default(true)
+  lastSyncAt        DateTime?
+  nextSyncAt        DateTime?
+  lastSyncCount     Int      @default(0)
+  lastSyncMatched   Int      @default(0)
+  errorMessage      String?
+  failureCount      Int      @default(0)
+
+  transactions BankTransaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status, nextSyncAt])
+  @@index([externalRefId])
+}
+
+/// Transakcja bankowa — z PSD2, CSV lub MT940 (wspólny rejestr i parowanie)
+model BankTransaction {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  connectionId String?         @db.ObjectId
+  connection   BankConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+
+  accountId   String?
+  accountIban String?
+  /// Identyfikator transakcji u dostawcy / hash wiersza przy CSV i MT940
+  externalId  String
+
+  bookingDate String
+  valueDate   String?
+  amount      Float
+  currency    String @default("PLN")
+  /// "in" (wpływ) | "out" (wypłata)
+  direction   String
+
+  description       String  @default("")
+  counterpartyName  String?
+  counterpartyIban  String?
+  endToEndId        String?
+  bankTransactionCode String?
+
+  /// "psd2" | "csv" | "mt940"
+  source   String @default("psd2")
+  importId String? @db.ObjectId
+
+  /// unmatched | matched | manual | ambiguous | ignored
+  matchStatus     String  @default("unmatched")
+  matchedInvoiceId String? @db.ObjectId
+  matchedInvoiceNumber String?
+  matchedExpenseId String? @db.ObjectId
+  /// 0..1 — pewność automatycznego dopasowania
+  matchConfidence Float   @default(0)
+  /// Lista przesłanek dopasowania, np. ["number", "amount_exact", "iban"]
+  matchSignals    String[] @default([])
+  matchedAt       DateTime?
+  paymentRecordId String?  @db.ObjectId
+  /// Kandydaci przy dopasowaniu niejednoznacznym: [{ invoiceId, number, score, signals }]
+  matchCandidates Json?
+
+  raw Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, externalId])
+  @@index([userId, bookingDate])
+  @@index([userId, matchStatus])
+  @@index([connectionId])
+}
+
+/// Integracja e-commerce: Allegro / WooCommerce / Shopify
+model EcommerceIntegration {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  /// "allegro" | "woocommerce" | "shopify"
+  platform String
+  name     String @default("")
+  shopUrl  String?
+  externalShopId String?
+
+  /// Zaszyfrowane poświadczenia (AES-256-GCM) — nigdy nie zwracane do klienta
+  credentialsEnc String?
+  /// Maski do wyświetlenia, np. { clientId: "abc1…", tokenMask: "••••4f2a" }
+  credentialsMask Json?
+
+  /// disconnected | connected | error | expired
+  status       String    @default("disconnected")
+  tokenExpiresAt DateTime?
+
+  /// Auto-faktura do zamówienia
+  autoInvoice      Boolean @default(true)
+  /// Po wystawieniu → wyślij do KSeF
+  autoSendKsef     Boolean @default(true)
+  /// Po wystawieniu → wyślij PDF na e-mail klienta
+  autoEmailClient  Boolean @default(true)
+  /// Tworóz fakturę tylko dla zamówień opłaconych
+  onlyPaidOrders   Boolean @default(true)
+  /// Tworóz fakturę tylko gdy kupujący zażądał faktury
+  onlyRequested    Boolean @default(false)
+  defaultVatRate   String  @default("23")
+  defaultUnit      String  @default("szt.")
+  invoicePrefix    String? @default("")
+  paymentTermDays  Int     @default(0)
+  /// Odejmij WZ z magazynu dla zamówień (sekcja 4)
+  createStockDocuments Boolean @default(false)
+  warehouseId      String? @db.ObjectId
+
+  syncIntervalMinutes Int      @default(60)
+  lastSyncAt          DateTime?
+  nextSyncAt          DateTime?
+  lastSyncCount       Int      @default(0)
+  /// Nie importuj zamówień starszych niż ta data
+  importOrdersSince   String?
+  webhookSecret       String?
+  errorMessage        String?
+  failureCount        Int      @default(0)
+
+  orders EcommerceOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, platform, externalShopId])
+  @@index([userId])
+  @@index([status, nextSyncAt])
+}
+
+/// Zamówienie zaimportowane z platformy e-commerce
+model EcommerceOrder {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  integrationId String               @db.ObjectId
+  integration   EcommerceIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  platform        String
+  externalOrderId String
+  orderNumber     String?
+
+  /// { name, nip?, email, phone?, address: { street, city, postal, country }, isCompany, wantsInvoice }
+  buyer Json
+  /// [{ name, sku?, quantity, unit, netPrice, vatRate, grossPrice }]
+  lines Json
+
+  totalNet   Float  @default(0)
+  totalVat   Float  @default(0)
+  totalGross Float  @default(0)
+  currency   String @default("PLN")
+  shippingGross Float @default(0)
+
+  /// paid | unpaid | refunded | cancelled
+  paymentStatus String @default("unpaid")
+  orderedAt     String
+  paidAt        String?
+
+  /// imported | invoiced | skipped | error
+  status        String  @default("imported")
+  invoiceId     String? @db.ObjectId
+  invoiceNumber String?
+  ksefNumber    String?
+  emailSentAt   DateTime?
+  skipReason    String?
+  errorMessage  String?
+
+  raw Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, platform, externalOrderId])
+  @@index([userId, status])
+  @@index([integrationId])
+}
+
+/// Klucz publicznego REST API (widoczny raz przy tworzeniu, w bazie tylko hash SHA-256)
+model ApiKey {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String? @db.ObjectId
+
+  name String
+  /// Widoczny prefiks, np. "fk_live_a1b2c3" — do identyfikacji w UI
+  keyPrefix String
+  /// SHA-256 pełnego klucza
+  keyHash   String @unique
+  /// "live" | "test"
+  environment String @default("live")
+
+  /// invoices:read invoices:write contractors:read contractors:write products:read
+  /// products:write expenses:read expenses:write warehouse:read warehouse:write
+  /// tax:read ksef:send webhooks:manage
+  scopes String[] @default(["invoices:read"])
+
+  rateLimitPerMinute Int      @default(120)
+  requestCount       Int      @default(0)
+  lastUsedAt         DateTime?
+  lastUsedIp         String?
+  expiresAt          DateTime?
+  revokedAt          DateTime?
+  revokedReason      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([keyPrefix])
+}
+
+/// Webhook wychodzący (Zapier / Make / n8n / custom)
+model Webhook {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  url         String
+  description String?
+  /// "zapier" | "make" | "n8n" | "custom"
+  target      String  @default("custom")
+
+  /// invoice.created | invoice.issued | invoice.paid | invoice.overdue | ksef.accepted
+  /// | ksef.rejected | expense.created | contractor.created | offer.accepted
+  /// | order.completed | stock.low | stock.document.created | bank.transaction.matched
+  /// | tax.settlement.due
+  events String[] @default([])
+
+  /// Sekret do podpisu HMAC-SHA256 nagłówka X-Fakturo-Signature
+  secret String
+  active Boolean @default(true)
+
+  deliveryCount  Int       @default(0)
+  failureCount   Int       @default(0)
+  lastDeliveryAt DateTime?
+  lastStatus     Int?
+  lastError      String?
+  /// Po 10 kolejnych błędach webhook jest automatycznie wyłączany
+  disabledAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([active])
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SEKCJA 7 — PWA / SKAN FAKTURY Z APARATU (OCR)
+// ════════════════════════════════════════════════════════════════════════
+
+/// Zdjęcie faktury/paragonu zrobione aparatem → OCR → moduł kosztów
+model ExpenseScan {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fileName  String?
+  mimeType  String  @default("image/jpeg")
+  sizeBytes Int     @default(0)
+  /// Obraz jako data URL (limit 4 MB) — zgodnie z RODO usuwany razem z kosztem
+  imageData String?
+  /// "camera" | "upload"
+  captureSource String @default("camera")
+
+  /// pending | processing | parsed | needs_review | failed | converted
+  status String @default("pending")
+  /// "ocrspace" | "google_vision" | "mindee" | "azure_di" | "manual"
+  provider String?
+  rawText  String?
+  /// { number, contractorName, nip, issueDate, dueDate, totalNet, totalVat, totalGross,
+  ///   currency, category, iban, fieldConfidence: {…} }
+  parsed     Json?
+  confidence Float?
+
+  expenseId    String? @db.ObjectId
+  errorMessage String?
+  processedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
 }
 
 

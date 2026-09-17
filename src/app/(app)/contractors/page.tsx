@@ -5,11 +5,12 @@ import Link from "next/link";
 import { contractorHistory } from "@/lib/crm";
 import { formatMoney, invoiceTotals } from "@/lib/format";
 import { AnimatePresence, motion } from "framer-motion";
-import { Building2, Pencil, Plus, Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Building2, Pencil, Plus, Search, Trash2, UserPlus, Users, ShieldCheck } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { ContractorCrmDrawer } from "@/components/crm/contractor-crm-drawer";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
@@ -62,6 +63,7 @@ export default function ContractorsPage() {
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<ContractorDraft>(emptyDraft);
   const [toDelete, setToDelete] = React.useState<string | null>(null);
+  const [selectedCrmContractor, setSelectedCrmContractor] = React.useState<Contractor | null>(null);
 
   const filtered = contractors.filter((c) => {
     const q = search.trim().toLowerCase();
@@ -197,7 +199,26 @@ export default function ContractorsPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1 rounded-b-2xl border-t border-border/60 bg-muted/30 p-2">
-                    <Button variant="ghost" onClick={() => { setHistoryId(c.id); setHistoryPage(0); }}>Historia i saldo ({invoices.filter(i => i.contractorId === c.id && (i.sellerCompanyId || null) === (selectedCompanyId || null)).length})</Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setHistoryId(c.id); setHistoryPage(0); }}
+                        className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        Saldo ({invoices.filter(i => i.contractorId === c.id && (i.sellerCompanyId || null) === (selectedCompanyId || null)).length})
+                      </Button>
+                      <Button
+                        variant="subtle"
+                        size="sm"
+                        onClick={() => setSelectedCrmContractor(c)}
+                        className="h-6 px-2 text-[10.5px] gap-1 text-primary hover:bg-primary/10 rounded-md font-medium border border-primary/20"
+                        title="Otwórz kartotekę CRM 360° ze scoringiem i limitem kupieckim"
+                      >
+                        <ShieldCheck className="h-3 w-3" />
+                        <span>CRM 360°</span>
+                      </Button>
+                    </div>
                     <div className="flex gap-0.5">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Edytuj">
                         <Pencil className="h-3.5 w-3.5" />
@@ -411,6 +432,12 @@ export default function ContractorsPage() {
         }}
         title="Usunąć kontrahenta?"
         description="Kontrahenta z historią faktur nie można usunąć."
+      />
+
+      {/* Drawer CRM 360° */}
+      <ContractorCrmDrawer
+        contractor={selectedCrmContractor}
+        onClose={() => setSelectedCrmContractor(null)}
       />
     </div>
   );

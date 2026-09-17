@@ -1,0 +1,242 @@
+"use client";
+
+import * as React from "react";
+import { PieChart, Layers, Percent, TrendingUp } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { formatMoney, invoiceTotals, monthKey } from "@/lib/format";
+import type { Invoice } from "@/lib/types";
+
+interface VatRateBreakdown {
+  rate: string;
+  label: string;
+  net: number;
+  vat: number;
+  gross: number;
+  percentage: number;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+const RATE_COLORS: Record<string, { color: string; bgColor: string; borderColor: string }> = {
+  "23": {
+    color: "text-indigo-400",
+    bgColor: "bg-indigo-500",
+    borderColor: "border-indigo-500/40",
+  },
+  "8": {
+    color: "text-sky-400",
+    bgColor: "bg-sky-500",
+    borderColor: "border-sky-500/40",
+  },
+  "5": {
+    color: "text-emerald-400",
+    bgColor: "bg-emerald-500",
+    borderColor: "border-emerald-500/40",
+  },
+  "0": {
+    color: "text-amber-400",
+    bgColor: "bg-amber-500",
+    borderColor: "border-amber-500/40",
+  },
+  "zw": {
+    color: "text-purple-400",
+    bgColor: "bg-purple-500",
+    borderColor: "border-purple-500/40",
+  },
+  "np": {
+    color: "text-slate-400",
+    bgColor: "bg-slate-500",
+    borderColor: "border-slate-500/40",
+  },
+  "oo": {
+    color: "text-teal-400",
+    bgColor: "bg-teal-500",
+    borderColor: "border-teal-500/40",
+  },
+};
+
+const DEFAULT_RATE_STYLE = {
+  color: "text-muted-foreground",
+  bgColor: "bg-primary",
+  borderColor: "border-primary/40",
+};
+
+export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
+  const [period, setPeriod] = React.useState<"month" | "all">("month");
+
+  const currentMonth = React.useMemo(() => {
+    return new Date().toISOString().slice(0, 7);
+  }, []);
+
+  const relevantInvoices = React.useMemo(() => {
+    return invoices.filter((i) => {
+      if (i.type !== "sale" || i.status === "draft") return false;
+      if (period === "month") {
+        return monthKey(i.issueDate) === currentMonth;
+      }
+      return true;
+    });
+  }, [invoices, period, currentMonth]);
+
+  const breakdown = React.useMemo(() => {
+    const map = new Map<string, { net: number; vat: number; gross: number }>();
+
+    for (const inv of relevantInvoices) {
+      if (Array.isArray(inv.lines) && inv.lines.length > 0) {
+        for (const line of inv.lines) {
+          const rateKey = String(line.vatRate || "23").toLowerCase();
+          const net = (line.quantity || 1) * (line.netPrice || 0);
+          let vat = 0;
+          if (["zw", "np", "oo", "0"].includes(rateKey)) {
+            vat = 0;
+          } else {
+            const numRate = parseFloat(rateKey) || 0;
+            vat = (net * numRate) / 100;
+          }
+          const gross = net + vat;
+
+          const current = map.get(rateKey) || { net: 0, vat: 0, gross: 0 };
+          current.net += net;
+          current.vat += vat;
+          current.gross += gross;
+          map.set(rateKey, current);
+        }
+      } else {
+        const totals = invoiceTotals(inv);
+        const current = map.get("23") || { net: 0, vat: 0, gross: 0 };
+        current.net += totals.net;
+        current.vat += totals.vat;
+        current.gross += totals.gross;
+        map.set("23", current);
+      }
+    }
+
+    const totalGrossAll = Array.from(map.values()).reduce((acc, val) => acc + val.gross, 0);
+
+    const list: VatRateBreakdown[] = Array.from(map.entries())
+      .map(([rate, data]) => {
+        const style = RATE_COLORS[rate] || DEFAULT_RATE_STYLE;
+        const percentage = totalGrossAll > 0 ? (data.gross / totalGrossAll) * 100 : 0;
+        return {
+          rate,
+          label: rate.toUpperCase() === "ZW" ? "ZW (Zwolnione)" : rate.toUpperCase() === "NP" ? "NP (Nie podlega)" : `${rate}%`,
+          net: data.net,
+          vat: data.vat,
+          gross: data.gross,
+          percentage,
+          ...style,
+        };
+      })
+      .sort((a, b) => b.gross - a.gross);
+
+    return { list, totalGrossAll };
+  }, [relevantInvoices]);
+
+  const totalVatCalculated = breakdown.list.reduce((acc, i) => acc + i.vat, 0);
+
+  return (
+    <Card className="h-full rounded-2xl border border-border/80 bg-card/90 p-5 shadow-xs flex flex-col justify-between">
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+              <Percent className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Rozkład stawek VAT</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {period === "month" ? "Bieżący miesiąc rozliczeniowy" : "Wszystkie wystawione faktury"}
+              </p>
+            </div>
+          </div>
+
+          <div className="inline-flex rounded-xl bg-muted/40 p-1 border border-border/60 text-xs">
+            <button
+              type="button"
+              onClick={() => setPeriod("month")}
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                period === "month" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Ten miesiąc
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod("all")}
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+                period === "all" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Cały okres
+            </button>
+          </div>
+        </div>
+
+        {/* Pasek postępu reprezentujący udziały stawek */}
+        {breakdown.list.length > 0 ? (
+          <div className="mt-4 space-y-4">
+            <div className="space-y-1.5">
+              <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/40 p-0.5 border border-border/60">
+                {breakdown.list.map((item) => (
+                  <div
+                    key={item.rate}
+                    style={{ width: `${Math.max(item.percentage, 3)}%` }}
+                    className={`h-full first:rounded-l-full last:rounded-r-full transition-all duration-300 ${item.bgColor}`}
+                    title={`${item.label}: ${item.percentage.toFixed(1)}% (${formatMoney(item.gross, "PLN")})`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+                <span>Podatek VAT należny: <strong className="text-foreground">{formatMoney(totalVatCalculated, "PLN")}</strong></span>
+                <span>Obrót brutto: <strong className="text-foreground">{formatMoney(breakdown.totalGrossAll, "PLN")}</strong></span>
+              </div>
+            </div>
+
+            {/* Siatka poszczególnych stawek */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {breakdown.list.map((item) => (
+                <div
+                  key={item.rate}
+                  className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 p-2.5 hover:bg-muted/40 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-full ${item.bgColor}`} />
+                    <div>
+                      <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        <span className="text-[10px] text-muted-foreground font-normal">
+                          ({item.percentage.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Netto: {formatMoney(item.net, "PLN")}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-foreground tabular-nums">
+                      {formatMoney(item.vat, "PLN")}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      VAT
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-xs text-muted-foreground">
+            Brak wystawionych faktur w wybranym okresie.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>Zgodne ze strukturą deklaracji JPK_V7M/K</span>
+        <span className="text-primary font-medium">Auto-aktualizacja</span>
+      </div>
+    </Card>
+  );
+}

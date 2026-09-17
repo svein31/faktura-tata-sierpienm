@@ -31,6 +31,7 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { openOnboardingTour } from "@/components/onboarding/onboarding-tour";
 
 interface HelpSection {
   id: string;
@@ -698,6 +699,15 @@ export default function HelpPage() {
         description="Krótki, szczegółowy przewodnik krok po kroku po wszystkich funkcjach systemu fakturowania, KSeF i finansów."
         actions={
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openOnboardingTour}
+              className="gap-1.5 shadow-sm text-xs border-border/70"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span>Samouczek onboardingowy</span>
+            </Button>
             <Link href="/invoices/new">
               <Button size="sm" className="gap-1.5 shadow-sm">
                 <span>+ Wystaw fakturę</span>

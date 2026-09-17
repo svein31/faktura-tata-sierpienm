@@ -19,6 +19,7 @@ import {
   Info,
   TrendingUp,
   Copy,
+  Keyboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,6 +46,7 @@ import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
+import { ShortcutsModal } from "./shortcuts-modal";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
@@ -198,6 +200,7 @@ export function InvoiceCreator() {
   const [manualJustification, setManualJustification] = React.useState("");
   const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>("");
   const [newContractorTaxIdType, setNewContractorTaxIdType] = React.useState<"nip" | "vat_eu" | "tin" | "none">("nip");
+  const [shortcutsModalOpen, setShortcutsModalOpen] = React.useState(false);
 
   // Multi-tab conflict listener
   React.useEffect(() => {
@@ -656,6 +659,52 @@ export function InvoiceCreator() {
     }
   };
 
+  // ── Globalne skróty klawiszowe w kreatorze faktury ──
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + S -> Zapisz wersję roboczą (szkic)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleSaveDraft();
+        return;
+      }
+
+      // Ctrl/Cmd + Enter -> Wystaw fakturę / Zapisz i wyślij
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (!isPurchase && !isKsefRegistered && !form.isProforma) {
+          handleSendKsef();
+        } else {
+          handleSave();
+        }
+        return;
+      }
+
+      // Shift + Alt + N lub Ctrl + Alt + N -> Dodaj nową pozycję
+      if ((e.altKey && e.shiftKey && e.key.toLowerCase() === "n") || (e.ctrlKey && e.altKey && e.key.toLowerCase() === "n")) {
+        e.preventDefault();
+        setForm((f) => ({ ...f, lines: [...f.lines, newLine()] }));
+        toast("info", "Dodano nową pozycję na fakturze");
+        return;
+      }
+
+      // Ctrl/Cmd + P -> Drukuj / PDF
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        exports.exportPdf();
+        return;
+      }
+
+      // Esc -> zamknięcie modalu skrótów
+      if (e.key === "Escape" && shortcutsModalOpen) {
+        setShortcutsModalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [form, handleSave, handleSaveDraft, handleSendKsef, exports, shortcutsModalOpen, isPurchase, isKsefRegistered, toast]);
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
@@ -678,11 +727,23 @@ export function InvoiceCreator() {
               <span className="text-muted-foreground">Bieżący stan gotowy do edycji</span>
             )}
           </div>
-          {form.isCorrection && (
-            <Badge tone="danger" className="text-[11px] font-bold">
-              Tryb: KOREKTA (FA-3 / KOR)
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShortcutsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card/60 px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
+              title="Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)"
+            >
+              <Keyboard className="h-3 w-3 text-primary" />
+              <span className="hidden sm:inline">Skróty klawiszowe</span>
+              <kbd className="text-[9px] font-mono bg-muted px-1 rounded border">?</kbd>
+            </button>
+            {form.isCorrection && (
+              <Badge tone="danger" className="text-[11px] font-bold">
+                Tryb: KOREKTA (FA-3 / KOR)
+              </Badge>
+            )}
+          </div>
         </div>
 
         {/* Ostrzeżenie o równoczesnej edycji w innej karcie */}
@@ -1462,6 +1523,12 @@ export function InvoiceCreator() {
         open={companyModalOpen}
         onClose={() => setCompanyModalOpen(false)}
         onSaved={(c) => set({ sellerCompanyId: c.id })}
+      />
+
+      {/* Modal ściągawki skrótów klawiszowych */}
+      <ShortcutsModal
+        open={shortcutsModalOpen}
+        onClose={() => setShortcutsModalOpen(false)}
       />
     </div>
   );

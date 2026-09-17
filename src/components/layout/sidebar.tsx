@@ -20,6 +20,8 @@ import {
   DollarSign,
   Users2,
   BookOpen,
+  Calendar,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -36,6 +38,7 @@ const NAV_MAIN = [
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
   { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
   { href: "/finances", label: "Finanse & Wyciągi", icon: DollarSign },
+  { href: "/calendar", label: "Terminarz płatności", icon: Calendar },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },
   { href: "/analytics", label: "Analityka", icon: BarChart3 },
@@ -49,6 +52,7 @@ const NAV_SETTINGS = [
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
+  { href: "/settings/currencies", label: "Waluty & Kursy NBP", icon: Globe },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
   { href: "/help", label: "Instrukcja obsługi", icon: BookOpen },
 ];

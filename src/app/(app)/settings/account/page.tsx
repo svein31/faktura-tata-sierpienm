@@ -37,6 +37,7 @@ import { useToast } from "@/components/toast";
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
+import { TwoFactorAuthCard } from "@/components/security/two-factor-auth-card";
 
 export default function AccountSettingsPage() {
   const toast = useToast();
@@ -286,8 +287,12 @@ export default function AccountSettingsPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"
+            className="space-y-6"
           >
+            {/* Uwierzytelnianie dwuskładnikowe 2FA TOTP */}
+            <TwoFactorAuthCard />
+
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -449,7 +454,8 @@ export default function AccountSettingsPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
+        </motion.div>
         )}
 
         {/* ── 2. DANE KONTA I E-MAIL ── */}

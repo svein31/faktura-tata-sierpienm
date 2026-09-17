@@ -27,12 +27,16 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingUp,
+  TrendingDown,
   Wallet,
   Wifi,
   WifiOff,
   Zap,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { VatDistributionChart } from "@/components/dashboard/vat-distribution-chart";
+import { AttentionInvoicesCard } from "@/components/dashboard/attention-invoices-card";
+import { OnboardingBanner } from "@/components/ui/page-guide";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -197,12 +201,28 @@ export default function DashboardPage() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 6);
 
-  // Statystyki finansowe
+  // Statystyki finansowe & kalkulacja m/m
   const currentMonth = monthKey(today);
+  const prevDate = new Date();
+  prevDate.setMonth(prevDate.getMonth() - 1);
+  const prevMonth = monthKey(prevDate.toISOString().slice(0, 10));
+
   const salesIssued = invoices.filter((i) => i.type === "sale" && i.status !== "draft");
   const monthRevenue = salesIssued
     .filter((i) => monthKey(i.issueDate) === currentMonth)
     .reduce((acc, i) => acc + (i.totalGross || invoiceTotals(i).gross), 0);
+
+  const prevMonthRevenue = salesIssued
+    .filter((i) => monthKey(i.issueDate) === prevMonth)
+    .reduce((acc, i) => acc + (i.totalGross || invoiceTotals(i).gross), 0);
+
+  const monthCount = salesIssued.filter((i) => monthKey(i.issueDate) === currentMonth).length;
+  const prevMonthCount = salesIssued.filter((i) => monthKey(i.issueDate) === prevMonth).length;
+
+  const mmDiff = monthRevenue - prevMonthRevenue;
+  const mmPercent = prevMonthRevenue > 0
+    ? ((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100
+    : monthRevenue > 0 ? 100 : 0;
 
   // Wykres 6 miesięcy
   const months: string[] = [];
@@ -263,6 +283,13 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Banner onboardingowy dla nowych kont */}
+      <OnboardingBanner
+        hasCompany={Boolean(companySafe?.nip)}
+        hasKsef={Boolean(ksefSafe?.tokenSet || ksefSafe?.certName)}
+        hasInvoices={invoices.length > 0}
+      />
 
       {/* ── 5 LICZNIKÓW AKCJI („CO WYMAGA DZIAŁANIA?”) ── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-5">
@@ -398,15 +425,28 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Wykres Przychodu */}
+        {/* Wykres Przychodu z dynamiką m/m */}
         <div className="lg:col-span-2">
           <Card className="h-full rounded-2xl border border-border/80 bg-card/90 shadow-sm p-5">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3.5">
               <div>
                 <p className="text-xs font-medium text-muted-foreground">Przychód w tym miesiącu</p>
-                <p className="text-xl font-bold tracking-tight text-foreground mt-0.5">
-                  {formatMoney(monthRevenue, "PLN")}
-                </p>
+                <div className="flex flex-wrap items-baseline gap-2.5 mt-0.5">
+                  <p className="text-2xl font-bold tracking-tight text-foreground">
+                    {formatMoney(monthRevenue, "PLN")}
+                  </p>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${
+                    mmDiff >= 0
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                      : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                  }`}>
+                    {mmDiff >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    <span>{mmDiff >= 0 ? "+" : ""}{mmPercent.toFixed(1)}% m/m</span>
+                  </span>
+                  <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                    (poprz. miesiąc: {formatMoney(prevMonthRevenue, "PLN")})
+                  </span>
+                </div>
               </div>
               <Link
                 href="/analytics"
@@ -422,6 +462,13 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      {/* ── LISTA FAKTUR WYMAGAJĄCYCH UWAGI & ROZKŁAD STAWEK VAT ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <AttentionInvoicesCard invoices={invoices} />
+        <VatDistributionChart invoices={invoices} />
+      </div>
+
 
       {/* ── OSTATNIE DOKUMENTY Z SZYBKIMI AKCJAMI ── */}
       <div className="space-y-4">

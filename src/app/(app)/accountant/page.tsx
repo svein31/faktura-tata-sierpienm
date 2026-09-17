@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatMoney } from "@/lib/format";
+import { JpkExportCard } from "@/components/accountant/jpk-export-card";
 import type { Invoice, Expense } from "@/lib/types";
 
 interface MonthSummary {
@@ -61,7 +62,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function AccountantPage() {
   const toast = useToast();
-  const { contractors } = useAppStore();
+  const { contractors, company } = useAppStore();
 
   const [currentMonth, setCurrentMonth] = React.useState(
     new Date().toISOString().slice(0, 7) // "YYYY-MM"
@@ -313,6 +314,17 @@ export default function AccountantPage() {
             Zysk netto przed podatkiem dochodowym
           </div>
         </Card>
+      </div>
+
+      {/* Generator Jednolitego Pliku Kontrolnego JPK */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <JpkExportCard
+          currentMonth={currentMonth}
+          invoices={invoices}
+          expenses={expenses}
+          company={company}
+          contractors={contractors}
+        />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>

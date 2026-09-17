@@ -143,11 +143,31 @@ export function contractorToDto(c: DbContractor): Contractor {
     taxIdType: (c.taxIdType as any) || "nip",
     taxId: c.taxId || c.nip,
     country: c.country || "PL",
+    // CRM 360° — limit kupiecki, cennik i scoring terminowości
+    creditLimit: c.creditLimit ?? 0,
+    creditLimitCurrency: (c.creditLimitCurrency as any) || "PLN",
+    creditLimitBlocking: c.creditLimitBlocking ?? false,
+    priceListItems: (Array.isArray(c.priceListItems) ? c.priceListItems : undefined) as any,
+    priceListValidFrom: c.priceListValidFrom ?? null,
+    priceListValidTo: c.priceListValidTo ?? null,
+    scoreAvgDelayDays: c.scoreAvgDelayDays ?? null,
+    scoreMaxDelayDays: c.scoreMaxDelayDays ?? null,
+    scoreOnTimeRatio: c.scoreOnTimeRatio ?? null,
+    scorePaymentRating: (c.scorePaymentRating as any) ?? null,
+    scorePoints: c.scorePoints ?? null,
+    scoreUpdatedAt: c.scoreUpdatedAt ? c.scoreUpdatedAt.toISOString() : null,
+    annualTurnoverNet: c.annualTurnoverNet ?? 0,
+    annualMarginNet: c.annualMarginNet ?? 0,
+    annualMarginPercent: c.annualMarginPercent ?? 0,
+    openReceivables: c.openReceivables ?? 0,
+    lifetimeTurnoverNet: c.lifetimeTurnoverNet ?? 0,
+    lastInvoiceDate: c.lastInvoiceDate ?? null,
+    statsUpdatedAt: c.statsUpdatedAt ? c.statsUpdatedAt.toISOString() : null,
     createdAt: c.createdAt.toISOString(),
   };
 }
 
-export function productToDto(p: DbProduct): Product {
+export function productToDto(p: DbProduct & { stockQuantity?: number }): Product {
   return {
     companyId: p.companyId,
     id: p.id,
@@ -157,6 +177,15 @@ export function productToDto(p: DbProduct): Product {
     netPrice: p.netPrice,
     vatRate: p.vatRate as Product["vatRate"],
     description: p.description ?? undefined,
+    // Magazyn WMS
+    isStockTracked: p.isStockTracked ?? false,
+    minQuantity: p.minQuantity ?? 0,
+    purchasePrice: p.purchasePrice ?? 0,
+    gtuCode: (p.gtuCode as any) ?? null,
+    pkwiu: p.pkwiu ?? null,
+    cnCode: p.cnCode ?? null,
+    isSplitPaymentGoods: p.isSplitPaymentGoods ?? false,
+    stockQuantity: typeof p.stockQuantity === "number" ? p.stockQuantity : undefined,
   };
 }
 
@@ -276,6 +305,20 @@ export function invoiceToDto(
     bankAccountSnapshot: (i.bankAccountSnapshot as any) ?? null,
     buyerTaxIdType: (i.buyerTaxIdType as any) ?? null,
     buyerCountry: i.buyerCountry ?? null,
+
+    // Ewidencja JPK_V7 (sekcja 3)
+    gtuCodes: (i.gtuCodes ?? []) as any,
+    jpkProcedures: (i.jpkProcedures ?? []) as any,
+    jpkDocumentType: (i.jpkDocumentType as any) ?? null,
+    isSplitPayment: i.isSplitPayment ?? false,
+    isWstoEe: i.isWstoEe ?? false,
+    vatRegisterPeriod: i.vatRegisterPeriod ?? null,
+    // Magazyn (sekcja 4)
+    stockDocumentId: i.stockDocumentId ?? null,
+    stockDocumentNumber: i.stockDocumentNumber ?? null,
+    // CRM / e-commerce (sekcje 5–6)
+    sourceChannel: i.sourceChannel ?? "manual",
+    appliedDiscountPercent: i.appliedDiscountPercent ?? 0,
 
     createdAt: i.createdAt.toISOString(),
   };
@@ -451,6 +494,21 @@ export function expenseToDto(e: DbExpense): Expense {
     workflowStatus: e.workflowStatus as Expense["workflowStatus"],
     isKsefSource: e.isKsefSource,
     ksefRefNumber: e.ksefRefNumber,
+    // Ewidencja zakupu JPK_V7 (sekcja 3)
+    contractorNip: e.contractorNip ?? e.nip ?? null,
+    purchaseDocType: (e.purchaseDocType as any) ?? null,
+    isImport: e.isImport ?? false,
+    vatDeductible: e.vatDeductible ?? true,
+    vatDeductiblePercent: e.vatDeductiblePercent ?? 100,
+    isFixedAsset: e.isFixedAsset ?? false,
+    vatRegisterPeriod: e.vatRegisterPeriod ?? null,
+    receivedAt: e.receivedAt ?? null,
+    // Magazyn (sekcja 4)
+    stockDocumentId: e.stockDocumentId ?? null,
+    stockDocumentNumber: e.stockDocumentNumber ?? null,
+    // OCR (sekcja 7)
+    scanId: e.scanId ?? null,
+    ocrConfidence: e.ocrConfidence ?? null,
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
   };

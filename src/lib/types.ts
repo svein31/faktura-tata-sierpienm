@@ -13,6 +13,44 @@ export type TaxIdType = "nip" | "vat_eu" | "tin" | "other" | "none";
 export type ExchangeRateRule = "art_31a_sale_date" | "art_31a_issue_date" | "art_31a_tax_point" | "manual";
 export type KsefEnv = "demo" | "test" | "production";
 
+/* ── Sekcja 3: podatki, ZUS, JPK ─────────────────────────────────────────── */
+
+/** Forma opodatkowania: ryczałt (8,5/12/15%), liniowy 19%, skala 12/32% */
+export type TaxationForm = "ryczalt" | "liniowy" | "skala";
+export type ZusScheme = "full" | "preferential" | "ulga_na_start" | "maly_zus_plus" | "none";
+export type VatPeriod = "monthly" | "quarterly";
+
+/** Kody GTU stosowane wyłącznie w ewidencji sprzedaży JPK_V7 (§ 10 ust. 3) */
+export type GtuCode =
+  | "GTU_01" | "GTU_02" | "GTU_03" | "GTU_04" | "GTU_05" | "GTU_06" | "GTU_07"
+  | "GTU_08" | "GTU_09" | "GTU_10" | "GTU_11" | "GTU_12" | "GTU_13";
+
+/** Kody procedur w ewidencji sprzedaży JPK_V7M(3)/V7K(3) */
+export type JpkSaleProcedure =
+  | "WSTO_EE" | "IED" | "TP" | "TT_WNT" | "TT_D" | "MR_T" | "MR_UZ"
+  | "I_42" | "I_63" | "B_SPV" | "B_SPV_DOSTAWA" | "B_MPV_PROWIZJA";
+
+export type JpkSaleDocumentType = "RO" | "WEW" | "FP";
+export type JpkPurchaseDocumentType = "MK" | "VAT_RR" | "WEW";
+export type JpkKind = "JPK_V7M" | "JPK_V7K" | "JPK_FA";
+
+/* ── Sekcja 4: magazyn (WMS) ─────────────────────────────────────────────── */
+
+/** WZ — wydanie zewnętrzne, PZ — przyjęcie zewnętrzne, RW — rozchód wewnętrzny,
+ *  PW — przychód wewnętrzny, MM — przesunięcie międzymagazynowe */
+export type StockDocumentType = "WZ" | "PZ" | "RW" | "PW" | "MM";
+export type StockDirection = "out" | "in" | "transfer";
+
+/* ── Sekcja 5: integracje ────────────────────────────────────────────────── */
+
+export type OpenBankingProvider = "gocardless" | "tink";
+export type EcommercePlatform = "allegro" | "woocommerce" | "shopify";
+export type BankTransactionSource = "psd2" | "csv" | "mt940";
+
+/* ── Sekcja 6: CRM 360° ──────────────────────────────────────────────────── */
+
+export type PaymentRating = "excellent" | "good" | "average" | "risky" | "critical" | "no_data";
+
 export interface CompanyPermissions {
   canIssueInvoices: boolean;
   canCreateCorrections: boolean;
@@ -175,7 +213,39 @@ export interface Contractor {
   taxIdType?: TaxIdType;
   taxId?: string;
   country?: string;
+  // CRM 360° (sekcja 6)
+  creditLimit?: number;
+  creditLimitCurrency?: Currency;
+  creditLimitBlocking?: boolean;
+  priceListItems?: ContractorPriceListItem[];
+  priceListValidFrom?: string | null;
+  priceListValidTo?: string | null;
+  scoreAvgDelayDays?: number | null;
+  scoreMaxDelayDays?: number | null;
+  scoreOnTimeRatio?: number | null;
+  scorePaymentRating?: PaymentRating | null;
+  scorePoints?: number | null;
+  scoreUpdatedAt?: string | null;
+  annualTurnoverNet?: number;
+  annualMarginNet?: number;
+  annualMarginPercent?: number;
+  openReceivables?: number;
+  lifetimeTurnoverNet?: number;
+  lastInvoiceDate?: string | null;
+  statsUpdatedAt?: string | null;
   createdAt: string;
+}
+
+/** Pozycja indywidualnego cennika kontrahenta (sekcja 6) */
+export interface ContractorPriceListItem {
+  productId?: string;
+  sku?: string;
+  name: string;
+  /** Indywidualna cena netto. Pusta → stosowany jest wyłącznie rabat procentowy. */
+  netPrice?: number | null;
+  /** Rabat procentowy 0–100 liczony od ceny katalogowej */
+  discountPercent?: number | null;
+  currency?: Currency;
 }
 
 export interface Product {
@@ -187,6 +257,16 @@ export interface Product {
   netPrice: number;
   vatRate: VatRate;
   description?: string;
+  // Magazyn WMS (sekcja 4)
+  isStockTracked?: boolean;
+  minQuantity?: number;
+  purchasePrice?: number;
+  gtuCode?: GtuCode | null;
+  pkwiu?: string | null;
+  cnCode?: string | null;
+  isSplitPaymentGoods?: boolean;
+  /** Suma stanów we wszystkich magazynach (wyliczana, tylko do odczytu) */
+  stockQuantity?: number;
 }
 
 export interface InvoiceLine {
@@ -300,6 +380,19 @@ export interface Invoice {
   bankAccountSnapshot?: Partial<CompanyBankAccount> | null;
   buyerTaxIdType?: TaxIdType | null;
   buyerCountry?: string | null;
+  // Ewidencja JPK_V7 (sekcja 3)
+  gtuCodes?: GtuCode[];
+  jpkProcedures?: JpkSaleProcedure[];
+  jpkDocumentType?: JpkSaleDocumentType | null;
+  isSplitPayment?: boolean;
+  isWstoEe?: boolean;
+  vatRegisterPeriod?: string | null;
+  // Magazyn (sekcja 4)
+  stockDocumentId?: string | null;
+  stockDocumentNumber?: string | null;
+  // CRM / e-commerce (sekcje 5–6)
+  sourceChannel?: string | null;
+  appliedDiscountPercent?: number | null;
   createdAt: string;
 }
 
@@ -405,6 +498,21 @@ export interface Expense {
   workflowStatus: "to_verify" | "verified" | "sent_to_accountant";
   isKsefSource: boolean;
   ksefRefNumber?: string | null;
+  // Ewidencja zakupu JPK_V7 (sekcja 3)
+  contractorNip?: string | null;
+  purchaseDocType?: JpkPurchaseDocumentType | null;
+  isImport?: boolean;
+  vatDeductible?: boolean;
+  vatDeductiblePercent?: number;
+  isFixedAsset?: boolean;
+  vatRegisterPeriod?: string | null;
+  receivedAt?: string | null;
+  // Magazyn (sekcja 4)
+  stockDocumentId?: string | null;
+  stockDocumentNumber?: string | null;
+  // OCR / skan z aparatu (sekcja 7)
+  scanId?: string | null;
+  ocrConfidence?: number | null;
   createdAt: string;
   updatedAt: string;
 }
