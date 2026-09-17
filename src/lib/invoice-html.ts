@@ -67,6 +67,7 @@ export function buildInvoiceHtmlString(
 
   const isForeignCurrency = invoice.currency && invoice.currency !== "PLN";
   const vatInPln = invoice.totalVatPln ?? (invoice.exchangeRate ? t.vat * (invoice.exchangeRate / (invoice.exchangeRateUnit || 1)) : null);
+  const accentColor = company.accentColor || company.primaryColor || "#4f46e5";
 
   return `<!DOCTYPE html>
 <html lang="${lang === "PL" ? "pl" : "en"}">
@@ -77,9 +78,9 @@ export function buildInvoiceHtmlString(
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #f4f5f7; padding: 32px 16px; }
-  .page { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 12px 32px -12px rgba(0,0,0,.18); padding: 40px 44px; }
+  .page { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 12px 32px -12px rgba(0,0,0,.12); padding: 40px 44px; }
   .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eef0f3; padding-bottom: 18px; gap: 16px; flex-wrap: wrap; }
-  .doc-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; background: linear-gradient(120deg,#6366f1,#10b981); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .doc-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: ${accentColor}; }
   .meta { margin-top: 8px; font-size: 13px; color: #6b7280; }
   .meta b { color: #111827; }
   .dates { margin-top: 12px; display: flex; gap: 24px; font-size: 12.5px; flex-wrap: wrap; }
@@ -88,7 +89,7 @@ export function buildInvoiceHtmlString(
   .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
   .party { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; }
   .party h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
-  .party.seller h4 { color: #10b981; } .party.buyer h4 { color: #6366f1; }
+  .party.seller h4 { color: #10b981; } .party.buyer h4 { color: ${accentColor}; }
   .party p { font-size: 12.5px; line-height: 1.55; color: #374151; }
   .party .muted { color: #6b7280; }
   table { width: 100%; border-collapse: collapse; margin-top: 26px; font-size: 12.5px; }
@@ -99,7 +100,7 @@ export function buildInvoiceHtmlString(
   .totals { width: 280px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; font-size: 13px; }
   .totals .row { display: flex; justify-content: space-between; padding: 4px 0; }
   .totals .gross { font-weight: 800; font-size: 14px; border-top: 1px solid #e5e7eb; margin-top: 6px; padding-top: 8px; }
-  .totals .pay { background: rgba(99,102,241,.1); color: #4f46e5; font-weight: 800; border-radius: 6px; padding: 7px 10px; margin-top: 8px; display: flex; justify-content: space-between; }
+  .totals .pay { background: ${accentColor}18; color: ${accentColor}; font-weight: 800; border-radius: 6px; padding: 7px 10px; margin-top: 8px; display: flex; justify-content: space-between; }
   .pay-info { margin-top: 18px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #374151; }
   .nbp-box { margin-top: 16px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #1e3a8a; }
   .foot { margin-top: 34px; padding-top: 14px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 10.5px; color: #9ca3af; }

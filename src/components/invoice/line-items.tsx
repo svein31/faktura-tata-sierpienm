@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Package, Plus, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 import {
   lineGross,
   lineNet,
@@ -191,10 +192,11 @@ export function LineItemsEditor({
                 return (
                   <motion.tr
                     key={line.id}
-                    initial={{ opacity: 0, y: -4 }}
+                    layout="position"
+                    initial={{ opacity: 0, y: -6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.15 }}
+                    exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     className="border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors"
                   >
                     {/* # */}
@@ -358,21 +360,27 @@ export function LineItemsEditor({
         <div className="flex items-center gap-4 text-[13px]">
           <span className="text-muted-foreground">
             Netto:{" "}
-            <span className="font-semibold tabular-nums text-foreground">
-              {formatMoney(totals.net, currency)}
-            </span>
+            <AnimatedCounter
+              value={totals.net}
+              format={(val) => formatMoney(val, currency)}
+              className="font-semibold tabular-nums text-foreground"
+            />
           </span>
           <span className="text-muted-foreground">
             VAT:{" "}
-            <span className="font-semibold tabular-nums text-foreground">
-              {formatMoney(totals.vat, currency)}
-            </span>
+            <AnimatedCounter
+              value={totals.vat}
+              format={(val) => formatMoney(val, currency)}
+              className="font-semibold tabular-nums text-foreground"
+            />
           </span>
           <span className="text-muted-foreground">
             Brutto:{" "}
-            <span className="text-[14px] font-bold tabular-nums text-foreground">
-              {formatMoney(totals.gross, currency)}
-            </span>
+            <AnimatedCounter
+              value={totals.gross}
+              format={(val) => formatMoney(val, currency)}
+              className="text-[14px] font-bold tabular-nums text-foreground"
+            />
           </span>
         </div>
       </div>
@@ -422,9 +430,15 @@ export function LineItemsEditor({
             <tfoot>
               <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
                 <td className="px-4 py-2.5 text-[11.5px] font-bold text-foreground">RAZEM</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-foreground">{formatMoney(totals.net, currency)}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-foreground">{formatMoney(totals.vat, currency)}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-[14px] text-primary">{formatMoney(totals.gross, currency)}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-foreground">
+                  <AnimatedCounter value={totals.net} format={(val) => formatMoney(val, currency)} />
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-foreground">
+                  <AnimatedCounter value={totals.vat} format={(val) => formatMoney(val, currency)} />
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-[14px] text-primary">
+                  <AnimatedCounter value={totals.gross} format={(val) => formatMoney(val, currency)} />
+                </td>
               </tr>
             </tfoot>
           </table>

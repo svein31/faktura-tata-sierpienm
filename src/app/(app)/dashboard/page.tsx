@@ -44,6 +44,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InfoTooltip } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate, formatDateTime, formatMoney, invoiceTotals, monthKey, monthLabel } from "@/lib/format";
 import { todayISO } from "@/lib/utils";
 import { EMPTY_COMPANY } from "@/lib/types";
@@ -80,7 +82,7 @@ function ActionCard({ title, count, subtext, icon, filterHref, delay = 0 }: Acti
         href={filterHref}
         className="block group h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
       >
-        <div className="relative h-full flex flex-col justify-between rounded-2xl border border-border/80 dark:border-border/60 bg-card p-5 sm:p-6 shadow-xs transition-colors duration-150 ease-in-out hover:border-border dark:hover:border-border/90 hover:bg-card/95">
+        <div className="relative h-full flex flex-col justify-between rounded-2xl border border-border/70 bg-card p-5 sm:p-6 shadow-xs hover-lift hover:border-border/90 hover:shadow-md transition-all duration-200">
           <div>
             {/* Nagłówek po lewej, ikona w neutralnym kontenerze 40x40 po prawej */}
             <div className="flex items-start justify-between gap-3">
@@ -97,9 +99,10 @@ function ActionCard({ title, count, subtext, icon, filterHref, delay = 0 }: Acti
 
             {/* Liczba (30-34px) + badge "Wymaga reakcji" z własnym paddingiem i odstępem */}
             <div className="mt-3 sm:mt-3.5 flex items-center flex-wrap gap-2.5">
-              <span className="text-[30px] sm:text-[34px] font-bold tracking-tight text-foreground tabular-nums leading-none">
-                {count}
-              </span>
+              <AnimatedCounter
+                value={count}
+                className="text-[30px] sm:text-[34px] font-bold tracking-tight text-foreground tabular-nums leading-none"
+              />
               {count > 0 && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 shrink-0">
                   Wymaga reakcji
@@ -432,9 +435,11 @@ export default function DashboardPage() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground">Przychód w tym miesiącu</p>
                 <div className="flex flex-wrap items-baseline gap-2.5 mt-0.5">
-                  <p className="text-2xl font-bold tracking-tight text-foreground">
-                    {formatMoney(monthRevenue, "PLN")}
-                  </p>
+                  <AnimatedCounter
+                    value={monthRevenue}
+                    format={(val) => formatMoney(val, "PLN")}
+                    className="text-2xl font-bold tracking-tight text-foreground"
+                  />
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${
                     mmDiff >= 0
                       ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
@@ -486,19 +491,21 @@ export default function DashboardPage() {
         </div>
 
         {recentInvoices.length === 0 ? (
-          <Card className="p-8 text-center rounded-2xl border-dashed border-border/80">
-            <Receipt className="mx-auto h-8 w-8 text-muted-foreground/60" />
-            <p className="mt-3 text-sm font-semibold text-foreground">Brak wystawionych faktur</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Rozpocznij fakturowanie klikając przycisk poniżej.
-            </p>
-            <Link
-              href="/invoices/new"
-              className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground"
-            >
-              <Plus className="h-3.5 w-3.5" /> Wystaw fakturę
-            </Link>
-          </Card>
+          <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
+            <EmptyState
+              icon={Receipt}
+              title="Brak wystawionych faktur"
+              description="Rozpocznij fakturowanie jednym kliknięciem i prześlij e-Fakturę bezpośrednio do KSeF."
+              action={
+                <Link href="/invoices/new">
+                  <Button size="sm" className="rounded-xl gap-1.5 font-medium">
+                    <Plus className="h-4 w-4" /> Wystaw fakturę
+                  </Button>
+                </Link>
+              }
+              className="py-6"
+            />
+          </div>
         ) : (
           <div className="rounded-2xl border border-border/80 bg-card/90 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">

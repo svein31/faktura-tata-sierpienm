@@ -19,6 +19,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 import { getContractor, useAppStore } from "@/lib/store";
 import { todayISO } from "@/lib/utils";
@@ -161,13 +162,12 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
       {/* Lista elementów */}
       <div className="mt-3.5 divide-y divide-border/50 max-h-[360px] overflow-y-auto">
         {filteredItems.length === 0 ? (
-          <div className="py-8 text-center">
-            <CheckCircle2 className="mx-auto h-7 w-7 text-emerald-500 opacity-80" />
-            <p className="mt-2 text-xs font-semibold text-foreground">Wszystko na bieżąco!</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Brak dokumentów wymagających natychmiastowej reakcji.
-            </p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            title="Wszystko na bieżąco!"
+            description="Brak dokumentów wymagających natychmiastowej reakcji ani poprawy w KSeF."
+            className="py-8"
+          />
         ) : (
           filteredItems.slice(0, 8).map(({ invoice, reason, type }) => {
             const contractor = getContractor(contractors, invoice.contractorId);

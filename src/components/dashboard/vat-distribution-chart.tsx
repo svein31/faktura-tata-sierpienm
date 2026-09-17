@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "framer-motion";
 import { PieChart, Layers, Percent, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatMoney, invoiceTotals, monthKey } from "@/lib/format";
 import type { Invoice } from "@/lib/types";
 
@@ -179,10 +181,12 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
             <div className="space-y-1.5">
               <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/40 p-0.5 border border-border/60">
                 {breakdown.list.map((item) => (
-                  <div
+                  <motion.div
                     key={item.rate}
-                    style={{ width: `${Math.max(item.percentage, 3)}%` }}
-                    className={`h-full first:rounded-l-full last:rounded-r-full transition-all duration-300 ${item.bgColor}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(item.percentage, 3)}%` }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className={`h-full first:rounded-l-full last:rounded-r-full ${item.bgColor}`}
                     title={`${item.label}: ${item.percentage.toFixed(1)}% (${formatMoney(item.gross, "PLN")})`}
                   />
                 ))}
@@ -195,9 +199,12 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
 
             {/* Siatka poszczególnych stawek */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              {breakdown.list.map((item) => (
-                <div
+              {breakdown.list.map((item, idx) => (
+                <motion.div
                   key={item.rate}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.04, duration: 0.2 }}
                   className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 p-2.5 hover:bg-muted/40 transition-colors"
                 >
                   <div className="flex items-center gap-2">
@@ -222,14 +229,17 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
                       VAT
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="py-8 text-center text-xs text-muted-foreground">
-            Brak wystawionych faktur w wybranym okresie.
-          </div>
+          <EmptyState
+            icon={Percent}
+            title="Brak danych w wybranym okresie"
+            description="Wystaw lub zaimportuj faktury sprzedaży, aby zobaczyć strukturę stawek VAT."
+            className="py-8"
+          />
         )}
       </div>
 

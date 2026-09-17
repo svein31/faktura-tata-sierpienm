@@ -28,6 +28,8 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { useToast } from "@/components/toast";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -197,55 +199,55 @@ export default function RecurringInvoicesPage() {
 
       {/* Pigułki metryk MRR */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Szablony aktywne</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Szablony aktywne</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
               <Repeat className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-emerald-400">
-            {stats.activeCount}
+            <AnimatedCounter value={stats.activeCount} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Wstrzymane cykle: <span className="font-semibold text-foreground">{stats.pausedCount}</span>
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Miesięczny przychód (MRR)</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Miesięczny przychód (MRR)</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-primary">
-            {formatMoney(stats.monthlyVolume, "PLN")}
+            <AnimatedCounter value={stats.monthlyVolume} format={(v: number) => formatMoney(v, "PLN")} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Szacowany obrót powtarzalny
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Roczny przychód (ARR)</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Roczny przychód (ARR)</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
               <DollarSign className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-indigo-400">
-            {formatMoney(stats.monthlyVolume * 12, "PLN")}
+            <AnimatedCounter value={stats.monthlyVolume * 12} format={(v: number) => formatMoney(v, "PLN")} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Prognoza na 12 miesięcy
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Automatyzacja</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Automatyzacja</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400 ring-1 ring-inset ring-purple-500/20">
               <Sparkles className="h-4 w-4" />
             </div>
           </div>
@@ -259,8 +261,8 @@ export default function RecurringInvoicesPage() {
       </div>
 
       {/* Lista szablonów cyklicznych */}
-      <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border/50 flex items-center justify-between">
+      <Card className="border border-border/70 bg-card/75 backdrop-blur-md rounded-2xl shadow-apple-sm overflow-hidden">
+        <div className="p-4 border-b border-border/60 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-foreground">Zdefiniowane szablony subskrypcyjne</h3>
             <p className="text-xs text-muted-foreground">
@@ -273,23 +275,19 @@ export default function RecurringInvoicesPage() {
         </div>
 
         {recurringTemplates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/60 text-muted-foreground mb-3">
-              <Repeat className="h-6 w-6 opacity-60" />
-            </div>
-            <h4 className="text-sm font-semibold text-foreground">Brak zdefiniowanych faktur cyklicznych</h4>
-            <p className="text-xs text-muted-foreground mt-1 max-w-sm leading-relaxed">
-              Faktury cykliczne pozwalają automatycznie wystawiać dokumenty dla stałych klientów (np. abonamenty, hosting, opieka IT, wynajem).
-            </p>
-            <div className="mt-4">
+          <EmptyState
+            icon={Repeat}
+            title="Brak zdefiniowanych faktur cyklicznych"
+            description="Faktury cykliczne pozwalają automatycznie wystawiać dokumenty dla stałych klientów (np. abonamenty, hosting, opieka IT, wynajem)."
+            action={
               <Link href="/invoices/new">
-                <Button size="sm" className="gap-1.5 text-xs shadow-sm">
+                <Button size="sm" className="gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Stwórz pierwszy szablon</span>
                 </Button>
               </Link>
-            </div>
-          </div>
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

@@ -57,8 +57,22 @@ export async function generateInvoicePdfBuffer(
   const L = invoiceLabels[invoice.language || "PL"];
   const t = invoiceTotals(invoice);
 
-  // Kolory
-  const primaryColor = rgb(0.12, 0.44, 0.98); // #1e70fa
+  // Kolory (z uwzględnieniem personalizacji firmy)
+  function parseHexColor(hex?: string | null) {
+    if (!hex) return rgb(0.12, 0.44, 0.98); // domyślny #1e70fa
+    const clean = hex.replace("#", "").trim();
+    if (clean.length === 6) {
+      const r = parseInt(clean.substring(0, 2), 16) / 255;
+      const g = parseInt(clean.substring(2, 4), 16) / 255;
+      const b = parseInt(clean.substring(4, 6), 16) / 255;
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) {
+        return rgb(r, g, b);
+      }
+    }
+    return rgb(0.12, 0.44, 0.98);
+  }
+
+  const primaryColor = parseHexColor(effectiveCompany.accentColor || effectiveCompany.primaryColor);
   const darkColor = rgb(0.09, 0.11, 0.15); // #171c26
   const grayColor = rgb(0.42, 0.45, 0.5); // #6b7280
   const lightBg = rgb(0.96, 0.97, 0.98); // #f4f6f8

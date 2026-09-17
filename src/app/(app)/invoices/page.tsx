@@ -32,6 +32,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
@@ -985,18 +986,17 @@ export default function InvoicesPage() {
           </table>
 
           {filtered.length === 0 && (
-            <div className="py-16 text-center space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                <FileText className="h-6 w-6" />
-              </div>
-              <p className="text-[14px] font-semibold text-foreground">Brak faktur spełniających kryteria</p>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Wystaw nową e-Fakturę lub zmień ustawienia filtrów wyszukiwania.
-              </p>
-              <Button size="sm" onClick={() => router.push("/invoices/new")} className="rounded-xl gap-1.5">
-                <Plus className="h-4 w-4" /> Wystaw fakturę
-              </Button>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="Brak faktur spełniających kryteria"
+              description="Wystaw nową e-Fakturę lub zmień ustawienia filtrów wyszukiwania dokumentów."
+              action={
+                <Button size="sm" onClick={() => router.push("/invoices/new")} className="rounded-xl gap-1.5 font-medium shadow-xs">
+                  <Plus className="h-4 w-4" /> Wystaw fakturę
+                </Button>
+              }
+              className="py-14"
+            />
           )}
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Search,
   FileText,
@@ -391,19 +391,25 @@ export function CommandPalette() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <AnimatePresence>
       {open && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] px-4 bg-black/65 backdrop-blur-md"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] px-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -8 }}
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: -6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -8 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="w-full max-w-2xl rounded-2xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-2xl overflow-hidden flex flex-col"
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -6 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-2xl rounded-2xl border border-border/70 bg-card/95 backdrop-blur-2xl shadow-apple-lg overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pasek Wyszukiwania */}
@@ -577,7 +583,7 @@ export function CommandPalette() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 import type { Expense, Invoice } from "@/lib/types";
 
 interface TaxEvent {
@@ -260,40 +261,40 @@ export function PaymentCalendar() {
     <div className="space-y-6">
       {/* Pasek podsumowania finansowego */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Planowane wpływy</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Planowane wpływy</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-emerald-400">
-            +{formatMoney(monthStats.totalIncomes, "PLN")}
+            <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Do zapłaty przez klientów: <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidIncomes, "PLN")}</span>
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Planowane wydatki</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Planowane wydatki</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400 ring-1 ring-inset ring-rose-500/20">
               <TrendingDown className="h-4 w-4" />
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-rose-400">
-            -{formatMoney(monthStats.totalExpenses, "PLN")}
+            <AnimatedCounter value={monthStats.totalExpenses} format={(v: number) => `-${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Pozostało do uregulowania: <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidExpenses, "PLN")}</span>
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Bilans miesiąca</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Bilans miesiąca</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
               <Scale className="h-4 w-4" />
             </div>
           </div>
@@ -301,17 +302,20 @@ export function PaymentCalendar() {
             "text-2xl font-bold tracking-tight",
             monthStats.balance >= 0 ? "text-primary" : "text-amber-400"
           )}>
-            {monthStats.balance >= 0 ? "+" : ""}{formatMoney(monthStats.balance, "PLN")}
+            <AnimatedCounter
+              value={monthStats.balance}
+              format={(v: number) => `${v >= 0 ? "+" : ""}${formatMoney(v, "PLN")}`}
+            />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Różnica wpływów i kosztów
           </p>
         </Card>
 
-        <Card className="border-border/60 bg-card/60 p-4 backdrop-blur">
+        <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
-            <span className="text-xs font-medium uppercase tracking-wider">Termin urzędowy</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Termin urzędowy</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
               <Landmark className="h-4 w-4" />
             </div>
           </div>
@@ -405,7 +409,7 @@ export function PaymentCalendar() {
       {/* Główna siatka kalendarza + Panel szczegółów */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Siatka kalendarza (8 kolumn w LG) */}
-        <Card className="border-border/60 bg-card/60 p-4 lg:col-span-8 backdrop-blur shadow-sm">
+        <Card className="border border-border/70 bg-card/75 p-4 lg:col-span-8 backdrop-blur-md rounded-2xl shadow-apple-sm">
           {/* Dni tygodnia */}
           <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold text-muted-foreground mb-2">
             {weekDays.map((w, idx) => (
@@ -514,7 +518,7 @@ export function PaymentCalendar() {
 
         {/* Panel boczny szczegółów dnia (4 kolumny w LG) */}
         <div className="lg:col-span-4">
-          <Card className="h-full border-border/60 bg-card/60 p-5 backdrop-blur shadow-sm flex flex-col justify-between">
+          <Card className="h-full border border-border/70 bg-card/75 p-5 backdrop-blur-md shadow-apple-sm rounded-2xl flex flex-col justify-between">
             {selectedDay ? (
               <div className="space-y-4">
                 {/* Tytuł wybranego dnia */}

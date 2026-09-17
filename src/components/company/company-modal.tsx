@@ -30,6 +30,7 @@ interface FormState {
   ksefToken: string;
   isDefault: boolean;
   logoUrl: string;
+  accentColor: string;
 }
 
 const emptyForm: FormState = {
@@ -44,6 +45,7 @@ const emptyForm: FormState = {
   ksefToken: "",
   isDefault: false,
   logoUrl: "",
+  accentColor: "#4f46e5",
 };
 
 export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyModalProps) {
@@ -148,12 +150,14 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
           ksefToken: "",
           isDefault: Boolean(initialData.isDefault),
           logoUrl: initialData.logoUrl || "",
+          accentColor: initialData.accentColor || initialData.primaryColor || "#4f46e5",
         });
       } else {
         setForm({
           ...emptyForm,
           isDefault: companies.length === 0, // pierwsza firma automatycznie domyślna
           logoUrl: "",
+          accentColor: "#4f46e5",
         });
       }
       setErrors({});
@@ -258,6 +262,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         ...(form.ksefToken.trim() ? { ksefToken: form.ksefToken.trim() } : {}),
         isDefault: form.isDefault,
         logoUrl: form.logoUrl.trim() || null,
+        accentColor: form.accentColor.trim() || null,
       };
 
       let saved: CompanyProfile;
@@ -688,6 +693,54 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
               />
             </div>
           )}
+        </div>
+
+        {/* Kolor akcentu firmy na fakturach (personalizacja PDF) */}
+        <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="font-semibold text-[13px] flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-primary" /> Kolor akcentu PDF i faktury
+            </Label>
+            <span className="text-[11px] text-muted-foreground">Wyróżniki, nagłówki, kwoty</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {[
+              { name: "Indigo", hex: "#4f46e5" },
+              { name: "Sky", hex: "#0284c7" },
+              { name: "Emerald", hex: "#059669" },
+              { name: "Amber", hex: "#d97706" },
+              { name: "Rose", hex: "#e11d48" },
+              { name: "Violet", hex: "#7c3aed" },
+              { name: "Slate", hex: "#334155" },
+            ].map((c) => {
+              const selected = form.accentColor === c.hex;
+              return (
+                <button
+                  key={c.hex}
+                  type="button"
+                  onClick={() => setField("accentColor", c.hex)}
+                  className={`h-7 px-2.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all cursor-pointer ${
+                    selected
+                      ? "border-foreground ring-2 ring-primary/30 font-semibold bg-muted/50"
+                      : "border-border/70 hover:border-border hover:bg-muted/30"
+                  }`}
+                >
+                  <span className="h-3 w-3 rounded-full border border-black/20" style={{ backgroundColor: c.hex }} />
+                  <span>{c.name}</span>
+                </button>
+              );
+            })}
+            <div className="flex items-center gap-1.5 sm:ml-auto">
+              <input
+                type="color"
+                value={form.accentColor || "#4f46e5"}
+                onChange={(e) => setField("accentColor", e.target.value)}
+                className="h-7 w-8 rounded-lg cursor-pointer border border-border/80 bg-transparent p-0.5"
+                title="Własny kolor z próbnika"
+              />
+              <span className="font-mono text-xs text-muted-foreground">{form.accentColor}</span>
+            </div>
+          </div>
         </div>
       </form>
     </Dialog>

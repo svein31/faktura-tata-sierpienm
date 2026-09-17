@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
+  AlertOctagon,
   Building2,
   CheckCircle2,
   Eye,
@@ -709,6 +711,29 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="space-y-5">
+        {/* Inline walidacja błędów z wejściem fade+slide-down */}
+        <AnimatePresence>
+          {errors.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -8, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -8, height: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300 space-y-1.5 shadow-xs overflow-hidden"
+            >
+              <div className="flex items-center gap-2 font-bold text-[13px]">
+                <AlertOctagon className="h-4 w-4 shrink-0 text-rose-500" />
+                <span>Uzupełnij wymagane pola przed zapisem:</span>
+              </div>
+              <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11.5px] opacity-95">
+                {errors.map((e, idx) => (
+                  <li key={idx}>{e}</li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Pasek statusu autozapisu */}
         <div className="flex items-center justify-between gap-2 px-1 text-xs">
           <div className="flex items-center gap-2">

@@ -162,6 +162,8 @@ export interface CompanyProfile {
   ksefTokenSet?: boolean;
   isDefault: boolean;
   logoUrl?: string | null;
+  accentColor?: string | null;
+  primaryColor?: string | null;
   createdAt: string;
   updatedAt: string;
 
@@ -662,6 +664,8 @@ export const EMPTY_COMPANY: CompanyProfile = {
   bankAccount: "",
   ksefToken: null,
   isDefault: false,
+  logoUrl: null,
+  accentColor: null,
   createdAt: "",
   updatedAt: "",
   name: "",

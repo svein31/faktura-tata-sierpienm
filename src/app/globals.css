@@ -66,11 +66,18 @@
 
   html {
     scroll-behavior: smooth;
+    transition: background-color 250ms cubic-bezier(0.16, 1, 0.3, 1), color 250ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "ss02";
+    transition: background-color 250ms cubic-bezier(0.16, 1, 0.3, 1), color 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    letter-spacing: -0.011em;
+  }
+
+  h1, h2, h3, h4, .tracking-heading {
+    letter-spacing: -0.025em;
   }
 
   /* Sleek Fintech Scrollbars */
@@ -102,11 +109,23 @@
   }
 
   .surface-card {
-    @apply rounded-2xl border border-border/80 bg-card text-card-foreground shadow-xs transition-all duration-200;
+    @apply rounded-2xl border border-border/70 bg-card text-card-foreground transition-all duration-200;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
   }
 
   .surface-card-hover {
-    @apply surface-card hover:border-primary/30 hover:shadow-md dark:hover:border-primary/25;
+    @apply surface-card hover:border-primary/30 hover:-translate-y-0.5 dark:hover:border-primary/25;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
+  }
+  .surface-card-hover:hover {
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.06), 0 12px 28px -4px rgba(0, 0, 0, 0.1);
+  }
+
+  .hover-lift {
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-1.5px);
   }
 
   .glass-panel {
@@ -159,18 +178,21 @@
 .invoice-paper {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: 16px;
   box-shadow:
-    0 1px 3px hsl(224 45% 4% / 0.08),
-    0 16px 36px -12px hsl(224 45% 4% / 0.15);
+    0 1px 3px hsl(224 45% 4% / 0.06),
+    0 16px 36px -12px hsl(224 45% 4% / 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
   }
 }
 

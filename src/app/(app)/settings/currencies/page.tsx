@@ -135,8 +135,8 @@ export default function CurrenciesPage() {
       />
 
       {/* Tabela średnich kursów NBP */}
-      <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-border/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <Card className="border border-border/70 bg-card/75 backdrop-blur-md rounded-2xl shadow-apple-sm overflow-hidden">
+        <div className="p-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Globe className="h-4 w-4 text-primary" />
@@ -206,8 +206,8 @@ export default function CurrenciesPage() {
       {/* Siatka: Kalkulator Walutowy + Rachunki Walutowe Firmy */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Kalkulator Walutowy */}
-        <Card className="border-border/60 bg-card/60 p-5 backdrop-blur shadow-sm space-y-4">
-          <div className="flex items-center gap-2 border-b border-border/50 pb-3">
+        <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:shadow-apple-md space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/60 pb-3">
             <Calculator className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">Kalkulator przeliczeń walutowych</h3>
           </div>
@@ -275,7 +275,7 @@ export default function CurrenciesPage() {
         </Card>
 
         {/* Rachunki walutowe firmy */}
-        <Card className="border-border/60 bg-card/60 p-5 backdrop-blur shadow-sm space-y-4">
+        <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:shadow-apple-md space-y-4">
           <div className="flex items-center justify-between border-b border-border/50 pb-3">
             <div className="flex items-center gap-2">
               <Landmark className="h-4 w-4 text-emerald-400" />
@@ -332,7 +332,7 @@ export default function CurrenciesPage() {
       </div>
 
       {/* Podstawa prawna: Art. 31a ustawy o VAT */}
-      <Card className="border-border/60 bg-gradient-to-r from-card via-[#0e131d] to-card p-5 backdrop-blur shadow-sm space-y-3">
+      <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm space-y-3">
         <div className="flex items-center gap-2 text-indigo-400">
           <Info className="h-4 w-4" />
           <h4 className="text-xs font-semibold uppercase tracking-wider">

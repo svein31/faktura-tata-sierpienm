@@ -76,6 +76,7 @@ export function InvoicePreview({
     (invoice.type === "sale" ? compIban : contractor?.iban);
 
   const logoUrl = invoice.type === "sale" ? company.logoUrl : undefined;
+  const accentColor = invoice.type === "sale" ? (company.accentColor || company.primaryColor) : undefined;
 
   return (
     <div className={cn("invoice-paper overflow-hidden p-6 sm:p-8", className)}>
@@ -93,7 +94,13 @@ export function InvoicePreview({
           ) : null}
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-tight text-gradient">
+              <span
+                className={cn(
+                  "text-lg font-bold tracking-tight",
+                  accentColor ? "" : "text-gradient"
+                )}
+                style={accentColor ? { color: accentColor } : undefined}
+              >
                 {invoice.isCorrection
                   ? "FAKTURA KORYGUJĄCA (KOR)"
                   : invoice.isProforma
@@ -308,7 +315,13 @@ export function InvoicePreview({
               <span>{L.totalGross}</span>
               <span className="tabular-nums">{formatMoney(t.gross, invoice.currency)}</span>
             </div>
-            <div className="flex items-center justify-between rounded-md bg-primary/10 px-2 py-1.5 text-[13px] font-bold text-primary">
+            <div
+              className={cn(
+                "flex items-center justify-between rounded-md px-2 py-1.5 text-[13px] font-bold",
+                accentColor ? "" : "bg-primary/10 text-primary"
+              )}
+              style={accentColor ? { backgroundColor: `${accentColor}18`, color: accentColor } : undefined}
+            >
               <span>{L.toPay}</span>
               <span className="tabular-nums">{formatMoney(t.gross, invoice.currency)}</span>
             </div>

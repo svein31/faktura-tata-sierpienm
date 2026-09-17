@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   CheckCircle2,
   Clock,
@@ -41,6 +42,7 @@ export function InvoiceStatusTimeline({
   onDownloadXml,
   isRefreshing = false,
 }: InvoiceStatusTimelineProps) {
+  const prefersReducedMotion = useReducedMotion();
   const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
   const isKsefRejected = invoice.ksefStatus === "rejected" || (invoice.status as string) === "ksef_rejected";
   const isKsefQueued = invoice.ksefStatus === "queued" || (invoice.status as string) === "ksef_sent";
@@ -123,6 +125,10 @@ export function InvoiceStatusTimeline({
     ];
   }, [invoice, ksefNum, isKsefRejected, isKsefQueued, isKsefSending, isKsefAccepted, hasUpo]);
 
+  // Liczba ukończonych kroków do paska postępu
+  const completedCount = steps.filter((s) => s.state === "completed").length;
+  const progressPercent = (completedCount / steps.length) * 100;
+
   if (isProforma) {
     return (
       <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-4 text-xs">
@@ -138,7 +144,7 @@ export function InvoiceStatusTimeline({
   }
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-5 shadow-xs">
+    <div className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
         <div>
           <div className="flex items-center gap-2">
@@ -167,7 +173,7 @@ export function InvoiceStatusTimeline({
               type="button"
               onClick={onRefreshStatus}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted/70 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted/70 transition-colors shadow-2xs cursor-pointer"
             >
               <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-primary" : "text-muted-foreground"}`} />
               <span>{isRefreshing ? "Sprawdzanie..." : "Sprawdź status"}</span>
@@ -178,7 +184,7 @@ export function InvoiceStatusTimeline({
             <button
               type="button"
               onClick={() => onDownloadUpo(ksefNum)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors shadow-2xs cursor-pointer"
             >
               <Download className="h-3 w-3" />
               <span>UPO (XML)</span>
@@ -187,9 +193,14 @@ export function InvoiceStatusTimeline({
         </div>
       </div>
 
-      {/* Komunikat błędu jeśli odrzucono */}
+      {/* Komunikat błędu jeśli odrzucono (delikatny shake) */}
       {isKsefRejected && (
-        <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300">
+        <motion.div
+          initial={prefersReducedMotion ? false : { x: 0 }}
+          animate={prefersReducedMotion ? {} : { x: [0, -4, 4, -4, 4, 0] }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="mt-3.5 flex items-start gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300"
+        >
           <AlertOctagon className="h-4 w-4 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-bold">Dokument odrzucony przez bramkę KSeF</p>
@@ -197,11 +208,25 @@ export function InvoiceStatusTimeline({
               Wykryto niezgodność ze schematem FA(3) lub nieprawidłowy NIP/podpis. Popraw dokument w kreatorze i ponów wysyłkę.
             </p>
           </div>
-        </div>
+        </motion.div>
       )}
 
+      {/* Animowany pasek postępu osi czasu */}
+      <div className="mt-4 mb-2">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/50 border border-border/50">
+          <motion.div
+            initial={prefersReducedMotion ? false : { width: 0 }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className={`h-full rounded-full transition-colors ${
+              isKsefRejected ? "bg-rose-500" : "bg-emerald-500"
+            }`}
+          />
+        </div>
+      </div>
+
       {/* Oś czasu krok po kroku */}
-      <div className="mt-5 grid grid-cols-1 sm:grid-cols-5 gap-3 relative">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-5 gap-3 relative">
         {steps.map((step, idx) => {
           const isDone = step.state === "completed";
           const isCurrent = step.state === "current";
@@ -225,18 +250,41 @@ export function InvoiceStatusTimeline({
                       isDone
                         ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
                         : isCurrent
-                        ? "bg-primary/20 text-primary border border-primary/40 animate-pulse"
+                        ? "bg-primary/20 text-primary border border-primary/40"
                         : isError
                         ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
                         : "bg-muted/60 text-muted-foreground border border-border/50"
                     }`}
                   >
                     {isDone ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <motion.div
+                        initial={prefersReducedMotion ? false : { scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      </motion.div>
                     ) : isError ? (
                       <AlertOctagon className="h-4 w-4 text-rose-500" />
                     ) : isCurrent ? (
-                      <Clock className="h-4 w-4 text-primary animate-spin" />
+                      /* Pulsujące kropki shimmer dla statusu w toku / w kolejce */
+                      <div className="flex items-center gap-0.5">
+                        <motion.span
+                          animate={prefersReducedMotion ? {} : { opacity: [0.3, 1, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 1, ease: "easeInOut" }}
+                          className="h-1 w-1 rounded-full bg-primary"
+                        />
+                        <motion.span
+                          animate={prefersReducedMotion ? {} : { opacity: [0.3, 1, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 1, delay: 0.2, ease: "easeInOut" }}
+                          className="h-1 w-1 rounded-full bg-primary"
+                        />
+                        <motion.span
+                          animate={prefersReducedMotion ? {} : { opacity: [0.3, 1, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 1, delay: 0.4, ease: "easeInOut" }}
+                          className="h-1 w-1 rounded-full bg-primary"
+                        />
+                      </div>
                     ) : (
                       <span>{idx + 1}</span>
                     )}

@@ -19,6 +19,7 @@ import { InfoTooltip } from "@/components/ui/tooltip";
 import { formatNip, isValidNipFormat, normalizeNip } from "@/lib/validation";
 import type { Address, Contractor } from "@/lib/types";
 import { NipLookup } from "@/components/invoice/nip-lookup";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ContractorDraft {
   name: string;
@@ -172,14 +173,14 @@ export default function ContractorsPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.97 }}
               >
-                <Card className="group flex h-full flex-col rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm transition-shadow hover:shadow-md">
+                <Card className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card/75 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
                   <div className="flex items-start justify-between gap-2 p-4 pb-2">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 ring-1 ring-inset ring-indigo-500/20 group-hover:bg-indigo-500/15 transition-colors">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 group-hover:bg-primary/15 transition-colors">
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[13.5px] font-semibold text-foreground">{c.name}</p>
+                        <p className="truncate text-[13.5px] font-semibold text-foreground tracking-tight">{c.name}</p>
                         <p className="font-mono text-[11.5px] text-muted-foreground">{formatNip(c.nip)}</p>
                       </div>
                     </div>
@@ -242,27 +243,28 @@ export default function ContractorsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md py-16 text-center">
-          <div className="relative flex h-14 w-14 items-center justify-center">
-            <div className="absolute inset-0 rounded-2xl bg-indigo-500/10 blur-xl" />
-            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 ring-1 ring-indigo-500/20">
-              <Users className="h-6 w-6" />
-            </div>
-          </div>
-          <div>
-            <p className="text-[15px] font-semibold text-foreground">
-              {contractors.length === 0 ? "Brak zapisanych kontrahentów" : "Brak kontrahentów spełniających kryteria"}
-            </p>
-            <p className="mx-auto mt-1.5 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
-              {contractors.length === 0
+        <Card className="rounded-2xl border border-border/70 bg-card/60 backdrop-blur-md">
+          <EmptyState
+            icon={Users}
+            title={contractors.length === 0 ? "Brak zapisanych kontrahentów" : "Brak kontrahentów spełniających kryteria"}
+            description={
+              contractors.length === 0
                 ? "Wpisz NIP kontrahenta, a dane firmy i status VAT zostaną automatycznie pobrane z rejestru GUS."
-                : "Zmień parametry wyszukiwania."}
-            </p>
-          </div>
-          <Button size="sm" className="mt-2 gap-1.5 rounded-xl" onClick={openNew}>
-            <Plus className="h-3.5 w-3.5" /> Dodaj kontrahenta
-          </Button>
-        </div>
+                : "Zmień parametry wyszukiwania lub wyczyść filtr."
+            }
+            action={
+              contractors.length === 0 ? (
+                <Button size="sm" className="gap-1.5" onClick={openNew}>
+                  <Plus className="h-3.5 w-3.5" /> Dodaj kontrahenta
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setSearch("")}>
+                  Wyczyść filtr
+                </Button>
+              )
+            }
+          />
+        </Card>
       )}
 
       {/* Dialog dodawania/edycji */}
