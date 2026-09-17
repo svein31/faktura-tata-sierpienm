@@ -1,3 +1,4 @@
+import { contractorForCompany } from "@/lib/company-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -22,19 +23,9 @@ export async function POST(req: Request) {
       select: { companyId: true, company: { select: { userId: true } } },
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
-    const accessibleOwnerUserIds = memberships.map((m) => m.company.userId);
 
     const data = await parseInvoiceBody(body, {
-      contractorOwnedBy: async (id) =>
-        (await prisma.contractor.count({
-          where: {
-            id,
-            OR: [
-              { userId: user.id },
-              ...(accessibleOwnerUserIds.length > 0 ? [{ userId: { in: accessibleOwnerUserIds } }] : []),
-            ],
-          },
-        })) > 0,
+      contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
@@ -70,11 +61,13 @@ export async function POST(req: Request) {
       }
     }
 
-    const invoice = await prisma.invoice.create({
+    const invoice = await prisma.$transaction(async tx => {
+    const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
         ...data,
         version: 1,
+        recurringUserId: data.isRecurring ? user.id : null,
       },
       include: {
         sellerCompany: {
@@ -85,6 +78,7 @@ export async function POST(req: Request) {
 
     // Zarejestruj utworzenie dokumentu w trwałym dzienniku zdarzeń
     await recordAuditLog({
+      client: tx,
       companyId: invoice.sellerCompanyId || undefined,
       documentId: invoice.id,
       userId: user.id,
@@ -103,8 +97,12 @@ export async function POST(req: Request) {
       },
     });
 
+    return invoice;
+    });
+
     return json({ invoice: invoiceToDto(invoice) }, { status: 201 });
   } catch (e) {
     return handleApiError(e);
   }
 }
+

@@ -27,7 +27,9 @@ import { ThemeToggle } from "./theme-toggle";
 import { useSessionUser } from "@/lib/session-context";
 
 const NAV_MAIN = [
+  { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
+  { href: "/recurring", label: "Faktury cykliczne", icon: FileText },
   { href: "/invoices", label: "Faktury", icon: FileText },
   { href: "/offers", label: "Oferty", icon: FileCheck2 },
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
@@ -39,6 +41,9 @@ const NAV_MAIN = [
 ];
 
 const NAV_SETTINGS = [
+  { href: "/jpk", label: "Eksport JPK", icon: FileCheck2 },
+  { href: "/settings/integrations", label: "API i webhooki", icon: BookOpen },
+  { href: "/audit", label: "Dziennik zmian", icon: BookOpen },
   { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
@@ -260,3 +265,4 @@ export function MobileSidebar({
     </AnimatePresence>
   );
 }
+

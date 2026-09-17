@@ -1,3 +1,5 @@
+import { requireCompanyAccess } from "@/lib/permissions";
+import { invoiceToDto } from "@/lib/dto";
 import { prisma } from "@/lib/db";
 import { handleApiError, json } from "@/lib/api";
 import { KsefClient, buildFa3Xml, validateFa3Xml, generateDemoUpoXml } from "@/lib/ksef/index";
@@ -21,6 +23,18 @@ export async function POST(req: Request) {
 
     const now = new Date();
 
+    // An expired sending lease is ambiguous: require reconciliation, never blind resend.
+    const abandoned = await prisma.ksefQueueTask.findMany({ where: {
+      ...(!isCron ? { userId: user!.id } : {}), status: "processing", lockedUntil: { lt: now },
+    }, take: 50 });
+    for (const task of abandoned) {
+      await prisma.$transaction(async (tx) => {
+        const updated = await tx.ksefQueueTask.updateMany({ where: { id: task.id, status: "processing", lockedUntil: { lt: now } },
+          data: { status: "verify_needed", lockedUntil: null, errorDetails: "Przerwane przetwarzanie: zweryfikuj wynik w KSeF przed ponowieniem." } });
+        if (updated.count) await tx.invoice.update({ where: { id: task.invoiceId }, data: { ksefStatus: "verify_needed" } });
+      });
+    }
+
     // Pobierz do 10 zadań oczekujących
     const tasks = await prisma.ksefQueueTask.findMany({
       where: {
@@ -28,12 +42,14 @@ export async function POST(req: Request) {
         status: "queued",
         OR: [
           { nextAttemptAt: null },
+          { nextAttemptAt: { isSet: false } },
           { nextAttemptAt: { lte: now } },
         ],
         AND: [
           {
             OR: [
               { lockedUntil: null },
+              { lockedUntil: { isSet: false } },
               { lockedUntil: { lt: now } },
             ],
           },
@@ -83,6 +99,18 @@ export async function POST(req: Request) {
         continue;
       }
 
+      if (invoice.sellerCompanyId) {
+        const access = await requireCompanyAccess(task.userId, invoice.sellerCompanyId, "canSendKsef");
+        if (!access.ok) {
+          await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: access.error } });
+          results.push({ taskId: task.id, invoiceId: invoice.id, status: "failed", message: access.error });
+          continue;
+        }
+      }
+      if (invoice.isProforma || invoice.type === "purchase") {
+        await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: "Ten dokument nie podlega wysyłce." } });
+        continue;
+      }
       const env = (task.environment || "test") as any;
 
       // ── TRYB DEMO ──
@@ -117,12 +145,13 @@ export async function POST(req: Request) {
       }
 
       // ── TRYB TEST / PRODUKCJA ──
+      let submissionStarted = false;
       try {
         const client = new KsefClient({ environment: env });
 
         // Jeśli faktura ma już numer referencyjny sesji KSeF, najpierw sprawdzamy jej status
         // zamiast wysyłać ponownie (ochrona przed duplikatem)
-        if (invoice.referenceNumber && invoice.ksefStatus === "sending") {
+        if (invoice.referenceNumber) {
           const ksefJson = (invoice.ksef as any) || {};
           const sessionRef = ksefJson.sessionReferenceNumber;
 
@@ -130,6 +159,8 @@ export async function POST(req: Request) {
           const activeSession = await prisma.ksefSession.findFirst({
             where: {
               environment: env,
+              userId: task.userId,
+              nip: (invoice.sellerCompany?.nip || invoice.nip || "").replace(/\D/g, ""),
               status: "ACTIVE",
               validUntil: { gt: new Date() },
             },
@@ -182,6 +213,17 @@ export async function POST(req: Request) {
               continue;
             }
           }
+          // Pending or unavailable status must never fall through to sendInvoiceEncrypted.
+          if (!accessToken || !sessionRef || task.attempts + 1 >= task.maxAttempts) {
+            await prisma.$transaction([
+              prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "verify_needed", lockedUntil: null, errorDetails: "Nie można potwierdzić poprzedniej wysyłki. Wymagana weryfikacja KSeF." } }),
+              prisma.invoice.update({ where: { id: invoice.id }, data: { ksefStatus: "verify_needed" } }),
+            ]);
+          } else {
+            await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "queued", lockedUntil: null, nextAttemptAt: new Date(Date.now() + 30_000) } });
+          }
+          results.push({ taskId: task.id, invoiceId: invoice.id, status: "waiting_for_status", message: "Sprawdzono status bez ponownej wysyłki." });
+          continue;
         }
 
         // Przygotowanie XML jeśli jeszcze nie został wysłany
@@ -220,28 +262,7 @@ export async function POST(req: Request) {
             }
           }
 
-          const invoiceData: Invoice = {
-            id: invoice.id,
-            number: invoice.number,
-            type: invoice.type as any,
-            status: invoice.status as any,
-            contractorId: invoice.contractorId,
-            issueDate: invoice.issueDate,
-            saleDate: invoice.saleDate,
-            dueDate: invoice.dueDate,
-            currency: invoice.currency as any,
-            language: invoice.language as any,
-            paymentMethod: invoice.paymentMethod as any,
-            paymentTermDays: invoice.paymentTermDays,
-            notes: invoice.notes || undefined,
-            lines: (invoice.lines as any) || [],
-            createdAt: invoice.createdAt.toISOString(),
-            isCorrection: invoice.isCorrection ?? undefined,
-            correctionReason: invoice.correctionReason ?? undefined,
-            originalInvoiceNumber: invoice.originalInvoiceNumber ?? undefined,
-            originalIssueDate: invoice.originalIssueDate ?? undefined,
-            originalKsefNumber: invoice.originalKsefNumber ?? undefined,
-          };
+          const invoiceData: Invoice = invoiceToDto(invoice);
 
           if (sellerProfile) {
             xml = buildFa3Xml({ invoice: invoiceData, seller: sellerProfile, buyer: buyerContractor });
@@ -277,8 +298,15 @@ export async function POST(req: Request) {
         }
 
         const loginRes = await client.loginWithKsefToken(sellerNip, ksefToken);
+        await prisma.ksefSession.upsert({
+          where: { referenceNumber: loginRes.referenceNumber },
+          create: { userId: task.userId, nip: sellerNip, environment: env, referenceNumber: loginRes.referenceNumber,
+            accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
+          update: { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
+        });
         const onlineSession = await client.openOnlineSession(loginRes.accessToken);
 
+        submissionStarted = true;
         const sendRes = await client.sendInvoiceEncrypted(
           loginRes.accessToken,
           onlineSession.referenceNumber,
@@ -322,9 +350,9 @@ export async function POST(req: Request) {
         results.push({ taskId: task.id, invoiceId: invoice.id, status: "sending", message: "Wysłano do KSeF, oczekiwanie na UPO" });
       } catch (procErr: any) {
         const errorMsg = procErr?.message || String(procErr);
-        const nextAttempts = task.attempts;
+        const nextAttempts = task.attempts + 1;
 
-        if (nextAttempts >= task.maxAttempts) {
+        if (submissionStarted || nextAttempts >= task.maxAttempts) {
           await prisma.ksefQueueTask.update({
             where: { id: task.id },
             data: {
@@ -357,10 +385,11 @@ export async function POST(req: Request) {
 
     return json({
       success: true,
-      processedCount: tasks.length,
+      processedCount: results.length,
       results,
     });
   } catch (e) {
     return handleApiError(e);
   }
 }
+

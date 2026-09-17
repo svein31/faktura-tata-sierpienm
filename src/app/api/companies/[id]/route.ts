@@ -1,3 +1,5 @@
+import { recordAuditLog, buildFieldDiff } from "@/lib/audit";
+import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -23,9 +25,9 @@ export async function GET(_req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    const company = await prisma.companyProfile.findFirst({
-      where: { id: (await params).id, userId: user.id },
-    });
+    const membership = await getCompanyMembership(user.id, (await params).id);
+    if (!membership) return json({ error: "Nie znaleziono firmy." }, { status: 404 });
+    const company = await prisma.companyProfile.findUnique({ where: { id: membership.company.id } });
     if (!company) {
       return json({ error: "Nie znaleziono profilu firmy.", code: "NOT_FOUND" }, { status: 404 });
     }
@@ -75,27 +77,14 @@ export async function PUT(req: Request, { params }: Ctx) {
       }
     }
 
-    let updated;
-    if (data.isDefault && !existing.isDefault) {
-      updated = await prisma.$transaction(async (tx) => {
-        await tx.companyProfile.updateMany({
-          where: { userId: user.id },
-          data: { isDefault: false },
-        });
-        return tx.companyProfile.update({
-          where: { id: existing.id },
-          data: {
-            ...data,
-            isDefault: true,
-          },
-        });
-      });
-    } else {
-      updated = await prisma.companyProfile.update({
-        where: { id: existing.id },
-        data,
-      });
-    }
+    const updated = await prisma.$transaction(async tx => {
+      if (data.isDefault && !existing.isDefault) await tx.companyProfile.updateMany({ where: { userId: user.id }, data: { isDefault: false } });
+      const company = await tx.companyProfile.update({ where: { id: existing.id }, data });
+      const { diff } = buildFieldDiff(existing, company, { companyName: "Nazwa", nip: "NIP", street: "Ulica", city: "Miasto", postalCode: "Kod pocztowy", ksefToken: "Token KSeF", isDefault: "Firma domyślna" });
+      await recordAuditLog({ client: tx, companyId: company.id, userId: user.id, userName: user.name, userEmail: user.email,
+        action: "company_updated", entityType: "company", entityId: company.id, diff });
+      return company;
+    });
 
     return json({ company: companyProfileToDto(updated) });
   } catch (e) {
@@ -136,7 +125,11 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       );
     }
 
+    const catalogCount = await prisma.contractor.count({ where: { companyId: existing.id } }) + await prisma.product.count({ where: { companyId: existing.id } });
+    if (catalogCount) throw new ApiError(409, "Firma posiada katalog kontrahentów lub produktów. Usuń nieużywane rekordy przed usunięciem profilu.");
     await prisma.$transaction(async (tx) => {
+      await recordAuditLog({ client: tx, companyId: existing.id, userId: user.id, userName: user.name, userEmail: user.email,
+        action: "company_deleted", entityType: "company", entityId: existing.id, details: { companyName: existing.companyName, nip: existing.nip } });
       await tx.companyProfile.delete({ where: { id: existing.id } });
 
       // Jeśli usunięta firma była domyślna, ustaw kolejną jako domyślną
@@ -159,3 +152,4 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return handleApiError(e);
   }
 }
+

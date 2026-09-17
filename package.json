@@ -2,7 +2,7 @@
   "name": "fakturo-ksef",
   "version": "2.0.0",
   "private": true,
-  "description": "Premium SaaS — wieloużytkownikowe polskie faktury i KSeF (Next.js App Router + Prisma/MongoDB)",
+  "description": "Premium SaaS \u2014 wielou\u017cytkownikowe polskie faktury i KSeF (Next.js App Router + Prisma/MongoDB)",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -11,12 +11,15 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate deploy",
-    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate": "node scripts/migrate-data.mjs",
+    "db:migrate:dev": "node scripts/migrate-data.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "test:integration": "node scripts/integration-test.mjs",
     "test:email": "npx tsx scripts/test-email-system.mjs",
-    "test:fixes": "node --test scripts/test-requested-fixes.cjs"
+    "test:fixes": "node --test scripts/test-requested-fixes.cjs",
+    "lint": "eslint src lib netlify --max-warnings=0",
+    "test": "npm run test:fixes && node --test scripts/tests/*.test.cjs",
+    "verify": "npm run build && npm run typecheck && npm run lint && npm test && npm run test:integration"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -24,6 +27,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.0",
     "lucide-react": "^0.441.0",
+    "mongodb": "^6.21.0",
     "next": "15.5.25",
     "nodemailer": "^10.0.10",
     "pdf-lib": "^1.17.1",
@@ -37,6 +41,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.14.15",
     "@types/nodemailer": "^8.0.1",
@@ -44,11 +49,13 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "mongodb-memory-server": "^10.0.0",
     "postcss": "^8.5.28",
     "prisma": "^6.19.3",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
-    "mongodb-memory-server": "^10.0.0"
+    "typescript-eslint": "^8.70.0"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.2",

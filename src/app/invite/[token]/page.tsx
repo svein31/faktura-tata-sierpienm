@@ -137,6 +137,7 @@ export default function InviteAcceptPage() {
 
       const result = await res.json();
       if (!res.ok) {
+        if (result.code === "MFA_REQUIRED") { setPassword(""); router.push(`/login?next=${encodeURIComponent(`/invite/${token}`)}`); return; }
         throw new Error(result.error || "Nie udało się przyjąć zaproszenia.");
       }
 
@@ -356,3 +357,4 @@ export default function InviteAcceptPage() {
     </div>
   );
 }
+

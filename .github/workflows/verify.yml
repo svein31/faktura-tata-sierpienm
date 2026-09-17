@@ -4,11 +4,11 @@ on:
     branches: ['codex/**', main]
   pull_request:
 permissions:
-  contents: write
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
@@ -17,18 +17,6 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm install --ignore-scripts
-      - name: Save resolved dependency lock on repair branch
-        if: startsWith(github.ref, 'refs/heads/codex/')
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          if ! git diff --cached --quiet; then
-            git commit -m "build: lock verified dependency updates"
-            git push origin HEAD:"${GITHUB_REF_NAME}"
-          fi
-      - run: npm run db:generate
-      - run: node --test scripts/test-requested-fixes.cjs
-      - run: npm run build
-      - run: npm run typecheck
+      - run: npm ci --ignore-scripts
+      - run: python3 -m pip install lxml==6.0.2
+      - run: npm run verify

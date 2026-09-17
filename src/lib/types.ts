@@ -151,6 +151,7 @@ export interface ContractorContact {
 }
 
 export interface Contractor {
+  companyId?: string | null;
   id: string;
   name: string;
   nip: string;
@@ -178,6 +179,7 @@ export interface Contractor {
 }
 
 export interface Product {
+  companyId?: string | null;
   id: string;
   name: string;
   sku?: string;
@@ -262,6 +264,8 @@ export interface Invoice {
   // Faktury cykliczne
   isRecurring?: boolean;
   recurringInterval?: string;
+  recurringAnchorDay?: number | null;
+  recurringLastError?: string | null;
   recurringNextDate?: string;
   recurringPaused?: boolean;
   recurringAutoSend?: boolean;
@@ -555,3 +559,4 @@ export const EMPTY_COMPANY: CompanyProfile = {
   email: "",
   phone: "",
 };
+

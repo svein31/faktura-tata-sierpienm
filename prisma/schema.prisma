@@ -24,6 +24,7 @@ model User {
   role                String                  @default("owner") // "owner" | "accountant" | "viewer"
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
+  mfa                 UserMfa?
   sessions            Session[]
   resetTokens         PasswordResetToken[]
   auditLogs           AuditLog[]
@@ -54,6 +55,7 @@ model User {
 
 /// Trwała sesja użytkownika powiązana z bazą danych
 model Session {
+  mfaVerifiedAt DateTime?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   sessionToken String   @unique
   userId       String   @db.ObjectId
@@ -137,6 +139,9 @@ model KsefIncomingImport {
 }
 
 model Contractor {
+  companyId  String?  @db.ObjectId
+
+  @@index([companyId])
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @db.ObjectId
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -168,6 +173,9 @@ model Contractor {
 }
 
 model Product {
+  companyId  String?  @db.ObjectId
+
+  @@index([companyId])
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -256,6 +264,10 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  recurringAnchorDay Int?
+  recurringUserId String? @db.ObjectId
+  recurringLastAttemptAt DateTime?
+  recurringLastError String?
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
   userId          String          @db.ObjectId
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -437,7 +449,7 @@ model KsefQueueTask {
 model AuditLog {
   id          String          @id @default(auto()) @map("_id") @db.ObjectId
   companyId   String?         @db.ObjectId
-  company     CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company     CompanyProfile? @relation(fields: [companyId], references: [id], onDelete: SetNull)
   documentId  String?
   userId      String?         @db.ObjectId
   user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -646,3 +658,97 @@ model LegalConsent {
 
 
 
+
+
+/// Sekret TOTP szyfrowany kluczem serwera, nigdy zwracany przez DTO użytkownika.
+model UserMfa {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String    @unique @db.ObjectId
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encryptedSecret String
+  enabledAt       DateTime?
+  setupExpiresAt  DateTime?
+  lastUsedStep    Int       @default(-1)
+  recoveryHashes  String[]  @default([])
+  failedAttempts  Int       @default(0)
+  lockedUntil     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+/// Idempotencja: jeden wygenerowany dokument na termin harmonogramu.
+model RecurringOccurrence {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  templateId    String   @db.ObjectId
+  scheduledDate String
+  invoiceId     String   @unique @db.ObjectId
+  createdAt     DateTime @default(now())
+  @@unique([templateId, scheduledDate])
+}
+
+model PublicApiKey {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  name String
+  tokenHash String @unique
+  prefix String
+  revoked Boolean @default(false)
+  windowStart DateTime @default(now())
+  requests Int @default(0)
+  createdAt DateTime @default(now())
+  @@index([companyId])
+}
+model StatusWebhook {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  url String
+  encryptedSecret String
+  active Boolean @default(true)
+  scanCursor String?
+  leaseUntil DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([companyId])
+}
+model WebhookDelivery {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  webhookId String @db.ObjectId
+  eventKey String @unique
+  payload String
+  status String @default("pending")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  leaseUntil DateTime @default(now())
+  lastError String?
+  createdAt DateTime @default(now())
+  @@index([status, nextAttemptAt])
+  @@index([webhookId])
+}
+
+model DueReminderSetting {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId String @unique @db.ObjectId
+  companyId String @db.ObjectId
+  userId String @db.ObjectId
+  enabled Boolean @default(false)
+  nextCheckAt DateTime @default(now())
+  @@index([companyId])
+}
+model DueReminderDelivery {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  settingId String @db.ObjectId
+  companyId String @db.ObjectId
+  eventKey String @unique
+  dueDate String
+  stage String
+  status String @default("pending")
+  recipient String?
+  messageId String?
+  error String?
+  startedAt DateTime?
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([companyId])
+  @@index([status, createdAt])
+}

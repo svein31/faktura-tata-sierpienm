@@ -120,6 +120,7 @@ export function ksefToDto(k: DbKsef): KsefSettings {
 
 export function contractorToDto(c: DbContractor): Contractor {
   return {
+    companyId: c.companyId,
     id: c.id,
     name: c.name,
     nip: c.nip,
@@ -148,6 +149,7 @@ export function contractorToDto(c: DbContractor): Contractor {
 
 export function productToDto(p: DbProduct): Product {
   return {
+    companyId: p.companyId,
     id: p.id,
     name: p.name,
     sku: p.sku ?? undefined,
@@ -242,6 +244,8 @@ export function invoiceToDto(
     qrCodeII: i.qrCodeII ?? undefined,
     isRecurring: i.isRecurring ?? false,
     recurringInterval: i.recurringInterval ?? undefined,
+    recurringAnchorDay: i.recurringAnchorDay,
+    recurringLastError: i.recurringLastError,
     recurringNextDate: i.recurringNextDate ?? undefined,
     recurringPaused: i.recurringPaused ?? false,
     recurringAutoSend: i.recurringAutoSend ?? false,
@@ -479,3 +483,4 @@ export function prefsToDto(p: NotificationPreference | null): NotificationPrefs 
     soundEnabled: p?.soundEnabled ?? true,
   };
 }
+

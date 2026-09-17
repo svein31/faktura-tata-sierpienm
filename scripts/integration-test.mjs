@@ -1,406 +1,299 @@
-#!/usr/bin/env node
-/**
- * Test integracyjny (przez HTTP) — dwa konta użytkowników, izolacja danych,
- * pusty bootstrap nowego użytkownika, powiadomienia, auth.
- *
- * Przepływ:
- *  1. buduje .next (jeśli brak), tworzy CZYSTĄ bazę testową (SQLite),
- *  2. uruchamia serwer (app.js / next start) na losowym porcie,
- *  3. wykonuje scenariusze HTTP (register/login/data/CRUD/izolacja/notifications),
- *  4. zatrzymuje serwer i raportuje wynik (exit code).
- *
- * Uruchomienie: npm run test:integration
- */
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { createServer } from 'node:net';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import { PrismaClient } from '@prisma/client';
+import { MongoClient, ObjectId } from 'mongodb';
+import { migrateData } from './migrate-data.mjs';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+require('./register-ts.cjs');
+const { totpAt } = require('../src/lib/totp.ts');
+const { warsawDate } = require('../src/lib/scheduling.ts');
 
-import assert from "node:assert/strict";
-import { spawn, execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
-import path from "node:path";
-import os from "node:os";
-import { fileURLToPath } from "node:url";
-
-const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const DB_PATH = path.join(mkdtempSync(path.join(os.tmpdir(), "fakturo-test-")), "test.db");
-const DB_URL = `file:${DB_PATH}`;
-const PORT = 3900 + Math.floor(Math.random() * 500);
-
-const BASE = `http://127.0.0.1:${PORT}`;
-let server = null;
-const results = [];
-
-function record(name, ok, detail = "") {
-  results.push({ name, ok, detail });
-  console.log(`${ok ? "  ✔" : "  ✘"} ${name}${detail ? ` — ${detail}` : ""}`);
-}
-
-function check(name, fn) {
-  return Promise.resolve()
-    .then(fn)
-    .then((v) => {
-      record(name, true);
-      return v;
-    })
-    .catch((e) => {
-      record(name, false, e.message);
-      throw e;
-    });
-}
-
-async function api(method, urlPath, { body, cookie } = {}) {
-  const res = await fetch(`${BASE}${urlPath}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(cookie ? { Cookie: cookie } : {}),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    /* pusta odpowiedź */
-  }
-  return { res, data };
-}
-
-function cookieOf(res) {
-  const setCookies = res.headers.getSetCookie?.() ?? [];
-  const sc = setCookies.find((c) => c.startsWith("fakturo_session="));
-  return sc ? sc.split(";")[0] : "";
-}
-
-function waitFor(fn, timeoutMs = 60000, intervalMs = 500) {
-  const start = Date.now();
-  return new Promise((resolve, reject) => {
-    const tick = async () => {
-      try {
-        const v = await fn();
-        if (v) return resolve(v);
-      } catch {
-        /* retry */
-      }
-      if (Date.now() - start > timeoutMs) return reject(new Error("timeout"));
-      setTimeout(tick, intervalMs);
-    };
-    tick();
-  });
-}
-
-async function main() {
-  console.log(`\n[Fakturo] Test integracyjny — DB: ${DB_PATH} · port: ${PORT}\n`);
-
-  // 0. Przygotuj bazę testową (schema) i zbuduj aplikację (jeśli brak .next).
-  console.log("[setup] prisma db push (test DB)…");
-  execFileSync(process.platform === "win32" ? "npx.cmd" : "npx", ["prisma", "db", "push", "--skip-generate"], {
-    cwd: ROOT,
-    env: { ...process.env, DATABASE_URL: DB_URL },
-    stdio: "pipe",
-    shell: true,
-  });
-  console.log("[setup] db push OK");
-
-  if (!existsSync(path.join(ROOT, ".next", "BUILD_ID"))) {
-    console.log("[setup] brak .next — uruchamiam npm run build…");
-    execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "build"], { cwd: ROOT, stdio: "pipe", shell: true });
-  }
-
-  // 1. Start serwera.
-  console.log("[setup] start serwera…");
-  server = spawn(process.execPath, [path.join(ROOT, "app.js")], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(PORT), DATABASE_URL: DB_URL },
-    stdio: "inherit",
-  });
-
-  await waitFor(async () => {
-    try {
-      const r = await fetch(`${BASE}/api/health`);
-      return r.ok;
-    } catch {
-      return false;
-    }
-  }, 90000);
-  console.log("[setup] serwer gotowy (health OK)\n");
-
-  // ── Scenariusze ──────────────────────────────────────────────────────────
-  const emailA = `user-a-${Date.now()}@test.local`;
-  const emailB = `user-b-${Date.now()}@test.local`;
-  const password = "Haslo12345!";
-  let cookieA = "";
-  let cookieB = "";
-  let invoiceAId = "";
-  let notificationId = "";
-
-  try {
-    // 1. Health publiczny (bez auth).
-    await check("GET /api/health publiczny (bez sesji)", async () => {
-      const r = await fetch(`${BASE}/api/health`);
-      assert.equal(r.status, 200);
-      const j = await r.json();
-      assert.equal(j.ok, true);
-      assert.equal(j.db, "ok");
-    });
-
-    // 2. /api/data bez sesji → 401.
-    await check("GET /api/data bez sesji → 401", async () => {
-      const { res } = await api("GET", "/api/data");
-      assert.equal(res.status, 401);
-    });
-
-    // 3. Rejestracja użytkownika A.
-    const regA = await check("POST /api/auth/register (użytkownik A)", async () => {
-      const { res, data } = await api("POST", "/api/auth/register", {
-        body: { name: "Użytkownik A", email: emailA, password },
-      });
-      assert.equal(res.status, 201);
-      assert.ok(data.user?.id);
-      assert.equal(data.user.email, emailA);
-      const c = cookieOf(res);
-      assert.ok(c, "brak cookie sesji");
-      cookieA = c;
-      return data;
-    });
-
-    // 4. Bootstrap A — PUSTE dane (brak seedu dla nowego użytkownika).
-    await check("GET /api/data (A) — pusty bootstrap (0 faktur/kontrahentów/produktów)", async () => {
-      const { res, data } = await api("GET", "/api/data", { cookie: cookieA });
-      assert.equal(res.status, 200);
-      assert.equal(data.invoices.length, 0);
-      assert.equal(data.contractors.length, 0);
-      assert.equal(data.products.length, 0);
-      assert.equal(data.company.name, "", "profil firmy ma być pusty");
-      assert.equal(data.ksef.environment, "demo");
-      assert.deepEqual(data.notificationPrefs, { browserEnabled: false, soundEnabled: true });
-    });
-
-    // 5. Rejestracja użytkownika B.
-    const regB = await check("POST /api/auth/register (użytkownik B)", async () => {
-      const { res, data } = await api("POST", "/api/auth/register", {
-        body: { name: "Użytkownik B", email: emailB, password },
-      });
-      assert.equal(res.status, 201);
-      assert.ok(data.user?.id);
-      const c = cookieOf(res);
-      assert.ok(c);
-      cookieB = c;
-      return data;
-    });
-    assert.notEqual(regA.user.id, regB.user.id, "użytkownicy muszą mieć różne id");
-
-    // 6. Duplikat e-mail → 409 z ogólnym komunikatem (brak enumeracji).
-    await check("POST /api/auth/register duplikat e-mail → 409 (ogólny komunikat)", async () => {
-      const { res, data } = await api("POST", "/api/auth/register", {
-        body: { name: "Ktoś", email: emailA, password },
-      });
-      assert.equal(res.status, 409);
-      assert.ok(!/istnieje|zajęty/i.test(data.error ?? ""), "komunikat nie może zdradzać stanu konta");
-    });
-
-    // 7. Zły e-mail → 401 (login), taki sam komunikat jak złe hasło.
-    await check("POST /api/auth/login złe dane → 401", async () => {
-      const { res, data } = await api("POST", "/api/auth/login", {
-        body: { email: emailA, password: "ZleHaslo123" },
-      });
-      assert.equal(res.status, 401);
-      assert.ok(data.code === "INVALID_CREDENTIALS");
-    });
-
-    // 8. Login A.
-    await check("POST /api/auth/login (A) + GET /api/auth/me", async () => {
-      const { res, data } = await api("POST", "/api/auth/login", {
-        body: { email: emailA, password },
-      });
-      assert.equal(res.status, 200);
-      assert.equal(data.user.email, emailA);
-      const c = cookieOf(res);
-      assert.ok(c);
-      cookieA = c;
-      const me = await api("GET", "/api/auth/me", { cookie: cookieA });
-      assert.equal(me.res.status, 200);
-      assert.equal(me.data.user.email, emailA);
-    });
-
-    // 9. A tworzy kontrahenta + fakturę.
-    const contractor = await check("POST /api/contractors (A)", async () => {
-      const { res, data } = await api("POST", "/api/contractors", {
-        cookie: cookieA,
-        body: {
-          name: "DemoIT Solutions Sp. z o.o.",
-          nip: "5270000024",
-          address: { street: "ul. Przykładowa 1", city: "Warszawa", postal: "00-001", country: "PL" },
-          isVatPayer: true,
-        },
-      });
-      assert.equal(res.status, 201);
-      assert.ok(data.contractor?.id);
-      return data.contractor;
-    });
-
-    const invoiceA = await check("POST /api/invoices (A) — faktura FV", async () => {
-      const { res, data } = await api("POST", "/api/invoices", {
-        cookie: cookieA,
-        body: {
-          number: `FV/${new Date().getFullYear()}/0001`,
-          type: "sale",
-          status: "issued",
-          contractorId: contractor.id,
-          issueDate: "2026-08-01",
-          saleDate: "2026-08-01",
-          dueDate: "2026-08-15",
-          currency: "PLN",
-          language: "PL",
-          paymentMethod: "transfer",
-          paymentTermDays: 14,
-          lines: [{ name: "Usługa programistyczna", quantity: 2, unit: "md", netPrice: 1200, vatRate: "23" }],
-        },
-      });
-      assert.equal(res.status, 201);
-      assert.ok(data.invoice?.id);
-      invoiceAId = data.invoice.id;
-      return data.invoice;
-    });
-
-    // 10. IZOLACJA: B nie widzi faktury A (bootstrap + bezpośredni dostęp).
-    await check("IZOLACJA: bootstrap B — brak faktur/kontrahentów A", async () => {
-      const { res, data } = await api("GET", "/api/data", { cookie: cookieB });
-      assert.equal(res.status, 200);
-      assert.equal(data.invoices.length, 0);
-      assert.equal(data.contractors.length, 0);
-    });
-
-    await check("IZOLACJA: GET /api/invoices/{idA} jako B → 404", async () => {
-      const { res } = await api("GET", `/api/invoices/${invoiceAId}`, { cookie: cookieB });
-      assert.equal(res.status, 404);
-    });
-
-    await check("IZOLACJA: PUT /api/invoices/{idA} jako B → 404", async () => {
-      const { res } = await api("PUT", `/api/invoices/${invoiceAId}`, {
-        cookie: cookieB,
-        body: { ...invoiceA, status: "paid" },
-      });
-      assert.equal(res.status, 404);
-    });
-
-    await check("IZOLACJA: DELETE /api/invoices/{idA} jako B → 404", async () => {
-      const { res } = await api("DELETE", `/api/invoices/${invoiceAId}`, { cookie: cookieB });
-      assert.equal(res.status, 404);
-    });
-
-    await check("IZOLACJA: A nadal widzi swoją fakturę (200)", async () => {
-      const { res } = await api("GET", `/api/invoices/${invoiceAId}`, { cookie: cookieA });
-      assert.equal(res.status, 200);
-    });
-
-    // 11. Profil firmy B — zapis; A nadal ma pusty profil (izolacja ustawień).
-    await check("PUT /api/company (B) — izolacja profilu firmy", async () => {
-      const { res, data } = await api("PUT", "/api/company", {
-        cookie: cookieB,
-        body: { name: "Firma B Sp. z o.o.", nip: "5260301706", city: "Warszawa" },
-      });
-      assert.equal(res.status, 200);
-      assert.equal(data.company.name, "Firma B Sp. z o.o.");
-      const a = await api("GET", "/api/data", { cookie: cookieA });
-      assert.equal(a.data.company.name, "", "profil A musi pozostać pusty");
-    });
-
-    // 12. Symulacja faktury zakupowej z KSeF (A) → FZ + notification.
-    await check("POST /api/ksef/simulate-purchase (A) — FZ + powiadomienie", async () => {
-      const { res, data } = await api("POST", "/api/ksef/simulate-purchase", { cookie: cookieA });
-      assert.equal(res.status, 201);
-      assert.equal(data.invoice.type, "purchase");
-      assert.ok(/^FZ\//.test(data.invoice.number));
-      assert.ok(data.notification?.id);
-      assert.equal(data.notification.kind, "invoice_purchase");
-      notificationId = data.notification.id;
-    });
-
-    await check("GET /api/notifications (A) — nieprzeczytane ≥ 1", async () => {
-      const { res, data } = await api("GET", "/api/notifications", { cookie: cookieA });
-      assert.equal(res.status, 200);
-      assert.ok(data.unread >= 1);
-      assert.ok(data.notifications.some((n) => n.kind === "invoice_purchase"));
-    });
-
-    await check("IZOLACJA: GET /api/notifications (B) — brak powiadomień A", async () => {
-      const { res, data } = await api("GET", "/api/notifications", { cookie: cookieB });
-      assert.equal(res.status, 200);
-      assert.ok(!data.notifications.some((n) => n.id === notificationId));
-    });
-
-    await check("PUT /api/notifications/{id} read (A)", async () => {
-      const { res, data } = await api("PUT", `/api/notifications/${notificationId}`, {
-        cookie: cookieA,
-        body: { read: true },
-      });
-      assert.equal(res.status, 200);
-      assert.equal(data.notification.read, true);
-    });
-
-    // 13. KSeF send — wymaga auth; demo zapisuje status faktury.
-    await check("POST /api/ksef/send bez sesji → 401", async () => {
-      const { res } = await api("POST", "/api/ksef/send", {
-        body: { xml: "<Faktura>…</Faktura>", environment: "demo", invoiceId: invoiceAId },
-      });
-      assert.equal(res.status, 401);
-    });
-
-    await check("POST /api/ksef/send (A, demo) — status zapisany na fakturze", async () => {
-      const { res, data } = await api("POST", "/api/ksef/send", {
-        cookie: cookieA,
-        body: { xml: "<Faktura><DowodSprzedazy>x</DowodSprzedazy></Faktura>", environment: "demo", invoiceId: invoiceAId },
-      });
-      assert.equal(res.status, 200);
-      assert.equal(data.success, true);
-      assert.ok(data.ksefNumber);
-      assert.equal(data.invoice.status, "ksef_sent");
-      assert.ok(data.invoice.ksef?.number);
-    });
-
-    // 14. Preferencje powiadomień.
-    await check("PUT /api/notifications/preferences (A)", async () => {
-      const { res, data } = await api("PUT", "/api/notifications/preferences", {
-        cookie: cookieA,
-        body: { browserEnabled: true, soundEnabled: false },
-      });
-      assert.equal(res.status, 200);
-      assert.equal(data.notificationPrefs.browserEnabled, true);
-      assert.equal(data.notificationPrefs.soundEnabled, false);
-    });
-
-    // 15. Logout + sesja unieważniona.
-    await check("POST /api/auth/logout (A) → stary cookie nie działa", async () => {
-      const { res } = await api("POST", "/api/auth/logout", { cookie: cookieA });
-      assert.equal(res.status, 200);
-      const after = await api("GET", "/api/data", { cookie: cookieA });
-      assert.equal(after.res.status, 401);
-    });
-
-    // 16. Testowy endpoint powiadomień (test/incoming).
-    await check("POST /api/test/incoming (B) — powiadomienie testowe", async () => {
-      const { res, data } = await api("POST", "/api/test/incoming", { cookie: cookieB });
-      assert.equal(res.status, 201);
-      assert.equal(data.notification.kind, "test");
-    });
-  } catch (e) {
-    console.error("\n[Fakturo] Test przerwany z powodu błędu:", e.message);
-  } finally {
-    if (server) server.kill("SIGTERM");
-  }
-
-  // ── Raport ───────────────────────────────────────────────────────────────
-  const failed = results.filter((r) => !r.ok);
-  console.log(`\n[Fakturo] Wynik: ${results.length - failed.length}/${results.length} testów OK`);
-  if (failed.length > 0) {
-    console.log("Nieudane testy:");
-    for (const f of failed) console.log(`  ✘ ${f.name} — ${f.detail}`);
-  }
-  rmSync(path.dirname(DB_PATH), { recursive: true, force: true });
-  process.exit(failed.length > 0 ? 1 : 0);
-}
-
-main().catch((e) => {
-  console.error(e);
-  if (server) server.kill("SIGTERM");
-  process.exit(1);
+// Always an isolated replica set; never use an inherited production database URL.
+console.log('[integration] Starting isolated MongoDB replica set');
+const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+const databaseUrl = mongo.getUri('fakturo_integration');
+const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+const port = 41000 + Math.floor(Math.random() * 1000);
+const base = `http://127.0.0.1:${port}`;
+const mongoClient = new MongoClient(databaseUrl);
+let server, logs = '';
+const deliveredEmails = [], smtpSockets = new Set();
+const smtp = createServer(socket => {
+  smtpSockets.add(socket);socket.once('close',()=>smtpSockets.delete(socket));
+  let buffer='', collecting=false, message=[];
+  socket.setEncoding('utf8');socket.write('220 localhost integration\r\n');
+  socket.on('data',chunk=>{buffer+=chunk;let index;while((index=buffer.indexOf('\r\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+2);
+    if(collecting){if(line==='.') {deliveredEmails.push(message.join('\n'));message=[];collecting=false;socket.write('250 queued\r\n');}else message.push(line);}
+    else if(/^DATA/i.test(line)){collecting=true;socket.write('354 send data\r\n');}
+    else if(/^QUIT/i.test(line))socket.end('221 bye\r\n');
+    else socket.write('250 OK\r\n');
+  }});
 });
+async function api(method, path, body, cookie, extraHeaders = {}) {
+  console.log(`[integration] ${method} ${path}`);
+  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...extraHeaders, ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
+}
+try {
+  smtp.listen(0,'127.0.0.1'); await once(smtp,'listening');
+  await mongoClient.connect();
+  const migrationDb = mongoClient.db('migration_checks');
+  const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
+  await migrationDb.collection('CompanyProfile').insertOne({ _id: fixtureCompany, userId: fixtureOwner });
+  await migrationDb.collection('Contractor').insertOne({ _id: fixtureContact, userId: fixtureOwner, name: 'Preserved' });
+  const crossContact = new ObjectId();
+  await migrationDb.collection('Contractor').insertOne({ _id: crossContact, userId: fixtureOwner, name: 'Multiple companies' });
+  await migrationDb.collection('Invoice').insertOne({ contractorId: String(crossContact), sellerCompanyId: new ObjectId() });
+  await migrateData(migrationDb, 'up', '001-company-catalog'); await migrateData(migrationDb, 'up', '001-company-catalog');
+  assert.equal(String((await migrationDb.collection('Contractor').findOne({ _id: fixtureContact })).companyId), String(fixtureCompany));
+  assert.equal(Object.hasOwn(await migrationDb.collection('Contractor').findOne({ _id: crossContact }), 'companyId'), false);
+  await migrationDb.collection('Contractor').updateOne({ _id: fixtureContact }, { $set: { name: 'Edited after migration' } });
+  await migrateData(migrationDb, 'down', '001-company-catalog');
+  const rolledBack = await migrationDb.collection('Contractor').findOne({ _id: fixtureContact });
+  assert.equal(Object.hasOwn(rolledBack, 'companyId'), false); assert.equal(rolledBack.name, 'Edited after migration');
+  await migrateData(migrationDb, 'up', '001-company-catalog');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrationDb.collection('UserMfa').insertOne({ userId: fixtureOwner, enabledAt: new Date(), encryptedSecret: 'preserve' });
+  await assert.rejects(migrateData(migrationDb, 'down', '002-user-mfa'), /Disable MFA/);
+  await migrationDb.collection('UserMfa').updateOne({ userId: fixtureOwner }, { $set: { enabledAt: null } });
+  await migrateData(migrationDb, 'down', '002-user-mfa');
+  assert.equal((await migrationDb.collection('UserMfa').findOne({ userId: fixtureOwner })).encryptedSecret, 'preserve');
+  await migrateData(migrationDb, 'up', '002-user-mfa');
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
+  await migrationDb.collection('RecurringOccurrence').insertOne({ templateId: fixtureContact, scheduledDate: '2026-09-15', invoiceId: new ObjectId() });
+  await migrateData(migrationDb, 'down', '003-recurring-occurrences');
+  assert.equal(await migrationDb.collection('RecurringOccurrence').countDocuments(), 1);
+  await migrateData(migrationDb, 'up', '003-recurring-occurrences');
+  await migrateData(migrationDb, 'up', '004-integrations');
+  await migrateData(migrationDb, 'up', '004-integrations');
+  await migrationDb.collection('PublicApiKey').insertOne({ tokenHash: 'keep', revoked: true });
+  await migrateData(migrationDb, 'down', '004-integrations');
+  assert.equal(await migrationDb.collection('PublicApiKey').countDocuments(), 1);
+  await migrateData(migrationDb, 'up', '004-integrations');
+  await migrateData(migrationDb, 'up', '005-due-reminders');
+  await migrateData(migrationDb, 'up', '005-due-reminders');
+  await migrationDb.collection('DueReminderDelivery').insertOne({eventKey:'keep',status:'sent'});
+  await migrateData(migrationDb, 'down', '005-due-reminders');
+  assert.equal(await migrationDb.collection('DueReminderDelivery').countDocuments(),1);
+  await migrateData(migrationDb, 'up', '005-due-reminders');
+  console.log('[integration] PASS migrations up/up/down/up preserve business data');
+  console.log('[integration] Initializing test database');
+  const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
+  const [pushCode] = await once(push, 'exit');
+  assert.equal(pushCode, 0, 'Test schema initialization must succeed');
+  console.log('[integration] Starting application');
+  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server.stdout.on('data', data => { logs += data; });
+  server.stderr.on('data', data => { logs += data; });
+  let ready = false;
+  for (let i = 0; i < 120; i++) {
+    if (server.exitCode !== null) throw new Error(logs);
+    try { ready = (await fetch(base + '/api/health', { signal: AbortSignal.timeout(2000) })).ok; } catch { /* startup */ }
+    if (ready) break;
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+  assert.ok(ready, 'Application must start');
+  assert.equal((await api('GET', '/api/data')).res.status, 401);
+  const a = await api('POST', '/api/auth/register', { name: 'Owner', email: 'a@example.com', password: 'Integration123!', acceptTerms: true });
+  const b = await api('POST', '/api/auth/register', { name: 'Other', email: 'b@example.com', password: 'Integration123!', acceptTerms: true });
+  assert.equal(a.res.status, 201, JSON.stringify(a.data)); assert.equal(b.res.status, 201, JSON.stringify(b.data));
+  assert.ok(a.cookie); assert.ok(b.cookie);
+  const login = await api('POST', '/api/auth/login', { email: 'a@example.com', password: 'Integration123!' });
+  assert.equal(login.res.status, 200); assert.ok(login.cookie);
+  const bootstrap = await api('GET', '/api/data', undefined, a.cookie);
+  assert.equal(bootstrap.res.status, 200); assert.deepEqual(bootstrap.data.invoices, []);
+  const company = await api('POST', '/api/companies', { companyName: 'Firma A', nip: '5260301706' }, a.cookie);
+  assert.equal(company.res.status, 201, JSON.stringify(company.data));
+  const companyId = company.data.company.id;
+  const contractor = await api('POST', '/api/contractors', { name: 'Nabywca', nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } }, a.cookie);
+  assert.equal(contractor.res.status, 201, JSON.stringify(contractor.data));
+  const invoice = await api('POST', '/api/invoices', {
+    number: 'FS/2026/1', type: 'sale', status: 'draft', sellerCompanyId: companyId, contractorId: contractor.data.contractor.id,
+    issueDate: '2026-09-15', saleDate: '2026-09-15', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 14,
+    lines: [{ id: 'line-1', name: 'Usługa', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
+  }, a.cookie);
+  assert.equal(invoice.res.status, 201, JSON.stringify(invoice.data));
+  const invoiceId = invoice.data.invoice.id;
+  assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, a.cookie)).res.status, 200);
+  assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
+  assert.equal((await api('GET', '/api/data', undefined, b.cookie)).data.invoices.length, 0);
+  const company2 = await api('POST', '/api/companies', { companyName: 'Firma prywatna', nip: '5250001003' }, a.cookie);
+  assert.equal(company2.res.status, 201);
+  const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
+  assert.equal(privateContact.res.status, 201);
+  const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);
+  assert.equal(sharedContact.res.status, 201);
+  await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'viewer', canIssueInvoices: false } });
+  const visible = (await api('GET', '/api/data', undefined, b.cookie)).data;
+  assert.ok(visible.contractors.some(c => c.id === sharedContact.data.contractor.id));
+  assert.ok(visible.contractors.some(c => c.id === contractor.data.contractor.id));
+  assert.ok(!visible.contractors.some(c => c.id === privateContact.data.contractor.id));
+  const listed = await api('GET', '/api/companies', undefined, b.cookie);
+  assert.deepEqual(listed.data.companies.map(c => c.id), [companyId]);
+  assert.equal((await api('GET', `/api/companies/${companyId}`, undefined, b.cookie)).res.status, 200);
+  assert.equal((await api('GET', `/api/companies/${company2.data.company.id}`, undefined, b.cookie)).res.status, 404);
+  assert.equal((await api('PUT', `/api/contractors/${sharedContact.data.contractor.id}`, { name: 'Forbidden' }, b.cookie)).res.status, 403);
+  assert.equal((await api('POST', '/api/contractors', { name: 'Forbidden', nip: '5250001003', companyId }, b.cookie)).res.status, 403);
+  const crossCompany = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FORBIDDEN', contractorId: privateContact.data.contractor.id }, a.cookie);
+  assert.equal(crossCompany.res.status, 400);
+
+  assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 200);
+  assert.equal((await api('PUT', `/api/invoices/${invoiceId}`, { version: 1, notes: 'Forbidden' }, b.cookie)).res.status, 403);
+  assert.equal((await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, b.cookie)).res.status, 403);
+  const historic = await db.auditLog.create({ data: { companyId, userId: b.data.user.id, documentId: invoiceId, action: 'fixture_previous_access', entityType: 'invoice', entityId: invoiceId } });
+  await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
+  assert.ok(!(await api('GET', '/api/audit', undefined, b.cookie)).data.logs.some(log => log.id === historic.id));
+  assert.equal((await api('GET', `/api/audit?documentId=${invoiceId}`, undefined, b.cookie)).data.logs.length, 0);
+  assert.equal((await api('GET', `/api/invoices/${invoiceId}`, undefined, b.cookie)).res.status, 404);
+  const audit = await api('GET', `/api/audit?companyId=${companyId}`, undefined, a.cookie);
+  assert.ok(audit.data.logs.some(log => log.action === 'invoice_created'));
+  const edits = await Promise.all(['A', 'B'].map(notes => api('PUT', `/api/invoices/${invoiceId}`, { ...invoice.data.invoice, notes, version: 1 }, a.cookie)));
+  assert.deepEqual(edits.map(result => result.res.status).sort(), [200, 409]);
+  const filteredAudit = await api('GET', `/api/audit?companyId=${companyId}&documentId=${invoiceId}&limit=1`, undefined, a.cookie);
+  assert.equal(filteredAudit.data.logs.length, 1); assert.equal(filteredAudit.data.logs[0].documentId, invoiceId);
+  assert.ok(filteredAudit.data.nextCursor);
+  const olderAudit = await api('GET', `/api/audit?companyId=${companyId}&documentId=${invoiceId}&limit=1&cursor=${filteredAudit.data.nextCursor}`, undefined, a.cookie);
+  assert.notEqual(olderAudit.data.logs[0].id, filteredAudit.data.logs[0].id);
+  const emptyCompany = await api('POST', '/api/companies', { companyName: 'Do usunięcia', nip: '5260301706' }, b.cookie);
+  assert.equal(emptyCompany.res.status, 201);
+  assert.equal((await api('DELETE', `/api/companies/${emptyCompany.data.company.id}`, undefined, b.cookie)).res.status, 200);
+  assert.ok(await db.auditLog.count({ where: { entityId: emptyCompany.data.company.id } }) >= 2);
+
+  const concurrent = await Promise.all([1, 2].map(() => api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie)));
+  assert.ok(concurrent.some(result => result.res.status === 200));
+  assert.ok(concurrent.every(result => [200, 409].includes(result.res.status)));
+  assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
+  const again = await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie);
+  assert.equal(again.data.alreadyQueued, true);
+  // Legacy MongoDB tasks may omit optional fields entirely (not the same as null).
+  await db.ksefQueueTask.updateMany({ where: { invoiceId }, data: { lockedUntil: { unset: true }, nextAttemptAt: { unset: true } } });
+  const processed = await api('POST', '/api/ksef/queue/process', {}, a.cookie);
+  assert.equal(processed.res.status, 200, JSON.stringify(processed.data));
+  const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+  assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
+  assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
+  const fx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/1', currency: 'EUR', exchangeRateRule: 'manual', exchangeRate: 4.25, exchangeRateJustification: 'Kurs dokumentu źródłowego', totalGrossPln: 1 }, a.cookie);
+  assert.equal(fx.res.status, 201, JSON.stringify(fx.data)); assert.equal(fx.data.invoice.totalGrossPln, 522.75);
+  const invalidFx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/2', currency: 'USD', exchangeRateRule: 'manual', exchangeRate: 4.25 }, a.cookie);
+  assert.equal(invalidFx.res.status, 400); assert.equal(await db.invoice.count({ where: { number: 'FX/2' } }), 0);
+  assert.equal((await api('POST', '/api/recurring/process', {})).res.status, 401);
+  assert.equal((await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { nextDate: warsawDate(), interval: 'monthly' }, b.cookie)).res.status, 403);
+  const schedule = await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { nextDate: warsawDate(), interval: 'monthly', autoSend: false }, a.cookie);
+  assert.equal(schedule.res.status, 200, JSON.stringify(schedule.data));
+  const cronHeaders = { Authorization: 'Bearer integration-cron-secret' };
+  const generated = await Promise.all([1, 2].map(() => api('POST', '/api/recurring/process', {}, undefined, cronHeaders)));
+  assert.ok(generated.every(result => result.res.status === 200));
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  const occurrence = await db.recurringOccurrence.findFirstOrThrow({ where: { templateId: invoiceId } });
+  const child = await db.invoice.findUniqueOrThrow({ where: { id: occurrence.invoiceId } });
+  assert.equal(child.sellerCompanyId, companyId); assert.equal(child.totalGross, 123); assert.equal(child.ksefNumber, null); assert.equal(child.isRecurring, false);
+  assert.match(child.number, /^CYK\//);
+  await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: true, nextDate: warsawDate() }, a.cookie);
+  await api('POST', '/api/recurring/process', {}, undefined, cronHeaders);
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'employee', canIssueInvoices: true } });
+  assert.equal((await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: false, nextDate: warsawDate() }, b.cookie)).res.status, 200);
+  await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
+  const revokedSchedule = await api('POST', '/api/recurring/process', {}, undefined, cronHeaders);
+  assert.ok(revokedSchedule.data.results.some(result => result.templateId === invoiceId && result.error));
+  assert.equal(await db.recurringOccurrence.count({ where: { templateId: invoiceId } }), 1);
+  await api('PATCH', `/api/invoices/${invoiceId}/recurrence`, { paused: true }, a.cookie);
+  assert.equal((await api('POST', '/api/integrations', {companyId, action:'createKey', name:'Forbidden'}, b.cookie)).res.status,403);
+  const apiKey = await api('POST','/api/integrations',{companyId,action:'createKey',name:'Integration'},a.cookie);
+  assert.equal(apiKey.res.status,200,JSON.stringify(apiKey.data)); assert.match(apiKey.data.token,/^fkt_[a-f0-9]{64}$/);
+  const apiHeaders={Authorization:`Bearer ${apiKey.data.token}`};
+  assert.equal((await api('GET','/api/v1/ksef/statuses')).res.status,401);
+  const publicStatus=await api('GET',`/api/v1/ksef/statuses?invoiceId=${invoiceId}`,undefined,undefined,apiHeaders);
+  assert.equal(publicStatus.res.status,200);assert.equal(publicStatus.data.data[0].ksefStatus,'accepted');
+  assert.equal((await api('GET','/api/v1/ksef/statuses?invoiceId=000000000000000000000001',undefined,undefined,apiHeaders)).res.status,404);
+  await db.publicApiKey.update({where:{id:apiKey.data.id},data:{requests:120,windowStart:new Date()}});
+  assert.equal((await api('GET','/api/v1/ksef/statuses',undefined,undefined,apiHeaders)).res.status,429);
+  const hook=await api('POST','/api/integrations',{companyId,action:'createWebhook',url:'https://127.0.0.1/events'},a.cookie);
+  assert.equal(hook.res.status,200);assert.equal(hook.data.secret.length,64);
+  assert.equal((await api('POST','/api/integrations',{companyId,action:'createWebhook',url:'http://example.com'},a.cookie)).res.status,400);
+  assert.equal((await api('POST','/api/integrations/process',{})).res.status,401);
+  const hookProcess=await api('POST','/api/integrations/process',{},undefined,cronHeaders);
+  assert.equal(hookProcess.res.status,200,JSON.stringify(hookProcess.data));
+  const pendingHook=await db.webhookDelivery.findFirstOrThrow({where:{webhookId:hook.data.id}});
+  assert.equal(pendingHook.status,'pending');assert.match(pendingHook.lastError,/publicznego/);
+  assert.equal((await api('POST','/api/integrations/process',{},undefined,cronHeaders)).res.status,200);
+  assert.equal(await db.webhookDelivery.count({where:{webhookId:hook.data.id}}),1);
+  const integrations=await api('GET',`/api/integrations?companyId=${companyId}`,undefined,a.cookie);
+  assert.ok(!JSON.stringify(integrations.data).includes(hook.data.secret)); assert.ok(!JSON.stringify(integrations.data).includes(apiKey.data.token));
+  assert.equal((await api('POST','/api/integrations',{companyId,action:'disableWebhook',id:hook.data.id},a.cookie)).res.status,200);
+  assert.equal((await api('POST','/api/integrations',{companyId,action:'revokeKey',id:apiKey.data.id},a.cookie)).res.status,200);
+  assert.equal((await api('GET','/api/v1/ksef/statuses',undefined,undefined,apiHeaders)).res.status,401);
+  const reminderInvoice=await api('POST','/api/invoices',{...invoice.data.invoice,number:'REM/1',status:'issued',documentStatus:'issued',dueDate:warsawDate()},a.cookie);
+  assert.equal(reminderInvoice.res.status,201,JSON.stringify(reminderInvoice.data));
+  const reminderId=reminderInvoice.data.invoice.id;
+  await db.contractor.update({where:{id:reminderInvoice.data.invoice.contractorId},data:{email:'customer@example.test'}});
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},b.cookie)).res.status,403);
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},a.cookie)).res.status,200);
+  assert.equal((await api('POST','/api/due-reminders/process',{})).res.status,401);
+  const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
+  assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
+  assert.equal(deliveredEmails.length,1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
+  assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
+  await db.dueReminderSetting.update({where:{invoiceId:reminderId},data:{nextCheckAt:new Date(0)}});
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:false},a.cookie)).res.status,200);
+  const jpkBody={companyId,format:'fa',dateFrom:'2026-09-01',dateTo:'2026-09-30',office:'1471',currency:'PLN',normalDomestic:true,address:{Wojewodztwo:'mazowieckie',Powiat:'Warszawa',Gmina:'Warszawa',NrDomu:'1',Miejscowosc:'Warszawa',KodPocztowy:'00-001'}};
+  assert.equal((await api('POST','/api/jpk',jpkBody,b.cookie)).res.status,403);
+  const jpkResponse=await fetch(base+'/api/jpk',{method:'POST',headers:{'Content-Type':'application/json',Cookie:a.cookie},body:JSON.stringify(jpkBody)});
+  const jpkXml=await jpkResponse.text();assert.equal(jpkResponse.status,200,jpkXml);assert.match(jpkXml,/<JPK /);assert.match(jpkXml,/<P_2A>REM\/1<\/P_2A>/);
+  assert.ok(await db.auditLog.count({where:{companyId,action:'jpk_exported'}})>0);
+  const credentials = { email: 'a@example.com', password: 'Integration123!' };
+  const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
+  assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));
+  assert.ok(setupMfa.data.qrDataUrl.startsWith('data:image/png;base64,'));
+  const activationCode = totpAt(setupMfa.data.secret, Date.now());
+  const enabledMfa = await api('POST', '/api/auth/mfa', { action: 'enable', password: credentials.password, code: activationCode }, a.cookie);
+  assert.equal(enabledMfa.res.status, 200, JSON.stringify(enabledMfa.data));
+  assert.equal(enabledMfa.data.recoveryCodes.length, 8);
+  const storedMfa = await db.userMfa.findUniqueOrThrow({ where: { userId: a.data.user.id } });
+  assert.notEqual(storedMfa.encryptedSecret, setupMfa.data.secret);
+  assert.ok(!storedMfa.recoveryHashes.includes(enabledMfa.data.recoveryCodes[0]));
+  assert.equal((await api('GET', '/api/data', undefined, login.cookie)).res.status, 401);
+  assert.equal((await api('GET', '/api/data', undefined, a.cookie)).res.status, 200);
+  const invite = await db.teamInvitation.create({ data: { companyId: company2.data.company.id, userId: b.data.user.id, email: credentials.email, role: 'viewer', token: 'mfa-invitation-fixture', expiresAt: new Date(Date.now() + 60000) } });
+  const invitedLogin = await api('POST', '/api/invite/mfa-invitation-fixture', { password: credentials.password });
+  assert.equal(invitedLogin.data.code, 'MFA_REQUIRED');
+  assert.equal((await db.teamInvitation.findUniqueOrThrow({ where: { id: invite.id } })).status, 'pending');
+
+  await db.session.create({ data: { userId: a.data.user.id, sessionToken: 'unverified-session-fixture', expiresAt: new Date(Date.now() + 60000) } });
+  assert.equal((await api('GET', '/api/data', undefined, 'auth_session=unverified-session-fixture')).res.status, 401);
+  const needMfa = await api('POST', '/api/auth/login', credentials);
+  assert.equal(needMfa.data.code, 'MFA_REQUIRED'); assert.equal(needMfa.cookie, undefined);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: 'invalid' })).res.status, 401);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: activationCode })).res.status, 401);
+  const freshCode = totpAt(setupMfa.data.secret, Date.now() + 30000);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: freshCode })).res.status, 200);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: freshCode })).res.status, 401);
+  const recovery = enabledMfa.data.recoveryCodes;
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[0] })).res.status, 200);
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[0] })).res.status, 401);
+  for (let i = 0; i < 5; i++) await api('POST', '/api/auth/login', { ...credentials, code: 'invalid' });
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[1] })).res.status, 429);
+  // Advance the persisted cooldown in this isolated test database.
+  await db.userMfa.update({ where: { userId: a.data.user.id }, data: { lockedUntil: new Date(0) } });
+  assert.equal((await api('POST', '/api/auth/login', { ...credentials, code: recovery[1] })).res.status, 200);
+  const disabledMfa = await api('POST', '/api/auth/mfa', { action: 'disable', password: credentials.password, code: recovery[2] }, a.cookie);
+  assert.equal(disabledMfa.res.status, 200); assert.equal(disabledMfa.data.enabled, false);
+  assert.equal((await api('POST', '/api/auth/login', credentials)).res.status, 200);
+  const mfaAudit = JSON.stringify(await db.auditLog.findMany({ where: { action: { startsWith: 'mfa_' } } }));
+  assert.ok(!mfaAudit.includes(setupMfa.data.secret)); assert.ok(!mfaAudit.includes(recovery[0]));
+  console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
+} catch (error) { console.error(logs); throw error; }
+finally {
+  if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }
+  for(const socket of smtpSockets) socket.destroy(); smtp.close();
+  await db.$disconnect(); await mongoClient.close(); await mongo.stop();
+}

@@ -1,3 +1,4 @@
+import { catalogWhere } from "@/lib/company-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json } from "@/lib/api";
@@ -129,27 +130,18 @@ export async function GET() {
 
     const allCompanies = Array.from(companyMap.values());
     const accessibleCompanyIds = allCompanies.map((c) => c.id);
-    const companyOwnersUserIds = Array.from(new Set(allCompanies.map((c) => c.userId)));
+    const linkedContacts = await prisma.invoice.findMany({ where: { sellerCompanyId: { in: accessibleCompanyIds } }, select: { contractorId: true } });
+    const linkedContactIds = [...new Set(linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id)))];
 
     // Pobierz powiązane dane (faktury, kontrahenci, produkty itp.)
     const [ksef, contractors, products, invoices, notifications, prefs] = await Promise.all([
       prisma.ksefSettings.findUnique({ where: { userId: user.id } }),
       prisma.contractor.findMany({
-        where: {
-          OR: [
-            { userId: user.id },
-            { userId: { in: companyOwnersUserIds } },
-          ],
-        },
+        where: { OR: [catalogWhere(user.id, accessibleCompanyIds), { id: { in: linkedContactIds }, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] },
         orderBy: { createdAt: "desc" },
       }),
       prisma.product.findMany({
-        where: {
-          OR: [
-            { userId: user.id },
-            { userId: { in: companyOwnersUserIds } },
-          ],
-        },
+        where: catalogWhere(user.id, accessibleCompanyIds),
         orderBy: { createdAt: "desc" },
       }),
       prisma.invoice.findMany({
@@ -187,3 +179,4 @@ export async function GET() {
     return handleApiError(e);
   }
 }
+

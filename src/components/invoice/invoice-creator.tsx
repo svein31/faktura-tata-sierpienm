@@ -173,7 +173,7 @@ export function InvoiceCreator() {
   const router = useRouter();
   const toast = useToast();
   const store = useAppStore();
-  const { contractors, products, company, companies, invoices, draftInvoice, draftInvoiceIsNew, ksef } = store;
+  const { contractors: allContractors, products: allProducts, company, companies, invoices, draftInvoice, draftInvoiceIsNew, ksef } = store;
   const ksefEnv = ksef?.environment ?? "demo";
 
   const defaultCompany =
@@ -186,6 +186,9 @@ export function InvoiceCreator() {
   const [form, setForm] = React.useState<FormState>(() =>
     draftInvoice ? formFromInvoice(draftInvoice, defaultCompany.id) : freshForm(defaultCompany.id)
   );
+
+  const contractors = allContractors.filter(c => !c.companyId || c.companyId === form.sellerCompanyId);
+  const products = allProducts.filter(p => !p.companyId || p.companyId === form.sellerCompanyId);
 
   const searchParams = useSearchParams();
   const [tabConflict, setTabConflict] = React.useState(false);
@@ -1463,3 +1466,4 @@ export function InvoiceCreator() {
     </div>
   );
 }
+

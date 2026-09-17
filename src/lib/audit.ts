@@ -14,6 +14,9 @@ const SENSITIVE_KEYS = new Set([
   "authenticationtoken",
   "apikey",
   "privatekey",
+  "totp",
+  "otp",
+  "recoverycodes",
 ]);
 
 /**
@@ -23,6 +26,8 @@ export function sanitizeAuditData(data: any): any {
   if (data === null || data === undefined) return data;
   if (typeof data !== "object") return data;
 
+  if (data instanceof Date) return data.toISOString();
+
   if (Array.isArray(data)) {
     return data.map(sanitizeAuditData);
   }
@@ -30,7 +35,7 @@ export function sanitizeAuditData(data: any): any {
   const result: Record<string, any> = {};
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase();
-    if (SENSITIVE_KEYS.has(lowerKey) || lowerKey.includes("password") || lowerKey.includes("token")) {
+    if (SENSITIVE_KEYS.has(lowerKey) || lowerKey.includes("password") || lowerKey.includes("token") || lowerKey.includes("secret") || lowerKey.includes("recovery") || lowerKey.includes("totp")) {
       result[key] = "[UKRYTO_ZE_WZGLĘDÓW_BEZPIECZEŃSTWA]";
     } else if (typeof value === "object") {
       result[key] = sanitizeAuditData(value);
@@ -96,7 +101,7 @@ export function buildFieldDiff(
   const changesSummary: string[] = [];
 
   for (const [key, label] of Object.entries(fieldLabels)) {
-    if (newObj[key] !== undefined && oldObj[key] !== undefined) {
+    if (newObj[key] !== undefined) {
       const oldVal = oldObj[key];
       const newVal = newObj[key];
 
@@ -108,8 +113,8 @@ export function buildFieldDiff(
 
       if (isDifferent) {
         diff[key] = {
-          old: oldVal,
-          new: newVal,
+          old: oldVal ?? null,
+          new: newVal ?? null,
           label,
         };
         changesSummary.push(`zmienił(a) ${label.toLowerCase()} z "${oldVal ?? 'brak'}" na "${newVal ?? 'brak'}"`);
@@ -119,3 +124,4 @@ export function buildFieldDiff(
 
   return { diff, changesSummary };
 }
+

@@ -456,6 +456,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Kontrahenci — Optimistic UI ─────────────────────────────────────── */
 
   addContractor: async (c) => {
+    c = { ...c, companyId: c.companyId ?? get().selectedCompanyId };
     const previousContractors = get().contractors;
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const optimisticContractor: Contractor = {
@@ -521,6 +522,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Produkty — Optimistic UI ───────────────────────────────────────── */
 
   addProduct: async (p) => {
+    p = { ...p, companyId: p.companyId ?? get().selectedCompanyId };
     const previousProducts = get().products;
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const optimisticProduct: Product = {
@@ -798,3 +800,4 @@ export const STATUS_META: Record<EffectiveStatus, { label: string; color: string
   ksef_active: { label: "KSeF: aktywna", color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
   ksef_rejected: { label: "KSeF: odrzucona", color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20", dot: "bg-rose-500" },
 };
+

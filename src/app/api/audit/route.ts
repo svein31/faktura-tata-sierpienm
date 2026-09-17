@@ -2,106 +2,40 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { auditLogToDto } from "@/lib/dto";
-import { getCompanyMembership } from "@/lib/permissions";
+import { accessibleCompanyIds, objectId } from "@/lib/company-scope";
+import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/**
- * GET /api/audit — Pobieranie wpisów dziennika zdarzeń (Audit Log)
- * z filtrowaniem wg firmy, dokumentu, akcji oraz zakresu dat.
- */
 export async function GET(req: Request) {
   try {
     const user = await getSessionUser();
-    if (!user) {
-      return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
+    if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
+    const query = new URL(req.url).searchParams;
+    const companyId = query.get("companyId"), documentId = query.get("documentId"), cursor = query.get("cursor");
+    for (const value of [companyId, documentId, cursor]) if (value && !objectId(value)) throw new ApiError(400, "Nieprawidłowy identyfikator.");
+    const limit = Number(query.get("limit") || 50);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 200) throw new ApiError(400, "Limit musi mieścić się w zakresie 1–200.");
+    const companyIds = await accessibleCompanyIds(user.id);
+    if (companyId && !companyIds.includes(companyId)) throw new ApiError(403, "Brak dostępu do historii tej firmy.");
+    const conditions: Prisma.AuditLogWhereInput[] = [companyId ? { companyId } : { OR: [
+      { companyId: { in: companyIds } },
+      { userId: user.id, OR: [{ companyId: null }, { companyId: { isSet: false } }] },
+    ] }];
+    if (documentId) conditions.push({ OR: [{ documentId }, { entityId: documentId }] });
+    if (query.get("action")) conditions.push({ action: query.get("action")! });
+    const from = query.get("from") ? new Date(query.get("from")!) : undefined;
+    const to = query.get("to") ? new Date(query.get("to")!) : undefined;
+    if ((from && !Number.isFinite(from.getTime())) || (to && !Number.isFinite(to.getTime())) || (from && to && from > to)) throw new ApiError(400, "Nieprawidłowy zakres dat.");
+    if (from || to) conditions.push({ createdAt: { gte: from, lte: to } });
+    if (cursor) {
+      const previous = await prisma.auditLog.findFirst({ where: { AND: [...conditions, { id: cursor }] } });
+      if (!previous) throw new ApiError(400, "Nieprawidłowy kursor historii.");
+      conditions.push({ OR: [{ createdAt: { lt: previous.createdAt } }, { createdAt: previous.createdAt, id: { lt: previous.id } }] });
     }
-
-    const { searchParams } = new URL(req.url);
-    const companyId = searchParams.get("companyId")?.trim() || undefined;
-    const documentId = searchParams.get("documentId")?.trim() || undefined;
-    const action = searchParams.get("action")?.trim() || undefined;
-    const fromStr = searchParams.get("from")?.trim();
-    const toStr = searchParams.get("to")?.trim();
-    const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "50", 10), 1), 200);
-
-    // Zbuduj warunki wyszukiwania
-    const where: any = {};
-
-    if (companyId) {
-      // Weryfikacja czy użytkownik ma dostęp do wskazanej firmy
-      const membership = await getCompanyMembership(user.id, companyId);
-      if (!membership) {
-        throw new ApiError(403, "Brak dostępu do dziennika zdarzeń tej firmy.");
-      }
-      where.companyId = companyId;
-    } else if (documentId) {
-      // Jeśli zapytanie o konkretny dokument (np. fakturę)
-      const invoice = await prisma.invoice.findUnique({
-        where: { id: documentId },
-        select: { userId: true, sellerCompanyId: true },
-      });
-
-      if (!invoice) {
-        return json({ logs: [] });
-      }
-
-      // Sprawdź uprawnienia do faktury: własna lub należąca do firmy, w której jest członkiem
-      let hasAccess = invoice.userId === user.id;
-      if (!hasAccess && invoice.sellerCompanyId) {
-        const mem = await getCompanyMembership(user.id, invoice.sellerCompanyId);
-        hasAccess = !!mem;
-      }
-
-      if (!hasAccess) {
-        throw new ApiError(403, "Brak dostępu do historii tego dokumentu.");
-      }
-
-      where.OR = [
-        { documentId },
-        { entityId: documentId },
-      ];
-    } else {
-      // Domyślnie pobieramy logi dla wszystkich firm użytkownika oraz jego własnych akcji
-      const myMemberships = await prisma.companyMember.findMany({
-        where: { userId: user.id },
-        select: { companyId: true },
-      });
-      const accessibleCompanyIds = myMemberships.map((m) => m.companyId);
-
-      where.OR = [
-        { userId: user.id },
-        ...(accessibleCompanyIds.length > 0 ? [{ companyId: { in: accessibleCompanyIds } }] : []),
-      ];
-    }
-
-    if (action) {
-      where.action = action;
-    }
-
-    if (fromStr || toStr) {
-      where.createdAt = {};
-      if (fromStr) {
-        const fromDate = new Date(fromStr);
-        if (!isNaN(fromDate.getTime())) where.createdAt.gte = fromDate;
-      }
-      if (toStr) {
-        const toDate = new Date(toStr);
-        if (!isNaN(toDate.getTime())) where.createdAt.lte = toDate;
-      }
-    }
-
-    const logs = await prisma.auditLog.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: limit,
-    });
-
-    return json({
-      logs: logs.map(auditLogToDto),
-    });
-  } catch (e) {
-    return handleApiError(e);
-  }
+    const rows = await prisma.auditLog.findMany({ where: { AND: conditions }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: limit + 1 });
+    const logs = rows.slice(0, limit);
+    return json({ logs: logs.map(auditLogToDto), nextCursor: rows.length > limit ? logs.at(-1)?.id : null });
+  } catch (e) { return handleApiError(e); }
 }

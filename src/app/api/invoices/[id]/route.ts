@@ -1,3 +1,4 @@
+import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -108,8 +109,9 @@ export async function PUT(req: Request, { params }: Ctx) {
         allowedData.approvalStatus = body.approvalStatus.trim();
       }
 
-      const updated = await prisma.invoice.update({
-        where: { id: existing.id },
+    const updated = await prisma.$transaction(async tx => {
+      const updated = await tx.invoice.update({
+        where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
         data: {
           ...allowedData,
           version: (existing.version || 1) + 1,
@@ -127,6 +129,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
       // Zapis w audycie
       await recordAuditLog({
+        client: tx,
         companyId: existing.sellerCompanyId || undefined,
         documentId: existing.id,
         userId: user.id,
@@ -139,6 +142,9 @@ export async function PUT(req: Request, { params }: Ctx) {
         diff: diffResult.diff,
       });
 
+    return updated;
+    });
+
       return json({ invoice: invoiceToDto(updated) });
     }
 
@@ -148,23 +154,19 @@ export async function PUT(req: Request, { params }: Ctx) {
       select: { companyId: true, company: { select: { userId: true } } },
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
-    const accessibleOwnerUserIds = memberships.map((m) => m.company.userId);
 
     const data = await parseInvoiceBody(body, {
-      contractorOwnedBy: async (id) =>
-        (await prisma.contractor.count({
-          where: {
-            id,
-            OR: [
-              { userId: user.id },
-              ...(accessibleOwnerUserIds.length > 0 ? [{ userId: { in: accessibleOwnerUserIds } }] : []),
-            ],
-          },
-        })) > 0,
+      contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
+
+    if (data.sellerCompanyId !== existing.sellerCompanyId) {
+      throw new ApiError(400, "Nie można przenieść zapisanej faktury do innej firmy. Utwórz nowy dokument w wybranej firmie.");
+    }
+
+    if (data.isRecurring && data.recurringNextDate === existing.recurringNextDate) data.recurringAnchorDay = existing.recurringAnchorDay ?? data.recurringAnchorDay;
 
     // 5. Ochrona przed duplikatem numeru przy zmianie numeru
     if (data.number !== existing.number) {
@@ -182,11 +184,13 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const nextVersion = (existing.version || 1) + 1;
 
-    const invoice = await prisma.invoice.update({
-      where: { id: existing.id },
+    const invoice = await prisma.$transaction(async tx => {
+    const invoice = await tx.invoice.update({
+      where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
         ...data,
         version: nextVersion,
+        recurringUserId: data.isRecurring ? user.id : null,
       },
       include: {
         sellerCompany: { include: { bankAccounts: true } },
@@ -211,6 +215,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     });
 
     await recordAuditLog({
+        client: tx,
       companyId: invoice.sellerCompanyId || undefined,
       documentId: invoice.id,
       userId: user.id,
@@ -223,8 +228,12 @@ export async function PUT(req: Request, { params }: Ctx) {
       diff: diffResult.diff,
     });
 
+    return invoice;
+    });
+
     return json({ invoice: invoiceToDto(invoice) });
   } catch (e) {
+    if (["P2025", "P2034"].includes((e as { code?: string }).code || "")) return handleApiError(new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane."));
     return handleApiError(e);
   }
 }
@@ -262,10 +271,12 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       throw new ApiError(400, `Faktura posiada zarejestrowany numer KSeF (${existing.ksefNumber}) i nie może zostać usunięta.`);
     }
 
-    await prisma.invoice.delete({ where: { id: existing.id } });
+    await prisma.$transaction(async tx => {
+    await tx.invoice.delete({ where: { id: existing.id } });
 
     // Zapis w audycie
     await recordAuditLog({
+        client: tx,
       companyId: existing.sellerCompanyId || undefined,
       documentId: existing.id,
       userId: user.id,
@@ -282,8 +293,11 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       },
     });
 
+    });
+
     return json({ ok: true });
   } catch (e) {
     return handleApiError(e);
   }
 }
+
