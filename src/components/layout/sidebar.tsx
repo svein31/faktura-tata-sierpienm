@@ -29,11 +29,11 @@ import { ThemeToggle } from "./theme-toggle";
 import { useSessionUser } from "@/lib/session-context";
 
 const NAV_MAIN = [
-  { href: "/advances", label: "Proformy i zaliczki", icon: FileText },
-  { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
-  { href: "/recurring", label: "Faktury cykliczne", icon: FileText },
   { href: "/invoices", label: "Faktury", icon: FileText },
+  { href: "/advances", label: "Proformy i zaliczki", icon: FileText },
+  { href: "/recurring", label: "Faktury cykliczne", icon: FileText },
+  { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/offers", label: "Oferty", icon: FileCheck2 },
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
   { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },

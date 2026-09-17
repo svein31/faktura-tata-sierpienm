@@ -10,7 +10,10 @@ import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 
 const TITLES: Array<{ re: RegExp; title: string }> = [
-  { re: /^\/$/, title: "Pulpit" },
+  { re: /^\/(dashboard)?$/, title: "Pulpit" },
+  { re: /^\/advances/, title: "Proformy i zaliczki" },
+  { re: /^\/recurring/, title: "Faktury cykliczne" },
+  { re: /^\/reminders/, title: "Przypomnienia e-mail" },
   { re: /^\/help/, title: "Instrukcja obsługi" },
   { re: /^\/invoices\/new/, title: "Nowa faktura" },
   { re: /^\/invoices\/(?!new)/, title: "Faktura" },

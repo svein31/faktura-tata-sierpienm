@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Search,
+  LayoutDashboard,
   FileText,
   Users,
   Package,
@@ -173,6 +174,18 @@ export function CommandPalette() {
 
     // 2. GŁÓWNA NAWIGACJA
     list.push(
+      {
+        id: "nav-dashboard",
+        category: "Nawigacja",
+        categoryKey: "nav",
+        title: "Pulpit główny (Dashboard)",
+        subtitle: "/dashboard — podsumowanie finansowe, KSeF i powiadomienia",
+        icon: LayoutDashboard,
+        onSelect: () => {
+          router.push("/dashboard");
+          setOpen(false);
+        },
+      },
       {
         id: "nav-invoices",
         category: "Nawigacja",
