@@ -4,7 +4,8 @@
  */
 
 import type { Warehouse as DbWarehouse } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { prisma as defaultPrisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
 
 export const DEFAULT_WAREHOUSE_CODE = "MAG";
@@ -20,7 +21,7 @@ export function isObjectId(v: unknown): v is string {
  * Zwraca magazyn domyślny użytkownika. Gdy użytkownik nie ma jeszcze żadnego magazynu,
  * tworzy „Magazyn główny” (kod `MAG`, `isDefault: true`).
  */
-export async function ensureDefaultWarehouse(userId: string): Promise<DbWarehouse> {
+export async function ensureDefaultWarehouse(userId: string, prisma: Prisma.TransactionClient = defaultPrisma): Promise<DbWarehouse> {
   const existing = await prisma.warehouse.findFirst({
     where: { userId },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
@@ -54,9 +55,10 @@ export async function ensureDefaultWarehouse(userId: string): Promise<DbWarehous
  */
 export async function resolveWarehouse(
   userId: string,
-  warehouseId?: string | null
+  warehouseId?: string | null,
+  prisma: Prisma.TransactionClient = defaultPrisma
 ): Promise<DbWarehouse> {
-  if (!warehouseId) return ensureDefaultWarehouse(userId);
+  if (!warehouseId) return ensureDefaultWarehouse(userId, prisma);
   if (!isObjectId(warehouseId)) {
     throw new ApiError(400, "Nieprawidłowy identyfikator magazynu.", "INVALID_WAREHOUSE_ID");
   }
@@ -69,12 +71,12 @@ export async function resolveWarehouse(
 }
 
 /** Zwraca wszystkie magazyny użytkownika (magazyn domyślny pierwszy). */
-export async function listWarehouseRecords(userId: string): Promise<DbWarehouse[]> {
+export async function listWarehouseRecords(userId: string, prisma: Prisma.TransactionClient = defaultPrisma): Promise<DbWarehouse[]> {
   const rows = await prisma.warehouse.findMany({
     where: { userId },
     orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
   });
   if (rows.length > 0) return rows;
-  const created = await ensureDefaultWarehouse(userId);
+  const created = await ensureDefaultWarehouse(userId, prisma);
   return [created];
 }

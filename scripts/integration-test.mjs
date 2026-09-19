@@ -431,6 +431,9 @@ try {
   await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
   assert.equal((await api('GET', inventoryPath, undefined, b.cookie)).res.status, 403);
   console.log('PASS: warehouse read isolation, pagination, low-stock filtering and revocation');
+  const engineTests = spawn(process.execPath, ['scripts/warehouse-engine-test.cjs'], { env: { ...process.env, DATABASE_URL: databaseUrl, WAREHOUSE_ISOLATED_TEST: 'true' }, stdio: 'inherit', timeout: 120000 });
+  const [engineCode] = await once(engineTests, 'exit');
+  assert.equal(engineCode, 0, 'Warehouse transaction and concurrency checks must pass');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {

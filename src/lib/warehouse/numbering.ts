@@ -12,7 +12,8 @@
  * przez retry z inkrementacją numeru — maksymalnie 5 prób.
  */
 
-import { prisma } from "@/lib/db";
+import { prisma as defaultPrisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
 import type { StockDocumentType } from "@/lib/types";
 
@@ -53,7 +54,8 @@ function sequenceFromNumber(number: string, prefix: string, suffix: string): num
 export async function nextStockDocumentNumber(
   userId: string,
   type: StockDocumentType,
-  date: string
+  date: string,
+  prisma: Prisma.TransactionClient = defaultPrisma
 ): Promise<string> {
   const { year, month } = datePartsOf(date);
   const suffix = `/${month}/${year}`;
@@ -88,7 +90,7 @@ export async function nextStockDocumentNumber(
  * Zwraca kolejny wolny numer remanentu dla danego roku i użytkownika.
  * Format: `RM/{NNN}/{RRRR}`.
  */
-export async function nextStocktakingNumber(userId: string, date: string): Promise<string> {
+export async function nextStocktakingNumber(userId: string, date: string, prisma: Prisma.TransactionClient = defaultPrisma): Promise<string> {
   const { year } = datePartsOf(date);
   const suffix = `/${year}`;
 

@@ -85,8 +85,9 @@ export async function POST(req: Request) {
     }
 
     const lines: StockDocumentLine[] = rawLines.map((l: any) => {
-      const q = num(l.quantity);
-      const p = num(l.unitPriceNet);
+      if (!l || typeof l !== "object" || typeof l.quantity !== "number" || typeof l.unitPriceNet !== "number" || !Number.isFinite(l.quantity) || !Number.isFinite(l.unitPriceNet)) throw new ApiError(400, "Podaj poprawną ilość i cenę pozycji.");
+      const q = l.quantity;
+      const p = l.unitPriceNet;
       return {
         stockItemId: typeof l.stockItemId === "string" && l.stockItemId.trim() ? l.stockItemId.trim() : undefined,
         productId: typeof l.productId === "string" && l.productId.trim() ? l.productId.trim() : undefined,
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
       contractorName: typeof body.contractorName === "string" && body.contractorName.trim() ? body.contractorName.trim() : undefined,
       targetWarehouseId: typeof body.targetWarehouseId === "string" && body.targetWarehouseId.trim() ? body.targetWarehouseId.trim() : undefined,
       notes: typeof body.notes === "string" && body.notes.trim() ? body.notes.trim() : undefined,
-      allowNegative: Boolean(body.allowNegative),
+      allowNegative: body.allowNegative === true,
       issuedBy: typeof body.issuedBy === "string" && body.issuedBy.trim() ? body.issuedBy.trim() : user.name || null,
       receivedBy: typeof body.receivedBy === "string" && body.receivedBy.trim() ? body.receivedBy.trim() : undefined,
     });
@@ -118,4 +119,4 @@ export async function POST(req: Request) {
   } catch (e) {
     return handleApiError(e);
   }
-}
+}

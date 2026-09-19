@@ -2,6 +2,16 @@ require('../register-ts.cjs');
 const test = require('node:test'), assert = require('node:assert/strict');
 const { inventoryQuery, warehouseReadScope } = require('../../src/lib/warehouse/read-scope.ts');
 const { canManageStock, normalizeRole } = require('../../src/lib/warehouse/guard.ts');
+const { normalizeDocumentLines } = require('../../src/lib/warehouse/stock-engine.ts');
+
+test('warehouse document lines reject missing, nonfinite and excessive numbers', () => {
+  const line = { name: 'Test', quantity: 1, unitPriceNet: 0 };
+  assert.equal(normalizeDocumentLines([line])[0].unitPriceNet, 0);
+  for (const value of [NaN, Infinity, -1, null, 'abc', 1e10]) {
+    assert.throws(() => normalizeDocumentLines([{ ...line, unitPriceNet: value }]));
+  }
+  assert.throws(() => normalizeDocumentLines(Array.from({ length: 201 }, () => line)));
+});
 
 test('warehouse writes fail closed for unknown, missing and read-only roles', () => {
   for (const role of [undefined, null, '', 'admin', 'OWNER', 'viewer']) assert.equal(canManageStock({ role }), false);

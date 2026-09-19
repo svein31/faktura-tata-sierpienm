@@ -8,13 +8,15 @@
  *     doprowadzenie stanów do stanu policzonego (status `closed`).
  */
 
-import { prisma } from "@/lib/db";
+import { prisma as defaultPrisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
+import { lockWarehouses } from "./transaction";
 import { ApiError } from "@/lib/api";
 import { recordAuditLog } from "@/lib/audit";
 import { stocktakingLinesFrom, stocktakingToDto, toJsonValue } from "./dto";
 import { roundMoney, roundQty, sumMoney, sumQty } from "./math";
 import { nextStocktakingNumber } from "./numbering";
-import { applyStockDocument } from "./stock-engine";
+import { applyStockDocumentInTransaction } from "./stock-engine";
 import type { StockDocumentLine, StocktakingDto, StocktakingLine } from "./types";
 import { resolveWarehouse } from "./warehouses";
 
@@ -71,7 +73,7 @@ function totalsOf(lines: StocktakingLine[]): StocktakingTotals {
   };
 }
 
-async function loadStocktaking(userId: string, id: string) {
+async function loadStocktaking(userId: string, id: string, prisma: Prisma.TransactionClient) {
   const record = await prisma.stocktaking.findFirst({ where: { id, userId } });
   if (!record) throw new ApiError(404, "Nie znaleziono remanentu.", "STOCKTAKING_NOT_FOUND");
   return record;
@@ -87,9 +89,20 @@ export async function openStocktaking(
   countDate: string,
   opts?: { notes?: string | null }
 ): Promise<StocktakingDto> {
+  return defaultPrisma.$transaction(tx => openStocktakingInTransaction(userId, warehouseId, countDate, opts, tx), { maxWait: 5000, timeout: 30000 });
+}
+
+async function openStocktakingInTransaction(
+  userId: string,
+  warehouseId: string,
+  countDate: string,
+  opts: { notes?: string | null } | undefined,
+  prisma: Prisma.TransactionClient
+): Promise<StocktakingDto> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
-  const warehouse = await resolveWarehouse(userId, warehouseId);
+  const warehouse = await resolveWarehouse(userId, warehouseId, prisma);
+  await lockWarehouses(prisma, userId, [warehouse.id]);
   const date = normalizeDate(countDate);
 
   const pending = await prisma.stocktaking.findFirst({
@@ -127,7 +140,7 @@ export async function openStocktaking(
     })
   );
 
-  const number = await nextStocktakingNumber(userId, date);
+  const number = await nextStocktakingNumber(userId, date, prisma);
   const totals = totalsOf(lines);
 
   const created = await prisma.stocktaking.create({
@@ -144,13 +157,14 @@ export async function openStocktaking(
   });
 
   await recordAuditLog({
+    client: prisma,
     userId,
     action: "stock.stocktaking.opened",
     entityType: "stocktaking",
     entityId: created.id,
     description: `Otwarto remanent ${number} w magazynie ${warehouse.name} (${lines.length} poz.)`,
     details: { number, warehouse: warehouse.name, lineCount: lines.length },
-  }).catch(() => undefined);
+  });
 
   return stocktakingToDto({ ...created, warehouse });
 }
@@ -165,9 +179,19 @@ export async function saveStocktakingCounts(
   id: string,
   counts: Array<{ sku: string; countedQuantity: number }>
 ): Promise<StocktakingDto> {
+  return defaultPrisma.$transaction(tx => saveStocktakingCountsInTransaction(userId, id, counts, tx), { maxWait: 5000, timeout: 30000 });
+}
+
+async function saveStocktakingCountsInTransaction(
+  userId: string,
+  id: string,
+  counts: Array<{ sku: string; countedQuantity: number }>,
+  prisma: Prisma.TransactionClient
+): Promise<StocktakingDto> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
-  const record = await loadStocktaking(userId, id);
+  const record = await loadStocktaking(userId, id, prisma);
+  await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(
       400,
@@ -189,6 +213,7 @@ export async function saveStocktakingCounts(
         "STOCKTAKING_LINE_NOT_FOUND"
       );
     }
+    if (typeof entry.countedQuantity !== "number" || !Number.isFinite(entry.countedQuantity) || entry.countedQuantity > 1e9) throw new ApiError(400, "Nieprawidłowa policzona ilość.");
     const countedQuantity = roundQty(entry.countedQuantity);
     if (countedQuantity < 0) {
       throw new ApiError(
@@ -229,14 +254,24 @@ export async function closeStocktaking(
   id: string,
   opts?: { allowUncounted?: boolean; closedBy?: string | null }
 ): Promise<{ stocktaking: StocktakingDto; documents: string[] }> {
+  return defaultPrisma.$transaction(tx => closeStocktakingInTransaction(userId, id, opts, tx), { maxWait: 5000, timeout: 30000 });
+}
+
+async function closeStocktakingInTransaction(
+  userId: string,
+  id: string,
+  opts: { allowUncounted?: boolean; closedBy?: string | null } | undefined,
+  prisma: Prisma.TransactionClient
+): Promise<{ stocktaking: StocktakingDto; documents: string[] }> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
-  const record = await loadStocktaking(userId, id);
+  const record = await loadStocktaking(userId, id, prisma);
+  await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(400, `Remanent ${record.number} jest już zamknięty.`, "STOCKTAKING_CLOSED");
   }
 
-  const warehouse = await resolveWarehouse(userId, record.warehouseId);
+  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
   const rawLines = stocktakingLinesFrom(record.lines);
   const uncounted = rawLines.filter((line) => !line.counted);
 
@@ -281,7 +316,7 @@ export async function closeStocktaking(
   const documentNumbers: string[] = [];
 
   if (shortageLines.length > 0) {
-    const rw = await applyStockDocument({
+    const rw = await applyStockDocumentInTransaction({
       userId,
       warehouseId: warehouse.id,
       type: "RW",
@@ -294,13 +329,13 @@ export async function closeStocktaking(
       isAutomatic: true,
       // Stan policzony jest stanem faktycznym — korekta nie może zostać zablokowana.
       allowNegative: true,
-    });
+    }, prisma);
     documentIds.push(rw.document.id);
     documentNumbers.push(rw.document.number);
   }
 
   if (surplusLines.length > 0) {
-    const pw = await applyStockDocument({
+    const pw = await applyStockDocumentInTransaction({
       userId,
       warehouseId: warehouse.id,
       type: "PW",
@@ -312,7 +347,7 @@ export async function closeStocktaking(
       notes: `Nadwyżki remanentu ${record.number}`,
       isAutomatic: true,
       allowNegative: true,
-    });
+    }, prisma);
     documentIds.push(pw.document.id);
     documentNumbers.push(pw.document.number);
   }
@@ -332,6 +367,7 @@ export async function closeStocktaking(
   });
 
   await recordAuditLog({
+    client: prisma,
     userId,
     action: "stock.stocktaking.closed",
     entityType: "stocktaking",
@@ -344,7 +380,7 @@ export async function closeStocktaking(
       surplusValueNet: totals.surplusValueNet,
       uncounted: uncounted.length,
     },
-  }).catch(() => undefined);
+  });
 
   return {
     stocktaking: stocktakingToDto({ ...updated, warehouse }),

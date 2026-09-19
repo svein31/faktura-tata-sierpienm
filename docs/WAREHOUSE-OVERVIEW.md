@@ -15,6 +15,6 @@ This incremental release adds `/warehouse` and a read-only `/api/warehouse/overv
 
 ## Not included / next work
 
-The pre-existing write APIs and auto-document engine remain in place. They still require a separate transactional and company-scope overhaul before exposing additional write controls in this panel. In particular, the engine uses compensating writes rather than a single transaction, and auto-document product matching is user-scoped. Do not describe this release as a complete WMS or as remediation of all warehouse write paths.
+The pre-existing write APIs and auto-document helpers remain in place. The subsequent stage 1a replaces stock engine compensation with database transactions and freezes regular movements during stocktaking (see `EXPANSION-PLAN.md`). Company-scoped write authorization and auto-document linkage still need further work before exposing additional write controls. This is not yet a complete WMS or remediation of every warehouse write path.
 
 No warehouse reassignment UI is included: moving historical inventory requires validating source documents and catalog relationships first. No schema changes, production data migration, payments or banking changes are needed for this release. Browser E2E and production deployment are separate from build/API verification.

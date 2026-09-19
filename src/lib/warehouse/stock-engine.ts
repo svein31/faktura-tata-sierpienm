@@ -10,13 +10,12 @@
  *  • alerty niskiego stanu wraz z powiadomieniem (throttling 24 h),
  *  • anulowanie dokumentu przez naniesienie ruchów odwrotnych (bez usuwania historii).
  *
- * MongoDB w tej konfiguracji nie udostępnia transakcji, dlatego każda operacja:
- *  1) jest poprzedzona pełną walidacją (pre-flight) — typowe błędy nie powodują żadnego zapisu,
- *  2) zapamiętuje stan „przed” każdej modyfikowanej pozycji, a w razie awarii w połowie dokumentu
- *     wykonuje kompensację (przywrócenie stanów, usunięcie ruchów i dokumentu) i zwraca spójny błąd.
+ * Dokument, stany, ruchy, alerty i audyt są zapisywane w jednej transakcji MongoDB.
+ * Konflikt zapisu jest zwracany do klienta; nie odtwarzamy starych stanów kompensacją.
  */
 
 import type {
+  Prisma,
   StockDocument as DbStockDocument,
   StockItem as DbStockItem,
   StockMovement as DbStockMovement,
@@ -37,6 +36,7 @@ import type {
   StockDocumentLine,
 } from "./types";
 import { resolveWarehouse } from "./warehouses";
+import { lockWarehouses, assertNoStocktaking } from "./transaction";
 
 export const STOCK_DOCUMENT_TYPES: StockDocumentType[] = ["WZ", "PZ", "RW", "PW", "MM"];
 
@@ -80,6 +80,7 @@ export function normalizeDocumentLines(lines: unknown): StockDocumentLine[] {
   if (!Array.isArray(lines) || lines.length === 0) {
     throw new ApiError(400, "Dokument magazynowy musi mieć co najmniej jedną pozycję.", "EMPTY_LINES");
   }
+  if (lines.length > 200) throw new ApiError(400, "Dokument może zawierać maksymalnie 200 pozycji.");
 
   return lines.map((raw, index) => {
     const l = (raw ?? {}) as Record<string, unknown>;
@@ -88,6 +89,8 @@ export function normalizeDocumentLines(lines: unknown): StockDocumentLine[] {
       throw new ApiError(400, `Pozycja ${index + 1}: podaj nazwę towaru.`, "LINE_NAME_REQUIRED");
     }
 
+    if (typeof l.quantity !== "number" || !Number.isFinite(l.quantity) || l.quantity > 1e9) throw new ApiError(400, "Nieprawidłowa ilość.");
+    if (typeof l.unitPriceNet !== "number" || !Number.isFinite(l.unitPriceNet) || l.unitPriceNet < 0 || l.unitPriceNet > 1e9) throw new ApiError(400, "Nieprawidłowa cena.");
     const quantity = roundQty(l.quantity);
     if (!(quantity > 0)) {
       throw new ApiError(
@@ -122,74 +125,6 @@ export function normalizeDocumentLines(lines: unknown): StockDocumentLine[] {
   });
 }
 
-/* ── Kompensacja (brak transakcji w MongoDB) ─────────────────────────────── */
-
-interface ItemSnapshot {
-  stockItemId: string;
-  created: boolean;
-  quantity: number;
-  reserved: number;
-  avgPurchasePrice: number;
-  lastPurchasePrice: number;
-  valueNet: number;
-  lastMovementAt: Date | null;
-  lowStockAlertedAt: Date | null;
-}
-
-interface Compensation {
-  items: ItemSnapshot[];
-  movementIds: string[];
-  documentIds: string[];
-}
-
-function emptyCompensation(): Compensation {
-  return { items: [], movementIds: [], documentIds: [] };
-}
-
-/** Wycofuje naniesione zmiany: ruchy, stany pozycji i utworzone dokumenty. */
-async function compensate(comp: Compensation): Promise<void> {
-  for (const movementId of [...comp.movementIds].reverse()) {
-    await prisma.stockMovement.delete({ where: { id: movementId } }).catch(() => undefined);
-  }
-  for (const snap of [...comp.items].reverse()) {
-    if (snap.created) {
-      await prisma.stockItem.delete({ where: { id: snap.stockItemId } }).catch(() => undefined);
-      continue;
-    }
-    await prisma.stockItem
-      .update({
-        where: { id: snap.stockItemId },
-        data: {
-          quantity: snap.quantity,
-          reserved: snap.reserved,
-          avgPurchasePrice: snap.avgPurchasePrice,
-          lastPurchasePrice: snap.lastPurchasePrice,
-          valueNet: snap.valueNet,
-          lastMovementAt: snap.lastMovementAt,
-          lowStockAlertedAt: snap.lowStockAlertedAt,
-        },
-      })
-      .catch(() => undefined);
-  }
-  for (const documentId of [...comp.documentIds].reverse()) {
-    await prisma.stockDocument.delete({ where: { id: documentId } }).catch(() => undefined);
-  }
-}
-
-function snapshotOf(item: DbStockItem, created: boolean): ItemSnapshot {
-  return {
-    stockItemId: item.id,
-    created,
-    quantity: item.quantity,
-    reserved: item.reserved,
-    avgPurchasePrice: item.avgPurchasePrice,
-    lastPurchasePrice: item.lastPurchasePrice,
-    valueNet: item.valueNet,
-    lastMovementAt: item.lastMovementAt ?? null,
-    lowStockAlertedAt: item.lowStockAlertedAt ?? null,
-  };
-}
-
 /* ── Alert niskiego stanu ────────────────────────────────────────────────── */
 
 /**
@@ -198,7 +133,8 @@ function snapshotOf(item: DbStockItem, created: boolean): ItemSnapshot {
  */
 async function checkLowStock(
   item: DbStockItem,
-  warehouse: DbWarehouse
+  warehouse: DbWarehouse,
+  prisma: Prisma.TransactionClient
 ): Promise<LowStockAlert | null> {
   const quantity = roundQty(item.quantity);
   const minQuantity = roundQty(item.minQuantity);
@@ -217,11 +153,9 @@ async function checkLowStock(
           body: `${item.name} (${item.sku}) — stan ${qtyLabel(quantity)} ${item.unit} przy minimum ${qtyLabel(minQuantity)} ${item.unit} w magazynie ${warehouse.name}.`,
           link: "/warehouse",
         },
-      })
-      .catch(() => undefined);
+      });
     await prisma.stockItem
-      .update({ where: { id: item.id }, data: { lowStockAlertedAt: new Date() } })
-      .catch(() => undefined);
+      .update({ where: { id: item.id }, data: { lowStockAlertedAt: new Date() } });
   }
 
   return {
@@ -267,14 +201,14 @@ interface IssueOutput {
   movements: DbStockMovement[];
   alerts: LowStockAlert[];
   warnings: string[];
-  compensation: Compensation;
 }
 
 /** Wyszukuje pozycję magazynową po SKU w obrębie magazynu (z izolacją najemcy). */
 async function findStockItem(
   userId: string,
   warehouseId: string,
-  sku: string
+  sku: string,
+  prisma: Prisma.TransactionClient
 ): Promise<DbStockItem | null> {
   return prisma.stockItem.findFirst({ where: { userId, warehouseId, sku } });
 }
@@ -283,22 +217,22 @@ async function findStockItem(
 async function createStockItem(
   userId: string,
   warehouse: DbWarehouse,
-  line: StockDocumentLine
+  line: StockDocumentLine,
+  prisma: Prisma.TransactionClient
 ): Promise<DbStockItem> {
   let productId = line.productId ?? null;
   let minQuantity = 0;
 
   const product = productId
-    ? await prisma.product.findFirst({ where: { id: productId, userId } }).catch(() => null)
-    : await prisma.product.findFirst({ where: { userId, sku: line.sku } }).catch(() => null);
+    ? await prisma.product.findFirst({ where: { id: productId, userId, companyId: warehouse.companyId } })
+    : await prisma.product.findFirst({ where: { userId, sku: line.sku, ...(warehouse.companyId ? { companyId: warehouse.companyId } : { OR: [{ companyId: null }, { companyId: { isSet: false } }] }) } });
 
   if (product) {
     productId = product.id;
     minQuantity = roundQty(product.minQuantity);
   }
 
-  try {
-    return await prisma.stockItem.create({
+  return prisma.stockItem.create({
       data: {
         userId,
         warehouseId: warehouse.id,
@@ -314,12 +248,6 @@ async function createStockItem(
         valueNet: 0,
       },
     });
-  } catch (e) {
-    // Wyścig na `@@unique([warehouseId, sku])` — pozycja powstała równolegle.
-    const existing = await findStockItem(userId, warehouse.id, line.sku);
-    if (existing) return existing;
-    throw e;
-  }
 }
 
 /** Sumuje zapotrzebowanie per SKU (jedna pozycja może wystąpić w wielu liniach). */
@@ -335,13 +263,13 @@ function aggregateBySku(lines: StockDocumentLine[]): Map<string, number> {
  * Pre-flight dla wydań: sprawdza dostępność stanu PRZED jakimkolwiek zapisem.
  * Zwraca ostrzeżenia, gdy operacja jest dopuszczona mimo zejścia poniżej zera.
  */
-async function preflightOut(input: IssueInput): Promise<string[]> {
+async function preflightOut(input: IssueInput, prisma: Prisma.TransactionClient): Promise<string[]> {
   const warnings: string[] = [];
   const needed = aggregateBySku(input.lines);
 
   for (const [sku, quantity] of needed) {
     const line = input.lines.find((l) => l.sku === sku)!;
-    const item = await findStockItem(input.userId, input.warehouse.id, sku);
+    const item = await findStockItem(input.userId, input.warehouse.id, sku, prisma);
 
     if (!item) {
       if (!input.allowNegative) {
@@ -376,11 +304,10 @@ async function preflightOut(input: IssueInput): Promise<string[]> {
 }
 
 /** Tworzy dokument i nanosi wszystkie jego pozycje na stany magazynowe. */
-async function issueDocument(input: IssueInput): Promise<IssueOutput> {
+async function issueDocument(input: IssueInput, prisma: Prisma.TransactionClient): Promise<IssueOutput> {
   const warnings: string[] =
-    input.direction === "out" ? await preflightOut(input) : [];
+    input.direction === "out" ? await preflightOut(input, prisma) : [];
 
-  const comp = emptyCompensation();
   const totalQuantity = sumQty(input.lines.map((l) => l.quantity));
   const totalValueNet = sumMoney(input.lines.map((l) => l.valueNet));
 
@@ -409,7 +336,6 @@ async function issueDocument(input: IssueInput): Promise<IssueOutput> {
       receivedBy: input.receivedBy,
     },
   });
-  comp.documentIds.push(document.id);
 
   const reason = input.sourceNumber
     ? `${input.type} ${input.number} — ${input.sourceType} ${input.sourceNumber}`
@@ -420,12 +346,10 @@ async function issueDocument(input: IssueInput): Promise<IssueOutput> {
 
   try {
     for (const line of input.lines) {
-      let item = await findStockItem(input.userId, input.warehouse.id, line.sku);
+      let item = await findStockItem(input.userId, input.warehouse.id, line.sku, prisma);
       if (!item) {
-        item = await createStockItem(input.userId, input.warehouse, line);
-        comp.items.push(snapshotOf(item, true));
-      } else {
-        comp.items.push(snapshotOf(item, false));
+        item = await createStockItem(input.userId, input.warehouse, line, prisma);
+
       }
 
       const before = roundQty(item.quantity);
@@ -488,20 +412,13 @@ async function issueDocument(input: IssueInput): Promise<IssueOutput> {
           reason,
         },
       });
-      comp.movementIds.push(movement.id);
       movements.push(movement);
 
-      const alert = await checkLowStock(updated, input.warehouse);
+      const alert = await checkLowStock(updated, input.warehouse, prisma);
       if (alert) alertsByItem.set(alert.stockItemId, alert);
     }
   } catch (e) {
-    await compensate(comp);
-    if (e instanceof ApiError) throw e;
-    throw new ApiError(
-      500,
-      `Nie udało się nanieść dokumentu ${input.type} ${input.number} na stany magazynowe — operacja została wycofana.`,
-      "STOCK_APPLY_FAILED"
-    );
+    throw e; // The enclosing transaction rolls back every write.
   }
 
   return {
@@ -509,7 +426,6 @@ async function issueDocument(input: IssueInput): Promise<IssueOutput> {
     movements,
     alerts: [...alertsByItem.values()],
     warnings,
-    compensation: comp,
   };
 }
 
@@ -519,8 +435,10 @@ function todayIso(): string {
 
 function normalizeIssueDate(date: unknown): string {
   const raw = typeof date === "string" ? date.trim() : "";
-  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
-  return todayIso();
+  if (!raw) return todayIso();
+  const parsed = new Date(`${raw}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw) throw new ApiError(400, "Nieprawidłowa data dokumentu.");
+  return raw;
 }
 
 /* ── API publiczne ───────────────────────────────────────────────────────── */
@@ -536,6 +454,14 @@ function normalizeIssueDate(date: unknown): string {
 export async function applyStockDocument(
   params: ApplyStockDocumentParams
 ): Promise<ApplyStockDocumentResult> {
+  return prisma.$transaction(tx => applyStockDocumentInTransaction(params, tx), { maxWait: 5000, timeout: 30000 });
+}
+
+/** Also used by stocktaking so both adjustments commit atomically with its closure. */
+export async function applyStockDocumentInTransaction(
+  params: ApplyStockDocumentParams,
+  prisma: Prisma.TransactionClient
+): Promise<ApplyStockDocumentResult> {
   const userId = params.userId;
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
@@ -550,7 +476,28 @@ export async function applyStockDocument(
   const type = params.type;
   const lines = normalizeDocumentLines(params.lines);
   const issueDate = normalizeIssueDate(params.issueDate);
-  const warehouse = await resolveWarehouse(userId, params.warehouseId);
+  const warehouse = await resolveWarehouse(userId, params.warehouseId, prisma);
+  if (!warehouse.isActive) throw new ApiError(409, "Magazyn jest nieaktywny.");
+  const targetId = params.type === "MM" ? params.targetWarehouseId : null;
+  const targetRecord = targetId ? await resolveWarehouse(userId, targetId, prisma) : null;
+  if (targetRecord && (targetRecord.companyId !== warehouse.companyId || !targetRecord.isActive)) throw new ApiError(400, "Przesunięcie wymaga aktywnych magazynów w tej samej firmie.");
+  await lockWarehouses(prisma, userId, [warehouse.id, ...(targetRecord ? [targetRecord.id] : [])]);
+  await assertNoStocktaking(prisma, warehouse.id, params.sourceType === "stocktaking" ? params.sourceId : undefined);
+  if (targetRecord) await assertNoStocktaking(prisma, targetRecord.id);
+  for (const line of lines) {
+    if (line.productId) {
+      const product = await prisma.product.findFirst({ where: { id: line.productId, userId } });
+      if (!product || product.companyId !== warehouse.companyId) throw new ApiError(400, "Towar nie należy do firmy magazynu.");
+    }
+    if (line.stockItemId) {
+      const item = await prisma.stockItem.findFirst({ where: { id: line.stockItemId, warehouseId: warehouse.id, userId } });
+      if (!item || item.sku !== line.sku || item.unit !== line.unit) throw new ApiError(400, "Pozycja magazynowa nie odpowiada SKU lub jednostce.");
+    }
+    const existing = await prisma.stockItem.findFirst({ where: { warehouseId: warehouse.id, sku: line.sku } });
+    if (existing && existing.unit !== line.unit) throw new ApiError(400, "Nie można zmienić jednostki istniejącego towaru.");
+    const targetItem = targetRecord ? await prisma.stockItem.findFirst({ where: { warehouseId: targetRecord.id, sku: line.sku } }) : null;
+    if (targetItem && targetItem.unit !== line.unit) throw new ApiError(400, "Magazyn docelowy używa innej jednostki dla tego SKU.");
+  }
   const allowNegative = params.allowNegative === true;
 
   const common = {
@@ -585,9 +532,9 @@ export async function applyStockDocument(
         "TARGET_WAREHOUSE_SAME"
       );
     }
-    const target = await resolveWarehouse(userId, params.targetWarehouseId);
+    const target = await resolveWarehouse(userId, params.targetWarehouseId, prisma);
 
-    const outNumber = params.number || (await nextStockDocumentNumber(userId, "MM", issueDate));
+    const outNumber = params.number || (await nextStockDocumentNumber(userId, "MM", issueDate, prisma));
     const out = await issueDocument({
       ...common,
       warehouse,
@@ -596,7 +543,7 @@ export async function applyStockDocument(
       targetWarehouse: target,
       number: outNumber,
       notes: common.notes ?? `Przesunięcie do magazynu ${target.name}`,
-    });
+    }, prisma);
 
     // Pozycje przyjęcia wyceniamy po średniej z magazynu źródłowego — wartość podąża za towarem.
     const inLines: StockDocumentLine[] = lines.map((line, index) => {
@@ -612,7 +559,7 @@ export async function applyStockDocument(
 
     let inResult: IssueOutput;
     try {
-      const inNumber = await nextStockDocumentNumber(userId, "MM", issueDate);
+      const inNumber = await nextStockDocumentNumber(userId, "MM", issueDate, prisma);
       inResult = await issueDocument({
         ...common,
         lines: inLines,
@@ -622,10 +569,9 @@ export async function applyStockDocument(
         targetWarehouse: warehouse,
         number: inNumber,
         notes: common.notes ?? `Przyjęcie z magazynu ${warehouse.name}`,
-      });
+      }, prisma);
     } catch (e) {
       // Przyjęcie się nie udało — wycofujemy również wydanie, aby nie „zgubić” towaru.
-      await compensate(out.compensation);
       throw e;
     }
 
@@ -641,6 +587,7 @@ export async function applyStockDocument(
     ]);
 
     await recordAuditLog({
+    client: prisma,
       userId,
       action: "stock.transfer",
       entityType: "stockDocument",
@@ -652,7 +599,7 @@ export async function applyStockDocument(
         totalQuantity: outDoc.totalQuantity,
         totalValueNet: outDoc.totalValueNet,
       },
-    }).catch(() => undefined);
+    });
 
     return {
       document: stockDocumentToDto({ ...outDoc, warehouse }),
@@ -664,7 +611,7 @@ export async function applyStockDocument(
 
   /* ── WZ / PZ / RW / PW ── */
   const direction = directionForType(type) as Exclude<StockDirection, "transfer">;
-  const number = params.number || (await nextStockDocumentNumber(userId, type, issueDate));
+  const number = params.number || (await nextStockDocumentNumber(userId, type, issueDate, prisma));
 
   const result = await issueDocument({
     ...common,
@@ -673,9 +620,10 @@ export async function applyStockDocument(
     direction,
     targetWarehouse: null,
     number,
-  });
+  }, prisma);
 
   await recordAuditLog({
+    client: prisma,
     userId,
     action: direction === "in" ? "stock.receipt" : "stock.release",
     entityType: "stockDocument",
@@ -689,7 +637,7 @@ export async function applyStockDocument(
       isAutomatic: common.isAutomatic,
       warnings: result.warnings,
     },
-  }).catch(() => undefined);
+  });
 
   return {
     document: stockDocumentToDto({ ...result.document, warehouse }),
@@ -709,6 +657,12 @@ export async function cancelStockDocument(
   documentId: string,
   reason?: string | null
 ): Promise<CancelStockDocumentResult> {
+  return prisma.$transaction(tx => cancelStockDocumentInTransaction(userId, documentId, reason, tx), { maxWait: 5000, timeout: 30000 });
+}
+
+async function cancelStockDocumentInTransaction(
+  userId: string, documentId: string, reason: string | null | undefined, prisma: Prisma.TransactionClient
+): Promise<CancelStockDocumentResult> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const document = await prisma.stockDocument.findFirst({ where: { id: documentId, userId } });
@@ -718,6 +672,11 @@ export async function cancelStockDocument(
   if (document.status === "cancelled") {
     throw new ApiError(400, `Dokument ${document.number} jest już anulowany.`, "ALREADY_CANCELLED");
   }
+  const pairedDocument = document.pairedDocumentId ? await prisma.stockDocument.findFirst({ where: { id: document.pairedDocumentId, userId } }) : null;
+  if (document.pairedDocumentId && (!pairedDocument || pairedDocument.status === "cancelled")) throw new ApiError(409, "Niespójna para dokumentów MM — wymagana weryfikacja.");
+  const warehouseIds = [document.warehouseId, ...(pairedDocument ? [pairedDocument.warehouseId] : [])];
+  await lockWarehouses(prisma, userId, warehouseIds);
+  for (const id of warehouseIds) await assertNoStocktaking(prisma, id);
 
   const cancelReason = (typeof reason === "string" ? reason.trim() : "") || "Anulowanie dokumentu";
   const warnings: string[] = [];
@@ -735,10 +694,7 @@ export async function cancelStockDocument(
         where: { id: movement.stockItemId, userId },
       });
       if (!item) {
-        warnings.push(
-          `Pozycja ${movement.sku} nie istnieje już w magazynie — ruch odwrotny pominięto.`
-        );
-        continue;
+        throw new ApiError(409, "Brak pozycji dla ruchu odwrotnego — anulowanie wycofano.");
       }
 
       const before = roundQty(item.quantity);
@@ -783,7 +739,7 @@ export async function cancelStockDocument(
 
       if (warehouse) {
         const refreshed = await prisma.stockItem.findFirst({ where: { id: item.id, userId } });
-        if (refreshed) await checkLowStock(refreshed, warehouse);
+        if (refreshed) await checkLowStock(refreshed, warehouse, prisma);
       }
     }
 
@@ -811,13 +767,14 @@ export async function cancelStockDocument(
   });
 
   await recordAuditLog({
+    client: prisma,
     userId,
     action: "stock.document.cancelled",
     entityType: "stockDocument",
     entityId: document.id,
     description: `Anulowano dokument ${document.type} ${document.number}: ${cancelReason}`,
     details: { number: document.number, reason: cancelReason, warnings },
-  }).catch(() => undefined);
+  });
 
   return {
     document: stockDocumentToDto({
