@@ -1,5 +1,6 @@
 "use client";
 
+import { SummaryCurrency } from "@/components/summary-currency";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -46,6 +47,7 @@ export default function OffersPage() {
   const router = useRouter();
   const toast = useToast();
   const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [summaryCurrency, setSummaryCurrency] = React.useState("PLN");
   const [legacy, setLegacy] = React.useState(false);
   React.useEffect(() => { setLegacy(false); }, [selectedCompanyId]);
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
@@ -236,16 +238,17 @@ export default function OffersPage() {
     return `${o.number} ${o.title} ${ctr}`.toLowerCase().includes(q);
   });
 
-  const totalAcceptedValue = offers
+  const totalAcceptedValue = offers.filter(o => o.currency === summaryCurrency)
     .filter((o) => o.status === "accepted" || o.status === "converted")
     .reduce((sum, o) => sum + o.totalGross, 0);
 
-  const totalPendingValue = offers
+  const totalPendingValue = offers.filter(o => o.currency === summaryCurrency)
     .filter((o) => o.status === "sent" || o.status === "draft")
     .reduce((sum, o) => sum + o.totalGross, 0);
 
   return (
     <div className="space-y-6">
+      <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={legacy} onChange={e => setLegacy(e.target.checked)} />Dokumenty bez przypisanej firmy (archiwum)</label>
       <PageHeader
         title="Oferty handlowe"
         description="Wyceny, bezpieczne linki akceptacji dla klientów oraz błyskawiczna konwersja do zleceń i faktur VAT."
@@ -256,6 +259,7 @@ export default function OffersPage() {
         }
       />
 
+      <SummaryCurrency value={summaryCurrency} currencies={offers.map(o => o.currency)} onChange={setSummaryCurrency} />
       {/* Karty podsumowujące */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-4 bg-card/60 backdrop-blur-md border-border/70">
@@ -265,12 +269,12 @@ export default function OffersPage() {
         </Card>
         <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
           <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Zaakceptowane / Zrealizowane</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(totalAcceptedValue, "PLN")}</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(totalAcceptedValue, summaryCurrency)}</p>
           <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">Potencjał przychodowy zamknięty</p>
         </Card>
         <Card className="p-4 bg-primary/5 border-primary/20">
           <p className="text-xs font-semibold text-primary uppercase tracking-wider">W toku (w negocjacji)</p>
-          <p className="mt-1 text-2xl font-bold text-primary">{formatMoney(totalPendingValue, "PLN")}</p>
+          <p className="mt-1 text-2xl font-bold text-primary">{formatMoney(totalPendingValue, summaryCurrency)}</p>
           <p className="text-xs text-muted-foreground mt-1">Oczekuje na akceptację klienta</p>
         </Card>
       </div>

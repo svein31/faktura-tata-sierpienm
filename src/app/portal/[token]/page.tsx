@@ -162,7 +162,7 @@ export default function PortalDocumentPage() {
   const currency: Currency = (isInvoice ? invoice.currency : offer?.currency) || "PLN";
   const lines: (InvoiceLine | OfferLine)[] = isInvoice ? (invoice.lines || []) : (offer?.lines || []);
 
-  const paymentStatus = isInvoice ? invoice.paymentStatus : (offer?.status === "accepted" ? "paid" : "unpaid");
+  const paymentStatus = isInvoice ? invoice.paymentStatus : undefined;
   const bankAccount = seller?.iban;
   const bankName = seller?.bankName;
 
@@ -242,7 +242,7 @@ export default function PortalDocumentPage() {
         )}
 
         {/* Szybkie kopiowanie danych do przelewu */}
-        {bankAccount && paymentStatus !== "paid" && (
+        {isInvoice && bankAccount && paymentStatus !== "paid" && (
           <div className="no-print" style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "1.25rem", marginBottom: "1.5rem", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "#1e293b", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <CreditCard size={18} color="#0284c7" />
@@ -309,7 +309,7 @@ export default function PortalDocumentPage() {
               <div>Data wystawienia: <strong>{formatDate(issueDate || "")}</strong></div>
               {dueDate && (
                 <div style={{ marginTop: "0.25rem" }}>
-                  Termin płatności: <strong style={{ color: "#0284c7" }}>{formatDate(dueDate)}</strong>
+                  {isInvoice ? "Termin płatności" : "Oferta ważna do"}: <strong style={{ color: "#0284c7" }}>{formatDate(dueDate)}</strong>
                 </div>
               )}
               <div style={{ marginTop: "0.5rem" }}>
@@ -324,7 +324,7 @@ export default function PortalDocumentPage() {
                     color: paymentStatus === "paid" ? "#15803d" : "#b45309",
                   }}
                 >
-                  {paymentStatus === "paid" ? "OPŁACONA" : "DO ZAPŁATY"}
+                  {isInvoice ? (paymentStatus === "paid" ? "OPŁACONA" : "DO ZAPŁATY") : offer?.status === "accepted" ? "ZAAKCEPTOWANA" : offer?.status === "rejected" ? "ODRZUCONA" : offer?.status === "converted" ? "W REALIZACJI" : "DO DECYZJI"}
                 </span>
               </div>
             </div>

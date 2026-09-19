@@ -1,5 +1,6 @@
 "use client";
 
+import { SummaryCurrency } from "@/components/summary-currency";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -45,6 +46,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const toast = useToast();
   const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [summaryCurrency, setSummaryCurrency] = React.useState("PLN");
   const [legacy, setLegacy] = React.useState(false);
   React.useEffect(() => { setLegacy(false); }, [selectedCompanyId]);
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
@@ -248,12 +250,14 @@ export default function OrdersPage() {
   });
 
   const totalTrackedMinutes = orders.reduce((sum, o) => sum + (o.trackedMinutes || 0), 0);
-  const totalValueActive = orders
+  const totalValueActive = orders.filter(o => o.currency === summaryCurrency)
     .filter((o) => o.status === "in_progress")
     .reduce((sum, o) => sum + (o.totalGross || 0), 0);
 
   return (
     <div className="space-y-6">
+      <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={legacy} onChange={e => setLegacy(e.target.checked)} />Dokumenty bez przypisanej firmy (archiwum)</label>
+      <SummaryCurrency value={summaryCurrency} currencies={orders.map(o => o.currency)} onChange={setSummaryCurrency} />
       <PageHeader
         title="Zlecenia i Realizacje"
         description="Tablica postępu prac, rozliczanie przepracowanych godzin i wystawianie faktur rozliczeniowych 1 kliknięciem."
@@ -283,7 +287,7 @@ export default function OrdersPage() {
             Wartość zleceń w toku
           </p>
           <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {formatMoney(totalValueActive, "PLN")}
+            {formatMoney(totalValueActive, summaryCurrency)}
           </p>
           <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">Projekty do rozliczenia</p>
         </Card>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
+import { csvCell } from "@/lib/accountant-summary";
+import { SummaryCurrency } from "@/components/summary-currency";
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -52,6 +54,7 @@ const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
 export default function ExpensesPage() {
   const toast = useToast();
   const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [summaryCurrency, setSummaryCurrency] = React.useState("PLN");
   const [legacy, setLegacy] = React.useState(false);
   React.useEffect(() => { setLegacy(false); }, [selectedCompanyId]);
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
@@ -123,11 +126,13 @@ export default function ExpensesPage() {
     let toVerifyCount = 0;
 
     expenses.forEach((e) => {
+      if (e.currency === summaryCurrency) {
       totalGross += e.totalGross;
       totalNet += e.totalNet;
       totalVat += e.totalVat;
       if (e.paymentStatus === "unpaid") {
         unpaidGross += e.totalGross;
+      }
       }
       if (e.workflowStatus === "to_verify") {
         toVerifyCount++;
@@ -135,7 +140,7 @@ export default function ExpensesPage() {
     });
 
     return { totalGross, totalNet, totalVat, unpaidGross, toVerifyCount, count: expenses.length };
-  }, [expenses]);
+  }, [expenses, summaryCurrency]);
 
   // Filtrowanie
   const filteredExpenses = React.useMemo(() => {
@@ -277,22 +282,9 @@ export default function ExpensesPage() {
       toast("info", "Brak danych", "Brak kosztów do eksportu.");
       return;
     }
-    const headers = ["Nr dokumentu", "Wystawca", "NIP", "Data wystawienia", "Termin płatności", "Kategoria", "Netto PLN", "VAT PLN", "Brutto PLN", "Status płatności", "Workflow"];
-    const rows = filteredExpenses.map((e) => [
-      `"${e.number.replace(/"/g, '""')}"`,
-      `"${e.contractorName.replace(/"/g, '""')}"`,
-      `"${e.nip || ""}"`,
-      e.issueDate,
-      e.dueDate || "",
-      `"${e.category}"`,
-      e.totalNet.toFixed(2),
-      e.totalVat.toFixed(2),
-      e.totalGross.toFixed(2),
-      e.paymentStatus === "paid" ? "Opłacone" : "Nieopłacone",
-      WORKFLOW_MAP[e.workflowStatus]?.label || e.workflowStatus,
-    ]);
-
-    const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\r\n");
+    const headers = ["Nr dokumentu", "Wystawca", "NIP", "Data wystawienia", "Termin płatności", "Kategoria", "Waluta", "Netto", "VAT", "Brutto", "Status płatności", "Workflow"];
+    const rows = filteredExpenses.map(e => [e.number, e.contractorName, e.nip || "", e.issueDate, e.dueDate || "", e.category, e.currency, e.totalNet, e.totalVat, e.totalGross, e.paymentStatus === "paid" ? "Opłacone" : "Nieopłacone", WORKFLOW_MAP[e.workflowStatus]?.label || e.workflowStatus]);
+    const csvContent = "\uFEFF" + [headers, ...rows].map(row => row.map(csvCell).join(";")).join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -301,6 +293,7 @@ export default function ExpensesPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast("success", "Pobrano plik", "Wygenerowano zestawienie kosztów CSV dla księgowości.");
   };
 
@@ -330,6 +323,7 @@ export default function ExpensesPage() {
         }
       />
 
+      <SummaryCurrency value={summaryCurrency} currencies={expenses.map(e => e.currency)} onChange={setSummaryCurrency} />
       {/* Karty podsumowania */}
       <div
         style={{
@@ -345,10 +339,10 @@ export default function ExpensesPage() {
             <DollarSign size={18} color="var(--primary)" />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {formatMoney(metrics.totalGross, "PLN")}
+            {formatMoney(metrics.totalGross, summaryCurrency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-            Netto: {formatMoney(metrics.totalNet, "PLN")} • VAT: {formatMoney(metrics.totalVat, "PLN")}
+            Netto: {formatMoney(metrics.totalNet, summaryCurrency)} • VAT: {formatMoney(metrics.totalVat, summaryCurrency)}
           </div>
         </Card>
 
@@ -358,7 +352,7 @@ export default function ExpensesPage() {
             <Clock size={18} color="var(--warning)" />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: metrics.unpaidGross > 0 ? "var(--warning)" : "var(--foreground)" }}>
-            {formatMoney(metrics.unpaidGross, "PLN")}
+            {formatMoney(metrics.unpaidGross, summaryCurrency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
             Nierozliczone zobowiązania
