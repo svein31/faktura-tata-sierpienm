@@ -1,18 +1,11 @@
-/* FakturaProsto — minimalny service worker.
- *
- * Nie przechwytuje ruchu sieciowego (brak handlera fetch = domyślne zachowanie).
- * Obsługuje tylko kliknięcia w powiadomienia (Notification API) — dzięki temu
- * klik w powiadomienie otwiera/zaznacza właściwą kartę aplikacji.
- *
- * Uwaga: powiadomienia przy ZAMKNIĘTEJ aplikacji wymagają Web Push (VAPID) —
- * patrz README. Ten SW nie zastępuje Web Push.
- */
+/* Only the generic offline page is cached. Never cache API responses or private documents. */
+const OFFLINE_CACHE = "fakturaprosto-offline-v1";
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
+  event.waitUntil(caches.open(OFFLINE_CACHE).then(cache => cache.add("/offline.html")).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith("fakturaprosto-offline-") && key !== OFFLINE_CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener("notificationclick", (event) => {
@@ -30,4 +23,11 @@ self.addEventListener("notificationclick", (event) => {
       return self.clients.openWindow(url);
     })
   );
+});
+
+
+self.addEventListener("fetch", event => {
+  const request = event.request, url = new URL(request.url);
+  if (request.method !== "GET" || request.mode !== "navigate" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+  event.respondWith(fetch(request).catch(async () => (await caches.match("/offline.html")) || new Response("Brak połączenia", {status: 503})));
 });

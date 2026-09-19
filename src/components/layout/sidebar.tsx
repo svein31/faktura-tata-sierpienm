@@ -1,9 +1,11 @@
 "use client";
 
+import { useWorkspacePreference } from "@/lib/use-workspace-preference";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Star,
   BarChart3,
   Building2,
   FileText,
@@ -48,6 +50,7 @@ const NAV_MAIN = [
 const NAV_SETTINGS = [
   { href: "/jpk", label: "Eksport JPK", icon: FileCheck2 },
   { href: "/settings/integrations", label: "API i webhooki", icon: BookOpen },
+  { href: "/settings/health", label: "Stan przetwarzania", icon: BarChart3 },
   { href: "/audit", label: "Dziennik zmian", icon: BookOpen },
   { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
@@ -56,6 +59,16 @@ const NAV_SETTINGS = [
   { href: "/settings/currencies", label: "Waluty & Kursy NBP", icon: Globe },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
   { href: "/help", label: "Instrukcja obsługi", icon: BookOpen },
+];
+
+const ALL_NAV = [...NAV_MAIN, ...NAV_SETTINGS];
+const NAV_GROUPS = [
+  { label: "Start", paths: ["/dashboard"] },
+  { label: "Sprzedaż", paths: ["/invoices", "/advances", "/recurring", "/offers"] },
+  { label: "Zakupy", paths: ["/documents", "/expenses"] },
+  { label: "Klienci i praca", paths: ["/orders", "/contractors", "/products"] },
+  { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
+  { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/currencies", "/settings/account", "/help"] },
 ];
 
 export function SidebarContent({
@@ -67,6 +80,9 @@ export function SidebarContent({
 }) {
   const pathname = usePathname();
   const user = useSessionUser();
+  const prefs = useWorkspacePreference<string[]>("favorites");
+  const favorites = Array.isArray(prefs.value) ? prefs.value.filter(path => ALL_NAV.some(item => item.href === path)) : [];
+  const toggleFavorite = (href: string) => void prefs.save(favorites.includes(href) ? favorites.filter(p => p !== href) : [...favorites, href]);
   const initials = user.name
     .split(/\s+/)
     .slice(0, 2)
@@ -98,92 +114,29 @@ export function SidebarContent({
       </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
-        <div className="space-y-0.5">
-          <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">
-            Główne
-          </p>
-          {NAV_MAIN.map((item) => {
-            const active = item.exact
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                prefetch={true}
-                onClick={onNavigate}
-                className={cn(
-                  "group relative flex min-h-[40px] items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all active:scale-[0.98]",
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                )}
-              >
-                {active && (
-                  <motion.span
-                    layoutId={navLayoutId}
-                    className="absolute inset-0 rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20"
-                    transition={{ type: "spring", duration: 0.35, bounce: 0.12 }}
-                  />
-                )}
-                <item.icon
-                  className={cn(
-                    "relative z-10 h-[18px] w-[18px] transition-transform group-hover:scale-105",
-                    active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                  )}
-                  strokeWidth={active ? 2.3 : 1.8}
-                />
-                <span className="relative z-10">{item.label}</span>
+        {favorites.length > 0 && <div className="space-y-1"><p className="px-3 text-[10.5px] uppercase font-semibold text-muted-foreground">Ulubione</p>{favorites.map(href => { const item = ALL_NAV.find(i => i.href === href)!; return <Link key={href} href={href} onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-muted"><item.icon size={16} />{item.label}</Link>; })}</div>}
+        {NAV_GROUPS.map(group => <div className="space-y-0.5" key={group.label}>
+          <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">{group.label}</p>
+          {group.paths.map(href => {
+            const item = ALL_NAV.find(i => i.href === href)!;
+            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
+            return <div className="flex items-center group" key={href}>
+              <Link href={href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn("relative flex flex-1 min-w-0 min-h-[40px] items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-colors", active ? "text-primary font-semibold" : "text-muted-foreground hover:bg-muted/40 hover:text-foreground")}>
+                {active && <motion.span layoutId={navLayoutId} className="absolute inset-0 rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20" transition={{ type: "spring", duration: 0.35, bounce: 0.12 }} />}
+                <item.icon className="relative z-10 h-[18px] w-[18px] shrink-0" strokeWidth={active ? 2.3 : 1.8} /><span className="relative z-10">{item.label}</span>
               </Link>
-            );
+              <button disabled={!prefs.ready || prefs.saving} onClick={() => toggleFavorite(href)} aria-label={`${favorites.includes(href) ? "Usuń z" : "Dodaj do"} ulubionych: ${item.label}`} aria-pressed={favorites.includes(href)} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className={favorites.includes(href) ? "fill-amber-400 text-amber-500" : "text-muted-foreground/50"} /></button>
+            </div>;
           })}
-        </div>
-
-        <div className="space-y-0.5">
-          <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">
-            Integracje &amp; Ustawienia
-          </p>
-          {NAV_SETTINGS.map((item) => {
-            const active = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                prefetch={true}
-                onClick={onNavigate}
-                className={cn(
-                  "group relative flex min-h-[40px] items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-all active:scale-[0.98]",
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                )}
-              >
-                {active && (
-                  <motion.span
-                    layoutId={navLayoutId}
-                    className="absolute inset-0 rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20"
-                    transition={{ type: "spring", duration: 0.35, bounce: 0.12 }}
-                  />
-                )}
-                <item.icon
-                  className={cn(
-                    "relative z-10 h-[18px] w-[18px] transition-transform group-hover:scale-105",
-                    active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                  )}
-                  strokeWidth={active ? 2.3 : 1.8}
-                />
-                <span className="relative z-10">{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+        </div>)}
+        {prefs.error && <p role="alert" className="px-3 text-xs text-rose-500">{prefs.error}</p>}
 
         <div className="pt-2">
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3 shadow-2xs">
+          <div className="rounded-xl border border-border bg-muted/20 p-3 shadow-2xs">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-muted-foreground/30" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-muted-foreground/50" />
               </span>
               <span className="text-[11.5px] font-semibold text-foreground">
                 Integracje GUS i KSeF

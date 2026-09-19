@@ -45,3 +45,8 @@ test('review requires valid dates and explicit reconciled amounts, never guesses
   assert.throws(()=>reviewFields({...fields,totalNet:null}),/kwoty/);
   assert.throws(()=>reviewFields({...fields,issueDate:'2026-02-30'}),/datę/);
 });
+test('public portal excludes credentials and internal accounting metadata', () => {
+  const { portalDocument } = require('../../src/lib/portal-document.ts');
+  const dto = portalDocument({ number:'OF/1',totalGross:123,lines:[],version:2,userId:'secret-user',companyId:'secret-company',ksefXml:'private',publicToken:'secret-token',settlementMetadata:{internal:true} });
+  assert.deepEqual(dto,{number:'OF/1',version:2,totalGross:123,lines:[]});
+});

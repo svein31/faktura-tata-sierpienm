@@ -1,4 +1,4 @@
-import { offerAmounts } from "@/lib/offer-validation";
+import { validateOfferDates, offerAmounts } from "@/lib/offer-validation";
 import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     const notes = typeof body.notes === "string" ? body.notes.trim() : null;
     const lines = Array.isArray(body.lines) ? body.lines : [];
 
+    validateOfferDates(issueDate, validUntil, currency);
     const amounts = offerAmounts(lines);
     const publicToken = crypto.randomBytes(32).toString("hex");
 

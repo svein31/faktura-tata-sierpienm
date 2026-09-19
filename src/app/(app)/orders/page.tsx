@@ -46,11 +46,13 @@ export default function OrdersPage() {
   const toast = useToast();
   const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
   const [legacy, setLegacy] = React.useState(false);
+  React.useEffect(() => { setLegacy(false); }, [selectedCompanyId]);
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
   const scopeRef = React.useRef(scope);
   scopeRef.current = scope;
   React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
-  const { contractors } = useAppStore();
+  const { contractors: allContractors } = useAppStore();
+  const contractors = allContractors.filter(c => !c.companyId || c.companyId === scope);
 
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);

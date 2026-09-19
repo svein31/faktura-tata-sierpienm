@@ -1,3 +1,4 @@
+import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
@@ -27,11 +28,12 @@ export async function POST(
     if (!offer) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
     await requireDocumentWrite(user, offer);
 
+    const body = await readJson(req);
+    const target = body.target === "order" ? "order" : "invoice";
+    const invoiceData = target === "invoice" ? await conversionInvoiceData(user.id, offer, offer.lines as unknown[], `Wystawiono na podstawie oferty ${offer.number}. ${offer.notes || ""}`.trim()) : null;
     return await prisma.$transaction(async tx => {
     if (["converted", "rejected", "expired"].includes(offer.status)) throw new ApiError(409, "Oferta została już przekształcona, odrzucona lub wygasła.");
     await tx.offer.update({ where: { id: offer.id, version: offer.version, status: offer.status }, data: { status: "converted", version: { increment: 1 } } });
-    const body = await readJson(req);
-    const target = body.target === "order" ? "order" : "invoice";
 
     if (target === "order") {
       const orderCount = await tx.order.count({ where: { userId: user.id } });
@@ -68,35 +70,16 @@ export async function POST(
         data: { status: "converted", convertedOrderId: order.id },
       });
 
+      await recordAuditLog({ client: tx, companyId: offer.companyId, userId: user.id, entityType: "offer", entityId: offer.id, action: "offer.converted", details: { orderId: order.id } });
       return json({ success: true, target: "order", order: orderToDto(order) });
     } else {
       // Konwersja do faktury
-      const year = new Date().getFullYear();
-      const invoiceCount = await tx.invoice.count({ where: { userId: user.id, type: "sale" } });
-      const invoiceNumber = `FV/${year}/${(invoiceCount + 1).toString().padStart(4, "0")}`;
-      const today = new Date().toISOString().slice(0, 10);
-      const dueDate = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-
+      const invoiceNumber = await conversionNumber(tx, offer.companyId, user.id);
       const invoice = await tx.invoice.create({
         data: {
           userId: user.id,
-          sellerCompanyId: offer.companyId,
-          contractorId: offer.contractorId || "",
+          ...invoiceData!,
           number: invoiceNumber,
-          type: "sale",
-          status: "issued",
-          documentStatus: "issued",
-          paymentStatus: "unpaid",
-          issueDate: today,
-          saleDate: today,
-          dueDate,
-          currency: offer.currency,
-          language: "PL",
-          paymentMethod: "transfer",
-          paymentTermDays: 14,
-          notes: `Wystawiono na podstawie oferty ${offer.number}. ${offer.notes || ""}`.trim(),
-          totalNet: offer.totalNet, totalVat: offer.totalGross - offer.totalNet, totalGross: offer.totalGross,
-          lines: offer.lines as any,
           shareToken: crypto.randomBytes(16).toString("hex"),
         },
       });
@@ -106,6 +89,7 @@ export async function POST(
         data: { status: "converted" },
       });
 
+      await recordAuditLog({ client: tx, companyId: offer.companyId, userId: user.id, entityType: "offer", entityId: offer.id, action: "offer.converted", details: { invoiceId: invoice.id } });
       return json({ success: true, target: "invoice", invoice: invoiceToDto(invoice) });
     }
     });

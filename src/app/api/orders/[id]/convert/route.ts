@@ -1,3 +1,5 @@
+import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
+import { offerAmounts } from "@/lib/offer-validation";
 import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
@@ -27,46 +29,23 @@ export async function POST(
     if (!order) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
     await requireDocumentWrite(user, order);
 
+    let lines: unknown[] = [{ id: "order", name: order.title, quantity: 1, unit: "usł.", netPrice: order.totalNet, vatRate: "23" }];
+    if (order.offerId) {
+      const source = await prisma.offer.findFirst({ where: { id: order.offerId, companyId: order.companyId, ...(!order.companyId ? { userId: user.id } : {}) } });
+      if (source && Array.isArray(source.lines)) lines = source.lines;
+    }
+    const totals = offerAmounts(lines);
+    if (Math.abs(totals.totalNet - order.totalNet) > 0.011 || Math.abs(totals.totalGross - order.totalGross) > 0.011) throw new ApiError(400, "Kwoty zlecenia nie odpowiadają pozycjom i stawkom VAT. Wystaw fakturę w formularzu z właściwymi stawkami.");
+    const invoiceData = await conversionInvoiceData(user.id, order, lines, `Rozliczenie zlecenia ${order.number}: ${order.title}. ${order.notes || ""}`.trim());
     return await prisma.$transaction(async tx => {
     if (order.billedInvoiceId || order.status === "cancelled") throw new ApiError(409, "Zlecenie jest już rozliczone lub anulowane.");
     await tx.order.update({ where: { id: order.id, updatedAt: order.updatedAt }, data: { status: "completed" } });
-    const year = new Date().getFullYear();
-    const invoiceCount = await tx.invoice.count({ where: { userId: user.id, type: "sale" } });
-    const invoiceNumber = `FV/${year}/${(invoiceCount + 1).toString().padStart(4, "0")}`;
-    const today = new Date().toISOString().slice(0, 10);
-    const dueDate = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
-
-    const invoiceLines = [
-      {
-        id: `line_${Date.now()}`,
-        name: order.title,
-        quantity: 1,
-        unit: "usł.",
-        netPrice: order.totalNet || Math.round((order.totalGross / 1.23) * 100) / 100,
-        vatRate: "23",
-      },
-    ];
-
+    const invoiceNumber = await conversionNumber(tx, order.companyId, user.id);
     const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
-          sellerCompanyId: order.companyId,
-        contractorId: order.contractorId || "",
+        ...invoiceData,
         number: invoiceNumber,
-        type: "sale",
-        status: "issued",
-        documentStatus: "issued",
-        paymentStatus: "unpaid",
-        issueDate: today,
-        saleDate: today,
-        dueDate,
-        currency: order.currency,
-        language: "PL",
-        paymentMethod: "transfer",
-        paymentTermDays: 14,
-        notes: `Rozliczenie zlecenia ${order.number}: ${order.title}. ${order.notes || ""}`.trim(),
-        totalNet: order.totalNet, totalVat: order.totalGross - order.totalNet, totalGross: order.totalGross,
-        lines: invoiceLines as any,
         shareToken: crypto.randomBytes(16).toString("hex"),
       },
     });

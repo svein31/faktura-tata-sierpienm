@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ApiError } from "@/lib/api";
-import { accessibleCompanyIds, objectId } from "@/lib/company-scope";
+import { accessibleCompanyIds, contractorForCompany, objectId } from "@/lib/company-scope";
 import { requireCompanyAccess } from "@/lib/permissions";
 import type { CompanyPermissions } from "@/lib/types";
 
@@ -39,7 +39,7 @@ export async function scopedContractor(userId: string, id: string, companyId: st
   if (!objectId(id)) throw new ApiError(400, "Wybierz kontrahenta.");
   const contact = await prisma.contractor.findUnique({ where: { id } });
   // Legacy contacts remain usable by their owner; company contacts never cross scopes.
-  if (!contact || (contact.companyId ? contact.companyId !== companyId : contact.userId !== userId)) {
+  if (!contact || !await contractorForCompany(userId, id, companyId)) {
     throw new ApiError(400, "Kontrahent nie należy do wybranej firmy.");
   }
   return contact;

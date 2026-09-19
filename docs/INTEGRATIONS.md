@@ -13,3 +13,14 @@ Nagłówki: `X-Fakturo-Event` stabilny identyfikator, `X-Fakturo-Timestamp` Unix
 Wyłączenie endpointu zatrzymuje kolejne dostarczenia; żądanie już wysyłane może się zakończyć. Przed rollbackiem wyłączyć scheduler i endpointy; migracja down usuwa wyłącznie utworzone indeksy, zachowuje klucze, zaszyfrowane sekrety i dziennik dostarczeń. Klucza szyfrowania nie usuwać przy rollbacku.
 
 Ręcznie: utworzenie/unieważnienie klucza, faktura innej firmy, odebranie roli, limit, odbiorca 2xx/500/timeout, weryfikacja HMAC i deduplikacja, próba URL prywatnego/redirect, wyłączenie webhooka. Testy automatyczne nie wysyłają wiadomości na publiczne endpointy.
+
+
+## Zakresy odczytu (przestrzeń dokumentów)
+
+Nowe klucze mogą otrzymać `ksef:read`, `documents:read` i `catalogs:read`. Wybór jest jawny przy tworzeniu klucza w ustawieniach. Brak pola scopes w starym kluczu oznacza tylko `ksef:read`; wdrożenie nie rozszerza jego dostępu.
+
+- `GET /api/v1/documents?id=...` albo `?cursor=...`: dane faktur firmy, 50 rekordów, `nextCursor` lub null. Bez tokenów portalu, XML, UPO i wewnętrznych danych audytu.
+- `GET /api/v1/catalogs?kind=products|contractors&cursor=...`: wyłącznie katalog jawnie przypisany do firmy klucza. Historyczne rekordy bez firmy są pomijane.
+- Wszystkie endpointy wymagają `Authorization: Bearer fkt_...`, sprawdzają aktualną rolę właściciela i dzielą istniejący limit 120 żądań na minutę dla klucza. Brak zakresu: 403; nieważny klucz: 401.
+
+API dokumentów i katalogów w tym wydaniu służy do odczytu. Nie tworzy faktur ani kosztów i nie udostępnia operacji bankowych.

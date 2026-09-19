@@ -186,11 +186,12 @@ export default async function LandingPage() {
               </div>
             </div>
 
+            <p className="mb-3 text-xs text-muted-foreground">Przykładowy dokument demonstracyjny. Widoczne dane i statusy są ilustracją.</p>
             {/* Dane kontrahentów */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
               <div>
                 <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Sprzedawca</p>
-                <p className="mt-1 font-bold text-foreground text-sm">FakturaProsto Sp. z o.o.</p>
+                <p className="mt-1 font-bold text-foreground text-sm">Przykładowa Firma Sp. z o.o.</p>
                 <p className="text-muted-foreground">NIP: 5260301706 · ul. Przykładowa 10, 00-001 Warszawa</p>
                 <p className="text-muted-foreground mt-0.5">Rachunek: 12 1050 0099 6711 1111 1111 1111</p>
               </div>
@@ -325,8 +326,8 @@ export default async function LandingPage() {
               </div>
               <h3 className="text-base font-semibold text-foreground">Dostęp dla Księgowej i Eksporty</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Bezpieczne role (Właściciel, Księgowa) z prawami do podglądu i eksportu paczek ZIP
-                (XML, PDF, UPO, zestawienie CSV/XLSX) bez ryzyka modyfikacji.
+                Role właściciela i księgowej, podgląd dokumentów, zestawienia CSV i eksport JPK.
+                Faktury zakupowe pozostają chronione przed edycją.
               </p>
             </div>
 
@@ -443,3 +444,4 @@ export default async function LandingPage() {
     </div>
   );
 }
+

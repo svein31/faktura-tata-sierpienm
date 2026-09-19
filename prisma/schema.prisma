@@ -1561,6 +1561,7 @@ model RecurringOccurrence {
 }
 
 model PublicApiKey {
+  scopes Json?
   id String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   companyId String @db.ObjectId

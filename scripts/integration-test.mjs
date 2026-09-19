@@ -84,6 +84,12 @@ try {
   await migrateData(migrationDb, 'up', '005-due-reminders');
   console.log('[integration] PASS migrations up/up/down/up preserve business data');
   console.log('[integration] Initializing test database');
+  await migrateData(migrationDb,'up','007-document-workspace');
+  await migrateData(migrationDb,'up','007-document-workspace');
+  await migrationDb.collection('ExpenseScan').insertOne({companyId:fixtureCompany,fileName:'preserved.pdf'});
+  await migrateData(migrationDb,'down','007-document-workspace');
+  assert.equal(await migrationDb.collection('ExpenseScan').countDocuments(),1);
+  await migrateData(migrationDb,'up','007-document-workspace');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
@@ -374,6 +380,16 @@ try {
   const monthly = await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,a.cookie);
   assert.equal(monthly.res.status,200,JSON.stringify(monthly.data)); assert.equal(monthly.data.summary.salesNet,100); assert.equal(monthly.data.summary.expenseNet,50);
   assert.equal((await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,b.cookie)).res.status,403);
+  const scopedKey = await api('POST','/api/integrations',{companyId,action:'createKey',name:'Documents reader',scopes:['documents:read']},a.cookie);
+  assert.equal(scopedKey.res.status,200);
+  const docHeaders = {Authorization:`Bearer ${scopedKey.data.token}`};
+  const documentApi = await api('GET','/api/v1/documents',undefined,undefined,docHeaders);
+  assert.equal(documentApi.res.status,200); assert.ok(documentApi.data.data.some(i=>i.id===invoiceId));
+  assert.ok(!JSON.stringify(documentApi.data).includes('shareToken'));
+  assert.equal((await api('GET','/api/v1/ksef/statuses',undefined,undefined,docHeaders)).res.status,403);
+  assert.equal((await api('GET','/api/v1/catalogs',undefined,undefined,docHeaders)).res.status,403);
+  assert.equal((await api('GET',`/api/workspace/health?companyId=${companyId}`,undefined,a.cookie)).res.status,200);
+  assert.equal((await api('GET',`/api/workspace/health?companyId=${companyId}`,undefined,b.cookie)).res.status,403);
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {

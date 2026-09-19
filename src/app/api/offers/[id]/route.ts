@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { offerAmounts, assertOfferVersion } from "@/lib/offer-validation";
+import { validateOfferDates, offerAmounts, assertOfferVersion } from "@/lib/offer-validation";
 import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -58,6 +58,7 @@ export async function PUT(
 
     assertOfferVersion(existing.version, body.version);
     if (["accepted", "rejected", "converted"].includes(existing.status)) throw new ApiError(409, "Zapisana decyzja blokuje edycję tej wersji oferty. Utwórz nową ofertę.");
+    validateOfferDates(issueDate, validUntil, currency);
     const amounts = offerAmounts(lines);
     const updated = await prisma.offer.update({
       where: { id, version: existing.version, status: existing.status },

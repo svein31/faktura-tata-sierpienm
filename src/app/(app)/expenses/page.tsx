@@ -53,6 +53,7 @@ export default function ExpensesPage() {
   const toast = useToast();
   const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
   const [legacy, setLegacy] = React.useState(false);
+  React.useEffect(() => { setLegacy(false); }, [selectedCompanyId]);
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
   const scopeRef = React.useRef(scope);
   scopeRef.current = scope;

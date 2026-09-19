@@ -1,7 +1,7 @@
 import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { orderToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -49,6 +49,7 @@ export async function POST(req: Request) {
     const stages = Array.isArray(body.stages) ? body.stages : [];
     const offerId = typeof body.offerId === "string" && body.offerId ? body.offerId : null;
 
+    if (offerId && !await prisma.offer.findFirst({ where: { id: offerId, companyId, ...(!companyId ? { userId: user.id } : {}) } })) throw new ApiError(400, "Oferta nie należy do wybranej firmy.");
     const order = await prisma.order.create({
       data: {
         userId: user.id,

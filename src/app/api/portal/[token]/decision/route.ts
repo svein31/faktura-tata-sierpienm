@@ -1,3 +1,4 @@
+import { portalDocument } from "@/lib/portal-document";
 import { prisma } from "@/lib/db";
 import { ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { assertOfferVersion, offerCanBeDecided } from "@/lib/offer-validation";
@@ -23,6 +24,6 @@ export async function POST(req: Request, context: { params: Promise<{ token: str
       await recordAuditLog({ client: tx, companyId: existing.companyId, userName: name, action: `offer.${decision}`, entityType: "offer", entityId: existing.id, details: { version: existing.version, name, note, snapshot: { number: existing.number, title: existing.title, lines: existing.lines, currency: existing.currency, totalNet: existing.totalNet, totalVat: existing.totalVat, totalGross: existing.totalGross, validUntil: existing.validUntil } } });
       return updated;
     });
-    return json({ offer: offerToDto(offer) });
+    return json({ offer: portalDocument({ ...offerToDto(offer) }) });
   } catch (e) { return handleApiError(e); }
 }

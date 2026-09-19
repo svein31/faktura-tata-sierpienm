@@ -8,12 +8,15 @@ export async function requireIntegrationOwner(userId: string, companyId: string)
   if (membership?.role !== "owner") throw new ApiError(403, "Integracje może zarządzać wyłącznie właściciel firmy.");
   return membership;
 }
-export async function authenticatePublicApi(req: Request) {
+export const PUBLIC_API_SCOPES = ["ksef:read", "documents:read", "catalogs:read"] as const;
+export async function authenticatePublicApi(req: Request, requiredScope: typeof PUBLIC_API_SCOPES[number] = "ksef:read") {
   const match = /^Bearer (fkt_[a-f0-9]{64})$/.exec(req.headers.get("authorization") || "");
   if (!match) throw new ApiError(401, "Wymagany klucz API Bearer.");
   const key = await prisma.publicApiKey.findUnique({ where: { tokenHash: tokenHash(match[1]) } });
   if (!key || key.revoked) throw new ApiError(401, "Nieprawidłowy klucz API.");
   await requireIntegrationOwner(key.userId, key.companyId);
+  const scopes = Array.isArray(key.scopes) ? key.scopes : ["ksef:read"];
+  if (!scopes.includes(requiredScope)) throw new ApiError(403, "Klucz nie ma wymaganego zakresu dostępu.");
   const windowStart = new Date(Math.floor(Date.now() / 60000) * 60000);
   await prisma.publicApiKey.updateMany({ where: { id: key.id, windowStart: { lt: windowStart } }, data: { windowStart, requests: 0 } });
   const claim = await prisma.publicApiKey.updateMany({ where: { id: key.id, revoked: false, requests: { lt: 120 } }, data: { requests: { increment: 1 } } });
@@ -21,3 +24,4 @@ export async function authenticatePublicApi(req: Request) {
   return key;
 }
 export const statusSelect = { id: true, number: true, sellerCompanyId: true, ksefStatus: true, ksefNumber: true, referenceNumber: true, updatedAt: true } as const;
+

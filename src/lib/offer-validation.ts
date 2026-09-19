@@ -25,3 +25,8 @@ export function assertOfferVersion(actual: number, expected: unknown) {
 export function offerCanBeDecided(offer: { status: string; validUntil: string }, now = new Date()) {
   return offer.status === "sent" && isIsoCalendarDate(offer.validUntil) && offer.validUntil >= warsawDate(now);
 }
+
+export function validateOfferDates(issueDate: string, validUntil: string, currency: string) {
+  if (!isIsoCalendarDate(issueDate) || !isIsoCalendarDate(validUntil) || validUntil < issueDate) throw new ApiError(400, "Sprawdź datę wystawienia i ważności oferty.");
+  if (!["PLN", "EUR", "USD", "GBP", "CHF", "CZK"].includes(currency)) throw new ApiError(400, "Nieobsługiwana waluta oferty.");
+}

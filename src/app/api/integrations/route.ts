@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
-import { requireIntegrationOwner } from "@/lib/public-api";
+import { requireIntegrationOwner, PUBLIC_API_SCOPES } from "@/lib/public-api";
 import { sealWebhook, tokenHash, webhookUrl } from "@/lib/integration-security";
 import { recordAuditLog } from "@/lib/audit";
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   try {
     const { companyId } = await access(new URL(req.url).searchParams.get("companyId"));
     const [keys, webhooks] = await Promise.all([
-      prisma.publicApiKey.findMany({ where: { companyId }, select: { id: true, name: true, prefix: true, revoked: true, createdAt: true } }),
+      prisma.publicApiKey.findMany({ where: { companyId }, select: { id: true, name: true, prefix: true, scopes: true, revoked: true, createdAt: true } }),
       prisma.statusWebhook.findMany({ where: { companyId }, select: { id: true, url: true, active: true, createdAt: true } }),
     ]);
     const deliveries = await prisma.webhookDelivery.findMany({ where: { webhookId: { in: webhooks.map(w => w.id) } }, select: { id: true, webhookId: true, status: true, attempts: true, lastError: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 30 });
@@ -31,8 +31,10 @@ export async function POST(req: Request) {
       if (body.action === "createKey") {
         const name = cleanStr(body.name, 80, "name"); if (!name) throw new ApiError(400, "Podaj nazwę klucza.");
         if (await tx.publicApiKey.count({ where: { companyId, revoked: false } }) >= 10) throw new ApiError(400, "Limit 10 aktywnych kluczy.");
+        const scopes = body.scopes === undefined ? ["ksef:read"] : body.scopes;
+        if (!Array.isArray(scopes) || !scopes.length || scopes.some(s => !PUBLIC_API_SCOPES.includes(s as typeof PUBLIC_API_SCOPES[number]))) throw new ApiError(400, "Wybierz poprawne zakresy klucza.");
         const token = `fkt_${randomBytes(32).toString("hex")}`;
-        const key = await tx.publicApiKey.create({ data: { companyId, userId: user.id, name, tokenHash: tokenHash(token), prefix: token.slice(0,12) } });
+        const key = await tx.publicApiKey.create({ data: { companyId, userId: user.id, name, scopes: [...new Set(scopes)], tokenHash: tokenHash(token), prefix: token.slice(0,12) } });
         result = { id: key.id, token };
       } else if (body.action === "createWebhook") {
         if (await tx.statusWebhook.count({ where: { companyId, active: true } }) >= 10) throw new ApiError(400, "Limit 10 aktywnych webhooków.");
@@ -51,3 +53,4 @@ export async function POST(req: Request) {
     return json(result);
   } catch (e) { return handleApiError(e); }
 }
+

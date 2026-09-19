@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   description:
     "Fintech-grade platforma do wystawiania polskich faktur VAT, integracji z Krajowym Systemem e-Faktur (KSeF) i bazą GUS BIR.",
   icons: { icon: "/icon.svg" },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -57,3 +58,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

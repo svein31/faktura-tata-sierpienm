@@ -1,3 +1,4 @@
+import { portalDocument } from "@/lib/portal-document";
 import { prisma } from "@/lib/db";
 import { json, handleApiError } from "@/lib/api";
 import { invoiceToDto, offerToDto } from "@/lib/dto";
@@ -45,7 +46,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
       return json({
         type: "invoice",
-        document: invoiceToDto(invoice),
+        document: portalDocument({ ...invoiceToDto(invoice) }),
         seller: {
           name: sellerName,
           nip: sellerNip,
@@ -78,7 +79,7 @@ export async function GET(_req: Request, context: RouteContext) {
       const profile = offer.companyId ? await prisma.companyProfile.findUnique({ where: { id: offer.companyId } }) : null;
       return json({
         type: "offer",
-        document: offerToDto(offer),
+        document: portalDocument({ ...offerToDto(offer) }),
         seller: {
           name: profile?.companyName || companySettings?.name || "Wystawca",
           nip: profile?.nip || companySettings?.nip || "",

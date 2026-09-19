@@ -11,7 +11,9 @@ export async function GET(req: Request) {
     const url = new URL(req.url), companyId = await inboxAccess(user.id, url.searchParams.get("companyId"));
     const cursor = url.searchParams.get("cursor"), search = (url.searchParams.get("search") || "").slice(0, 100);
     if (cursor && !objectId(cursor)) throw new ApiError(400, "Nieprawidłowy kursor.");
-    const rows = await prisma.expenseScan.findMany({ where: { companyId, ...(search ? { fileName: { contains: search, mode: "insensitive" } } : {}), ...(cursor ? { id: { lt: cursor } } : {}) }, orderBy: { id: "desc" }, take: 31, select: { id: true, fileName: true, mimeType: true, sizeBytes: true, status: true, createdAt: true, expenseId: true, version: true, errorMessage: true } });
+    const anchor = cursor ? await prisma.expenseScan.findFirst({ where: { id: cursor, companyId }, select: { id: true, createdAt: true } }) : null;
+    if (cursor && !anchor) throw new ApiError(400, "Odśwież listę dokumentów.");
+    const rows = await prisma.expenseScan.findMany({ where: { companyId, ...(search ? { fileName: { contains: search, mode: "insensitive" } } : {}), ...(anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { lt: anchor.id } }] } : {}) }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 31, select: { id: true, fileName: true, mimeType: true, sizeBytes: true, status: true, createdAt: true, expenseId: true, version: true, errorMessage: true } });
     return json({ documents: rows.slice(0,30), nextCursor: rows.length > 30 ? rows[29].id : null, ocrAvailable: Boolean(process.env.OCR_SPACE_API_KEY) });
   } catch (e) { return handleApiError(e); }
 }

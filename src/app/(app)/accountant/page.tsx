@@ -112,15 +112,17 @@ export default function AccountantPage() {
   }, [currentMonth, selectedCompanyId, currency]);
 
   const fetchInvitations = React.useCallback(async () => {
+    setInvitations([]);
+    if (!selectedCompanyId) return;
     try {
-      const res = await fetch("/api/team");
+      const res = await fetch(`/api/team?companyId=${selectedCompanyId || ""}`);
       if (!res.ok) return;
       const data = await res.json();
-      setInvitations(data.invitations || []);
+      if (useAppStore.getState().selectedCompanyId === selectedCompanyId) setInvitations(data.invitations || []);
     } catch {
       // ignore
     }
-  }, []);
+  }, [selectedCompanyId]);
 
   React.useEffect(() => {
     fetchMonthData();
@@ -145,7 +147,7 @@ export default function AccountantPage() {
       const res = await fetch("/api/team", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+        body: JSON.stringify({ companyId: selectedCompanyId, email: inviteEmail.trim(), role: inviteRole }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -163,7 +165,7 @@ export default function AccountantPage() {
 
   const handleDeleteInvite = async (id: string) => {
     try {
-      const res = await fetch(`/api/team?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/team/invitations/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Błąd usuwania");
       toast("success", "Odwołano zaproszenie");
       setInvitations((prev) => prev.filter((i) => i.id !== id));

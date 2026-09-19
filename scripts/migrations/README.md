@@ -28,3 +28,6 @@ Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin 
 - `005-due-reminders`: indeksy konfiguracji i dziennika wiadomości. Down po wyłączeniu crona; dane pozostają.
 
 - `006-invoice-settlements`: indeksy ledgeru `InvoiceSettlement` (dokument źródłowy, faktura, idempotencyjny request oraz pojedyncza faktura końcowa). Migracja nie usuwa proform, faktur zaliczkowych ani końcowych; `down` usuwa wyłącznie indeksy utworzone przez `up`. Przed rollbackiem wyłączyć moduł rozliczeń, a po ponownym `up` zweryfikować unikalność `requestKey` i `finalKey`.
+
+
+- `007-document-workspace`: indeksy firmy/dat dla Offer, Order, Expense i ExpenseScan. Nie przypisuje starych rekordów do firm. Up/down zachowują oryginały i dane biznesowe. Preferencje użytkownika i zakresy kluczy są opcjonalnymi polami bez wymaganej migracji danych.
