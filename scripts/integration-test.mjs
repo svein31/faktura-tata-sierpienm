@@ -390,6 +390,47 @@ try {
   assert.equal((await api('GET','/api/v1/catalogs',undefined,undefined,docHeaders)).res.status,403);
   assert.equal((await api('GET',`/api/workspace/health?companyId=${companyId}`,undefined,a.cookie)).res.status,200);
   assert.equal((await api('GET',`/api/workspace/health?companyId=${companyId}`,undefined,b.cookie)).res.status,403);
+  // Warehouse overview: pure reads, tenant isolation, keyset pagination and membership revocation.
+  const warehouseCount = await db.warehouse.count();
+  assert.equal((await api('GET', '/api/warehouse/overview?companyId=legacy', undefined, a.cookie)).res.status, 200);
+  assert.equal(await db.warehouse.count(), warehouseCount, 'GET must not create a default warehouse');
+  assert.equal((await api('GET', `/api/warehouse/overview?companyId=${companyId}`, undefined)).res.status, 401);
+  assert.equal((await api('GET', '/api/warehouse/overview', undefined, a.cookie)).res.status, 400);
+  const wa = await db.warehouse.create({ data: { userId: a.data.user.id, companyId, name: 'Firmowy A', code: 'TEST-A' } });
+  const wb = await db.warehouse.create({ data: { userId: a.data.user.id, companyId: company2.data.company.id, name: 'Prywatny B', code: 'TEST-B' } });
+  const wl = await db.warehouse.create({ data: { userId: a.data.user.id, name: 'Historyczny', code: 'TEST-LEGACY' } });
+  await db.stockItem.createMany({ data: Array.from({ length: 35 }, (_, i) => ({ userId: a.data.user.id, warehouseId: wa.id, sku: `SKU-${i}`, name: `Towar ${i}`, quantity: i, minQuantity: 2, reserved: 1 })) });
+  await db.stockItem.create({ data: { userId: a.data.user.id, warehouseId: wb.id, sku: 'SECRET', name: 'Private company' } });
+  await db.stockItem.create({ data: { userId: a.data.user.id, warehouseId: wl.id, sku: 'LEGACY', name: 'Archive' } });
+  const inventoryPath = `/api/warehouse/overview?companyId=${companyId}`;
+  const stockPage = await api('GET', inventoryPath, undefined, a.cookie);
+  assert.equal(stockPage.res.status, 200, JSON.stringify(stockPage.data));
+  assert.equal(stockPage.data.total, 35); assert.equal(stockPage.data.rows.length, 30); assert.ok(stockPage.data.nextCursor);
+  const stockNext = await api('GET', `${inventoryPath}&cursor=${stockPage.data.nextCursor}`, undefined, a.cookie);
+  assert.equal(stockNext.data.rows.length, 5); assert.equal(stockNext.data.nextCursor, null);
+  assert.equal(new Set([...stockPage.data.rows, ...stockNext.data.rows].map(i => i.id)).size, 35);
+  assert.equal((await api('GET', `${inventoryPath}&lowOnly=true`, undefined, a.cookie)).data.total, 3);
+  assert.equal((await api('GET', `${inventoryPath}&search=Towar%2034`, undefined, a.cookie)).data.total, 1);
+  assert.equal((await api('GET', `${inventoryPath}&warehouseId=${wb.id}`, undefined, a.cookie)).res.status, 404);
+  assert.equal((await api('GET', `${inventoryPath}&warehouseId=invalid`, undefined, a.cookie)).res.status, 400);
+  const archive = await api('GET', '/api/warehouse/overview?companyId=legacy', undefined, a.cookie);
+  assert.deepEqual(archive.data.rows.map(r => r.sku), ['LEGACY']);
+  const warehouseDocument = await db.stockDocument.create({ data: { userId: a.data.user.id, warehouseId: wa.id, number: 'PZ/WMS/1', type: 'PZ', direction: 'in', issueDate: '2026-09-19', targetWarehouseId: wb.id, targetWarehouseName: 'Private target', lines: [{ productId: 'private-id', name: 'Towar', sku: 'SKU-0', quantity: 1, unit: 'szt.' }] } });
+  const stockItem = stockPage.data.rows[0];
+  await db.stockMovement.create({ data: { userId: a.data.user.id, warehouseId: wa.id, stockItemId: stockItem.id, documentId: warehouseDocument.id, sku: stockItem.sku, name: stockItem.name, quantityChange: 2, quantityBefore: 0, quantityAfter: 2, unitPriceNet: 12, valueNet: 24 } });
+  const documentView = await api('GET', `${inventoryPath}&view=documents`, undefined, a.cookie);
+  assert.equal(documentView.data.rows[0].number, 'PZ/WMS/1');
+  assert.ok(!JSON.stringify(documentView.data).includes('private-id'));
+  assert.ok(!JSON.stringify(documentView.data).includes('Private target'));
+  assert.equal((await api('GET', `${inventoryPath}&view=movements&itemId=${stockItem.id}`, undefined, a.cookie)).data.total, 1);
+  assert.equal((await api('GET', `${inventoryPath}&view=movements&itemId=${wb.id}`, undefined, a.cookie)).res.status, 404);
+  await db.companyMember.create({ data: { companyId, userId: b.data.user.id, role: 'viewer' } });
+  assert.equal((await api('GET', inventoryPath, undefined, b.cookie)).data.total, 35);
+  assert.equal((await api('GET', `/api/warehouse/overview?companyId=${company2.data.company.id}`, undefined, b.cookie)).res.status, 403);
+  assert.equal((await api('GET', '/api/warehouse/overview?companyId=legacy', undefined, b.cookie)).data.total, 0);
+  await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
+  assert.equal((await api('GET', inventoryPath, undefined, b.cookie)).res.status, 403);
+  console.log('PASS: warehouse read isolation, pagination, low-stock filtering and revocation');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {
@@ -397,4 +438,3 @@ finally {
   for(const socket of smtpSockets) socket.destroy(); smtp.close();
   await db.$disconnect(); await mongoClient.close(); await mongo.stop();
 }
-

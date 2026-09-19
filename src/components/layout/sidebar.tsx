@@ -44,6 +44,7 @@ const NAV_MAIN = [
   { href: "/calendar", label: "Terminarz płatności", icon: Calendar },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
   { href: "/products", label: "Produkty / Usługi", icon: Package },
+  { href: "/warehouse", label: "Magazyn", icon: Package },
   { href: "/analytics", label: "Analityka", icon: BarChart3 },
 ];
 
@@ -66,7 +67,7 @@ const NAV_GROUPS = [
   { label: "Start", paths: ["/dashboard"] },
   { label: "Sprzedaż", paths: ["/invoices", "/advances", "/recurring", "/offers"] },
   { label: "Zakupy", paths: ["/documents", "/expenses"] },
-  { label: "Klienci i praca", paths: ["/orders", "/contractors", "/products"] },
+  { label: "Klienci i praca", paths: ["/orders", "/contractors", "/products", "/warehouse"] },
   { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
   { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/currencies", "/settings/account", "/help"] },
 ];
@@ -224,5 +225,4 @@ export function MobileSidebar({
     </AnimatePresence>
   );
 }
-
 

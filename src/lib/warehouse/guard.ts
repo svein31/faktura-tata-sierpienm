@@ -20,7 +20,7 @@ const READ_ONLY_ROLES = new Set<CompanyRole>(
 );
 
 export function normalizeRole(role: unknown): CompanyRole {
-  return ROLES.includes(role as CompanyRole) ? (role as CompanyRole) : "owner";
+  return ROLES.includes(role as CompanyRole) ? (role as CompanyRole) : "viewer";
 }
 
 /** true, gdy użytkownik może tworzyć / anulować dokumenty magazynowe i prowadzić remanent. */
