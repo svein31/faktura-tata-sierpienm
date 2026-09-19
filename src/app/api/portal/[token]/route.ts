@@ -70,20 +70,21 @@ export async function GET(_req: Request, context: RouteContext) {
       where: { publicToken: token },
     });
 
-    if (offer) {
+    if (offer && ["sent", "accepted", "rejected", "converted"].includes(offer.status)) {
       const companySettings = await prisma.companySettings.findUnique({
         where: { userId: offer.userId },
       });
 
+      const profile = offer.companyId ? await prisma.companyProfile.findUnique({ where: { id: offer.companyId } }) : null;
       return json({
         type: "offer",
         document: offerToDto(offer),
         seller: {
-          name: companySettings?.name || "Wystawca",
-          nip: companySettings?.nip || "",
-          street: companySettings?.street || "",
-          city: companySettings?.city || "",
-          postal: companySettings?.postal || "",
+          name: profile?.companyName || companySettings?.name || "Wystawca",
+          nip: profile?.nip || companySettings?.nip || "",
+          street: profile?.street || companySettings?.street || "",
+          city: profile?.city || companySettings?.city || "",
+          postal: profile?.postalCode || companySettings?.postal || "",
           iban: companySettings?.iban || "",
           bankName: companySettings?.bankName || "",
         },
@@ -102,3 +103,4 @@ export async function GET(_req: Request, context: RouteContext) {
     return handleApiError(e);
   }
 }
+

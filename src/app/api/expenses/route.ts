@@ -1,3 +1,4 @@
+import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const expenses = await prisma.expense.findMany({
-      where: { userId: user.id },
+      where: await documentWhere(user.id, new URL(req.url).searchParams.get("companyId")),
       orderBy: { issueDate: "desc" },
     });
 
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const body = await readJson(req);
+    const companyId = await newDocumentCompany(user, body.companyId);
     const contractorName = String(body.contractorName || "").trim();
     if (!contractorName) {
       return json({ error: "Podaj nazwę sprzedawcy / wystawcy kosztu." }, { status: 400 });
@@ -51,6 +53,7 @@ export async function POST(req: Request) {
     const expense = await prisma.expense.create({
       data: {
         userId: user.id,
+        companyId,
         number,
         contractorName,
         nip,
@@ -76,3 +79,4 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
+

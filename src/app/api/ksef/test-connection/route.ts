@@ -3,6 +3,9 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { KsefClient, type KsefEnvironment } from "@/lib/ksef/index";
 
+import { requireCompanyAccess } from "@/lib/permissions";
+import { objectId } from "@/lib/company-scope";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -17,44 +20,20 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const session = await getSessionUser();
-    const body = ((await readJson(req).catch(() => ({}))) || {}) as Record<string, unknown>;
-
-    const envInput = (
-      str(body.environment) ||
-      process.env.KSEF_ENV ||
-      process.env.KSEF_ENVIRONMENT ||
-      "test"
-    ).toLowerCase();
-
-    const environment: KsefEnvironment =
-      envInput === "production" ? "production" : envInput === "demo" ? "demo" : "test";
-
-    // Ustal NIP
-    let nip = str(body.nip).replace(/\D/g, "").trim();
-    if (!nip && session) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: session.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-      if (comp?.nip) nip = comp.nip.replace(/\D/g, "").trim();
-
-      if (!nip) {
-        const legacy = await prisma.companySettings.findUnique({ where: { userId: session.id } });
-        if (legacy?.nip) nip = legacy.nip.replace(/\D/g, "").trim();
-      }
-    }
-    if (!nip) nip = (process.env.KSEF_NIP || "5260301706").replace(/\D/g, "").trim();
-
-    // Ustal token KSeF
-    let token = str(body.token).trim();
-    if (!token && session) {
-      const comp = await prisma.companyProfile.findFirst({
-        where: { userId: session.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-      if (comp?.ksefToken) token = comp.ksefToken.trim();
-    }
-    if (!token) token = (process.env.KSEF_TOKEN || "").trim();
+    if (!session) throw new ApiError(401, "Zaloguj się, aby sprawdzić połączenie.");
+    const body = await readJson(req);
+    const companyId = str(body.companyId);
+    if (!objectId(companyId)) throw new ApiError(400, "Wybierz firmę do testu połączenia.");
+    const access = await requireCompanyAccess(session.id, companyId, body.gatewayOnly === true ? undefined : "canSendKsef");
+    if (!access.ok) throw new ApiError(access.status, access.error);
+    const company = await prisma.companyProfile.findUniqueOrThrow({ where: { id: companyId } });
+    const settings = await prisma.ksefSettings.findUnique({ where: { userId: company.userId } });
+    const envInput = str(body.environment) || settings?.environment || "test";
+    if (!["production", "demo", "test"].includes(envInput)) throw new ApiError(400, "Nieprawidłowe środowisko KSeF.");
+    const environment = envInput as KsefEnvironment;
+    const nip = company.nip.replace(/\D/g, "");
+    // Stored tokens belong to one environment and must never be tried elsewhere.
+    const token = body.gatewayOnly === true ? "" : str(body.token).trim() || (settings?.environment === environment ? company.ksefToken?.trim() || "" : "");
 
     const client = new KsefClient({ environment });
     const connectivity = await client.testConnectivity();
@@ -127,7 +106,7 @@ export async function POST(req: Request) {
       challenge: connectivity.challenge,
       nip,
       hasToken: Boolean(token),
-      tokenMask: token ? `••••${token.slice(-4)}` : null,
+
       certificates: {
         tokenKeyId: certs.tokenEncryption.publicKeyId,
         symmetricKeyId: certs.symmetricKeyEncryption.publicKeyId,
@@ -141,3 +120,4 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
+

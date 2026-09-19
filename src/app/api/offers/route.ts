@@ -1,3 +1,5 @@
+import { offerAmounts } from "@/lib/offer-validation";
+import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -12,7 +14,7 @@ export async function GET(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const offers = await prisma.offer.findMany({
-      where: { userId: user.id },
+      where: await documentWhere(user.id, new URL(req.url).searchParams.get("companyId")),
       orderBy: { createdAt: "desc" },
     });
 
@@ -28,44 +30,30 @@ export async function POST(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const body = await readJson(req);
+    const companyId = await newDocumentCompany(user, body.companyId);
     const contractorId = String(body.contractorId || "").trim();
     if (!contractorId) {
       return json({ error: "Wybierz kontrahenta dla oferty." }, { status: 400 });
     }
 
-    const contractor = await prisma.contractor.findFirst({
-      where: { id: contractorId, userId: user.id },
-    });
-    if (!contractor) {
-      return json({ error: "Wybrany kontrahent nie należy do Twojego konta." }, { status: 400 });
-    }
+    const contractor = await scopedContractor(user.id, contractorId, companyId);
 
     const number = String(body.number || "").trim() || `OF/${new Date().getFullYear()}/${Date.now().toString().slice(-4)}`;
     const title = String(body.title || "").trim() || `Oferta handlowa ${number}`;
     const issueDate = String(body.issueDate || new Date().toISOString().slice(0, 10));
     const validUntil = String(body.validUntil || new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10));
     const currency = String(body.currency || "PLN").toUpperCase();
-    const status = String(body.status || "draft");
+    const status = "draft";
     const notes = typeof body.notes === "string" ? body.notes.trim() : null;
     const lines = Array.isArray(body.lines) ? body.lines : [];
 
-    let totalNet = 0;
-    let totalGross = 0;
-    for (const l of lines) {
-      const q = Number(l.quantity) || 1;
-      const p = Number(l.netPrice) || 0;
-      const net = q * p;
-      const vatRateNum = parseFloat(String(l.vatRate || "23").replace(/%/g, "")) || 23;
-      const vat = (net * vatRateNum) / 100;
-      totalNet += net;
-      totalGross += net + vat;
-    }
-
-    const publicToken = String(body.publicToken || crypto.randomBytes(16).toString("hex"));
+    const amounts = offerAmounts(lines);
+    const publicToken = crypto.randomBytes(32).toString("hex");
 
     const offer = await prisma.offer.create({
       data: {
         userId: user.id,
+        companyId,
         contractorId,
         contractorName: contractor.name,
         contractorNip: contractor.nip,
@@ -75,10 +63,7 @@ export async function POST(req: Request) {
         issueDate,
         validUntil,
         currency,
-        lines,
-        totalNet: Math.round(totalNet * 100) / 100,
-        totalVat: Math.round((totalGross - totalNet) * 100) / 100,
-        totalGross: Math.round(totalGross * 100) / 100,
+        ...amounts,
         notes,
         publicToken,
       },
@@ -89,3 +74,4 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
+

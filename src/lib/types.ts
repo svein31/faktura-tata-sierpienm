@@ -427,6 +427,7 @@ export interface OfferLine {
 }
 
 export interface Offer {
+  companyId?: string | null;
   id: string;
   number: string;
   contractorId?: string | null;
@@ -461,6 +462,7 @@ export interface OrderStage {
 }
 
 export interface Order {
+  companyId?: string | null;
   id: string;
   number: string;
   offerId?: string | null;
@@ -481,6 +483,7 @@ export interface Order {
 }
 
 export interface Expense {
+  companyId?: string | null;
   id: string;
   number: string;
   contractorName: string;
@@ -677,4 +680,5 @@ export const EMPTY_COMPANY: CompanyProfile = {
   email: "",
   phone: "",
 };
+
 

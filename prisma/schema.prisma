@@ -15,6 +15,7 @@ datasource db {
 }
 
 model User {
+  workspacePreferences Json?
   id                  String                  @id @default(auto()) @map("_id") @db.ObjectId
   email               String                  @unique
   password            String // Zawsze zhashowane bcrypt (12 rund)
@@ -550,6 +551,8 @@ model AuditLog {
 }
 
 model Offer {
+  companyId String? @db.ObjectId
+  @@index([companyId, createdAt])
   id               String            @id @default(auto()) @map("_id") @db.ObjectId
   userId           String            @db.ObjectId
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -582,6 +585,8 @@ model Offer {
 }
 
 model Order {
+  companyId String? @db.ObjectId
+  @@index([companyId, createdAt])
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
   userId          String          @db.ObjectId
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -608,6 +613,8 @@ model Order {
 }
 
 model Expense {
+  companyId String? @db.ObjectId
+  @@index([companyId, issueDate])
   id             String            @id @default(auto()) @map("_id") @db.ObjectId
   userId         String            @db.ObjectId
   user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1486,6 +1493,10 @@ model Webhook {
 
 /// Zdjęcie faktury/paragonu zrobione aparatem → OCR → moduł kosztów
 model ExpenseScan {
+  companyId String? @db.ObjectId
+  sha256 String?
+  version Int @default(1)
+  @@index([companyId, createdAt])
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1627,3 +1638,4 @@ model InvoiceSettlement {
  createdAt DateTime @default(now())
  @@index([sourceId])
 }
+

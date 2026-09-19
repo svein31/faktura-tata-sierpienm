@@ -39,6 +39,21 @@ export default function PortalDocumentPage() {
   const [seller, setSeller] = React.useState<PartyInfo | null>(null);
   const [buyer, setBuyer] = React.useState<PartyInfo | null>(null);
 
+  const [decisionName, setDecisionName] = React.useState("");
+  const [decisionNote, setDecisionNote] = React.useState("");
+  const [decisionBusy, setDecisionBusy] = React.useState(false);
+  const [decisionMessage, setDecisionMessage] = React.useState("");
+  const decide = async (decision: "accepted" | "rejected") => {
+    if (!offer || decisionBusy) return;
+    setDecisionBusy(true); setDecisionMessage("");
+    try {
+      const res = await fetch(`/api/portal/${token}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, version: offer.version, name: decisionName, note: decisionNote }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać decyzji.");
+      setOffer(data.offer); setDecisionMessage("Decyzja została zapisana.");
+    } catch (e) { setDecisionMessage(e instanceof Error ? e.message : "Błąd zapisu decyzji."); }
+    finally { setDecisionBusy(false); }
+  };
   // Kopiowanie
   const [copiedField, setCopiedField] = React.useState<string | null>(null);
 
@@ -155,6 +170,16 @@ export default function PortalDocumentPage() {
     <div style={{ minHeight: "100vh", background: "#f8fafc", padding: "2rem 1rem", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <div style={{ maxWidth: "860px", margin: "0 auto" }}>
         
+        {offer && <section className="no-print" style={{ background: "white", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: 12, padding: 20, marginBottom: 20 }}>
+          <h2 style={{ fontWeight: 700 }}>Decyzja dotycząca oferty · wersja {offer.version}</h2>
+          {offer.status === "sent" ? <>
+            <p style={{ fontSize: 14 }}>Sprawdź dokument przed podjęciem decyzji. Akceptacja dotyczy przedstawionej wersji oferty.</p>
+            <label style={{ display: "block", marginTop: 12 }}>Imię i nazwisko<input style={{ display: "block", border: "1px solid #cbd5e1", padding: 8, width: "100%" }} maxLength={120} value={decisionName} onChange={e => setDecisionName(e.target.value)} /></label>
+            <label style={{ display: "block", marginTop: 12 }}>Uwagi<textarea style={{ display: "block", border: "1px solid #cbd5e1", padding: 8, width: "100%" }} maxLength={2000} value={decisionNote} onChange={e => setDecisionNote(e.target.value)} /></label>
+            <div style={{ display: "flex", gap: 12, marginTop: 12 }}><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("accepted")} style={{ background: "#065f46", color: "white", borderRadius: 8, padding: "10px 16px" }}>Akceptuję ofertę</button><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("rejected")} style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 16px" }}>Odrzucam ofertę</button></div>
+          </> : <p>{offer.status === "accepted" ? "Oferta zaakceptowana" : offer.status === "rejected" ? "Oferta odrzucona" : "Oferta przekazana do realizacji"}</p>}
+          <p role="status">{decisionMessage}</p>
+        </section>}
         {/* Pasek akcji u góry */}
         <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
@@ -455,3 +480,4 @@ export default function PortalDocumentPage() {
     </div>
   );
 }
+

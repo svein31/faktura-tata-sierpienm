@@ -325,6 +325,55 @@ try {
   assert.equal((await api('POST', '/api/auth/login', credentials)).res.status, 200);
   const mfaAudit = JSON.stringify(await db.auditLog.findMany({ where: { action: { startsWith: 'mfa_' } } }));
   assert.ok(!mfaAudit.includes(setupMfa.data.secret)); assert.ok(!mfaAudit.includes(recovery[0]));
+  // Document workspace: tenant boundaries, versioned decisions, immutable sources.
+  const offerBody = { companyId, contractorId: sharedContact.data.contractor.id, number:'OF/WORKSPACE', title:'Zero VAT', issueDate:'2030-01-10', validUntil:'2099-12-31', currency:'PLN', lines:[{name:'Service',quantity:1,netPrice:100,vatRate:'0',unit:'szt.'}] };
+  assert.equal((await api('POST','/api/offers',{...offerBody,contractorId:privateContact.data.contractor.id},a.cookie)).res.status,400);
+  const workspaceOffer = await api('POST','/api/offers',offerBody,a.cookie);
+  assert.equal(workspaceOffer.res.status,201,JSON.stringify(workspaceOffer.data)); assert.equal(workspaceOffer.data.offer.totalVat,0);
+  const offerId = workspaceOffer.data.offer.id;
+  assert.equal((await api('GET',`/api/offers?companyId=${company2.data.company.id}`,undefined,a.cookie)).data.offers.some(o=>o.id===offerId),false);
+  assert.equal((await api('GET',`/api/offers/${offerId}`,undefined,b.cookie)).res.status,404);
+  assert.equal((await api('GET',`/api/portal/${workspaceOffer.data.offer.publicToken}`)).res.status,404);
+  const publishedOffer = await api('PATCH',`/api/offers/${offerId}`,{status:'sent',version:1},a.cookie);
+  assert.equal(publishedOffer.res.status,200);
+  const decisions = await Promise.all(['accepted','rejected'].map(decision=>api('POST',`/api/portal/${publishedOffer.data.offer.publicToken}/decision`,{decision,version:2,name:'Client'})));
+  assert.equal(decisions.filter(r=>r.res.status===200).length,1); assert.equal(decisions.filter(r=>r.res.status===409).length,1);
+  assert.equal(await db.auditLog.count({where:{entityId:offerId,action:{in:['offer.accepted','offer.rejected']}}}),1);
+  assert.equal((await api('PUT',`/api/offers/${offerId}`,{...offerBody,version:3},a.cookie)).res.status,409);
+  const conversionOffer = await api('POST','/api/offers',{...offerBody,number:'OF/CONVERT'},a.cookie);
+  const conversions = await Promise.all([1,2].map(()=>api('POST',`/api/offers/${conversionOffer.data.offer.id}/convert`,{target:'invoice'},a.cookie)));
+  assert.equal(conversions.filter(r=>r.res.status===200).length,1);
+  assert.equal(conversions.find(r=>r.res.status===200).data.invoice.totalGross,100);
+  assert.equal(conversions.find(r=>r.res.status===200).data.invoice.sellerCompanyId,companyId);
+  const prefPath = `/api/workspace/preferences?key=invoice-views&companyId=${companyId}`;
+  const pref = await api('GET',prefPath,undefined,a.cookie);
+  assert.equal(pref.res.status,200);
+  const prefUpdate = await api('PUT',prefPath,{revision:pref.data.revision,value:[{name:'Purchases',filters:{typeFilter:'purchase'}}]},a.cookie);
+  assert.equal(prefUpdate.res.status,200);
+  assert.equal((await api('PUT',prefPath,{revision:pref.data.revision,value:[]},a.cookie)).res.status,409);
+  assert.equal((await api('GET',prefPath,undefined,b.cookie)).res.status,403);
+  assert.equal((await api('POST','/api/ksef/test-connection',{companyId})).res.status,401);
+  assert.equal((await api('POST','/api/ksef/test-connection',{companyId},b.cookie)).res.status,403);
+  const source = new Blob([Buffer.from('%PDF-1.4\n%%EOF')],{type:'application/pdf'});
+  async function uploadDoc(cookie, scopeId=companyId){const form=new FormData();form.set('file',source,'source.pdf');const res=await fetch(`${base}/api/documents?companyId=${scopeId}`,{method:'POST',headers:{Cookie:cookie},body:form});return {res,data:await res.json()};}
+  assert.equal((await uploadDoc(b.cookie)).res.status,403);
+  const uploaded = await uploadDoc(a.cookie); assert.equal(uploaded.res.status,201,JSON.stringify(uploaded.data));
+  assert.equal((await uploadDoc(a.cookie)).data.duplicate,true);
+  const scanId = uploaded.data.id;
+  assert.equal((await api('GET',`/api/documents/${scanId}`,undefined,b.cookie)).res.status,403);
+  assert.equal((await fetch(`${base}/api/documents/${scanId}/file`,{headers:{Cookie:b.cookie}})).status,403);
+  const review = {action:'approve',version:1,number:'COST/WORKSPACE',contractorName:'Supplier',nip:'5250001003',issueDate:'2030-01-10',currency:'PLN',totalNet:20,totalVat:0,totalGross:20};
+  const approvals = await Promise.all([1,2].map(()=>api('PATCH',`/api/documents/${scanId}`,review,a.cookie)));
+  assert.equal(approvals.filter(r=>r.res.status===200).length,1);
+  assert.equal(await db.expense.count({where:{scanId}}),1);
+  const sourceExpense = await db.expense.findFirstOrThrow({where:{scanId}});
+  assert.equal((await api('PUT',`/api/expenses/${sourceExpense.id}`,{totalGross:1},a.cookie)).res.status,403);
+  assert.equal((await api('DELETE',`/api/expenses/${sourceExpense.id}`,undefined,a.cookie)).res.status,403);
+  await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'SALES/WORKSPACE',type:'sale',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines,totalNet:100,totalVat:0,totalGross:100}});
+  await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'PURCHASE/WORKSPACE',type:'purchase',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines,totalNet:30,totalVat:0,totalGross:30}});
+  const monthly = await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,a.cookie);
+  assert.equal(monthly.res.status,200,JSON.stringify(monthly.data)); assert.equal(monthly.data.summary.salesNet,100); assert.equal(monthly.data.summary.expenseNet,50);
+  assert.equal((await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,b.cookie)).res.status,403);
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {
@@ -332,3 +381,4 @@ finally {
   for(const socket of smtpSockets) socket.destroy(); smtp.close();
   await db.$disconnect(); await mongoClient.close(); await mongo.stop();
 }
+

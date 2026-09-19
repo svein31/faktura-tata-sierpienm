@@ -1,3 +1,4 @@
+import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const orders = await prisma.order.findMany({
-      where: { userId: user.id },
+      where: await documentWhere(user.id, new URL(req.url).searchParams.get("companyId")),
       orderBy: { createdAt: "desc" },
     });
 
@@ -27,17 +28,13 @@ export async function POST(req: Request) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const body = await readJson(req);
+    const companyId = await newDocumentCompany(user, body.companyId);
     const contractorId = String(body.contractorId || "").trim();
     if (!contractorId) {
       return json({ error: "Wybierz kontrahenta dla zlecenia." }, { status: 400 });
     }
 
-    const contractor = await prisma.contractor.findFirst({
-      where: { id: contractorId, userId: user.id },
-    });
-    if (!contractor) {
-      return json({ error: "Wybrany kontrahent nie należy do Twojego konta." }, { status: 400 });
-    }
+    const contractor = await scopedContractor(user.id, contractorId, companyId);
 
     const orderCount = await prisma.order.count({ where: { userId: user.id } });
     const number = String(body.number || "").trim() || `ZL/${new Date().getFullYear()}/${(orderCount + 1).toString().padStart(4, "0")}`;
@@ -55,6 +52,7 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         userId: user.id,
+        companyId,
         contractorId,
         contractorName: contractor.name,
         offerId,
@@ -76,3 +74,4 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
+

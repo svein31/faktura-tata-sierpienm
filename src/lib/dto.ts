@@ -427,6 +427,7 @@ export function emailLogToDto(l: any): InvoiceEmailLog {
 export function offerToDto(o: DbOffer): Offer {
   return {
     id: o.id,
+    companyId: o.companyId,
     number: o.number,
     contractorId: o.contractorId,
     contractorName: o.contractorName,
@@ -454,6 +455,7 @@ export function offerToDto(o: DbOffer): Offer {
 export function orderToDto(ord: DbOrder): Order {
   return {
     id: ord.id,
+    companyId: ord.companyId,
     number: ord.number,
     offerId: ord.offerId,
     contractorId: ord.contractorId,
@@ -476,6 +478,7 @@ export function orderToDto(ord: DbOrder): Order {
 export function expenseToDto(e: DbExpense): Expense {
   return {
     id: e.id,
+    companyId: e.companyId,
     number: e.number,
     contractorName: e.contractorName,
     nip: e.nip,
@@ -544,4 +547,5 @@ export function prefsToDto(p: NotificationPreference | null): NotificationPrefs 
     soundEnabled: p?.soundEnabled ?? true,
   };
 }
+
 

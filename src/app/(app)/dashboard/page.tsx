@@ -147,32 +147,41 @@ export default function DashboardPage() {
   // Stan połączenia KSeF
   const [pinging, setPinging] = React.useState(false);
   const [ksefStatus, setKsefStatus] = React.useState<{
-    ok: boolean;
+    ok: boolean | null;
     pingMs?: number;
     checkedAt?: string;
-  }>({
-    ok: true,
-    pingMs: ksefSafe.environment === "demo" ? 12 : 64,
-    checkedAt: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
-  });
+  }>({ ok: null });
+  const connectionGeneration = React.useRef(0);
+  React.useEffect(() => {
+    connectionGeneration.current += 1;
+    setKsefStatus({ ok: null });
+    setPinging(false);
+  }, [company?.id, ksefSafe.environment]);
 
   const checkConnection = async () => {
+    const generation = ++connectionGeneration.current;
     setPinging(true);
     try {
-      const res = await fetch("/api/ksef/test-connection");
+      const res = await fetch("/api/ksef/test-connection", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyId: company?.id, environment: ksefSafe.environment, gatewayOnly: true }),
+        signal: AbortSignal.timeout(30000),
+      });
       const data = await res.json();
+      if (generation !== connectionGeneration.current) return;
       setKsefStatus({
-        ok: data.success,
+        ok: res.ok && data.ok === true,
         pingMs: data.pingMs,
         checkedAt: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
       });
     } catch {
+      if (generation !== connectionGeneration.current) return;
       setKsefStatus({
         ok: false,
         checkedAt: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
       });
     } finally {
-      setPinging(false);
+      if (generation === connectionGeneration.current) setPinging(false);
     }
   };
 
@@ -374,7 +383,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between border-b border-border/60 pb-3.5">
             <div className="flex items-center gap-2.5">
               <div
-                className={`h-2.5 w-2.5 rounded-full ${ksefStatus.ok ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`}
+                className={`h-2.5 w-2.5 rounded-full ${ksefStatus.ok === null ? "bg-slate-400" : ksefStatus.ok ? "bg-emerald-500" : "bg-rose-500"}`}
               />
               <span className="text-sm font-semibold text-foreground">Bramka KSeF 2.0</span>
             </div>
@@ -397,8 +406,8 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Status bramki:</span>
-              <span className={ksefStatus.ok ? "text-emerald-500 font-medium" : "text-rose-500 font-medium"}>
-                {ksefStatus.ok ? "Dostępna (Online)" : "Błąd połączenia"}
+              <span className={ksefStatus.ok === null ? "text-muted-foreground" : ksefStatus.ok ? "text-emerald-500 font-medium" : "text-rose-500 font-medium"}>
+                {ksefStatus.ok === null ? "Jeszcze nie sprawdzono" : ksefStatus.ok ? "Bramka dostępna" : "Błąd połączenia"}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
@@ -417,7 +426,7 @@ export default function DashboardPage() {
 
           <div className="mt-5 border-t border-border/60 pt-3 flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground">
-              Sprawdzono: {ksefStatus.checkedAt || "dzisiaj"}
+              Sprawdzono: {ksefStatus.checkedAt || "—"}
             </span>
             <Link
               href="/ksef?tab=settings"
@@ -617,3 +626,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

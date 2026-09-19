@@ -36,6 +36,7 @@ const NAV_MAIN = [
   { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/offers", label: "Oferty", icon: FileCheck2 },
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
+  { href: "/documents", label: "Skrzynka dokumentów", icon: Receipt },
   { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
   { href: "/finances", label: "Finanse & Wyciągi", icon: DollarSign },
   { href: "/calendar", label: "Terminarz płatności", icon: Calendar },
@@ -181,15 +182,15 @@ export function SidebarContent({
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3 shadow-2xs">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
               <span className="text-[11.5px] font-semibold text-foreground">
-                GUS &amp; KSeF Aktywne
+                Integracje GUS i KSeF
               </span>
             </div>
             <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
-              Automatyczny lookup REGON &amp; API KSeF 2.0.
+              Status połączenia sprawdzisz w Centrum KSeF.
             </p>
           </div>
         </div>
@@ -270,4 +271,5 @@ export function MobileSidebar({
     </AnimatePresence>
   );
 }
+
 

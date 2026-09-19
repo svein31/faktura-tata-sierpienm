@@ -202,6 +202,7 @@ function KsefPageInner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: useAppStore.getState().selectedCompanyId,
           environment: envDraft,
           token: tokenDraft.trim() || undefined,
           nip: companySafe.nip || undefined,
@@ -1350,3 +1351,4 @@ export default function KsefPage() {
     </Suspense>
   );
 }
+

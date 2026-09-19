@@ -115,7 +115,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Bootstrap ──────────────────────────────────────────────────────── */
 
   bootstrap: async () => {
-    const res = await fetch("/api/data", { cache: "no-store" });
+    const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
     if (res.status === 401) {
       set({ hydrated: true, authError: true });
       return;
@@ -152,7 +152,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   revalidate: async () => {
     if (!get().hydrated) return; // bootstrap not done yet
     try {
-      const res = await fetch("/api/data", { cache: "no-store" });
+      const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
       if (!res.ok) return; // silently ignore errors during revalidation
       const data = (await res.json()) as {
         company: CompanyProfile | null;
@@ -203,7 +203,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   /* ── Zarządzanie spółkami (Multi-Company) — Optimistic UI ────────────────── */
 
   fetchCompanies: async () => {
-    const res = await fetch("/api/data", { cache: "no-store" });
+    const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
     if (!res.ok) throw await apiError(res, "Nie udało się pobrać listy firm.");
     const data = (await res.json()) as { companies: CompanyProfile[] };
     const defaultComp = resolveSelectedCompany(data.companies, get().selectedCompanyId);
@@ -800,4 +800,5 @@ export const STATUS_META: Record<EffectiveStatus, { label: string; color: string
   ksef_active: { label: "KSeF: aktywna", color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
   ksef_rejected: { label: "KSeF: odrzucona", color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20", dot: "bg-rose-500" },
 };
+
 

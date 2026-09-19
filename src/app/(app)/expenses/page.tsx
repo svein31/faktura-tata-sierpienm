@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppStore } from "@/lib/store";
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -50,6 +51,12 @@ const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
 
 export default function ExpensesPage() {
   const toast = useToast();
+  const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [legacy, setLegacy] = React.useState(false);
+  const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
+  const scopeRef = React.useRef(scope);
+  scopeRef.current = scope;
+  React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
 
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -77,17 +84,19 @@ export default function ExpensesPage() {
 
   const fetchExpenses = React.useCallback(async () => {
     try {
+      setExpenses([]);
       setLoading(true);
-      const res = await fetch("/api/expenses");
+      const res = await fetch(`/api/expenses?companyId=${scope}`);
       if (!res.ok) throw new Error("Błąd pobierania kosztów");
       const data = await res.json();
+      if (scopeRef.current !== scope) return;
       setExpenses(data.expenses || []);
     } catch {
       toast("error", "Błąd", "Nie udało się załadować listy wydatków.");
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, scope]);
 
   React.useEffect(() => {
     fetchExpenses();
@@ -176,6 +185,7 @@ export default function ExpensesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: scope === "legacy" ? null : scope,
           number: formNumber.trim() || `FV-KOSZT/${formIssueDate}`,
           contractorName: formContractor.trim(),
           nip: formNip.trim() || null,
@@ -295,6 +305,7 @@ export default function ExpensesPage() {
 
   return (
     <div className="page">
+      <label className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={legacy} onChange={e => setLegacy(e.target.checked)} />Dokumenty bez przypisanej firmy (archiwum)</label>
       <PageHeader
         title="Koszty i wydatki"
         description="Ewidencja faktur kosztowych, paliwa, sprzętu i subskrypcji. Gotowe zestawienia dla księgowej bez żadnych opłat."
@@ -782,3 +793,4 @@ export default function ExpensesPage() {
     </div>
   );
 }
+

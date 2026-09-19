@@ -1,6 +1,7 @@
+import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { expenseToDto, documentCommentToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
     const { id } = await context.params;
     const expense = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
       include: {
         comments: {
           orderBy: { createdAt: "asc" },
@@ -44,12 +45,14 @@ export async function PUT(req: Request, context: RouteContext) {
 
     const { id } = await context.params;
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
 
     if (!existing) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
+    if (existing.scanId || existing.isKsefSource) throw new ApiError(403, "Dokument źródłowy jest niezmienny. Dostępny jest podgląd i akceptacja.");
 
     const body = await readJson(req);
     const contractorName = typeof body.contractorName === "string" && body.contractorName.trim() ? body.contractorName.trim() : existing.contractorName;
@@ -106,14 +109,16 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     const { id } = await context.params;
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
 
     if (!existing) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
-
     const body = await readJson(req);
+    if ("paymentStatus" in body) await requireDocumentWrite(user, existing, "canRecordPayments");
+    if ("workflowStatus" in body || "category" in body || "description" in body) await requireDocumentWrite(user, existing, "canExport");
+    if (typeof body.workflowStatus === "string" && !["to_verify", "verified", "sent_to_accountant"].includes(body.workflowStatus)) throw new ApiError(400, "Nieprawidłowy status weryfikacji.");
     const updateData: Record<string, unknown> = {};
 
     if (typeof body.workflowStatus === "string") {
@@ -155,12 +160,14 @@ export async function DELETE(_req: Request, context: RouteContext) {
 
     const { id } = await context.params;
     const existing = await prisma.expense.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
 
     if (!existing) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
+    if (existing.scanId || existing.isKsefSource) throw new ApiError(403, "Dokument źródłowy jest niezmienny. Dostępny jest podgląd i akceptacja.");
 
     await prisma.expense.delete({
       where: { id },
@@ -171,3 +178,4 @@ export async function DELETE(_req: Request, context: RouteContext) {
     return handleApiError(e);
   }
 }
+

@@ -45,6 +45,12 @@ const STATUS_MAP: Record<OfferStatus, { label: string; tone: "outline" | "succes
 export default function OffersPage() {
   const router = useRouter();
   const toast = useToast();
+  const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [legacy, setLegacy] = React.useState(false);
+  const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
+  const scopeRef = React.useRef(scope);
+  scopeRef.current = scope;
+  React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
   const { contractors } = useAppStore();
 
   const [offers, setOffers] = React.useState<Offer[]>([]);
@@ -71,8 +77,11 @@ export default function OffersPage() {
 
   const loadOffers = React.useCallback(async () => {
     try {
+      setOffers([]);
       setLoading(true);
-      const res = await fetch("/api/offers");
+      const res = await fetch(`/api/offers?companyId=${scope}`);
+      if (!res.ok) throw new Error("Nie udało się pobrać danych.");
+      if (scopeRef.current !== scope) return;
       if (res.ok) {
         const data = await res.json();
         setOffers(data.offers || []);
@@ -82,7 +91,7 @@ export default function OffersPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, scope]);
 
   React.useEffect(() => {
     loadOffers();
@@ -130,6 +139,7 @@ export default function OffersPage() {
     }
 
     const payload = {
+      version: editingOffer?.version,
       contractorId: formContractorId,
       title: formTitle,
       number: formNumber,
@@ -146,7 +156,7 @@ export default function OffersPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
       if (res.ok) {
         toast("success", editingOffer ? "Zaktualizowano ofertę" : "Utworzono ofertę", formNumber);
@@ -201,11 +211,19 @@ export default function OffersPage() {
     }
   };
 
-  const handleCopyClientLink = (shareToken?: string) => {
-    if (!shareToken) return;
-    const url = `${window.location.origin}/portal/${shareToken}`;
-    navigator.clipboard.writeText(url);
-    toast("success", "Skopiowano bezpieczny link", "Możesz przekazać ten link klientowi do akceptacji oferty.");
+  const handleCopyClientLink = async (offer: Offer) => {
+    try {
+      let publicToken = offer.publicToken;
+      if (offer.status === "draft") {
+        const res = await fetch(`/api/offers/${offer.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "sent", version: offer.version }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Nie udało się udostępnić oferty.");
+        publicToken = data.offer.publicToken;
+        await loadOffers();
+      }
+      await navigator.clipboard.writeText(`${window.location.origin}/portal/${publicToken}`);
+      toast("success", "Skopiowano link do oferty");
+    } catch (e) { toast("error", "Błąd", e instanceof Error ? e.message : "Nie udało się skopiować linku."); }
   };
 
   const filtered = offers.filter((o) => {
@@ -356,7 +374,7 @@ export default function OffersPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleCopyClientLink(offer.publicToken)}
+                            onClick={() => handleCopyClientLink(offer)}
                             title="Kopiuj link do portalu klienta"
                             className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
                           >
@@ -368,6 +386,7 @@ export default function OffersPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(offer)}
+                          disabled={["accepted", "rejected", "converted"].includes(offer.status)}
                           title="Edytuj ofertę"
                           className="h-8 w-8 rounded-lg"
                         >
@@ -573,3 +592,4 @@ export default function OffersPage() {
     </div>
   );
 }
+

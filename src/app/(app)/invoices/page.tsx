@@ -35,6 +35,7 @@ import { Input, Select } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
+import { SavedInvoiceViews } from "@/components/saved-invoice-views";
 import { PageHeader } from "@/components/page-header";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
@@ -397,6 +398,14 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
+      <SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {
+        setSearch(typeof f.search === "string" ? f.search : "");
+        if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
+        if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
+        if (["all", "PLN", "EUR", "USD"].includes(f.currencyFilter)) setCurrencyFilter(f.currencyFilter as typeof currencyFilter);
+        if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
+        setSelectedIds([]);
+      }} />
       <PageHeader
         title="Faktury"
         description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
@@ -1042,3 +1051,4 @@ export default function InvoicesPage() {
     </div>
   );
 }
+

@@ -1,6 +1,8 @@
+import { recordAuditLog } from "@/lib/audit";
+import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json } from "@/lib/api";
+import { ApiError, handleApiError, json } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import * as crypto from "crypto";
 
@@ -20,12 +22,16 @@ export async function POST(
 
     const { id } = await params;
     const order = await prisma.order.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!order) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
+    await requireDocumentWrite(user, order);
 
+    return await prisma.$transaction(async tx => {
+    if (order.billedInvoiceId || order.status === "cancelled") throw new ApiError(409, "Zlecenie jest już rozliczone lub anulowane.");
+    await tx.order.update({ where: { id: order.id, updatedAt: order.updatedAt }, data: { status: "completed" } });
     const year = new Date().getFullYear();
-    const invoiceCount = await prisma.invoice.count({ where: { userId: user.id, type: "sale" } });
+    const invoiceCount = await tx.invoice.count({ where: { userId: user.id, type: "sale" } });
     const invoiceNumber = `FV/${year}/${(invoiceCount + 1).toString().padStart(4, "0")}`;
     const today = new Date().toISOString().slice(0, 10);
     const dueDate = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
@@ -41,9 +47,10 @@ export async function POST(
       },
     ];
 
-    const invoice = await prisma.invoice.create({
+    const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
+          sellerCompanyId: order.companyId,
         contractorId: order.contractorId || "",
         number: invoiceNumber,
         type: "sale",
@@ -58,18 +65,22 @@ export async function POST(
         paymentMethod: "transfer",
         paymentTermDays: 14,
         notes: `Rozliczenie zlecenia ${order.number}: ${order.title}. ${order.notes || ""}`.trim(),
+        totalNet: order.totalNet, totalVat: order.totalGross - order.totalNet, totalGross: order.totalGross,
         lines: invoiceLines as any,
         shareToken: crypto.randomBytes(16).toString("hex"),
       },
     });
 
-    await prisma.order.update({
+    await tx.order.update({
       where: { id: order.id },
       data: { status: "completed", billedInvoiceId: invoice.id },
     });
 
+    await recordAuditLog({ client: tx, companyId: order.companyId, userId: user.id, entityType: "order", entityId: order.id, action: "order.converted", details: { invoiceId: invoice.id } });
     return json({ success: true, invoice: invoiceToDto(invoice) });
+    });
   } catch (e) {
     return handleApiError(e);
   }
 }
+

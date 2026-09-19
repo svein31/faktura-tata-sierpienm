@@ -29,6 +29,8 @@ import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatMoney } from "@/lib/format";
 import { JpkExportCard } from "@/components/accountant/jpk-export-card";
+import { useWorkspacePreference } from "@/lib/use-workspace-preference";
+import { csvCell } from "@/lib/accountant-summary";
 import type { Invoice, Expense } from "@/lib/types";
 
 interface MonthSummary {
@@ -62,7 +64,11 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function AccountantPage() {
   const toast = useToast();
-  const { contractors, company } = useAppStore();
+  const { contractors, company, selectedCompanyId } = useAppStore();
+  const [currency, setCurrency] = React.useState("PLN");
+  const [loadError, setLoadError] = React.useState("");
+  const [purchases, setPurchases] = React.useState<Invoice[]>([]);
+  const requestGeneration = React.useRef(0);
 
   const [currentMonth, setCurrentMonth] = React.useState(
     new Date().toISOString().slice(0, 7) // "YYYY-MM"
@@ -73,12 +79,8 @@ export default function AccountantPage() {
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
 
   // Checklist state
-  const [checkedItems, setCheckedItems] = React.useState<Record<string, boolean>>({
-    invoicesIssued: true,
-    expensesVerified: false,
-    bankReconciled: false,
-    packExported: false,
-  });
+  const checklist = useWorkspacePreference<Record<string, boolean>>(`accountant:${currentMonth}`, selectedCompanyId);
+  const checkedItems = checklist.value || {};
 
   // Team invitations
   const [invitations, setInvitations] = React.useState<TeamInvite[]>([]);
@@ -88,20 +90,26 @@ export default function AccountantPage() {
   const [copiedToken, setCopiedToken] = React.useState<string | null>(null);
 
   const fetchMonthData = React.useCallback(async () => {
+    const generation = ++requestGeneration.current;
+    setSummary(null); setInvoices([]); setExpenses([]); setPurchases([]); setLoadError("");
+    if (!selectedCompanyId) { setLoading(false); setLoadError("Wybierz firmę."); return; }
     try {
       setLoading(true);
-      const res = await fetch(`/api/accountant/export-pack?month=${currentMonth}`);
+      const res = await fetch(`/api/accountant/export-pack?month=${currentMonth}&companyId=${selectedCompanyId}&currency=${currency}`);
       if (!res.ok) throw new Error("Błąd pobierania danych");
       const data = await res.json();
+      if (generation !== requestGeneration.current) return;
+      setPurchases(data.purchases || []);
       setSummary(data.summary);
       setInvoices(data.invoices || []);
       setExpenses(data.expenses || []);
     } catch {
-      toast("error", "Błąd", "Nie udało się pobrać danych miesięcznych.");
+      if (generation !== requestGeneration.current) return;
+      setLoadError("Nie udało się pobrać zestawienia. Sprawdź uprawnienia do eksportu.");
     } finally {
-      setLoading(false);
+      if (generation === requestGeneration.current) setLoading(false);
     }
-  }, [currentMonth, toast]);
+  }, [currentMonth, selectedCompanyId, currency]);
 
   const fetchInvitations = React.useCallback(async () => {
     try {
@@ -123,7 +131,7 @@ export default function AccountantPage() {
   }, [fetchInvitations]);
 
   const toggleChecklist = (key: string) => {
-    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+    void checklist.save({ ...checkedItems, [key]: !checkedItems[key] });
   };
 
   const handleInvite = async (e: React.FormEvent) => {
@@ -173,63 +181,29 @@ export default function AccountantPage() {
   };
 
   const exportMonthlyCsv = () => {
-    if (!invoices.length && !expenses.length) {
+    if (!invoices.length && !expenses.length && !purchases.length) {
       toast("info", "Brak danych", "Brak dokumentów w wybranym miesiącu.");
       return;
     }
 
-    // 1. Sprzedaż
-    const salesLines = [
-      "TYP;NUMER;NABYWCA;NIP;DATA WYSTAWIENIA;NETTO PLN;VAT PLN;BRUTTO PLN;KSEF ID;STATUS PLATNOSCI",
-      ...invoices.map((i) => {
-        const contractor = contractors.find((c) => c.id === i.contractorId);
-        return [
-          i.isProforma ? "PROFORMA" : "SPRZEDAZ",
-          `"${i.number}"`,
-          `"${contractor?.name || "Kontrahent"}"`,
-          `"${contractor?.nip || ""}"`,
-          i.issueDate,
-          (i.totalNet || 0).toFixed(2),
-          (i.totalVat || 0).toFixed(2),
-          (i.totalGross || 0).toFixed(2),
-          `"${i.ksefNumber || ""}"`,
-          i.paymentStatus === "paid" ? "OPLACONA" : "NIEOPLACONA",
-        ].join(";");
-      }),
-    ];
-
-    // 2. Koszty
-    const expenseLines = [
-      "",
-      "--- EWIDENCJA KOSZTOW ---",
-      "NUMER;SPRZEDAWCA;NIP;KATEGORIA;DATA WYSTAWIENIA;NETTO PLN;VAT PLN;BRUTTO PLN;STATUS PLATNOSCI;WORKFLOW",
-      ...expenses.map((e) =>
-        [
-          `"${e.number}"`,
-          `"${e.contractorName}"`,
-          `"${e.nip || ""}"`,
-          `"${e.category}"`,
-          e.issueDate,
-          e.totalNet.toFixed(2),
-          e.totalVat.toFixed(2),
-          e.totalGross.toFixed(2),
-          e.paymentStatus === "paid" ? "OPLACONA" : "NIEOPLACONA",
-          e.workflowStatus,
-        ].join(";")
-      ),
-    ];
-
-    const content = "\uFEFF" + [...salesLines, ...expenseLines].join("\r\n");
+    const rows: unknown[][] = [["TYP", "NUMER", "KONTRAHENT", "NIP", "DATA", "WALUTA", "NETTO", "VAT", "BRUTTO", "KSEF", "STATUS PLATNOSCI"]];
+    for (const i of [...invoices, ...purchases]) {
+      const contractor = contractors.find(c => c.id === i.contractorId);
+      rows.push([i.type === "purchase" ? "ZAKUP" : "SPRZEDAZ", i.number, contractor?.name || "", contractor?.nip || "", i.issueDate, i.currency, i.totalNet || 0, i.totalVat || 0, i.totalGross || 0, i.ksefNumber || "", i.paymentStatus || "unpaid"]);
+    }
+    for (const e of expenses) rows.push(["KOSZT", e.number, e.contractorName, e.nip, e.issueDate, e.currency, e.totalNet, e.totalVat, e.totalGross, e.ksefRefNumber, e.paymentStatus]);
+    const content = "\uFEFF" + rows.map(row => row.map(csvCell).join(";")).join("\r\n");
     const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `Paczka_Ksiegowa_${currentMonth}.csv`);
+    link.setAttribute("download", `Zestawienie_${company?.nip || selectedCompanyId}_${currentMonth}_${currency}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    setCheckedItems((prev) => ({ ...prev, packExported: true }));
+    void checklist.save({ ...checkedItems, packExported: true });
     toast("success", "Pobrano paczkę", `Paczka księgowa za okres ${currentMonth} pobrana pomyślnie.`);
   };
 
@@ -246,14 +220,17 @@ export default function AccountantPage() {
               onChange={(e) => setCurrentMonth(e.target.value)}
               style={{ width: "auto", fontSize: "0.875rem" }}
             />
-            <Button variant="primary" onClick={exportMonthlyCsv}>
+            <Select aria-label="Waluta zestawienia" value={currency} onChange={e => setCurrency(e.target.value)}>{["PLN", "EUR", "USD", "GBP", "CHF", "CZK"].map(c => <option key={c}>{c}</option>)}</Select>
+            <Button variant="primary" onClick={exportMonthlyCsv} disabled={loading || Boolean(loadError)}>
               <Download size={16} />
-              Pobierz paczkę dla księgowej
+              Pobierz zestawienie CSV
             </Button>
           </div>
         }
       />
 
+      {loadError && <div role="alert" className="mb-4 rounded-xl border p-4">{loadError} <Button onClick={fetchMonthData}>Spróbuj ponownie</Button></div>}
+      <p className="mb-4 text-sm text-muted-foreground">Kwoty w walucie dokumentów: {currency}. Zestawienie nie stanowi wyliczenia zobowiązania podatkowego. Dokumenty bez przypisanej firmy są dostępne w archiwum kosztów.</p>
       {/* Karty bilansu miesięcznego */}
       <div
         style={{
@@ -269,10 +246,10 @@ export default function AccountantPage() {
             <TrendingUp size={18} color="var(--primary)" />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {formatMoney(summary?.salesNet || 0, "PLN")}
+            {formatMoney(summary?.salesNet || 0, currency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-            Brutto: {formatMoney(summary?.salesGross || 0, "PLN")} • Dok: {summary?.salesCount || 0}
+            Brutto: {formatMoney(summary?.salesGross || 0, currency)} • Dok: {summary?.salesCount || 0}
           </div>
         </Card>
 
@@ -282,10 +259,10 @@ export default function AccountantPage() {
             <Receipt size={18} color="var(--warning)" />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {formatMoney(summary?.expenseNet || 0, "PLN")}
+            {formatMoney(summary?.expenseNet || 0, currency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-            Brutto: {formatMoney(summary?.expenseGross || 0, "PLN")} • Dok: {summary?.expenseCount || 0}
+            Brutto: {formatMoney(summary?.expenseGross || 0, currency)} • Dok: {summary?.expenseCount || 0}
           </div>
         </Card>
 
@@ -295,10 +272,10 @@ export default function AccountantPage() {
             <DollarSign size={18} color={summary && summary.vatBalance > 0 ? "var(--danger)" : "var(--primary)"} />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {formatMoney(summary?.vatBalance || 0, "PLN")}
+            {formatMoney(summary?.vatBalance || 0, currency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-            {summary && summary.vatBalance >= 0 ? "Szacowany VAT do zapłaty (należny)" : "Nadpłata / do przeniesienia"}
+            {summary && summary.vatBalance >= 0 ? "Różnica VAT sprzedaży i zakupów" : "VAT zakupów przewyższa VAT sprzedaży"}
           </div>
         </Card>
 
@@ -308,10 +285,10 @@ export default function AccountantPage() {
             <CheckCircle2 size={18} color="var(--accent)" />
           </div>
           <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {formatMoney(summary?.incomeBeforeTax || 0, "PLN")}
+            {formatMoney(summary?.incomeBeforeTax || 0, currency)}
           </div>
           <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.25rem" }}>
-            Zysk netto przed podatkiem dochodowym
+            Różnica wartości netto dokumentów
           </div>
         </Card>
       </div>
@@ -327,18 +304,19 @@ export default function AccountantPage() {
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: "1.5rem", marginBottom: "1.5rem" }}>
         
         {/* Lista kontrolna zamknięcia miesiąca */}
         <Card style={{ padding: "1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <FileCheck2 size={20} color="var(--primary)" />
-            <h3 style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>Checklist zamknięcia miesiąca</h3>
+            <h3 style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>Moja lista kontrolna miesiąca</h3>
           </div>
           <p style={{ fontSize: "0.8125rem", color: "var(--muted)", marginBottom: "1.25rem" }}>
             Kroki przygotowania dokumentów przed wysyłką do biura rachunkowego za okres {currentMonth}:
           </p>
 
+          {checklist.error && <p role="alert" className="text-sm text-rose-500">{checklist.error}</p>}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
             {[
               {
@@ -366,7 +344,9 @@ export default function AccountantPage() {
               return (
                 <div
                   key={step.id}
-                  onClick={() => toggleChecklist(step.id)}
+                  role="checkbox" aria-checked={Boolean(checked)} tabIndex={0}
+                  onKeyDown={e => { if ((e.key === " " || e.key === "Enter") && checklist.ready && !checklist.saving) { e.preventDefault(); toggleChecklist(step.id); } }}
+                  onClick={() => { if (checklist.ready && !checklist.saving) toggleChecklist(step.id); }}
                   style={{
                     display: "flex",
                     alignItems: "flex-start",
@@ -487,3 +467,4 @@ export default function AccountantPage() {
     </div>
   );
 }
+

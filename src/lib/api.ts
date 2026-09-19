@@ -63,12 +63,14 @@ export function handleApiError(e: unknown): NextResponse {
   }
   // Unikalność e-mail (P2002) — ogólny komunikat (brak enumeracji użytkowników).
   const code = (e as { code?: string })?.code;
+  if (code === "P2025" || code === "P2034") return json({ error: "Dokument został zmieniony. Odśwież dane i spróbuj ponownie.", code: "CONFLICT" }, { status: 409 });
   if (code === "P2002") {
     return json(
-      { error: "Nie udało się utworzyć konta. Spróbuj ponownie.", code: "CONFLICT" },
+      { error: "Nie udało się zapisać danych: konflikt z istniejącym rekordem.", code: "CONFLICT" },
       { status: 409 }
     );
   }
   console.error("[api-error]", e);
   return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL" }, { status: 500 });
 }
+

@@ -18,27 +18,25 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);
 
+  const [error, setError] = React.useState(false);
+  const [attempt, setAttempt] = React.useState(0);
   React.useEffect(() => {
     let cancelled = false;
-    const boot = async () => {
-      const state = useAppStore.getState();
-      if (state.hydrated) return;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    setError(false);
+    const boot = async (automaticRetry: boolean) => {
+      if (useAppStore.getState().hydrated) return;
       try {
-        await state.bootstrap();
+        await useAppStore.getState().bootstrap();
       } catch {
-        if (!cancelled) {
-          // Tymczasowy problem sieci — spróbuj ponownie za chwilę.
-          window.setTimeout(() => {
-            if (!useAppStore.getState().hydrated) void useAppStore.getState().bootstrap().catch(() => undefined);
-          }, 2000);
-        }
+        if (cancelled) return;
+        if (automaticRetry) retry = setTimeout(() => void boot(false), 2000);
+        else setError(true);
       }
     };
-    void boot();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void boot(true);
+    return () => { cancelled = true; clearTimeout(retry); };
+  }, [attempt]);
 
   // SWR-style: cicha rewalidacja w tle przy powrocie na stronę
   React.useEffect(() => {
@@ -59,6 +57,13 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     }
   }, [authError, router]);
 
+  if (!hydrated && error) return (
+    <div role="alert" className="rounded-2xl border border-border p-6 space-y-3">
+      <h2 className="font-semibold">Nie udało się wczytać danych</h2>
+      <p className="text-sm text-muted-foreground">Sprawdź połączenie z internetem i spróbuj ponownie.</p>
+      <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setAttempt(n => n + 1)}>Spróbuj ponownie</button>
+    </div>
+  );
   if (!hydrated) {
     return (
       <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true">
@@ -105,3 +110,4 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+

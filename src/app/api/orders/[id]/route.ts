@@ -1,3 +1,4 @@
+import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json, readJson } from "@/lib/api";
@@ -15,7 +16,7 @@ export async function GET(
 
     const { id } = await params;
     const order = await prisma.order.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
 
     if (!order) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
@@ -36,12 +37,14 @@ export async function PUT(
 
     const { id } = await params;
     const existing = await prisma.order.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
     const body = await readJson(req);
     const contractorId = body.contractorId ? String(body.contractorId).trim() : existing.contractorId;
+    const contractor = await scopedContractor(user.id, contractorId || "", existing.companyId);
     const title = typeof body.title === "string" ? body.title.trim() : existing.title;
     const number = typeof body.number === "string" ? body.number.trim() : existing.number;
     const status = typeof body.status === "string" ? body.status : existing.status;
@@ -57,6 +60,7 @@ export async function PUT(
       where: { id },
       data: {
         contractorId,
+        contractorName: contractor.name,
         title,
         number,
         status,
@@ -88,9 +92,10 @@ export async function PATCH(
     const body = await readJson(req);
 
     const existing = await prisma.order.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
     const dataToUpdate: any = {};
     if (typeof body.status === "string") dataToUpdate.status = body.status;
@@ -119,9 +124,10 @@ export async function DELETE(
 
     const { id } = await params;
     const existing = await prisma.order.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
     await prisma.order.delete({ where: { id } });
 
@@ -130,3 +136,4 @@ export async function DELETE(
     return handleApiError(e);
   }
 }
+

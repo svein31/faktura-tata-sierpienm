@@ -44,6 +44,12 @@ const ORDER_STATUSES: Array<{
 export default function OrdersPage() {
   const router = useRouter();
   const toast = useToast();
+  const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const [legacy, setLegacy] = React.useState(false);
+  const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
+  const scopeRef = React.useRef(scope);
+  scopeRef.current = scope;
+  React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
   const { contractors } = useAppStore();
 
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -71,8 +77,11 @@ export default function OrdersPage() {
 
   const loadOrders = React.useCallback(async () => {
     try {
+      setOrders([]);
       setLoading(true);
-      const res = await fetch("/api/orders");
+      const res = await fetch(`/api/orders?companyId=${scope}`);
+      if (!res.ok) throw new Error("Nie udało się pobrać danych.");
+      if (scopeRef.current !== scope) return;
       if (res.ok) {
         const data = await res.json();
         setOrders(data.orders || []);
@@ -82,7 +91,7 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, scope]);
 
   React.useEffect(() => {
     loadOrders();
@@ -145,7 +154,7 @@ export default function OrdersPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
       if (res.ok) {
         toast("success", editingOrder ? "Zaktualizowano zlecenie" : "Utworzono zlecenie", formNumber);
@@ -622,3 +631,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+

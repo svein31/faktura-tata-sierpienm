@@ -1,6 +1,9 @@
+import { randomBytes } from "node:crypto";
+import { offerAmounts, assertOfferVersion } from "@/lib/offer-validation";
+import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { offerToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -15,7 +18,7 @@ export async function GET(
 
     const { id } = await params;
     const offer = await prisma.offer.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
 
     if (!offer) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
@@ -36,37 +39,31 @@ export async function PUT(
 
     const { id } = await params;
     const existing = await prisma.offer.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
     const body = await readJson(req);
     const contractorId = body.contractorId ? String(body.contractorId).trim() : existing.contractorId;
+    const contractor = await scopedContractor(user.id, contractorId || "", existing.companyId);
     const title = typeof body.title === "string" ? body.title.trim() : existing.title;
     const number = typeof body.number === "string" ? body.number.trim() : existing.number;
     const issueDate = typeof body.issueDate === "string" ? body.issueDate : existing.issueDate;
     const validUntil = typeof body.validUntil === "string" ? body.validUntil : existing.validUntil;
     const currency = typeof body.currency === "string" ? body.currency.toUpperCase() : existing.currency;
-    const status = typeof body.status === "string" ? body.status : existing.status;
+    const status = "draft";
     const notes = typeof body.notes === "string" ? body.notes.trim() : existing.notes;
     const lines = Array.isArray(body.lines) ? body.lines : (existing.lines as any[]);
 
-    let totalNet = 0;
-    let totalGross = 0;
-    for (const l of lines) {
-      const q = Number(l.quantity) || 1;
-      const p = Number(l.netPrice) || 0;
-      const net = q * p;
-      const vatRateNum = parseFloat(String(l.vatRate || "23").replace(/%/g, "")) || 23;
-      const vat = (net * vatRateNum) / 100;
-      totalNet += net;
-      totalGross += net + vat;
-    }
-
+    assertOfferVersion(existing.version, body.version);
+    if (["accepted", "rejected", "converted"].includes(existing.status)) throw new ApiError(409, "Zapisana decyzja blokuje edycję tej wersji oferty. Utwórz nową ofertę.");
+    const amounts = offerAmounts(lines);
     const updated = await prisma.offer.update({
-      where: { id },
+      where: { id, version: existing.version, status: existing.status },
       data: {
         contractorId,
+        contractorName: contractor.name,
         title,
         number,
         issueDate,
@@ -74,9 +71,10 @@ export async function PUT(
         currency,
         status,
         notes,
-        lines,
-        totalNet: Math.round(totalNet * 100) / 100,
-        totalGross: Math.round(totalGross * 100) / 100,
+        ...amounts,
+        contractorNip: contractor.nip,
+        version: { increment: 1 },
+        publicToken: randomBytes(32).toString("hex"),
       },
     });
 
@@ -99,13 +97,16 @@ export async function PATCH(
     const status = String(body.status || "").trim();
 
     const existing = await prisma.offer.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
+    assertOfferVersion(existing.version, body.version);
+    if (!["draft", "sent", "expired"].includes(status) || ["accepted", "rejected", "converted"].includes(existing.status)) throw new ApiError(409, "Niedozwolona zmiana statusu oferty.");
     const updated = await prisma.offer.update({
-      where: { id },
-      data: { status },
+      where: { id, version: existing.version, status: existing.status },
+      data: { status, version: { increment: 1 }, ...(status === "draft" || status === "expired" ? { publicToken: randomBytes(32).toString("hex") } : {}) },
     });
 
     return json({ offer: offerToDto(updated) });
@@ -124,14 +125,17 @@ export async function DELETE(
 
     const { id } = await params;
     const existing = await prisma.offer.findFirst({
-      where: { id, userId: user.id },
+      where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Oferta nie została znaleziona." }, { status: 404 });
+    await requireDocumentWrite(user, existing, "canIssueInvoices");
 
-    await prisma.offer.delete({ where: { id } });
+    if (["accepted", "rejected", "converted"].includes(existing.status)) throw new ApiError(409, "Nie można usunąć oferty z zapisaną decyzją lub rozliczeniem.");
+    await prisma.offer.delete({ where: { id, version: existing.version, status: existing.status } });
 
     return json({ success: true, id });
   } catch (e) {
     return handleApiError(e);
   }
 }
+
