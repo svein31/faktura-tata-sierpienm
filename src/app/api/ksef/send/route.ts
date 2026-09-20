@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { claimKsefTransmission } from "@/lib/ksef/transmission-claim";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
@@ -187,7 +188,9 @@ export async function POST(req: Request) {
 
       let updatedInvoice = invoice;
       if (invoice) {
-        updatedInvoice = await prisma.invoice.update({
+        updatedInvoice = await prisma.$transaction(async tx => {
+        await claimKsefTransmission(tx, { invoiceId: invoice.id, version: invoice.version, userId: session.id });
+        return tx.invoice.update({
           where: { id: invoice.id },
           data: {
             status: "ksef_active",
@@ -207,6 +210,7 @@ export async function POST(req: Request) {
             },
           },
           include: { sellerCompany: true },
+        });
         });
 
         await prisma.notification.create({
@@ -327,11 +331,12 @@ export async function POST(req: Request) {
       });
     }
 
-    // Otwórz sesję interaktywną KSeF 2.0 dla faktur FA(3)
-    const onlineSession = await client.openOnlineSession(accessToken);
-
+    await prisma.$transaction(tx => claimKsefTransmission(tx, { invoiceId: invoice.id, version: invoice.version, userId: session.id }));
+    let onlineSession;
     let sendResult;
     try {
+      // Persisted claim keeps a crash or uncertain response from becoming a duplicate send.
+      onlineSession = await client.openOnlineSession(accessToken);
       // Wyślij zaszyfrowaną fakturę do KSeF API
       sendResult = await client.sendInvoiceEncrypted(
         accessToken,

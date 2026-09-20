@@ -12,6 +12,7 @@ require('./register-ts.cjs');
 const { totpAt } = require('../src/lib/totp.ts');
 const { warsawDate } = require('../src/lib/scheduling.ts');
 const { assertAccountingPeriodsOpen } = require('../src/lib/accounting-period.ts');
+const { claimKsefTransmission } = require('../src/lib/ksef/transmission-claim.ts');
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
@@ -213,6 +214,8 @@ try {
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
   const again = await api('POST', '/api/ksef/queue', { invoiceId, environment: 'demo' }, a.cookie);
   assert.equal(again.data.alreadyQueued, true);
+  assert.equal((await api('PUT', `/api/invoices/${invoiceId}`, { ...invoice.data.invoice, notes: 'Must not edit queued XML source' }, a.cookie)).res.status, 409);
+  assert.equal((await api('DELETE', `/api/invoices/${invoiceId}`, undefined, a.cookie)).res.status, 409);
   // Legacy MongoDB tasks may omit optional fields entirely (not the same as null).
   await db.ksefQueueTask.updateMany({ where: { invoiceId }, data: { lockedUntil: { unset: true }, nextAttemptAt: { unset: true } } });
   const processed = await api('POST', '/api/ksef/queue/process', {}, a.cookie);
@@ -220,6 +223,23 @@ try {
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
+  const claimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'KSEF/CLAIM/1' }, a.cookie);
+  assert.equal(claimInvoice.res.status, 201, JSON.stringify(claimInvoice.data));
+  const claimInput = { invoiceId: claimInvoice.data.invoice.id, version: 1, userId: a.data.user.id };
+  const claims = await Promise.allSettled([1, 2].map(() => db.$transaction(tx => claimKsefTransmission(tx, claimInput))));
+  assert.equal(claims.filter(r => r.status === 'fulfilled').length, 1, 'Only one sender can claim a document version');
+  const claimedInvoice = await db.invoice.findUniqueOrThrow({ where: { id: claimInput.invoiceId } });
+  assert.equal(claimedInvoice.ksefStatus, 'sending'); assert.equal(claimedInvoice.version, 2);
+  await assert.rejects(db.$transaction(tx => claimKsefTransmission(tx, { ...claimInput, version: 2 })), /poprzednią wysyłkę/);
+  assert.equal((await api('PUT', `/api/invoices/${claimInput.invoiceId}`, { ...claimInvoice.data.invoice, issueDate: '2026-10-01' }, a.cookie)).res.status, 409);
+  assert.equal((await api('POST', '/api/ksef/queue', { invoiceId: claimInput.invoiceId, environment: 'demo' }, a.cookie)).res.status, 409);
+  const queuedClaimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'KSEF/CLAIM/2' }, a.cookie);
+  assert.equal(queuedClaimInvoice.res.status, 201);
+  const queuedClaimId = queuedClaimInvoice.data.invoice.id;
+  assert.equal((await api('POST', '/api/ksef/queue', { invoiceId: queuedClaimId, environment: 'demo' }, a.cookie)).res.status, 200);
+  const queuedClaimState = await db.invoice.findUniqueOrThrow({ where: { id: queuedClaimId } });
+  await assert.rejects(db.$transaction(tx => claimKsefTransmission(tx, { invoiceId: queuedClaimId, version: queuedClaimState.version, userId: a.data.user.id })), /kolejce/);
+  console.log('PASS: KSeF single sender claim, durable ambiguous-send protection, queue/direct exclusion and immutable in-flight source');
   const fx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/1', currency: 'EUR', exchangeRateRule: 'manual', exchangeRate: 4.25, exchangeRateJustification: 'Kurs dokumentu źródłowego', totalGrossPln: 1 }, a.cookie);
   assert.equal(fx.res.status, 201, JSON.stringify(fx.data)); assert.equal(fx.data.invoice.totalGrossPln, 522.75);
   const invalidFx = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'FX/2', currency: 'USD', exchangeRateRule: 'manual', exchangeRate: 4.25 }, a.cookie);

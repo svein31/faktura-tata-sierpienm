@@ -111,7 +111,7 @@ export async function POST(req: Request) {
         const created = previous
           ? await tx.ksefQueueTask.update({ where: { id: previous.id }, data })
           : await tx.ksefQueueTask.create({ data: { ...data, invoiceId, idempotencyKey } });
-        await tx.invoice.update({ where: { id: invoiceId }, data: { ksefStatus: "queued", documentStatus: "ready" } });
+        await tx.invoice.update({ where: { id: invoiceId, OR: [{ version: invoice.version }, ...((invoice.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] }, data: { ksefStatus: "queued", documentStatus: "ready", version: (invoice.version || 1) + 1 } });
         await recordAuditLog({ client: tx, companyId: invoice.sellerCompanyId, documentId: invoiceId,
           userId: user.id, userName: user.name, userEmail: user.email,
           action: "ksef_queue_enqueued", entityType: "invoice", entityId: invoiceId,

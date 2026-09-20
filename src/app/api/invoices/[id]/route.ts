@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { KSEF_IN_FLIGHT } from "@/lib/ksef/transmission-claim";
 import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
@@ -75,6 +76,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const { invoice: existing } = result;
     if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
+    if (KSEF_IN_FLIGHT.includes(existing.ksefStatus || "") || (existing.referenceNumber && !existing.ksefNumber)) throw new ApiError(409, "Dokument oczekuje na rozstrzygnięcie wysyłki KSeF.");
     if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
     const body = await readJson(req);
 
@@ -258,6 +260,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
     const { invoice: existing } = result;
     if (existing.type === "purchase") throw new ApiError(403, PURCHASE_INVOICE_READ_ONLY);
+    if (KSEF_IN_FLIGHT.includes(existing.ksefStatus || "") || (existing.referenceNumber && !existing.ksefNumber)) throw new ApiError(409, "Dokument oczekuje na rozstrzygnięcie wysyłki KSeF.");
     if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
 
     // Uprawnienia
