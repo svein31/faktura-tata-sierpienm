@@ -92,6 +92,16 @@ try {
   await migrateData(migrationDb,'down','007-document-workspace');
   assert.equal(await migrationDb.collection('ExpenseScan').countDocuments(),1);
   await migrateData(migrationDb,'up','007-document-workspace');
+  await migrateData(migrationDb, 'up', '008-company-workflows');
+  await migrateData(migrationDb, 'up', '008-company-workflows');
+  const historyFixture = { _id: new ObjectId(), companyId: fixtureCompany, action: 'close', reason: 'Preserve history', version: 1 };
+  await migrationDb.collection('AccountingPeriodEvent').insertOne(historyFixture);
+  await migrateData(migrationDb, 'down', '008-company-workflows');
+  assert.deepEqual(await migrationDb.collection('AccountingPeriodEvent').findOne({ _id: historyFixture._id }), historyFixture);
+  await migrateData(migrationDb, 'up', '008-company-workflows');
+  const periodHistoryIndexes = await migrationDb.collection('AccountingPeriodEvent').listIndexes().toArray();
+  assert.ok(periodHistoryIndexes.some(i => i.key.periodId === 1 && i.key._id === 1));
+  console.log('[integration] PASS workflow index migration is repeatable and rollback preserves closing history');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
@@ -587,8 +597,8 @@ try {
   const periodAfterRace = await db.accountingPeriod.findUniqueOrThrow({ where: { id: period.id } });
   assert.equal(await db.expense.count({ where: { companyId, number: 'PERIOD/RACE' } }), periodAfterRace.status === 'closed' ? 0 : 1);
   console.log('PASS: actual MongoDB write-versus-close contention rolls back the losing transaction');
-  const closingCompany = await api('POST', '/api/companies', { companyName: 'Zamknięcie miesiąca', nip: '5260301706' }, a.cookie);
-  assert.equal(closingCompany.res.status, 201);
+  const closingCompany = await api('POST', '/api/companies', { companyName: 'Zamknięcie miesiąca', nip: '1234563218' }, a.cookie);
+  assert.equal(closingCompany.res.status, 201, JSON.stringify(closingCompany.data));
   const closingCompanyId = closingCompany.data.company.id, closingMonth = '2033-04';
   const periodUrl = `/api/accountant/period?companyId=${closingCompanyId}&month=${closingMonth}`;
   assert.equal((await api('GET', periodUrl, undefined, b.cookie)).res.status, 403);

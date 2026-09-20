@@ -26,3 +26,5 @@ Each close/reopen creates an append-only event with the actor, reason, version a
 The API is `/api/accountant/period`; the panel is on the existing accountant page. Read endpoints do not create period records. History uses company-scoped keyset pagination. Tests exercise disposable MongoDB only; no production period has been closed and no live KSeF call is made.
 
 Production release remains held for the complete eight-stage package and browser verification.
+
+Deployment preparation: migration `008-company-workflows` adds query indexes for command receipts, cost reviews and accounting periods/history. It does not reassign or backfill old documents. Rollback removes only indexes created by this migration and preserves all period states, events and receipts. Run it as part of the final deployment procedure; it has not been run against production.
