@@ -5,8 +5,8 @@ Preserve existing functions and purchase invoice immutability. Do not expand pay
 | Stage | State | Remaining work |
 | --- | --- | --- |
 | 1. Warehouse | Branch: company commands/UI, actor audit, idempotency, stocktaking UI; CI passed for c36ad88 | Browser E2E, history/valuation review and remaining legacy route audit |
-| 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards | Full HTTP integration verification and browser E2E; automatic policy enrollment is not enabled |
-| 3. Accountant workspace | Planned | Shared checklist, missing-document tracking, close/reopen periods with enforcement across every write path |
+| 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards; CI passed for a187614 | Browser E2E; automatic policy enrollment is not enabled |
+| 3. Accountant workspace | Branch: shared monthly checklist, missing-document tracking, notes, assignees, audit and CAS | Close/reopen periods with enforcement across every financial write path; browser E2E |
 | 4. OCR | Basic manual-review inbox already shipped | Structured field/line extraction, confidence backed by actual provider data, job processing and storage |
 | 5. Profitability | Planned | Link costs, materials and tracked time to projects; keep currencies separate |
 | 6. PDF templates | Planned | Versioned layouts and immutable issued-document rendering |
@@ -33,3 +33,7 @@ No production database export or access was performed. Production backup/restore
 `/cost-reviews` is an explicit opt-in approval workflow for existing purchase invoices and company expenses. Owner-configured 1–5 distinct assignees are snapshotted per review. Each assignee needs current company export permission; only the current assignee can approve/reject. A final approval updates the existing accounting status in the same transaction. Owners can reopen with a mandatory reason and the latest policy. Rejected/approved histories and comments remain append-only events. No email is sent by this feature; notifications use the existing in-app bell.
 
 Enrolled expenses cannot be overwritten/deleted; old status changes and the invoice bulk approval route cannot bypass reviews. The existing legacy single-step approval flow remains available for documents not enrolled. No financial amounts, invoice lines, payment fields or originals are changed by review decisions. Stage 3 period locks will also need to cover decisions/reopening before final release.
+
+## Shared accountant workspace
+
+The existing accountant page now contains a company/month-specific shared task list for users with current export permissions, separate from the earlier personal checklist. It supports missing documents, completion, assignment and notes. Updates use optimistic version checks and atomic audit/notification writes. It does not claim to close the accounting period.

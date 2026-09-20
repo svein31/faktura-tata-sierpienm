@@ -1077,6 +1077,18 @@ model CostReviewEvent {
   @@index([reviewId, createdAt])
 }
 
+model AccountingWorkspace {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  month String
+  items Json
+  version Int @default(1)
+  updatedBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, month])
+}
+
 /// Stan magazynowy pozycji w danym magazynie (żywy licznik)
 model StockItem {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
