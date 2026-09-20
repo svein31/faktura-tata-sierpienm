@@ -37,6 +37,7 @@ import type {
 } from "./types";
 import { resolveWarehouse } from "./warehouses";
 import { lockWarehouses, assertNoStocktaking } from "./transaction";
+import { companyAccess } from "@/lib/company-write";
 
 export const STOCK_DOCUMENT_TYPES: StockDocumentType[] = ["WZ", "PZ", "RW", "PW", "MM"];
 
@@ -363,13 +364,13 @@ async function issueDocument(input: IssueInput, prisma: Prisma.TransactionClient
       if (input.direction === "in") {
         // Średnia ważona: (stan × średnia + przyjęto × cena przyjęcia) / (stan + przyjęto)
         if (before <= 0) {
-          avgPurchasePrice = line.unitPriceNet > 0 ? line.unitPriceNet : avgPurchasePrice;
+          avgPurchasePrice = line.unitPriceNet;
         } else if (after > 0) {
           avgPurchasePrice = roundMoney(
             (before * avgPurchasePrice + line.quantity * line.unitPriceNet) / after
           );
         }
-        if (line.unitPriceNet > 0) lastPurchasePrice = line.unitPriceNet;
+        lastPurchasePrice = line.unitPriceNet;
         movementPrice = line.unitPriceNet;
       } else {
         // Rozchód wyceniany po średniej ważonej — średnia pozostaje bez zmian.
@@ -421,8 +422,10 @@ async function issueDocument(input: IssueInput, prisma: Prisma.TransactionClient
     throw e; // The enclosing transaction rolls back every write.
   }
 
+  const valuedLines = input.lines.map((line, index) => ({ ...line, unitPriceNet: movements[index].unitPriceNet, valueNet: roundMoney(Math.abs(movements[index].valueNet)) }));
+  const valuedDocument = await prisma.stockDocument.update({ where: { id: document.id }, data: { lines: toJsonValue(valuedLines), totalValueNet: sumMoney(valuedLines.map(line => line.valueNet)) } });
   return {
-    document,
+    document: valuedDocument,
     movements,
     alerts: [...alertsByItem.values()],
     warnings,
@@ -477,6 +480,7 @@ export async function applyStockDocumentInTransaction(
   const lines = normalizeDocumentLines(params.lines);
   const issueDate = normalizeIssueDate(params.issueDate);
   const warehouse = await resolveWarehouse(userId, params.warehouseId, prisma);
+  if (warehouse.companyId) await companyAccess(prisma, params.actor?.userId || userId, warehouse.companyId, "canIssueInvoices");
   if (!warehouse.isActive) throw new ApiError(409, "Magazyn jest nieaktywny.");
   const targetId = params.type === "MM" ? params.targetWarehouseId : null;
   const targetRecord = targetId ? await resolveWarehouse(userId, targetId, prisma) : null;
@@ -588,7 +592,7 @@ export async function applyStockDocumentInTransaction(
 
     await recordAuditLog({
     client: prisma,
-      userId,
+      userId, ...params.actor, companyId: warehouse.companyId,
       action: "stock.transfer",
       entityType: "stockDocument",
       entityId: outDoc.id,
@@ -624,7 +628,7 @@ export async function applyStockDocumentInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...params.actor, companyId: warehouse.companyId,
     action: direction === "in" ? "stock.receipt" : "stock.release",
     entityType: "stockDocument",
     entityId: result.document.id,
@@ -660,8 +664,9 @@ export async function cancelStockDocument(
   return prisma.$transaction(tx => cancelStockDocumentInTransaction(userId, documentId, reason, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function cancelStockDocumentInTransaction(
-  userId: string, documentId: string, reason: string | null | undefined, prisma: Prisma.TransactionClient
+export async function cancelStockDocumentInTransaction(
+  userId: string, documentId: string, reason: string | null | undefined, prisma: Prisma.TransactionClient,
+  actor?: ApplyStockDocumentParams["actor"]
 ): Promise<CancelStockDocumentResult> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
@@ -675,6 +680,10 @@ async function cancelStockDocumentInTransaction(
   const pairedDocument = document.pairedDocumentId ? await prisma.stockDocument.findFirst({ where: { id: document.pairedDocumentId, userId } }) : null;
   if (document.pairedDocumentId && (!pairedDocument || pairedDocument.status === "cancelled")) throw new ApiError(409, "Niespójna para dokumentów MM — wymagana weryfikacja.");
   const warehouseIds = [document.warehouseId, ...(pairedDocument ? [pairedDocument.warehouseId] : [])];
+  for (const warehouseId of warehouseIds) {
+    const owned = await resolveWarehouse(userId, warehouseId, prisma);
+    if (owned.companyId) await companyAccess(prisma, actor?.userId || userId, owned.companyId, "canIssueInvoices");
+  }
   await lockWarehouses(prisma, userId, warehouseIds);
   for (const id of warehouseIds) await assertNoStocktaking(prisma, id);
 
@@ -768,7 +777,7 @@ async function cancelStockDocumentInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...actor, companyId: warehouse?.companyId,
     action: "stock.document.cancelled",
     entityType: "stockDocument",
     entityId: document.id,

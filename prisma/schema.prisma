@@ -999,6 +999,7 @@ model WhitelistCheck {
 // ════════════════════════════════════════════════════════════════════════
 
 model Warehouse {
+  currency String? // Explicit only for newly configured stock; never infer legacy currency.
   /// Transaction serialization token; no business meaning, safe for legacy records.
   operationKey String?
   id     String @id @default(auto()) @map("_id") @db.ObjectId
@@ -1023,6 +1024,18 @@ model Warehouse {
 
   @@unique([userId, code])
   @@index([userId])
+}
+
+/// Exactly-once command receipt, committed in the same transaction as business changes.
+model WorkspaceCommand {
+  id String @id @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  action String
+  payloadHash String
+  result Json
+  createdAt DateTime @default(now())
+  @@index([companyId, createdAt])
 }
 
 /// Stan magazynowy pozycji w danym magazynie (żywy licznik)

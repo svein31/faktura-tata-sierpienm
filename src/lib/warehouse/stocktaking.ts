@@ -17,7 +17,7 @@ import { stocktakingLinesFrom, stocktakingToDto, toJsonValue } from "./dto";
 import { roundMoney, roundQty, sumMoney, sumQty } from "./math";
 import { nextStocktakingNumber } from "./numbering";
 import { applyStockDocumentInTransaction } from "./stock-engine";
-import type { StockDocumentLine, StocktakingDto, StocktakingLine } from "./types";
+import type { ApplyStockDocumentParams, StockDocumentLine, StocktakingDto, StocktakingLine } from "./types";
 import { resolveWarehouse } from "./warehouses";
 
 const OPEN_STATUSES = ["open", "counting"];
@@ -92,12 +92,13 @@ export async function openStocktaking(
   return defaultPrisma.$transaction(tx => openStocktakingInTransaction(userId, warehouseId, countDate, opts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function openStocktakingInTransaction(
+export async function openStocktakingInTransaction(
   userId: string,
   warehouseId: string,
   countDate: string,
   opts: { notes?: string | null } | undefined,
-  prisma: Prisma.TransactionClient
+  prisma: Prisma.TransactionClient,
+  actor?: ApplyStockDocumentParams["actor"]
 ): Promise<StocktakingDto> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
@@ -158,7 +159,7 @@ async function openStocktakingInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...actor, companyId: warehouse.companyId,
     action: "stock.stocktaking.opened",
     entityType: "stocktaking",
     entityId: created.id,
@@ -182,7 +183,7 @@ export async function saveStocktakingCounts(
   return defaultPrisma.$transaction(tx => saveStocktakingCountsInTransaction(userId, id, counts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function saveStocktakingCountsInTransaction(
+export async function saveStocktakingCountsInTransaction(
   userId: string,
   id: string,
   counts: Array<{ sku: string; countedQuantity: number }>,
@@ -257,11 +258,12 @@ export async function closeStocktaking(
   return defaultPrisma.$transaction(tx => closeStocktakingInTransaction(userId, id, opts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function closeStocktakingInTransaction(
+export async function closeStocktakingInTransaction(
   userId: string,
   id: string,
   opts: { allowUncounted?: boolean; closedBy?: string | null } | undefined,
-  prisma: Prisma.TransactionClient
+  prisma: Prisma.TransactionClient,
+  actor?: ApplyStockDocumentParams["actor"]
 ): Promise<{ stocktaking: StocktakingDto; documents: string[] }> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
@@ -317,7 +319,7 @@ async function closeStocktakingInTransaction(
 
   if (shortageLines.length > 0) {
     const rw = await applyStockDocumentInTransaction({
-      userId,
+      userId, actor,
       warehouseId: warehouse.id,
       type: "RW",
       lines: shortageLines,
@@ -336,7 +338,7 @@ async function closeStocktakingInTransaction(
 
   if (surplusLines.length > 0) {
     const pw = await applyStockDocumentInTransaction({
-      userId,
+      userId, actor,
       warehouseId: warehouse.id,
       type: "PW",
       lines: surplusLines,
@@ -368,7 +370,7 @@ async function closeStocktakingInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...actor, companyId: warehouse.companyId,
     action: "stock.stocktaking.closed",
     entityType: "stocktaking",
     entityId: record.id,

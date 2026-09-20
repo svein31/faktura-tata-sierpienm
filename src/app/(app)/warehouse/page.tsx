@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { WarehouseOperations } from "@/components/warehouse-operations";
 
 type View = "stock" | "documents" | "movements";
 type Row = { id: string; warehouseId: string; sku?: string; name?: string; unit?: string; quantity?: number; reserved?: number; available?: number; minQuantity?: number; isLowStock?: boolean; location?: string; number?: string; type?: string; status?: string; issueDate?: string; contractorName?: string; lines?: { sku: string; name: string; unit: string; quantity: number }[]; quantityChange?: number; quantityBefore?: number; quantityAfter?: number; createdAt?: string };
@@ -16,13 +17,15 @@ const statuses: Record<string, string> = { issued: "Wystawiony", cancelled: "Anu
 export default function WarehousePage() {
   const companyId = useAppStore(s => s.selectedCompanyId);
   const [legacy, setLegacy] = React.useState(false);
+  const [revision, setRevision] = React.useState(0);
   // Remount immediately on company/archive changes: old responses and rows cannot leak into the new view.
   const scope = legacy ? "legacy" : companyId;
   return <div className="page space-y-4">
     <PageHeader title="Magazyn" description="Podgląd stanów, dokumentów i historii zmian w wybranej firmie." />
     <label className="flex gap-2 items-center text-sm"><input type="checkbox" checked={legacy} onChange={e => setLegacy(e.target.checked)} />Archiwum własnych magazynów bez przypisanej firmy</label>
     {legacy && <p className="rounded-xl border p-3 text-sm">Archiwum nie dotyczy firmy wybranej w górnym pasku. Historyczne magazyny nie są automatycznie przypisywane ani przenoszone.</p>}
-    {scope ? <Inventory key={`${companyId}:${scope}`} scope={scope} /> : <p>Wybierz firmę, aby zobaczyć jej magazyny.</p>}
+    {companyId && !legacy && <WarehouseOperations key={companyId} companyId={companyId} onChange={() => setRevision(n => n + 1)} />}
+    {scope ? <Inventory key={`${companyId}:${scope}:${revision}`} scope={scope} /> : <p>Wybierz firmę, aby zobaczyć jej magazyny.</p>}
   </div>;
 }
 
@@ -64,7 +67,7 @@ function Inventory({ scope }: { scope: string }) {
 
   const warehouseName = (id: string) => data?.warehouses.find(w => w.id === id)?.code || "—";
   return <div className="space-y-4">
-    <p className="text-sm text-muted-foreground">Widok tylko do odczytu. Nie zmienia stanów ani wcześniejszych dokumentów. Wycena nie jest prezentowana, ponieważ stare rekordy magazynowe nie określają waluty.</p>
+    <p className="text-sm text-muted-foreground">Poniższa historia jest tylko do odczytu. Operacje wykonasz w panelu powyżej. Historyczne rekordy bez waluty nie są uwzględniane w zbiorczej wycenie.</p>
     <div className="flex flex-wrap gap-2" aria-label="Widoki magazynu">{Object.entries(views).map(([key, label]) => <Button key={key} variant={view === key ? "primary" : "ghost"} aria-pressed={view === key} onClick={() => { setView(key as View); setItem(null); }}>{label}</Button>)}</div>
     <div className="grid gap-3 md:grid-cols-2">
       <label className="text-sm">Magazyn<Select value={warehouseId} onChange={e => { setWarehouseId(e.target.value); setItem(null); }}>

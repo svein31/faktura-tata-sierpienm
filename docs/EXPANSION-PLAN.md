@@ -1,6 +1,6 @@
 # Expansion plan: eight approved stages
 
-Preserve existing functions and purchase invoice immutability. Do not expand payments/banking. Each independently verified slice is a separate commit; incomplete stages remain explicitly open.
+Preserve existing functions and purchase invoice immutability. Do not expand payments/banking. Updated release instruction: keep all further work for stages 1–8 on `codex/full-expansion-1-8`. Intermediate commits are checkpoints only. Do not update main until all eight stages are complete and the complete package passes verification. Previously published stage 1a remains on main.
 
 | Stage | State | Remaining work |
 | --- | --- | --- |
