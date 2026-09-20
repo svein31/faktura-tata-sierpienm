@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -50,7 +51,9 @@ export async function POST(req: Request) {
     const attachmentName = typeof body.attachmentName === "string" ? body.attachmentName.trim() : null;
     const workflowStatus = String(body.workflowStatus || "to_verify");
 
-    const expense = await prisma.expense.create({
+    const expense = await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate }]);
+    return tx.expense.create({
       data: {
         userId: user.id,
         companyId,
@@ -73,10 +76,10 @@ export async function POST(req: Request) {
         isKsefSource: false,
       },
     });
+    });
 
     return json({ expense: expenseToDto(expense) }, { status: 201 });
   } catch (e) {
     return handleApiError(e);
   }
 }
-

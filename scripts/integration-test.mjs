@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 require('./register-ts.cjs');
 const { totpAt } = require('../src/lib/totp.ts');
 const { warsawDate } = require('../src/lib/scheduling.ts');
+const { assertAccountingPeriodsOpen } = require('../src/lib/accounting-period.ts');
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
@@ -522,6 +523,49 @@ try {
   await db.companyMember.deleteMany({ where: { companyId, userId: b.data.user.id } });
   assert.equal((await api('GET', `/api/accountant/workspace?companyId=${companyId}&month=${sharedMonth}`, undefined, b.cookie)).res.status, 403);
   console.log('PASS: shared accountant workspace, missing documents, assignees, CAS updates, month/company isolation and revocation');
+  // Seed closed state only in this disposable database. The closing UI/API is deliberately not enabled yet.
+  const periodExpense = await api('POST', '/api/expenses', { companyId, contractorName: 'Period supplier', number: 'PERIOD/1', issueDate: '2032-03-01', totalGross: 123 }, a.cookie);
+  assert.equal(periodExpense.res.status, 201);
+  const periodExpenseId = periodExpense.data.expense.id;
+  const expenseBeforeLock = await db.expense.findUniqueOrThrow({ where: { id: periodExpenseId } });
+  const period = await db.accountingPeriod.findFirstOrThrow({ where: { companyId, month: '2032-03' } });
+  await db.accountingPeriod.update({ where: { id: period.id }, data: { status: 'closed' } });
+  assert.equal((await api('POST', '/api/expenses', { companyId, contractorName: 'Blocked', issueDate: '2032-03-02', totalGross: 1 }, a.cookie)).res.status, 409);
+  assert.equal((await api('PUT', `/api/expenses/${periodExpenseId}`, { issueDate: '2032-04-01' }, a.cookie)).res.status, 409, 'Moving out of a closed period is blocked');
+  assert.equal((await api('PATCH', `/api/expenses/${periodExpenseId}`, { workflowStatus: 'verified' }, a.cookie)).res.status, 409);
+  assert.equal((await api('DELETE', `/api/expenses/${periodExpenseId}`, undefined, a.cookie)).res.status, 409);
+  assert.equal((await api('POST', '/api/cost-reviews', { companyId, action: 'submit', documentType: 'expense', documentId: periodExpenseId }, a.cookie)).res.status, 409);
+  assert.equal((await api('POST', '/api/accountant/workspace', { companyId, month: '2032-03', version: 0, action: 'add', title: 'Blocked', kind: 'check' }, a.cookie)).res.status, 409);
+  assert.deepEqual(await db.expense.findUniqueOrThrow({ where: { id: periodExpenseId } }), expenseBeforeLock, 'Rejected writes leave the expense unchanged');
+  const openExpense = await api('POST', '/api/expenses', { companyId, contractorName: 'Open', issueDate: '2032-04-01', totalGross: 10 }, a.cookie);
+  assert.equal(openExpense.res.status, 201);
+  assert.equal((await api('PUT', `/api/expenses/${openExpense.data.expense.id}`, { issueDate: '2032-03-01' }, a.cookie)).res.status, 409, 'Moving into a closed period is blocked');
+  assert.equal((await api('POST', '/api/expenses', { companyId: company2.data.company.id, contractorName: 'Other company', issueDate: '2032-03-01', totalGross: 10 }, a.cookie)).res.status, 201);
+  await db.accountingPeriod.update({ where: { id: period.id }, data: { status: 'open' } });
+  assert.equal((await api('PUT', `/api/expenses/${periodExpenseId}`, { issueDate: '2032-04-01' }, a.cookie)).res.status, 200);
+  console.log('PASS: transaction period guards, no mutation of closed periods, old/new date guards and company isolation');
+  let snapshotsReady = 0, releaseSnapshots;
+  const bothSnapshots = new Promise(resolve => { releaseSnapshots = resolve; });
+  const synchronizeSnapshot = async tx => {
+    await tx.accountingPeriod.findUniqueOrThrow({ where: { id: period.id } });
+    if (++snapshotsReady === 2) releaseSnapshots();
+    await bothSnapshots;
+  };
+  const periodRace = await Promise.allSettled([
+    db.$transaction(async tx => {
+      await synchronizeSnapshot(tx);
+      await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: '2032-03-01' }]);
+      await tx.expense.create({ data: { userId: a.data.user.id, companyId, number: 'PERIOD/RACE', contractorName: 'Race', issueDate: '2032-03-01' } });
+    }),
+    db.$transaction(async tx => {
+      await synchronizeSnapshot(tx);
+      await tx.accountingPeriod.update({ where: { id: period.id }, data: { status: 'closed', operationKey: 'test-close' } });
+    }),
+  ]);
+  assert.equal(periodRace.filter(r => r.status === 'fulfilled').length, 1, 'A financial write and closing cannot both commit from the same snapshot');
+  const periodAfterRace = await db.accountingPeriod.findUniqueOrThrow({ where: { id: period.id } });
+  assert.equal(await db.expense.count({ where: { companyId, number: 'PERIOD/RACE' } }), periodAfterRace.status === 'closed' ? 0 : 1);
+  console.log('PASS: actual MongoDB write-versus-close contention rolls back the losing transaction');
   const engineTests = spawn(process.execPath, ['scripts/warehouse-engine-test.cjs'], { env: { ...process.env, DATABASE_URL: databaseUrl, WAREHOUSE_ISOLATED_TEST: 'true' }, stdio: 'inherit', timeout: 120000 });
   const [engineCode] = await once(engineTests, 'exit');
   assert.equal(engineCode, 0, 'Warehouse transaction and concurrency checks must pass');

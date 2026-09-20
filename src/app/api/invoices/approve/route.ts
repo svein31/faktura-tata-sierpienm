@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
       }
     }
     await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, invoices.map(i => ({ companyId: i.sellerCompanyId, issueDate: i.issueDate })));
     const changed = await tx.invoice.updateMany({
       where: { id: { in: ids }, type: "purchase", OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
       data: {

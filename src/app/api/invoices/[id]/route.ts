@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
@@ -111,6 +112,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       }
 
     const updated = await prisma.$transaction(async tx => {
+      await assertAccountingPeriodsOpen(tx, [{ companyId: existing.sellerCompanyId, issueDate: existing.issueDate }]);
       const updated = await tx.invoice.update({
         where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
         data: {
@@ -186,6 +188,10 @@ export async function PUT(req: Request, { params }: Ctx) {
     const nextVersion = (existing.version || 1) + 1;
 
     const invoice = await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [
+      { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
+      { companyId: data.sellerCompanyId, issueDate: data.issueDate },
+    ]);
     const invoice = await tx.invoice.update({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
@@ -274,6 +280,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [{ companyId: existing.sellerCompanyId, issueDate: existing.issueDate }]);
     const claimed = await tx.invoice.updateMany({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: { version: (existing.version || 1) + 1 },

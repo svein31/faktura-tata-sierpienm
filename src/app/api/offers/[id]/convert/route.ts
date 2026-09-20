@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
@@ -74,6 +75,7 @@ export async function POST(
       return json({ success: true, target: "order", order: orderToDto(order) });
     } else {
       // Konwersja do faktury
+      await assertAccountingPeriodsOpen(tx, [{ companyId: invoiceData!.sellerCompanyId, issueDate: invoiceData!.issueDate }]);
       const invoiceNumber = await conversionNumber(tx, offer.companyId, user.id);
       const invoice = await tx.invoice.create({
         data: {
@@ -97,4 +99,3 @@ export async function POST(
     return handleApiError(e);
   }
 }
-

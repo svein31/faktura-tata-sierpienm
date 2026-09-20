@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/db";
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
     let task;
     try {
       task = await prisma.$transaction(async (tx) => {
+        await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
         const previous = await tx.ksefQueueTask.findUnique({ where: { idempotencyKey } });
         if (previous && previous.status !== "failed") return previous;
         const data = { userId: user.id, environment, status: "queued", nextAttemptAt: new Date(), attempts: 0, lockedUntil: null, errorDetails: null };
@@ -134,4 +136,3 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
-

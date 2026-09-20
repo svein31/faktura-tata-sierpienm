@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
     const result = await prisma.$transaction(async tx => {
       const { company } = await companyAccess(tx, user.id, body.companyId, "canExport");
       const id = accountingWorkspaceId(company.id, body.month);
+      await assertAccountingPeriodsOpen(tx, [{ companyId: company.id, issueDate: `${body.month}-01` }]);
       const current = await tx.accountingWorkspace.findUnique({ where: { id } });
       if ((current?.version ?? 0) !== body.version) throw new ApiError(409, "Lista została zmieniona przez inną osobę. Odśwież dane przed zapisem.");
       if (body.action === "assign" && body.assigneeId !== null) await companyAccess(tx, String(body.assigneeId), company.id, "canExport");

@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -31,6 +32,7 @@ export async function PATCH(req: Request, context: Context) {
       let expenseId: string | null = null;
       if (body.action === "approve" && fields) {
         const expense = await tx.expense.create({ data: { ...fields, companyId, userId: user.id, scanId: id, attachmentUrl: `/api/documents/${id}/file`, attachmentName: record.fileName, workflowStatus: "verified" } });
+        await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: expense.issueDate }]);
         expenseId = expense.id;
         await tx.expenseScan.update({ where: { id }, data: { expenseId } });
       }

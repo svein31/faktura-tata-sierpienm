@@ -25,6 +25,7 @@ function routeMocks(invoice, role = "owner") {
   let writes = 0;
   const db = {
     $transaction: async callback => callback(db),
+    accountingPeriod: { upsert: async () => ({ status: "open" }) },
     invoice: {
       findUnique: async () => invoice,
       findMany: async () => [invoice],
@@ -58,7 +59,7 @@ test("purchase preview remains available; update/delete/payment reject before wr
   assert.equal(writes(),0);
 });
 test("purchase approval and revocation work for accountants", async () => {
-  const writes = routeMocks({id,userId:"author",sellerCompanyId:"company",type:"purchase"},"accountant");
+  const writes = routeMocks({id,userId:"author",sellerCompanyId:"company",type:"purchase",issueDate:"2026-09-20"},"accountant");
   const route = load("src/app/api/invoices/approve/route.ts");
   for (const status of ["approved","pending"]) assert.equal((await route.POST(req({invoiceIds:[id],status}))).status,200);
   assert.equal(writes(),2);

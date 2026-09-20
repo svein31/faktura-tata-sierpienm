@@ -1694,6 +1694,21 @@ model DueReminderDelivery {
   @@index([status, createdAt])
 }
 
+// Closing remains unavailable until every financial entry point uses the transactional guard.
+model AccountingPeriod {
+ id String @id @map("_id") @db.ObjectId
+ companyId String @db.ObjectId
+ month String
+ status String @default("open")
+ operationKey String
+ version Int @default(0)
+ closedAt DateTime?
+ closedBy String? @db.ObjectId
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([companyId, month])
+}
+
 model InvoiceSettlement {
  id String @id @default(auto()) @map("_id") @db.ObjectId
  invoiceId String @unique @db.ObjectId

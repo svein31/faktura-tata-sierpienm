@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -75,8 +76,13 @@ export async function PUT(req: Request, context: RouteContext) {
     const attachmentUrl = typeof body.attachmentUrl === "string" ? body.attachmentUrl.trim() : existing.attachmentUrl;
     const attachmentName = typeof body.attachmentName === "string" ? body.attachmentName.trim() : existing.attachmentName;
 
-    const updated = await prisma.expense.update({
-      where: { id, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
+    const updated = await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [
+      { companyId: existing.companyId, issueDate: existing.issueDate },
+      { companyId: existing.companyId, issueDate },
+    ]);
+    return tx.expense.update({
+      where: { id, updatedAt: existing.updatedAt, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
       data: {
         contractorName,
         number,
@@ -95,6 +101,7 @@ export async function PUT(req: Request, context: RouteContext) {
         attachmentUrl,
         attachmentName,
       },
+    });
     });
 
     return json({ expense: expenseToDto(updated) });
@@ -144,9 +151,14 @@ export async function PATCH(req: Request, context: RouteContext) {
       updateData.category = body.category;
     }
 
-    const updated = await prisma.expense.update({
-      where: { id, ...("workflowStatus" in body ? { OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] } : {}) },
+    const updated = await prisma.$transaction(async tx => {
+    if (["workflowStatus", "category", "description"].some(key => key in body)) {
+      await assertAccountingPeriodsOpen(tx, [{ companyId: existing.companyId, issueDate: existing.issueDate }]);
+    }
+    return tx.expense.update({
+      where: { id, updatedAt: existing.updatedAt, ...("workflowStatus" in body ? { OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] } : {}) },
       data: updateData,
+    });
     });
 
     return json({ expense: expenseToDto(updated) });
@@ -172,8 +184,11 @@ export async function DELETE(_req: Request, context: RouteContext) {
     if (existing.costReviewId) throw new ApiError(409, "Koszt w obiegu nie może być usunięty.");
     if (existing.scanId || existing.isKsefSource) throw new ApiError(403, "Dokument źródłowy jest niezmienny. Dostępny jest podgląd i akceptacja.");
 
-    await prisma.expense.delete({
-      where: { id, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
+    await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [{ companyId: existing.companyId, issueDate: existing.issueDate }]);
+    await tx.expense.delete({
+      where: { id, updatedAt: existing.updatedAt, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
+    });
     });
 
     return json({ success: true });

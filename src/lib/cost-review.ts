@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -69,6 +70,7 @@ export async function costReviewCommand(actor: Actor, body: Record<string, unkno
       const expense = documentType === "expense" ? await tx.expense.findFirst({ where: { id: documentId, companyId } }) : null;
       const document = invoice || expense;
       if (!document) throw new ApiError(404, "Nie znaleziono kosztu w tej firmie.");
+      await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: document.issueDate }]);
       const id = reviewId(companyId, documentType, documentId);
       const existing = await tx.costReview.findUnique({ where: { id } });
       if (existing) throw new ApiError(409, "Dokument jest już w obiegu. Otwórz istniejący obieg.");
@@ -85,6 +87,7 @@ export async function costReviewCommand(actor: Actor, body: Record<string, unkno
     if (!objectId(body.reviewId)) throw new ApiError(400, "Wybierz obieg.");
     const review = await tx.costReview.findFirst({ where: { id: body.reviewId, companyId } });
     if (!review) throw new ApiError(404, "Nie znaleziono obiegu.");
+    if (action !== "comment") await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: (review.snapshot as Record<string, unknown>).issueDate }]);
     if (body.version !== review.version) throw new ApiError(409, "Obieg został zmieniony. Odśwież dane.");
     let data: Prisma.CostReviewUpdateInput = { version: { increment: 1 } };
     if (action === "comment") {

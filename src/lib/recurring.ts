@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import "server-only";
 import { prisma } from "@/lib/db";
 import { parseInvoiceBody } from "@/lib/parsers";
@@ -33,6 +34,7 @@ export async function generateRecurringInvoices(now = new Date()) {
       const settings = template.recurringAutoSend ? await prisma.ksefSettings.findUnique({ where: { userId: actorId } }) : null;
       const actor = await prisma.user.findUniqueOrThrow({ where: { id: actorId }, select: { name: true, email: true } });
       const invoice = await prisma.$transaction(async tx => {
+        await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: data.issueDate }]);
         const existing = await tx.recurringOccurrence.findUnique({ where: { templateId_scheduledDate: { templateId: template.id, scheduledDate } } });
         const claimed = await tx.invoice.updateMany({ where: { id: template.id, AND: [{ OR: [{ version: template.version }, ...((template.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] }], isRecurring: true, recurringNextDate: scheduledDate,
           OR: [{ recurringPaused: false }, { recurringPaused: null }, { recurringPaused: { isSet: false } }],

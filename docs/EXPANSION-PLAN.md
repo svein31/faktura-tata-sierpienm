@@ -37,3 +37,7 @@ Enrolled expenses cannot be overwritten/deleted; old status changes and the invo
 ## Shared accountant workspace
 
 The existing accountant page now contains a company/month-specific shared task list for users with current export permissions, separate from the earlier personal checklist. It supports missing documents, completion, assignment and notes. Updates use optimistic version checks and atomic audit/notification writes. It does not claim to close the accounting period.
+
+Shared workspace CI passed at `acab92d`. The next checkpoint adds a transactional company/month guard for invoice CRUD, manual expense CRUD, document inbox conversion, offer/order conversion, settlements, recurrence, incoming KSeF import, enqueue, approval decisions and shared monthly tasks. Expense mutations also compare `updatedAt` so a stale request cannot lock the wrong month after another request moved the document. KSeF incoming invoice and reservation linkage now commit together.
+
+Period closing is intentionally not exposed yet: direct KSeF sending/worker claims, transport reconciliation, warehouse period policy and a final financial-write coverage audit remain. No production periods were closed. New integration checks use seeded states only in the disposable database and include an actual concurrent close/write rollback test. Financial guards use the issue-date month; unassigned legacy documents stay outside company periods. Payment-only metadata retains existing behavior.
