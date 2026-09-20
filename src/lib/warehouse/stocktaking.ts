@@ -9,6 +9,7 @@
  */
 
 import { prisma as defaultPrisma } from "@/lib/db";
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import type { Prisma } from "@prisma/client";
 import { lockWarehouses } from "./transaction";
 import { ApiError } from "@/lib/api";
@@ -103,8 +104,9 @@ export async function openStocktakingInTransaction(
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const warehouse = await resolveWarehouse(userId, warehouseId, prisma);
-  await lockWarehouses(prisma, userId, [warehouse.id]);
   const date = normalizeDate(countDate);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: date }]);
+  await lockWarehouses(prisma, userId, [warehouse.id]);
 
   const pending = await prisma.stocktaking.findFirst({
     where: { userId, warehouseId: warehouse.id, status: { in: OPEN_STATUSES } },
@@ -192,6 +194,8 @@ export async function saveStocktakingCountsInTransaction(
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const record = await loadStocktaking(userId, id, prisma);
+  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: record.countDate }]);
   await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(
@@ -234,10 +238,6 @@ export async function saveStocktakingCountsInTransaction(
     data: { status: "counting", lines: toJsonValue(nextLines), ...totals },
   });
 
-  const warehouse = await prisma.warehouse
-    .findFirst({ where: { id: record.warehouseId, userId } })
-    .catch(() => null);
-
   return stocktakingToDto({ ...updated, warehouse });
 }
 
@@ -268,12 +268,13 @@ export async function closeStocktakingInTransaction(
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const record = await loadStocktaking(userId, id, prisma);
+  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: record.countDate }]);
   await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(400, `Remanent ${record.number} jest już zamknięty.`, "STOCKTAKING_CLOSED");
   }
 
-  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
   const rawLines = stocktakingLinesFrom(record.lines);
   const uncounted = rawLines.filter((line) => !line.counted);
 

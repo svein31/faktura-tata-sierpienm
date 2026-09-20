@@ -6,7 +6,7 @@ Preserve existing functions and purchase invoice immutability. Do not expand pay
 | --- | --- | --- |
 | 1. Warehouse | Branch: company commands/UI, actor audit, idempotency, stocktaking UI; CI passed for c36ad88 | Browser E2E, history/valuation review and remaining legacy route audit |
 | 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards; CI passed for a187614 | Browser E2E; automatic policy enrollment is not enabled |
-| 3. Accountant workspace | Branch: shared monthly checklist, missing-document tracking, notes, assignees, audit and CAS | Close/reopen periods with enforcement across every financial write path; browser E2E |
+| 3. Accountant workspace | Branch: shared tasks, missing documents, transactional period guards; closing/reopening API, UI and immutable snapshots added | Full close/reopen integration run and browser E2E |
 | 4. OCR | Basic manual-review inbox already shipped | Structured field/line extraction, confidence backed by actual provider data, job processing and storage |
 | 5. Profitability | Planned | Link costs, materials and tracked time to projects; keep currencies separate |
 | 6. PDF templates | Planned | Versioned layouts and immutable issued-document rendering |
@@ -42,4 +42,4 @@ Shared workspace CI passed at `acab92d`. The next checkpoint adds a transactiona
 
 Period guard CI passed at `eab0278`, including actual MongoDB close/write contention. The following checkpoint adds a shared transactional KSeF transmission claim for direct and worker sends, queue/version serialization, in-flight invoice edit/delete protection, and warehouse issue/cancellation period guards. Network operations run outside the transaction; uncertain attempts remain blocked for reconciliation instead of being resent. Existing status polling is retained.
 
-Period closing is intentionally not exposed yet: close/reopen readiness rules, the final financial-write coverage audit and the closing UI remain. No production periods were closed. Integration checks use seeded states only in the disposable database. Financial guards use the issue-date month; unassigned legacy documents stay outside company periods. Payment-only metadata retains existing behavior. No live KSeF request is made by the tests.
+KSeF claim CI passed at `e23b4de` after isolating its test fixtures from the existing webhook-delivery test. The next checkpoint adds close/reopen readiness rules, API/UI, immutable per-currency snapshots, role/version checks, and open-stocktaking blockers. See `ACCOUNTING-PERIODS.md` for the reviewed write paths and operational metadata exceptions. No production periods were closed; integration tests use a disposable database and no live KSeF calls. Browser E2E remains part of the final release gate.

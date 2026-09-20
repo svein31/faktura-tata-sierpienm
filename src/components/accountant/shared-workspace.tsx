@@ -3,9 +3,11 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import type { AccountingTask } from "@/lib/accounting-workspace";
+import { AccountingPeriodPanel } from "@/components/accountant/period-panel";
 
 type State = { workspace: { items: AccountingTask[]; version: number }; assignees: { id: string; name: string }[] };
 export function SharedAccountingWorkspace({ companyId, month }: { companyId: string; month: string }) {
+  const [readOnly, setReadOnly] = React.useState(true);
   const [state, setState] = React.useState<State | null>(null), [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState(false), [title, setTitle] = React.useState(""), [kind, setKind] = React.useState("check");
   const mounted = React.useRef(true), generation = React.useRef(0);
@@ -27,12 +29,12 @@ export function SharedAccountingWorkspace({ companyId, month }: { companyId: str
     } catch (e) { if (mounted.current) setError(e instanceof Error ? e.message : "Błąd zapisu. Odśwież listę."); }
     finally { if (mounted.current) setBusy(false); }
   };
-  return <section className="rounded-xl border p-4 space-y-3">
+  return <><AccountingPeriodPanel companyId={companyId} month={month} revision={state?.workspace.version || 0} onReadOnly={setReadOnly} /><section className="rounded-xl border p-4 space-y-3">
     <div className="flex justify-between flex-wrap gap-2"><h2 className="font-semibold">Wspólna lista miesiąca · {month}</h2><Button variant="ghost" disabled={busy} onClick={load}>Odśwież wspólną listę</Button></div>
     <p className="text-sm text-muted-foreground">Lista dla właściciela i księgowości wybranej firmy. Zaznaczenie zadań nie zamyka okresu księgowego.</p>
     {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
     {!state && !error && <p role="status">Wczytywanie…</p>}
-    {state && <>
+    {state && <fieldset disabled={readOnly || busy} className="space-y-3">
       <p className="text-sm">Ukończono {state.workspace.items.filter(i => i.done).length}/{state.workspace.items.length} · Brakujące dokumenty: {state.workspace.items.filter(i => i.kind === "missing" && !i.done).length}</p>
       <form className="flex flex-wrap items-end gap-2" onSubmit={e => { e.preventDefault(); void save({ action: "add", title, kind }); }}>
         <label className="text-sm grow">Zadanie lub dokument<Input required maxLength={200} disabled={busy} value={title} onChange={e => setTitle(e.target.value)} /></label>
@@ -44,6 +46,6 @@ export function SharedAccountingWorkspace({ companyId, month }: { companyId: str
         <div className="flex flex-wrap items-center gap-2"><label className="text-xs grow">Osoba odpowiedzialna<Select disabled={busy} value={item.assigneeId || ""} onChange={e => save({ action: "assign", itemId: item.id, assigneeId: e.target.value || null })}><option value="">Nieprzypisane</option>{item.assigneeId && !state.assignees.some(p => p.id === item.assigneeId) && <option value={item.assigneeId}>Osoba bez aktualnego dostępu</option>}{state.assignees.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</Select></label><Button variant="ghost" disabled={busy} onClick={() => { const note = window.prompt("Notatka do zadania (do 1000 znaków):", item.note); if (note !== null) void save({ action: "note", itemId: item.id, note }); }}>Notatka</Button><Button variant="ghost" disabled={busy} onClick={() => { if (window.confirm("Usunąć zadanie ze wspólnej listy? Zmiana pozostanie w audycie.")) void save({ action: "remove", itemId: item.id }); }}>Usuń</Button></div>
         {item.note && <p className="text-sm whitespace-pre-wrap">{item.note}</p>}
       </article>)}</div>
-    </>}
-  </section>;
+    </fieldset>}
+  </section></>;
 }

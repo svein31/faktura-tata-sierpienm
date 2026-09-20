@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ApiError, cleanStr } from "@/lib/api";
@@ -81,6 +82,7 @@ export async function warehouseCommand(user: Actor, body: Record<string, unknown
         } else if (action === "closeStocktaking") {
           await closeStocktakingInTransaction(owner, inventory.id, { closedBy: user.name || user.id }, tx, actor);
         } else {
+          await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: inventory.countDate }]);
           await lockWarehouses(tx, owner, [warehouse.id]);
           if (!["open", "counting"].includes(inventory.status)) throw new ApiError(409, "Remanent jest już zamknięty.");
           await tx.stocktaking.update({ where: { id: inventory.id }, data: { status: "cancelled" } });
