@@ -40,6 +40,7 @@ const NAV_MAIN = [
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
   { href: "/documents", label: "Skrzynka dokumentów", icon: Receipt },
   { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
+  { href: "/cost-reviews", label: "Obieg kosztów", icon: FileCheck2 },
   { href: "/finances", label: "Finanse & Wyciągi", icon: DollarSign },
   { href: "/calendar", label: "Terminarz płatności", icon: Calendar },
   { href: "/contractors", label: "Kontrahenci", icon: Users },
@@ -66,7 +67,7 @@ const ALL_NAV = [...NAV_MAIN, ...NAV_SETTINGS];
 const NAV_GROUPS = [
   { label: "Start", paths: ["/dashboard"] },
   { label: "Sprzedaż", paths: ["/invoices", "/advances", "/recurring", "/offers"] },
-  { label: "Zakupy", paths: ["/documents", "/expenses"] },
+  { label: "Zakupy", paths: ["/documents", "/expenses", "/cost-reviews"] },
   { label: "Klienci i praca", paths: ["/orders", "/contractors", "/products", "/warehouse"] },
   { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
   { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/currencies", "/settings/account", "/help"] },
@@ -225,4 +226,3 @@ export function MobileSidebar({
     </AnimatePresence>
   );
 }
-

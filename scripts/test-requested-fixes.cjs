@@ -24,6 +24,7 @@ const id = "123456789012345678901234";
 function routeMocks(invoice, role = "owner") {
   let writes = 0;
   const db = {
+    $transaction: async callback => callback(db),
     invoice: {
       findUnique: async () => invoice,
       findMany: async () => [invoice],

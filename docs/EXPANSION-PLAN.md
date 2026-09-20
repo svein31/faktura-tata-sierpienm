@@ -4,8 +4,8 @@ Preserve existing functions and purchase invoice immutability. Do not expand pay
 
 | Stage | State | Remaining work |
 | --- | --- | --- |
-| 1. Warehouse | In progress: read-only UI shipped; transactional engine slice implemented | Company-member write authorization, scoped warehouse creation, idempotency keys, write UI, stocktaking UI and valuation rules |
-| 2. Cost workflow | Planned | Assignees, comments, multi-stage approval, notifications; no editing original purchase invoices |
+| 1. Warehouse | Branch: company commands/UI, actor audit, idempotency, stocktaking UI; CI passed for c36ad88 | Browser E2E, history/valuation review and remaining legacy route audit |
+| 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards | Full HTTP integration verification and browser E2E; automatic policy enrollment is not enabled |
 | 3. Accountant workspace | Planned | Shared checklist, missing-document tracking, close/reopen periods with enforcement across every write path |
 | 4. OCR | Basic manual-review inbox already shipped | Structured field/line extraction, confidence backed by actual provider data, job processing and storage |
 | 5. Profitability | Planned | Link costs, materials and tracked time to projects; keep currencies separate |
@@ -27,3 +27,9 @@ Preserve existing functions and purchase invoice immutability. Do not expand pay
 Existing write routes remain user-owned, not a complete shared-company write model. The automatic invoice/expense linkage helpers need their own idempotency/transaction boundary before being enabled. Cancellation valuation still follows historical behavior (current weighted price), not historical-cost reversal. Full warehouse UI, currency-aware valuation, strict reservation policy and warehouse metadata mutation authorization are subsequent slices, not claimed as complete here.
 
 No production database export or access was performed. Production backup/restore setup and OCR integration will require the corresponding configured infrastructure; never extract or invent credentials.
+
+## Stage 2 scope
+
+`/cost-reviews` is an explicit opt-in approval workflow for existing purchase invoices and company expenses. Owner-configured 1–5 distinct assignees are snapshotted per review. Each assignee needs current company export permission; only the current assignee can approve/reject. A final approval updates the existing accounting status in the same transaction. Owners can reopen with a mandatory reason and the latest policy. Rejected/approved histories and comments remain append-only events. No email is sent by this feature; notifications use the existing in-app bell.
+
+Enrolled expenses cannot be overwritten/deleted; old status changes and the invoice bulk approval route cannot bypass reviews. The existing legacy single-step approval flow remains available for documents not enrolled. No financial amounts, invoice lines, payment fields or originals are changed by review decisions. Stage 3 period locks will also need to cover decisions/reopening before final release.

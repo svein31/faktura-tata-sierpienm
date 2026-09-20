@@ -326,6 +326,7 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  costReviewId String? @db.ObjectId
   documentKind String?
   advanceReceivedDate String?
   settlementMetadata Json?
@@ -613,6 +614,7 @@ model Order {
 }
 
 model Expense {
+  costReviewId String? @db.ObjectId
   companyId String? @db.ObjectId
   @@index([companyId, issueDate])
   id             String            @id @default(auto()) @map("_id") @db.ObjectId
@@ -1036,6 +1038,43 @@ model WorkspaceCommand {
   result Json
   createdAt DateTime @default(now())
   @@index([companyId, createdAt])
+}
+
+model CostReviewPolicy {
+  id String @id @map("_id") @db.ObjectId // companyId
+  steps Json
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
+}
+
+model CostReview {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  documentType String
+  documentId String @db.ObjectId
+  requestedBy String @db.ObjectId
+  number String
+  snapshot Json
+  steps Json
+  currentStep Int @default(0)
+  status String @default("pending")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, status, createdAt])
+}
+
+model CostReviewEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  reviewId String @db.ObjectId
+  companyId String @db.ObjectId
+  userId String @db.ObjectId
+  authorName String
+  action String
+  message String
+  step Int
+  createdAt DateTime @default(now())
+  @@index([reviewId, createdAt])
 }
 
 /// Stan magazynowy pozycji w danym magazynie (żywy licznik)

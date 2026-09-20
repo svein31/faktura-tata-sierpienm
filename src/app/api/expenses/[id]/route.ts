@@ -52,6 +52,7 @@ export async function PUT(req: Request, context: RouteContext) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
     await requireDocumentWrite(user, existing, "canIssueInvoices");
+    if (existing.costReviewId) throw new ApiError(409, "Koszt jest w obiegu akceptacji. Oryginał nie podlega edycji.");
     if (existing.scanId || existing.isKsefSource) throw new ApiError(403, "Dokument źródłowy jest niezmienny. Dostępny jest podgląd i akceptacja.");
 
     const body = await readJson(req);
@@ -75,7 +76,7 @@ export async function PUT(req: Request, context: RouteContext) {
     const attachmentName = typeof body.attachmentName === "string" ? body.attachmentName.trim() : existing.attachmentName;
 
     const updated = await prisma.expense.update({
-      where: { id },
+      where: { id, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
       data: {
         contractorName,
         number,
@@ -116,6 +117,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
     const body = await readJson(req);
+    if (existing.costReviewId && "workflowStatus" in body) throw new ApiError(409, "Status kosztu zmienia się w obiegu akceptacji.");
     if ("paymentStatus" in body) await requireDocumentWrite(user, existing, "canRecordPayments");
     if ("workflowStatus" in body || "category" in body || "description" in body) await requireDocumentWrite(user, existing, "canExport");
     if (typeof body.workflowStatus === "string" && !["to_verify", "verified", "sent_to_accountant"].includes(body.workflowStatus)) throw new ApiError(400, "Nieprawidłowy status weryfikacji.");
@@ -143,7 +145,7 @@ export async function PATCH(req: Request, context: RouteContext) {
     }
 
     const updated = await prisma.expense.update({
-      where: { id },
+      where: { id, ...("workflowStatus" in body ? { OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] } : {}) },
       data: updateData,
     });
 
@@ -167,10 +169,11 @@ export async function DELETE(_req: Request, context: RouteContext) {
       return json({ error: "Nie znaleziono kosztu." }, { status: 404 });
     }
     await requireDocumentWrite(user, existing, "canIssueInvoices");
+    if (existing.costReviewId) throw new ApiError(409, "Koszt w obiegu nie może być usunięty.");
     if (existing.scanId || existing.isKsefSource) throw new ApiError(403, "Dokument źródłowy jest niezmienny. Dostępny jest podgląd i akceptacja.");
 
     await prisma.expense.delete({
-      where: { id },
+      where: { id, OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
     });
 
     return json({ success: true });
@@ -178,4 +181,3 @@ export async function DELETE(_req: Request, context: RouteContext) {
     return handleApiError(e);
   }
 }
-
