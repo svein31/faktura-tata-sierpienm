@@ -401,10 +401,15 @@ try {
   assert.equal((await api('GET',`/api/documents/${scanId}`,undefined,b.cookie)).res.status,403);
   assert.equal((await fetch(`${base}/api/documents/${scanId}/file`,{headers:{Cookie:b.cookie}})).status,403);
   const review = {action:'approve',version:1,number:'COST/WORKSPACE',contractorName:'Supplier',nip:'5250001003',issueDate:'2030-01-10',currency:'PLN',totalNet:20,totalVat:0,totalGross:20};
+  await db.expenseScan.update({where:{id:scanId},data:{ocrResult:{fields:{},lines:[],warnings:[],confidence:null}}});
+  assert.equal((await api('PATCH',`/api/documents/${scanId}`,review,a.cookie)).res.status,400,'OCR approval requires explicit human review');
+  review.ocrReviewed = true;
+  review.lines = [{name:'Reviewed line',unit:'szt.',quantity:1,totalNet:20,totalVat:0,totalGross:20}];
   const approvals = await Promise.all([1,2].map(()=>api('PATCH',`/api/documents/${scanId}`,review,a.cookie)));
   assert.equal(approvals.filter(r=>r.res.status===200).length,1);
   assert.equal(await db.expense.count({where:{scanId}}),1);
   const sourceExpense = await db.expense.findFirstOrThrow({where:{scanId}});
+  assert.deepEqual(sourceExpense.lines,review.lines,'Approved cost preserves reviewed positions');
   assert.equal((await api('PUT',`/api/expenses/${sourceExpense.id}`,{totalGross:1},a.cookie)).res.status,403);
   assert.equal((await api('DELETE',`/api/expenses/${sourceExpense.id}`,undefined,a.cookie)).res.status,403);
   await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'SALES/WORKSPACE',type:'sale',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines,totalNet:100,totalVat:0,totalGross:100}});
@@ -666,6 +671,9 @@ try {
   const engineTests = spawn(process.execPath, ['scripts/warehouse-engine-test.cjs'], { env: { ...process.env, DATABASE_URL: databaseUrl, WAREHOUSE_ISOLATED_TEST: 'true' }, stdio: 'inherit', timeout: 120000 });
   const [engineCode] = await once(engineTests, 'exit');
   assert.equal(engineCode, 0, 'Warehouse transaction and concurrency checks must pass');
+  const ocrTests = spawn(process.execPath, ['scripts/ocr-jobs-test.cjs'], { env: { ...process.env, DATABASE_URL: databaseUrl, OCR_ISOLATED_TEST: 'true' }, stdio: 'inherit', timeout: 120000 });
+  const [ocrCode] = await once(ocrTests, 'exit');
+  assert.equal(ocrCode, 0, 'OCR queue concurrency and recovery checks must pass');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
 } catch (error) { console.error(logs); throw error; }
 finally {

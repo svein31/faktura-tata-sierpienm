@@ -3,10 +3,12 @@ import * as React from "react";
 import { useAppStore } from "@/lib/store";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import type { OcrExtraction } from "@/lib/ocr-extraction";
 
-type Doc = { id: string; fileName: string; mimeType: string; sizeBytes: number; status: string; version: number; rawText?: string; errorMessage?: string; parsed?: Record<string, string | number>; expenseId?: string };
-const labels: Record<string,string> = { needs_review: "Do weryfikacji", processing: "Rozpoznawanie", converted: "Zatwierdzony", rejected: "Odrzucony", failed: "Błąd OCR" };
+type ReviewLine = { name: string; unit: string; quantity: string | number; totalNet: string | number; totalVat: string | number; totalGross: string | number };
+type Doc = { id: string; fileName: string; mimeType: string; sizeBytes: number; status: string; version: number; rawText?: string; errorMessage?: string; parsed?: Partial<typeof empty> & { lines?: ReviewLine[] }; expenseId?: string; ocrResult?: OcrExtraction };
+const labels: Record<string,string> = { queued: "W kolejce OCR", needs_review: "Do weryfikacji", processing: "Rozpoznawanie", converted: "Zatwierdzony", rejected: "Odrzucony", failed: "Błąd OCR" };
 const empty = { number: "", contractorName: "", nip: "", issueDate: "", currency: "PLN", category: "inne", totalNet: "", totalVat: "", totalGross: "" };
 export default function DocumentsPage() {
   const companyId = useAppStore(s => s.selectedCompanyId);
@@ -15,6 +17,8 @@ export default function DocumentsPage() {
   const [next, setNext] = React.useState<string | null>(null), [search, setSearch] = React.useState("");
   const [busy, setBusy] = React.useState(false), [loading, setLoading] = React.useState(false), [error, setError] = React.useState("");
   const [message, setMessage] = React.useState(""), [ocrAvailable, setOcrAvailable] = React.useState(false);
+  const [ocrReviewed, setOcrReviewed] = React.useState(false);
+  const [lines, setLines] = React.useState<ReviewLine[]>([]);
   const generation = React.useRef(0);
   const scope = React.useRef(companyId); scope.current = companyId;
   const load = React.useCallback(async (cursor?: string) => {
@@ -28,17 +32,34 @@ export default function DocumentsPage() {
     } catch (e) { if (attempt === generation.current) setError(e instanceof Error ? e.message : "Nie udało się pobrać dokumentów."); }
     finally { if (attempt === generation.current) setLoading(false); }
   }, [companyId, search]);
-  React.useEffect(() => { setDocs([]); setSelected(null); const timer = setTimeout(() => void load(), 250); return () => { clearTimeout(timer); generation.current += 1; }; }, [load]);
+  React.useEffect(() => { setDocs([]); setSelected(null); setBusy(false); setMessage(""); setOcrReviewed(false); setLines([]); const timer = setTimeout(() => void load(), 250); return () => { clearTimeout(timer); generation.current += 1; }; }, [load]);
   const open = async (id: string) => {
     const currentCompany = companyId;
     setBusy(true); setError("");
     try {
       const res = await fetch(`/api/documents/${id}`), data = await res.json(); if (!res.ok) throw new Error(data.error);
       if (currentCompany !== scope.current) return;
-      setSelected(data.document); setFields({ ...empty, ...data.document.parsed });
-    } catch (e) { setError(e instanceof Error ? e.message : "Błąd podglądu."); }
-    finally { setBusy(false); }
+      const { lines: savedLines = [], ...savedFields } = data.document.parsed || {};
+      setSelected(data.document); setFields({ ...empty, ...savedFields }); setLines(savedLines); setOcrReviewed(false);
+    } catch (e) { if (currentCompany === scope.current) setError(e instanceof Error ? e.message : "Błąd podglądu."); }
+    finally { if (currentCompany === scope.current) setBusy(false); }
   };
+  React.useEffect(() => {
+    if (!selected || !["queued", "processing"].includes(selected.status)) return;
+    const controller = new AbortController(), id = selected.id, currentCompany = companyId;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/documents/${id}`, { signal: controller.signal });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (controller.signal.aborted || currentCompany !== scope.current) return;
+        // Refresh OCR output without replacing the user's unsaved review fields.
+        setSelected(prev => prev?.id === id && JSON.stringify(prev.parsed) === JSON.stringify(data.document.parsed) ? data.document : prev);
+        setDocs(prev => prev.map(doc => doc.id === id ? data.document : doc));
+      } catch { /* A later poll or manual refresh can recover a network failure. */ }
+    }, 3000);
+    return () => { controller.abort(); clearInterval(timer); };
+  }, [selected?.id, selected?.status, companyId]);
   const upload = async (file?: File) => {
     if (!file || !companyId) return;
     if (file.size > 3 * 1024 * 1024) { setError("Wybierz plik do 3 MB."); return; }
@@ -59,13 +80,27 @@ export default function DocumentsPage() {
     const currentCompany = companyId, id = selected.id;
     setBusy(true); setError(""); setMessage("");
     try {
-      const res = await fetch(`/api/documents/${id}${kind === "ocr" ? "/ocr" : ""}`, { method: kind === "ocr" ? "POST" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fields, totalNet: fields.totalNet === "" ? null : Number(fields.totalNet), totalVat: fields.totalVat === "" ? null : Number(fields.totalVat), totalGross: fields.totalGross === "" ? null : Number(fields.totalGross), version: selected.version, action: kind }) });
+      const reviewedLines = lines.map(line => ({ ...line, ...Object.fromEntries(["quantity", "totalNet", "totalVat", "totalGross"].map(key => [key, line[key as keyof ReviewLine] === "" ? null : Number(line[key as keyof ReviewLine])])) }));
+      const res = await fetch(`/api/documents/${id}${kind === "ocr" ? "/ocr" : ""}`, { method: kind === "ocr" ? "POST" : "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...fields, lines: reviewedLines, totalNet: fields.totalNet === "" ? null : Number(fields.totalNet), totalVat: fields.totalVat === "" ? null : Number(fields.totalVat), totalGross: fields.totalGross === "" ? null : Number(fields.totalGross), version: selected.version, action: kind, ocrReviewed }) });
       const data = await res.json(); if (!res.ok) throw new Error(data.error);
       if (currentCompany !== scope.current) return;
+      if (kind === "ocr") {
+        setOcrReviewed(false);
+        setMessage("Dokument dodano do kolejki OCR. Możesz zamknąć tę stronę.");
+        const refreshed = await fetch(`/api/documents/${id}`);
+        if (refreshed.ok) {
+          const detail = await refreshed.json();
+          if (currentCompany === scope.current) setSelected(prev => prev?.id === id ? detail.document : prev);
+        }
+        // The durable scheduler also runs this job if the browser disconnects.
+        const processed = await fetch("/api/documents/process", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+        if (!processed.ok && currentCompany === scope.current) setMessage("Dokument pozostaje w kolejce. Stan odczytu odświeża się automatycznie.");
+        return;
+      }
       setMessage(kind === "approve" ? "Zatwierdzono dokument i dodano koszt." : kind === "reject" ? "Zapisano odrzucenie." : "Zapisano. Sprawdź dane przed zatwierdzeniem.");
       await load(); await open(id);
-    } catch (e) { setError(e instanceof Error ? e.message : "Nie udało się zapisać."); }
-    finally { setBusy(false); }
+    } catch (e) { if (currentCompany === scope.current) setError(e instanceof Error ? e.message : "Nie udało się zapisać."); }
+    finally { if (currentCompany === scope.current) setBusy(false); }
   };
   const immutable = selected?.status === "converted" || selected?.status === "rejected";
   return <div className="page space-y-4">
@@ -91,9 +126,37 @@ export default function DocumentsPage() {
         <div className="space-y-3 rounded-xl border p-4">
           <h2 className="font-semibold">{labels[selected.status] || selected.status}</h2>
           <p className="text-xs text-muted-foreground">Oryginalny plik pozostaje niezmienny. Zweryfikuj dane według oryginału. OCR odczytuje tekst; kwoty i dane sprzedawcy zatwierdza człowiek.</p>
-          {!immutable && <><Button disabled={busy || !ocrAvailable} onClick={() => action("ocr")}>{busy ? "Przetwarzanie…" : "Odczytaj tekst OCR"}</Button><p className="text-xs text-muted-foreground">{ocrAvailable ? "Odczyt przesyła dokument do skonfigurowanej usługi OCR.space." : "OCR nie jest skonfigurowany. Możesz wpisać dane ręcznie."}</p></>}
+          {selected.errorMessage && <p role="status" className="text-sm">{selected.errorMessage}</p>}
+          {!immutable && <><Button disabled={busy || !ocrAvailable || ["queued", "processing"].includes(selected.status)} onClick={() => action("ocr")}>{busy ? "Przetwarzanie…" : "Odczytaj tekst OCR"}</Button><p className="text-xs text-muted-foreground">{ocrAvailable ? "Odczyt przesyła dokument do skonfigurowanej usługi OCR.space. Dostępny rozmiar i liczba stron zależą od planu tej usługi." : "OCR nie jest skonfigurowany. Możesz wpisać dane ręcznie."}</p></>}
+          {selected.ocrResult && <details className="rounded-lg border p-3" open>
+            <summary>Propozycje OCR — porównaj z oryginałem</summary>
+            {selected.ocrResult.warnings.map((warning, i) => <p key={i} className="text-xs mt-2">{warning}</p>)}
+            {Object.entries(selected.ocrResult.fields).filter(([key]) => key in empty).map(([key, candidates]) => <div key={key} className="mt-3 space-y-1">
+              {candidates.map((candidate, i) => <div key={i} className="rounded border p-2 text-sm">
+                <p>{String(candidate.value)}</p><p className="text-xs text-muted-foreground">Strona {candidate.page}, wiersz {candidate.line}: {candidate.text}</p>
+                {!immutable && <Button variant="ghost" disabled={busy} onClick={() => { setFields(prev => ({ ...prev, [key]: candidate.value })); setOcrReviewed(false); }}>Użyj propozycji</Button>}
+              </div>)}
+            </div>)}
+          </details>}
           {Object.entries({ number: "Numer dokumentu", contractorName: "Sprzedawca", nip: "NIP sprzedawcy", issueDate: "Data wystawienia", currency: "Waluta", totalNet: "Netto", totalVat: "VAT", totalGross: "Brutto", category: "Kategoria" }).map(([key, label]) => <label className="block text-sm" key={key}>{label}<Input disabled={immutable || busy} type={key === "issueDate" ? "date" : key.startsWith("total") ? "number" : "text"} step={key.startsWith("total") ? "0.01" : undefined} value={fields[key] ?? ""} onChange={e => setFields(prev => ({ ...prev, [key]: e.target.value }))} /></label>)}
-          {!immutable && <div className="flex flex-wrap gap-2"><Button disabled={busy} onClick={() => action("save")}>Zapisz dane</Button><Button disabled={busy} onClick={() => action("approve")}>Zatwierdź koszt</Button><Button disabled={busy} variant="ghost" onClick={() => action("reject")}>Odrzuć</Button></div>}
+          <details className="rounded-lg border p-3">
+            <summary>Pozycje dokumentu ({lines.length})</summary>
+            <p className="text-xs my-2">Pozycje są opcjonalne. Jeśli je dodasz, ich sumy netto, VAT i brutto muszą odpowiadać kwotom dokumentu.</p>
+            {!immutable && !!selected.ocrResult?.lines.length && <Button disabled={busy} variant="ghost" onClick={() => {
+              if (lines.length && !window.confirm("Zastąpić opracowane pozycje propozycjami OCR?")) return;
+              setLines(selected.ocrResult!.lines.map(line => ({ name: line.name, unit: line.unit, quantity: line.quantity, totalNet: line.totalNet, totalVat: line.totalVat, totalGross: line.totalGross })));
+              setOcrReviewed(false);
+            }}>Wczytaj propozycje pozycji OCR</Button>}
+            {selected.ocrResult?.lines.map((line, i) => <p key={i} className="text-xs text-muted-foreground my-1">OCR, strona {line.source.page}, wiersz {line.source.line}: {line.source.text}</p>)}
+            {lines.map((line, index) => <fieldset key={index} disabled={immutable || busy} className="my-3 rounded-lg border p-2 grid grid-cols-2 gap-2">
+              <legend>Pozycja {index + 1}</legend>
+              {Object.entries({ name: "Nazwa", unit: "Jednostka", quantity: "Ilość", totalNet: "Netto", totalVat: "VAT", totalGross: "Brutto" }).map(([key, label]) => <label key={key} className="text-xs">{label}<Input type={["name", "unit"].includes(key) ? "text" : "number"} step={key === "quantity" ? "any" : "0.01"} value={line[key as keyof ReviewLine]} onChange={e => { setLines(prev => prev.map((item, i) => i === index ? { ...item, [key]: e.target.value } : item)); setOcrReviewed(false); }} /></label>)}
+              {!immutable && <Button variant="ghost" onClick={() => { setLines(prev => prev.filter((_, i) => i !== index)); setOcrReviewed(false); }}>Usuń pozycję</Button>}
+            </fieldset>)}
+            {!immutable && <Button disabled={busy || lines.length >= 200} variant="ghost" onClick={() => { setLines(prev => [...prev, { name: "", unit: "szt.", quantity: 1, totalNet: "", totalVat: "", totalGross: "" }]); setOcrReviewed(false); }}>Dodaj pozycję</Button>}
+          </details>
+          {!immutable && selected.ocrResult && <label className="flex gap-2 text-sm"><input type="checkbox" checked={ocrReviewed} disabled={busy} onChange={e => setOcrReviewed(e.target.checked)} />Sprawdziłem dane i kwoty z oryginałem dokumentu.</label>}
+          {!immutable && <div className="flex flex-wrap gap-2"><Button disabled={busy} onClick={() => action("save")}>Zapisz dane</Button><Button disabled={busy || (!!selected.ocrResult && !ocrReviewed)} onClick={() => action("approve")}>Zatwierdź koszt</Button><Button disabled={busy} variant="ghost" onClick={() => action("reject")}>Odrzuć</Button></div>}
         </div>
       </div>}
     </div>

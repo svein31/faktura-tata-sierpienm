@@ -614,6 +614,7 @@ model Order {
 }
 
 model Expense {
+  lines Json?
   costReviewId String? @db.ObjectId
   companyId String? @db.ObjectId
   @@index([companyId, issueDate])
@@ -1559,6 +1560,7 @@ model Webhook {
 
 /// Zdjęcie faktury/paragonu zrobione aparatem → OCR → moduł kosztów
 model ExpenseScan {
+  ocrResult Json?
   companyId String? @db.ObjectId
   sha256 String?
   version Int @default(1)
@@ -1692,6 +1694,23 @@ model DueReminderDelivery {
   createdAt DateTime @default(now())
   @@index([companyId])
   @@index([status, createdAt])
+}
+
+model OcrJob {
+ id String @id @map("_id") @db.ObjectId // expenseScan id; one current job per original
+ companyId String @db.ObjectId
+ userId String @db.ObjectId
+ scanVersion Int
+ status String @default("queued")
+ attempts Int @default(0)
+ leaseToken String?
+ leaseUntil DateTime @default(now())
+ nextAttemptAt DateTime @default(now())
+ lastError String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([status, nextAttemptAt])
+ @@index([companyId, updatedAt])
 }
 
 model AccountingPeriod {

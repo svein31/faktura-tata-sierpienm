@@ -33,5 +33,30 @@ export function reviewFields(body: Record<string, unknown>) {
   if (values.some(n => typeof n !== "number" || !Number.isFinite(n) || n < 0 || n > 1e10)) throw new ApiError(400, "Wpisz nieujemne kwoty dokumentu. Korekty wymagają osobnej obsługi.");
   const [totalNet, totalVat, totalGross] = (values as number[]).map(round2);
   if (Math.abs(round2(totalNet + totalVat) - totalGross) > 0.011) throw new ApiError(400, "Netto + VAT musi być równe brutto.");
-  return { number, contractorName, nip, issueDate, currency, category, totalNet, totalVat, totalGross };
+  const lines = reviewLines(body.lines, { totalNet, totalVat, totalGross });
+  return { number, contractorName, nip, issueDate, currency, category, totalNet, totalVat, totalGross, ...(lines !== undefined ? { lines } : {}) };
+}
+
+export function reviewLines(value: unknown, totals: { totalNet: number; totalVat: number; totalGross: number }) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 200) throw new ApiError(400, "Dokument może zawierać do 200 pozycji.");
+  const lines = value.map(item => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw new ApiError(400, "Nieprawidłowa pozycja.");
+    const row = item as Record<string, unknown>;
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    const unit = typeof row.unit === "string" ? row.unit.trim() : "";
+    if (!name || name.length > 500 || !unit || unit.length > 20) throw new ApiError(400, "Uzupełnij nazwę i jednostkę każdej pozycji.");
+    const values = ["quantity", "totalNet", "totalVat", "totalGross"].map(key => row[key]);
+    if (values.some(n => typeof n !== "number" || !Number.isFinite(n) || n < 0 || n > 1e10) || Number(row.quantity) <= 0) throw new ApiError(400, "Sprawdź ilości i nieujemne kwoty pozycji.");
+    const [quantity, net, vat, gross] = values as number[];
+    const totalNet = round2(net), totalVat = round2(vat), totalGross = round2(gross);
+    if (Math.abs(round2(totalNet + totalVat) - totalGross) > 0.011) throw new ApiError(400, "Netto + VAT każdej pozycji musi być równe brutto.");
+    return { name, unit, quantity, totalNet, totalVat, totalGross };
+  });
+  if (lines.length) {
+    for (const key of ["totalNet", "totalVat", "totalGross"] as const) {
+      if (Math.abs(round2(lines.reduce((sum, line) => sum + line[key], 0)) - totals[key]) > 0.011) throw new ApiError(400, "Suma pozycji musi zgadzać się z kwotami dokumentu.");
+    }
+  }
+  return lines;
 }
