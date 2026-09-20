@@ -223,7 +223,8 @@ try {
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
-  const claimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'KSEF/CLAIM/1' }, a.cookie);
+  // Keep transmission fixtures separate from the later webhook-delivery fixture for companyId.
+  const claimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, sellerCompanyId: company2.data.company.id, number: 'KSEF/CLAIM/1' }, a.cookie);
   assert.equal(claimInvoice.res.status, 201, JSON.stringify(claimInvoice.data));
   const claimInput = { invoiceId: claimInvoice.data.invoice.id, version: 1, userId: a.data.user.id };
   const claims = await Promise.allSettled([1, 2].map(() => db.$transaction(tx => claimKsefTransmission(tx, claimInput))));
@@ -233,7 +234,7 @@ try {
   await assert.rejects(db.$transaction(tx => claimKsefTransmission(tx, { ...claimInput, version: 2 })), /poprzednią wysyłkę/);
   assert.equal((await api('PUT', `/api/invoices/${claimInput.invoiceId}`, { ...claimInvoice.data.invoice, issueDate: '2026-10-01' }, a.cookie)).res.status, 409);
   assert.equal((await api('POST', '/api/ksef/queue', { invoiceId: claimInput.invoiceId, environment: 'demo' }, a.cookie)).res.status, 409);
-  const queuedClaimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, number: 'KSEF/CLAIM/2' }, a.cookie);
+  const queuedClaimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, sellerCompanyId: company2.data.company.id, number: 'KSEF/CLAIM/2' }, a.cookie);
   assert.equal(queuedClaimInvoice.res.status, 201);
   const queuedClaimId = queuedClaimInvoice.data.invoice.id;
   assert.equal((await api('POST', '/api/ksef/queue', { invoiceId: queuedClaimId, environment: 'demo' }, a.cookie)).res.status, 200);
