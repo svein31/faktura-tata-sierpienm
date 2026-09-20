@@ -38,6 +38,7 @@ const NAV_MAIN = [
   { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
   { href: "/offers", label: "Oferty", icon: FileCheck2 },
   { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
+  { href: "/projects", label: "Rentowność projektów", icon: BarChart3 },
   { href: "/documents", label: "Skrzynka dokumentów", icon: Receipt },
   { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
   { href: "/cost-reviews", label: "Obieg kosztów", icon: FileCheck2 },
@@ -68,7 +69,7 @@ const NAV_GROUPS = [
   { label: "Start", paths: ["/dashboard"] },
   { label: "Sprzedaż", paths: ["/invoices", "/advances", "/recurring", "/offers"] },
   { label: "Zakupy", paths: ["/documents", "/expenses", "/cost-reviews"] },
-  { label: "Klienci i praca", paths: ["/orders", "/contractors", "/products", "/warehouse"] },
+  { label: "Klienci i praca", paths: ["/orders", "/projects", "/contractors", "/products", "/warehouse"] },
   { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
   { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/currencies", "/settings/account", "/help"] },
 ];

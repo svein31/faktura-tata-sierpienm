@@ -613,6 +613,43 @@ model Order {
   @@index([status])
 }
 
+model Project {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  name String
+  description String @default("")
+  materialBasis String @default("documents")
+  status String @default("active")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, id])
+}
+
+model ProjectEntry {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  projectId String @db.ObjectId
+  kind String
+  sourceId String? @db.ObjectId
+  materialPurchase Boolean @default(false)
+  description String @default("")
+  workDate String?
+  minutes Int?
+  hourlyCost Float?
+  currency String?
+  createdBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  @@index([projectId, id])
+  @@index([companyId, sourceId])
+}
+
+model ProjectSourceClaim {
+  id String @id @map("_id") @db.ObjectId
+  entryId String @db.ObjectId
+  @@index([entryId])
+}
+
 model Expense {
   lines Json?
   costReviewId String? @db.ObjectId
