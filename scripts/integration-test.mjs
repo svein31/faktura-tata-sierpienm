@@ -622,6 +622,7 @@ try {
   assert.equal((await api('DELETE', `/api/invoices/${closingDraft.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   const closingInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, sellerCompanyId: closingCompanyId, number: 'CLOSE/ISSUED', issueDate: `${closingMonth}-01`, saleDate: `${closingMonth}-01`, dueDate: `${closingMonth}-15`, status: 'issued', documentStatus: 'issued' }, a.cookie);
   assert.equal(closingInvoice.res.status, 201, JSON.stringify(closingInvoice.data));
+  const legacyCancelled = await db.invoice.create({ data: { userId: a.data.user.id, sellerCompanyId: closingCompanyId, contractorId: contractor.data.contractor.id, number: 'LEGACY/CANCELLED', type: 'sale', status: 'cancelled', documentStatus: null, issueDate: `${closingMonth}-01`, saleDate: `${closingMonth}-01`, dueDate: `${closingMonth}-15`, currency: 'PLN', totalNet: 999, totalVat: 0, totalGross: 999, lines: [] } });
   const closingWarehouse = await api('POST', '/api/warehouse/commands', { companyId: closingCompanyId, action: 'createWarehouse', requestId: 'period-warehouse-0001', name: 'Period WMS', code: 'PERIOD', currency: 'PLN' }, a.cookie);
   assert.equal(closingWarehouse.res.status, 200);
   const closingWarehouseId = closingWarehouse.data.result.id;
@@ -639,6 +640,11 @@ try {
   const closedState = await api('GET', periodUrl, undefined, a.cookie);
   assert.equal(closedState.data.period.status, 'closed'); assert.equal(closedState.data.events.length, 1);
   const savedEvent = closedState.data.events[0];
+  assert.equal((await db.invoice.findUniqueOrThrow({ where: { id: legacyCancelled.id } })).documentStatus, 'cancelled');
+  // Existing payment metadata may change the old generic status; the accounting classification stays frozen.
+  await db.invoice.update({ where: { id: legacyCancelled.id }, data: { status: 'paid', paymentStatus: 'paid' } });
+  const afterLegacyPayment = await api('GET', periodUrl, undefined, a.cookie);
+  assert.deepEqual(afterLegacyPayment.data.readiness.summary, savedEvent.snapshot.summary);
   assert.equal((await api('POST', '/api/warehouse/commands', { ...periodStockReceipt, requestId: 'period-receipt-blocked-01' }, a.cookie)).res.status, 409);
   assert.equal((await api('POST', '/api/warehouse/commands', { companyId: closingCompanyId, warehouseId: closingWarehouseId, action: 'cancelDocument', requestId: 'period-doc-cancel-blocked', documentId: periodStockDoc.data.result.id, reason: 'Blocked' }, a.cookie)).res.status, 409);
   assert.equal((await api('POST', '/api/warehouse/commands', { companyId: closingCompanyId, warehouseId: closingWarehouseId, action: 'openStocktaking', requestId: 'period-count-blocked-001', countDate: `${closingMonth}-02` }, a.cookie)).res.status, 409);

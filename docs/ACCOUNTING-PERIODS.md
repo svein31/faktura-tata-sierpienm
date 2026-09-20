@@ -8,6 +8,8 @@ Closing is blocked by invoice drafts, unresolved KSeF transmission/rejection, un
 
 Each close/reopen creates an append-only event with the actor, reason, version and per-currency summary at that moment. Reopening does not change previous events. Current balances are not substituted for historical snapshots.
 
+At closing, historical invoices with a missing/empty `documentStatus` receive an explicit classification matching their existing generic status (draft/cancelled/issued), with a version increment in the same transaction. No amounts or source lines change. This prevents legacy payment code that updates generic `status` from reintroducing a cancelled document into a closed register. If closing fails, this normalization is rolled back too.
+
 | Write path | Closed-period behavior |
 | --- | --- |
 | Invoice creation, update and draft deletion | Transaction guard; edits lock old and new dates |

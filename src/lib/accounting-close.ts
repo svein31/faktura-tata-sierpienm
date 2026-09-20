@@ -19,7 +19,7 @@ export async function accountingReadiness(tx: Prisma.TransactionClient, companyI
     tx.accountingWorkspace.findUnique({ where: { id: accountingWorkspaceId(companyId, month) }, select: { items: true } }),
     tx.stocktaking.count({ where: { warehouse: { companyId }, countDate: { startsWith: `${month}-` }, status: { in: ["open", "counting"] } } }),
   ]);
-  const active = invoices.filter(i => !i.isProforma && i.documentStatus !== "cancelled" && i.status !== "cancelled");
+  const active = invoices.filter(i => !i.isProforma && (i.documentStatus || i.status) !== "cancelled");
   const posted = active.filter(isAccountingInvoice);
   const purchases = posted.filter(i => i.type === "purchase");
   const refs = new Set(purchases.map(i => i.ksefNumber).filter(Boolean));
@@ -49,6 +49,12 @@ export async function changeAccountingPeriod(tx: Prisma.TransactionClient, actor
   if (current.version !== body.version) throw new ApiError(409, "Stan miesiąca został zmieniony. Odśwież dane.");
   const status = body.action === "close" ? "closed" : "open";
   if (current.status !== (body.action === "close" ? "open" : "closed")) throw new ApiError(409, "Miesiąc nie ma stanu wymaganego dla tej operacji.");
+  if (body.action === "close") {
+    // Legacy payments update `status`. Freeze the existing document classification before closing,
+    // so paying a historically cancelled invoice cannot reintroduce it into the closed register.
+    const legacy = await tx.invoice.findMany({ where: { sellerCompanyId: company.id, issueDate: { startsWith: `${key.month}-` }, OR: [{ documentStatus: null }, { documentStatus: { isSet: false } }, { documentStatus: "" }] }, select: { id: true, status: true, version: true } });
+    for (const invoice of legacy) await tx.invoice.update({ where: { id: invoice.id }, data: { documentStatus: invoice.status === "cancelled" ? "cancelled" : invoice.status === "draft" ? "draft" : "issued", version: (invoice.version || 1) + 1 } });
+  }
   const readiness = await accountingReadiness(tx, company.id, key.month);
   if (body.action === "close" && !readiness.canClose) throw new ApiError(409, "Najpierw zakończ zadania, akceptację kosztów i obsługę faktur oczekujących na rozstrzygnięcie.");
   const period = await tx.accountingPeriod.update({ where: { id: key.id, version: current.version }, data: { status, version: { increment: 1 }, closedAt: status === "closed" ? new Date() : null, closedBy: status === "closed" ? actor.id : null } });
