@@ -59,6 +59,7 @@ const NAV_SETTINGS = [
   { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
   { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
   { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
+  { href: "/settings/pdf-templates", label: "Szablony PDF", icon: FileText },
   { href: "/settings/currencies", label: "Waluty & Kursy NBP", icon: Globe },
   { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
   { href: "/help", label: "Instrukcja obsługi", icon: BookOpen },
@@ -71,7 +72,7 @@ const NAV_GROUPS = [
   { label: "Zakupy", paths: ["/documents", "/expenses", "/cost-reviews"] },
   { label: "Klienci i praca", paths: ["/orders", "/projects", "/contractors", "/products", "/warehouse"] },
   { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
-  { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/currencies", "/settings/account", "/help"] },
+  { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/pdf-templates", "/settings/currencies", "/settings/account", "/help"] },
 ];
 
 export function SidebarContent({

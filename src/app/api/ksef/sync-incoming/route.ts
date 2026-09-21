@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
@@ -256,6 +257,7 @@ export async function performIncomingSync(companyId?: string | null) {
           type: "purchase",
           sellerCompanyId: companyProfile?.id ?? null,
           status: "issued",
+          documentStatus: "issued",
           approvalStatus: "pending",
           contractorId: contractor.id,
           issueDate: parsed.issueDate,
@@ -284,6 +286,7 @@ export async function performIncomingSync(companyId?: string | null) {
         include: { sellerCompany: true },
       });
 
+      await captureInvoicePrint(tx, invoice, "ksef-import");
       await tx.ksefIncomingImport.update({
         where: { id: reservationId },
         data: { invoiceId: invoice.id },

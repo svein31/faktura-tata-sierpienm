@@ -613,6 +613,43 @@ model Order {
   @@index([status])
 }
 
+model PdfTemplateVersion {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  version Int
+  name String
+  config Json
+  createdBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  @@unique([companyId, version])
+}
+
+model PdfTemplateSetting {
+  id String @id @map("_id") @db.ObjectId
+  version Int @default(0)
+  templateId String? @db.ObjectId
+}
+
+model InvoicePrintContext {
+  id String @id @map("_id") @db.ObjectId
+  companyId String? @db.ObjectId
+  data Json
+  captureReason String
+  createdAt DateTime @default(now())
+}
+
+model InvoicePrintVersion {
+  id String @id @map("_id") @db.ObjectId
+  invoiceId String @db.ObjectId
+  sourceHash String
+  invoiceData Json
+  sourceVersion Int
+  pdfBase64 String?
+  pdfSha256 String?
+  createdAt DateTime @default(now())
+  @@index([invoiceId, createdAt])
+}
+
 model Project {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   companyId String @db.ObjectId

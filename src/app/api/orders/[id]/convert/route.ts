@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { offerAmounts } from "@/lib/offer-validation";
 import { recordAuditLog } from "@/lib/audit";
@@ -52,6 +53,7 @@ export async function POST(
       },
     });
 
+    await captureInvoicePrint(tx, invoice, "order-conversion");
     await tx.order.update({
       where: { id: order.id },
       data: { status: "completed", billedInvoiceId: invoice.id },

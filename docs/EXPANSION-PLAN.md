@@ -8,8 +8,8 @@ Preserve existing functions and purchase invoice immutability. Do not expand pay
 | 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards; CI passed for a187614 | Browser E2E; automatic policy enrollment is not enabled |
 | 3. Accountant workspace | Branch: shared tasks, missing documents, period guards, closing/reopening and immutable snapshots; full CI passed at 3b118e0 | Browser E2E |
 | 4. OCR | Branch: structured proposals with source evidence, reviewed lines, durable leased jobs, private originals, retry and stale-result guards; full CI passed at 3c1df31 | Browser E2E |
-| 5. Profitability | Branch: company projects, source links, materials, labour costing, currency buckets, paginated UI and transactional commands | Full integration verification and browser E2E |
-| 6. PDF templates | Planned | Versioned layouts and immutable issued-document rendering |
+| 5. Profitability | Branch: company projects, source links, materials, labour costing, currency buckets, paginated UI and transactional commands; full CI passed at f267dcb | Browser E2E |
+| 6. PDF templates | Branch: append-only company templates, issued party snapshots, archived print revisions and identical PDF bytes; multi-page rendering visually checked | Full integration verification and browser E2E |
 | 7. Performance/mobile | Partially shipped in earlier read APIs | Replace full-list consumers safely with server pagination/aggregates; browser-tested mobile improvements |
 | 8. Reliability | CI/API tests already shipped | Browser E2E, durable queues, error monitoring, backup configuration and isolated restore drill |
 

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { companyProfileToDto, companyToDto, contractorToDto, invoiceToDto } from "@/lib/dto";
-import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
+import { invoicePdf } from "@/lib/pdf/invoice-print";
 import { getEmailConfigStatus, sendEmail, type EmailAttachment } from "@/lib/email/sender";
 import { buildFa3Xml } from "@/lib/ksef/index";
 import { formatMoney, invoiceTotals, vatRateLabel } from "@/lib/format";
@@ -86,7 +86,7 @@ export async function triggerAutoEmailOnKsef(invoiceId: string): Promise<boolean
 
     // 1. PDF z kodem QR KSeF
     try {
-      const pdfBuffer = await generateInvoicePdfBuffer(invoiceData, contractor, effectiveSeller);
+      const pdfBuffer = (await invoicePdf(invoiceRecord.id)).buffer;
       const filename = `Faktura_${safeDocNumber}.pdf`;
       attachments.push({ filename, content: pdfBuffer, contentType: "application/pdf" });
       loggedMeta.push({ filename, size: pdfBuffer.length, contentType: "application/pdf" });

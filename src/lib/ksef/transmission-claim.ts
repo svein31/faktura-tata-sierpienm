@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
 import { companyAccess } from "@/lib/company-write";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 
 export const KSEF_IN_FLIGHT = ["queued", "sending", "verify_needed"];
 
@@ -21,5 +22,7 @@ export async function claimKsefTransmission(tx: Prisma.TransactionClient, input:
     throw new ApiError(409, "Faktura jest już w kolejce KSeF.");
   }
   await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
-  return tx.invoice.update({ where: { id: invoice.id }, data: { ksefStatus: "sending", documentStatus: "ready", version: (invoice.version || 1) + 1 } });
+  const updated = await tx.invoice.update({ where: { id: invoice.id }, data: { ksefStatus: "sending", documentStatus: "ready", version: (invoice.version || 1) + 1 } });
+  await captureInvoicePrint(tx, updated, "ksef-transmission");
+  return updated;
 }

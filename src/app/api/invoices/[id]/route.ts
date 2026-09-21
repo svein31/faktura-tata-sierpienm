@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { KSEF_IN_FLIGHT } from "@/lib/ksef/transmission-claim";
 import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
@@ -115,6 +116,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const updated = await prisma.$transaction(async tx => {
       await assertAccountingPeriodsOpen(tx, [{ companyId: existing.sellerCompanyId, issueDate: existing.issueDate }]);
+      await captureInvoicePrint(tx, existing, "before-edit");
       const updated = await tx.invoice.update({
         where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
         data: {
@@ -127,6 +129,7 @@ export async function PUT(req: Request, { params }: Ctx) {
         },
       });
 
+      await captureInvoicePrint(tx, updated, "edited");
       const diffResult = buildFieldDiff(existing, allowedData, {
         notes: "Notatki",
         approvalStatus: "Status akceptacji",
@@ -194,6 +197,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
       { companyId: data.sellerCompanyId, issueDate: data.issueDate },
     ]);
+    await captureInvoicePrint(tx, existing, "before-edit");
     const invoice = await tx.invoice.update({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
@@ -207,6 +211,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       },
     });
 
+    await captureInvoicePrint(tx, invoice, "edited");
     // 6. Trwały zapis audytu z wyliczonym diffem
     const diffResult = buildFieldDiff(existing, invoice, {
       number: "Numer",

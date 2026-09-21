@@ -8,6 +8,7 @@ next-env.d.ts
 .env
 .DS_Store
 *.log
+tmp/pdfs/
 
 # Bazy danych SQLite (dane użytkowników)
 prisma/data/

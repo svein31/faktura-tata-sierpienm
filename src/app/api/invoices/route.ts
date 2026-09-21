@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { contractorForCompany } from "@/lib/company-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -82,6 +83,7 @@ export async function POST(req: Request) {
       },
     });
 
+    await captureInvoicePrint(tx, invoice);
     // Zarejestruj utworzenie dokumentu w trwałym dzienniku zdarzeń
     await recordAuditLog({
       client: tx,

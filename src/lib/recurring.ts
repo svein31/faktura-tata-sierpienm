@@ -1,4 +1,5 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import "server-only";
 import { prisma } from "@/lib/db";
 import { parseInvoiceBody } from "@/lib/parsers";
@@ -43,6 +44,7 @@ export async function generateRecurringInvoices(now = new Date()) {
         if (existing) return { id: existing.invoiceId };
         if (await tx.invoice.count({ where: { sellerCompanyId: companyId, number: data.number } })) throw new Error("Numer cykliczny jest już używany przez inny dokument.");
         const created = await tx.invoice.create({ data: { ...data, userId: actorId, version: 1 } });
+        await captureInvoicePrint(tx, created, "recurring");
         await tx.recurringOccurrence.create({ data: { templateId: template.id, scheduledDate, invoiceId: created.id } });
         if (template.recurringAutoSend) {
           const environment = settings?.environment || "test";
