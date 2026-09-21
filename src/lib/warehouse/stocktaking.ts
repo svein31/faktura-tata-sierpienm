@@ -318,12 +318,12 @@ export async function closeStocktakingInTransaction(
   const documentIds: string[] = [];
   const documentNumbers: string[] = [];
 
-  if (shortageLines.length > 0) {
+  for (let offset = 0; offset < shortageLines.length; offset += 200) {
     const rw = await applyStockDocumentInTransaction({
       userId, actor,
       warehouseId: warehouse.id,
       type: "RW",
-      lines: shortageLines,
+      lines: shortageLines.slice(offset, offset + 200),
       issueDate: record.countDate,
       sourceType: "stocktaking",
       sourceId: record.id,
@@ -337,12 +337,12 @@ export async function closeStocktakingInTransaction(
     documentNumbers.push(rw.document.number);
   }
 
-  if (surplusLines.length > 0) {
+  for (let offset = 0; offset < surplusLines.length; offset += 200) {
     const pw = await applyStockDocumentInTransaction({
       userId, actor,
       warehouseId: warehouse.id,
       type: "PW",
-      lines: surplusLines,
+      lines: surplusLines.slice(offset, offset + 200),
       issueDate: record.countDate,
       sourceType: "stocktaking",
       sourceId: record.id,

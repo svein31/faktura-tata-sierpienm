@@ -3,7 +3,7 @@ require('./register-ts.cjs');
 const assert = require('node:assert/strict');
 const { prisma } = require('../src/lib/db.ts');
 const { applyStockDocument, applyStockDocumentInTransaction, cancelStockDocument } = require('../src/lib/warehouse/stock-engine.ts');
-const { openStocktaking, saveStocktakingCounts, closeStocktaking } = require('../src/lib/warehouse/stocktaking.ts');
+const { openStocktaking, saveStocktakingCounts, closeStocktaking, closeStocktakingInTransaction } = require('../src/lib/warehouse/stocktaking.ts');
 
 async function run() {
   assert.equal(process.env.WAREHOUSE_ISOLATED_TEST, 'true');
@@ -68,6 +68,25 @@ async function run() {
   assert.equal(await quantity(a.id), 3);
   assert.equal(await prisma.stockDocument.count({ where: { sourceType: 'stocktaking', sourceId: inventory.id } }), 1);
   await applyStockDocument(params); assert.equal(await quantity(a.id), 4);
+  const large = await prisma.warehouse.create({data:{userId:user.id,code:'LARGE-COUNT',name:'Large count'}});
+  const countRows=Array.from({length:201},(_,index)=>({userId:user.id,warehouseId:large.id,sku:`LARGE-${String(index).padStart(3,'0')}`,name:`Large item ${index}`,unit:'szt.',quantity:1,avgPurchasePrice:10,lastPurchasePrice:10,valueNet:10}));
+  await prisma.stockItem.createMany({data:countRows});
+  const largeInventory=await openStocktaking(user.id,large.id,'2026-09-19');
+  await saveStocktakingCounts(user.id,largeInventory.id,countRows.slice(0,200).map(row=>({sku:row.sku,countedQuantity:0})));
+  await saveStocktakingCounts(user.id,largeInventory.id,countRows.slice(200).map(row=>({sku:row.sku,countedQuantity:0})));
+  let audits=0;
+  await assert.rejects(prisma.$transaction(tx=>closeStocktakingInTransaction(user.id,largeInventory.id,{},new Proxy(tx,{get(target,key){
+    if(key==='auditLog')return {create:async args=>{if(++audits===2)throw new Error('second-batch-failure');return target.auditLog.create(args);}};
+    return target[key];
+  }})),{timeout:30000}),/second-batch-failure/);
+  assert.equal(await prisma.stockDocument.count({where:{warehouseId:large.id}}),0,'Failure in the second adjustment rolls back the first document');
+  assert.equal(await prisma.stockItem.count({where:{warehouseId:large.id,quantity:1}}),201);
+  assert.equal((await prisma.stocktaking.findUnique({where:{id:largeInventory.id}})).status,'counting');
+  const closedLarge=await closeStocktaking(user.id,largeInventory.id);
+  assert.equal(closedLarge.documents.length,2);
+  assert.equal(await prisma.stockItem.count({where:{warehouseId:large.id,quantity:0}}),201);
+  assert.ok((await prisma.stockDocument.findMany({where:{warehouseId:large.id}})).every(doc=>doc.lines.length<=200));
+  console.log('PASS: 201-position stocktaking batches and second-batch atomic rollback');
   console.log('PASS: warehouse engine concurrency, atomic rollback, audit failure, MM pairs and stocktaking freeze/close');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

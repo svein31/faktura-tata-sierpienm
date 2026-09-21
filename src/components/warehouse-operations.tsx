@@ -82,7 +82,7 @@ export function WarehouseOperations({ companyId, onChange }: { companyId: string
           <label className="text-sm">Data spisu<Input type="date" required value={issueDate} onChange={e => setIssueDate(e.target.value)} disabled={busy} /></label><Button disabled={busy || !warehouseId}>Otwórz remanent</Button>
         </form>
         <p className="text-xs text-muted-foreground">Otwarty remanent blokuje ruchy magazynowe do zamknięcia lub anulowania. Każdą pozycję należy policzyć i zapisać. Anulowanie arkusza nie zmienia stanów.</p>
-        {state.stocktakings.map(inventory => <StocktakingEditor key={`${inventory.id}:${inventory.updatedAt}`} inventory={inventory} busy={busy} command={command} />)}
+        {state.stocktakings.map(inventory => <StocktakingEditor key={inventory.id} inventory={inventory} busy={busy} command={command} />)}
       </div></details>
     </>}
   </section>;
@@ -122,12 +122,23 @@ function CancelDocuments({ companyId, warehouses, busy, command }: { companyId: 
 
 function StocktakingEditor({ inventory, busy, command }: { inventory: StocktakingDto; busy: boolean; command: (payload: Record<string, unknown>) => Promise<boolean> }) {
   const [counts, setCounts] = React.useState<Record<string, string>>(() => Object.fromEntries(inventory.lines.map(l => [l.sku, l.counted ? String(l.countedQuantity) : ""])));
+  const [page, setPage] = React.useState(0);
+  const sourceVersion = React.useRef(inventory.updatedAt);
+  React.useEffect(() => {
+    if (sourceVersion.current === inventory.updatedAt) return;
+    sourceVersion.current = inventory.updatedAt;
+    setCounts(Object.fromEntries(inventory.lines.map(l => [l.sku, l.counted ? String(l.countedQuantity) : ""])));
+  }, [inventory.updatedAt, inventory.lines]);
+  const pageSize = 25, pages = Math.max(1, Math.ceil(inventory.lines.length / pageSize));
+  const visible = inventory.lines.slice(page * pageSize, (page + 1) * pageSize);
+  const changes = visible.filter(line => counts[line.sku] !== "" && counts[line.sku] !== (line.counted ? String(line.countedQuantity) : ""));
   const base = { warehouseId: inventory.warehouseId, stocktakingId: inventory.id, version: inventory.updatedAt };
   const dirty = inventory.lines.some(line => counts[line.sku] !== (line.counted ? String(line.countedQuantity) : ""));
   return <details className="rounded-xl border p-3"><summary className="cursor-pointer">{inventory.number} · {inventory.warehouseName} · {inventory.lines.filter(l => l.counted).length}/{inventory.lines.length} policzonych</summary>
-    <form className="space-y-2 mt-3" onSubmit={e => { e.preventDefault(); void command({ ...base, action: "saveStocktaking", counts: inventory.lines.filter(l => counts[l.sku] !== "").map(l => ({ sku: l.sku, countedQuantity: Number(counts[l.sku]) })) }); }}>
-      {inventory.lines.map(line => <label key={line.sku} className="grid grid-cols-[1fr_120px] items-center gap-3 text-sm"><span>{line.sku} · {line.name} ({line.unit})<span className="block text-xs text-muted-foreground">Stan księgowy: {line.expectedQuantity}</span></span><Input aria-label={`Policzona ilość ${line.sku}`} type="number" min="0" step="0.001" disabled={busy} value={counts[line.sku]} onChange={e => setCounts(previous => ({ ...previous, [line.sku]: e.target.value }))} /></label>)}
-      <div className="flex flex-wrap gap-2"><Button disabled={busy}>Zapisz policzone ilości</Button><Button type="button" disabled={busy || dirty || inventory.lines.some(l => !l.counted)} onClick={() => { if (window.confirm("Zamknąć remanent i zaksięgować różnice zapisanych ilości?")) void command({ ...base, action: "closeStocktaking" }); }}>Zamknij i skoryguj stany</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => { if (window.confirm("Anulować arkusz bez zmiany stanów?")) void command({ ...base, action: "cancelStocktaking" }); }}>Anuluj arkusz</Button></div>
+    <form className="space-y-2 mt-3" onSubmit={e => { e.preventDefault(); if (changes.length) void command({ ...base, action: "saveStocktaking", counts: changes.map(l => ({ sku: l.sku, countedQuantity: Number(counts[l.sku]) })) }); }}>
+      <p className="text-xs">Strona {page + 1} z {pages}. Zapisz zmienione ilości przed przejściem do następnej strony. Puste pole oznacza pozycję jeszcze niepoliczoną.</p>
+      {visible.map(line => <label key={line.sku} className="grid grid-cols-[minmax(0,1fr)_100px] items-center gap-3 text-sm"><span className="break-words">{line.sku} · {line.name} ({line.unit})<span className="block text-xs text-muted-foreground">Stan księgowy: {line.expectedQuantity}</span></span><Input aria-label={`Policzona ilość ${line.sku}`} type="number" min="0" step="0.001" required={line.counted} disabled={busy} value={counts[line.sku] ?? ""} onChange={e => setCounts(previous => ({ ...previous, [line.sku]: e.target.value }))} /></label>)}
+      <div className="flex flex-wrap gap-2"><Button disabled={busy || !changes.length}>Zapisz tę stronę</Button><Button type="button" variant="ghost" disabled={busy || dirty || page === 0} onClick={() => setPage(n => n - 1)}>Poprzednia</Button><Button type="button" variant="ghost" disabled={busy || dirty || page + 1 >= pages} onClick={() => setPage(n => n + 1)}>Następna</Button><Button type="button" disabled={busy || dirty || inventory.lines.some(l => !l.counted)} onClick={() => { if (window.confirm("Zamknąć remanent i zaksięgować różnice zapisanych ilości?")) void command({ ...base, action: "closeStocktaking" }); }}>Zamknij i skoryguj stany</Button><Button type="button" variant="ghost" disabled={busy} onClick={() => { if (window.confirm("Anulować arkusz bez zmiany stanów?")) void command({ ...base, action: "cancelStocktaking" }); }}>Anuluj arkusz</Button></div>
     </form>
   </details>;
 }
