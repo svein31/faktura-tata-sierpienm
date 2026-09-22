@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/db";
@@ -103,13 +104,14 @@ export async function POST(req: Request) {
     let task;
     try {
       task = await prisma.$transaction(async (tx) => {
+        await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
         const previous = await tx.ksefQueueTask.findUnique({ where: { idempotencyKey } });
         if (previous && previous.status !== "failed") return previous;
         const data = { userId: user.id, environment, status: "queued", nextAttemptAt: new Date(), attempts: 0, lockedUntil: null, errorDetails: null };
         const created = previous
           ? await tx.ksefQueueTask.update({ where: { id: previous.id }, data })
           : await tx.ksefQueueTask.create({ data: { ...data, invoiceId, idempotencyKey } });
-        await tx.invoice.update({ where: { id: invoiceId }, data: { ksefStatus: "queued", documentStatus: "ready" } });
+        await tx.invoice.update({ where: { id: invoiceId, OR: [{ version: invoice.version }, ...((invoice.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] }, data: { ksefStatus: "queued", documentStatus: "ready", version: (invoice.version || 1) + 1 } });
         await recordAuditLog({ client: tx, companyId: invoice.sellerCompanyId, documentId: invoiceId,
           userId: user.id, userName: user.name, userEmail: user.email,
           action: "ksef_queue_enqueued", entityType: "invoice", entityId: invoiceId,
@@ -134,4 +136,3 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
-

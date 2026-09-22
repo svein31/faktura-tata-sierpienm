@@ -209,6 +209,7 @@ export interface LowStockAlert {
 /* ── Wejście silnika stanów ──────────────────────────────────────────────── */
 
 export interface ApplyStockDocumentParams {
+  actor?: { userId: string; userName?: string | null; userEmail?: string | null };
   userId: string;
   warehouseId: string;
   type: StockDocumentType;

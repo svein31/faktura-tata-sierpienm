@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
+import { PrintVersions } from "@/components/invoice/print-versions";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
@@ -499,6 +500,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       ) : null}
 
       {/* Wizualny podgląd arkusza faktury */}
+      <PrintVersions key={invoice.id} invoiceId={invoice.id} />
       <div className="print-area">
         <InvoicePreview invoice={invoice} contractor={contractor} company={companySafe} />
       </div>

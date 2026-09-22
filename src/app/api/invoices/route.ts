@@ -1,3 +1,5 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { contractorForCompany } from "@/lib/company-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -66,6 +68,7 @@ export async function POST(req: Request) {
     }
 
     const invoice = await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [{ companyId: data.sellerCompanyId, issueDate: data.issueDate }]);
     const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
@@ -80,6 +83,7 @@ export async function POST(req: Request) {
       },
     });
 
+    await captureInvoicePrint(tx, invoice);
     // Zarejestruj utworzenie dokumentu w trwałym dzienniku zdarzeń
     await recordAuditLog({
       client: tx,
@@ -109,4 +113,3 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
-

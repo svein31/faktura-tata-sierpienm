@@ -29,6 +29,7 @@ import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatMoney } from "@/lib/format";
 import { JpkExportCard } from "@/components/accountant/jpk-export-card";
+import { SharedAccountingWorkspace } from "@/components/accountant/shared-workspace";
 import { useWorkspacePreference } from "@/lib/use-workspace-preference";
 import { csvCell } from "@/lib/accountant-summary";
 import type { Invoice, Expense } from "@/lib/types";
@@ -318,6 +319,8 @@ export default function AccountantPage() {
             Kroki przygotowania dokumentów przed wysyłką do biura rachunkowego za okres {currentMonth}:
           </p>
 
+          {selectedCompanyId && <SharedAccountingWorkspace key={`${selectedCompanyId}:${currentMonth}`} companyId={selectedCompanyId} month={currentMonth} />}
+          <p className="text-xs text-muted-foreground mt-3">Poniższe wcześniejsze zaznaczenia są Twoją osobistą listą.</p>
           {checklist.error && <p role="alert" className="text-sm text-rose-500">{checklist.error}</p>}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
             {[
@@ -469,4 +472,3 @@ export default function AccountantPage() {
     </div>
   );
 }
-

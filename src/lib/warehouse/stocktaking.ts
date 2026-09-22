@@ -9,6 +9,7 @@
  */
 
 import { prisma as defaultPrisma } from "@/lib/db";
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import type { Prisma } from "@prisma/client";
 import { lockWarehouses } from "./transaction";
 import { ApiError } from "@/lib/api";
@@ -17,7 +18,7 @@ import { stocktakingLinesFrom, stocktakingToDto, toJsonValue } from "./dto";
 import { roundMoney, roundQty, sumMoney, sumQty } from "./math";
 import { nextStocktakingNumber } from "./numbering";
 import { applyStockDocumentInTransaction } from "./stock-engine";
-import type { StockDocumentLine, StocktakingDto, StocktakingLine } from "./types";
+import type { ApplyStockDocumentParams, StockDocumentLine, StocktakingDto, StocktakingLine } from "./types";
 import { resolveWarehouse } from "./warehouses";
 
 const OPEN_STATUSES = ["open", "counting"];
@@ -92,18 +93,20 @@ export async function openStocktaking(
   return defaultPrisma.$transaction(tx => openStocktakingInTransaction(userId, warehouseId, countDate, opts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function openStocktakingInTransaction(
+export async function openStocktakingInTransaction(
   userId: string,
   warehouseId: string,
   countDate: string,
   opts: { notes?: string | null } | undefined,
-  prisma: Prisma.TransactionClient
+  prisma: Prisma.TransactionClient,
+  actor?: ApplyStockDocumentParams["actor"]
 ): Promise<StocktakingDto> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const warehouse = await resolveWarehouse(userId, warehouseId, prisma);
-  await lockWarehouses(prisma, userId, [warehouse.id]);
   const date = normalizeDate(countDate);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: date }]);
+  await lockWarehouses(prisma, userId, [warehouse.id]);
 
   const pending = await prisma.stocktaking.findFirst({
     where: { userId, warehouseId: warehouse.id, status: { in: OPEN_STATUSES } },
@@ -158,7 +161,7 @@ async function openStocktakingInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...actor, companyId: warehouse.companyId,
     action: "stock.stocktaking.opened",
     entityType: "stocktaking",
     entityId: created.id,
@@ -182,7 +185,7 @@ export async function saveStocktakingCounts(
   return defaultPrisma.$transaction(tx => saveStocktakingCountsInTransaction(userId, id, counts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function saveStocktakingCountsInTransaction(
+export async function saveStocktakingCountsInTransaction(
   userId: string,
   id: string,
   counts: Array<{ sku: string; countedQuantity: number }>,
@@ -191,6 +194,8 @@ async function saveStocktakingCountsInTransaction(
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const record = await loadStocktaking(userId, id, prisma);
+  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: record.countDate }]);
   await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(
@@ -233,10 +238,6 @@ async function saveStocktakingCountsInTransaction(
     data: { status: "counting", lines: toJsonValue(nextLines), ...totals },
   });
 
-  const warehouse = await prisma.warehouse
-    .findFirst({ where: { id: record.warehouseId, userId } })
-    .catch(() => null);
-
   return stocktakingToDto({ ...updated, warehouse });
 }
 
@@ -257,21 +258,23 @@ export async function closeStocktaking(
   return defaultPrisma.$transaction(tx => closeStocktakingInTransaction(userId, id, opts, tx), { maxWait: 5000, timeout: 30000 });
 }
 
-async function closeStocktakingInTransaction(
+export async function closeStocktakingInTransaction(
   userId: string,
   id: string,
   opts: { allowUncounted?: boolean; closedBy?: string | null } | undefined,
-  prisma: Prisma.TransactionClient
+  prisma: Prisma.TransactionClient,
+  actor?: ApplyStockDocumentParams["actor"]
 ): Promise<{ stocktaking: StocktakingDto; documents: string[] }> {
   if (!userId) throw new ApiError(401, "Brak kontekstu użytkownika.", "UNAUTHENTICATED");
 
   const record = await loadStocktaking(userId, id, prisma);
+  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
+  await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate: record.countDate }]);
   await lockWarehouses(prisma, userId, [record.warehouseId]);
   if (!OPEN_STATUSES.includes(record.status)) {
     throw new ApiError(400, `Remanent ${record.number} jest już zamknięty.`, "STOCKTAKING_CLOSED");
   }
 
-  const warehouse = await resolveWarehouse(userId, record.warehouseId, prisma);
   const rawLines = stocktakingLinesFrom(record.lines);
   const uncounted = rawLines.filter((line) => !line.counted);
 
@@ -315,12 +318,12 @@ async function closeStocktakingInTransaction(
   const documentIds: string[] = [];
   const documentNumbers: string[] = [];
 
-  if (shortageLines.length > 0) {
+  for (let offset = 0; offset < shortageLines.length; offset += 200) {
     const rw = await applyStockDocumentInTransaction({
-      userId,
+      userId, actor,
       warehouseId: warehouse.id,
       type: "RW",
-      lines: shortageLines,
+      lines: shortageLines.slice(offset, offset + 200),
       issueDate: record.countDate,
       sourceType: "stocktaking",
       sourceId: record.id,
@@ -334,12 +337,12 @@ async function closeStocktakingInTransaction(
     documentNumbers.push(rw.document.number);
   }
 
-  if (surplusLines.length > 0) {
+  for (let offset = 0; offset < surplusLines.length; offset += 200) {
     const pw = await applyStockDocumentInTransaction({
-      userId,
+      userId, actor,
       warehouseId: warehouse.id,
       type: "PW",
-      lines: surplusLines,
+      lines: surplusLines.slice(offset, offset + 200),
       issueDate: record.countDate,
       sourceType: "stocktaking",
       sourceId: record.id,
@@ -368,7 +371,7 @@ async function closeStocktakingInTransaction(
 
   await recordAuditLog({
     client: prisma,
-    userId,
+    userId, ...actor, companyId: warehouse.companyId,
     action: "stock.stocktaking.closed",
     entityType: "stocktaking",
     entityId: record.id,

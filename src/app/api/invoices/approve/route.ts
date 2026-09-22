@@ -1,3 +1,4 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
     if (invoices.length !== ids.length) throw new ApiError(404, "Nie znaleziono faktury.");
     // Validate the entire batch before writing anything.
     for (const invoice of invoices) {
+      if (invoice.costReviewId) throw new ApiError(409, "Dokument wymaga decyzji w obiegu kosztów.");
       if (invoice.type !== "purchase") throw new ApiError(400, "Akceptacja dotyczy tylko faktur kosztowych.");
       if (invoice.sellerCompanyId) {
         const membership = await getCompanyMembership(user.id, invoice.sellerCompanyId);
@@ -34,14 +36,18 @@ export async function POST(req: Request) {
         throw new ApiError(403, "Brak dostępu do faktury.");
       }
     }
-    await prisma.invoice.updateMany({
-      where: { id: { in: ids }, type: "purchase" },
+    await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, invoices.map(i => ({ companyId: i.sellerCompanyId, issueDate: i.issueDate })));
+    const changed = await tx.invoice.updateMany({
+      where: { id: { in: ids }, type: "purchase", OR: [{ costReviewId: null }, { costReviewId: { isSet: false } }] },
       data: {
         approvalStatus: status,
         approvedAt: status === "approved" ? new Date() : null,
         approvedBy: status === "approved" ? user.name || user.email : null,
         version: { increment: 1 },
       },
+    });
+    if (changed.count !== ids.length) throw new ApiError(409, "Dokument został przekazany do obiegu kosztów. Odśwież dane.");
     });
     const updated = await prisma.invoice.findMany({
       where: { id: { in: ids } },

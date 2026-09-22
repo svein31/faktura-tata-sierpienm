@@ -24,6 +24,10 @@ export function useInvoiceExports(
   const safeName = invoice.number.replace(/[^a-zA-Z0-9_-]/g, "_");
 
   const exportPdf = () => {
+    if (/^[a-f0-9]{24}$/i.test(invoice.id)) {
+      window.open(`/api/invoices/${invoice.id}/pdf`, "_blank", "noopener,noreferrer");
+      return;
+    }
     const html = buildInvoiceHtmlString(invoice, contractor, company);
     const w = window.open("", "_blank", "width=900,height=1100");
     if (!w) {

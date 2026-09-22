@@ -1,0 +1,64 @@
+// Run only against integration-test.mjs's disposable replica set; no external OCR calls.
+require('./register-ts.cjs');
+const assert = require('node:assert/strict');
+const { prisma } = require('../src/lib/db.ts');
+const { enqueueOcr, processOcrJob } = require('../src/lib/ocr-jobs.ts');
+const { parseOcrResponse, OcrProviderError } = require('../src/lib/ocr-provider.ts');
+const result = parseOcrResponse({ OCRExitCode: 1, ParsedResults: [{ FileParseExitCode: 1, ParsedText: 'Faktura VAT nr OCR/1' }] });
+async function run() {
+  assert.equal(process.env.OCR_ISOLATED_TEST, 'true');
+  assert.match(process.env.DATABASE_URL || '', /^mongodb:\/\/127\.0\.0\.1:/);
+  const user = await prisma.user.create({ data: { email: 'ocr-worker@example.test', password: 'unused-test-account' } });
+  const company = await prisma.companyProfile.create({ data: { userId: user.id, nip: '5260301706', companyName: 'OCR tests' } });
+  const scan = await prisma.expenseScan.create({ data: { userId: user.id, companyId: company.id, imageData: 'data:image/png;base64,AA==', fileName: 'test.png', mimeType: 'image/png', sizeBytes: 1, parsed: { number: 'MANUAL' } } });
+  const scope = { id: scan.id, companyId: company.id };
+  await enqueueOcr(user.id, scan.id);
+  assert.equal((await enqueueOcr(user.id, scan.id)).alreadyQueued, true);
+  let calls = 0;
+  const successful = async () => { calls++; return result; };
+  await Promise.all([processOcrJob(scope, successful), processOcrJob(scope, successful)]);
+  assert.equal(calls, 1, 'Only one worker may invoke the provider for a live lease');
+  const completed = await prisma.expenseScan.findUnique({ where: { id: scan.id } });
+  assert.equal(completed.status, 'needs_review');
+  assert.equal(completed.parsed.number, 'MANUAL', 'OCR proposals do not overwrite human review fields');
+  assert.equal(completed.ocrResult.fields.number[0].value, 'OCR/1');
+  assert.equal(await prisma.expense.count({ where: { scanId: scan.id } }), 0);
+  await enqueueOcr(user.id, scan.id);
+  const transient = async () => { throw new OcrProviderError('Temporary provider failure', true); };
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    await prisma.ocrJob.update({ where: { id: scan.id }, data: { nextAttemptAt: new Date(0) } });
+    assert.equal((await processOcrJob(scope, transient)).status, attempt === 3 ? 'failed' : 'retry_scheduled');
+  }
+  assert.equal((await prisma.ocrJob.findUnique({ where: { id: scan.id } })).attempts, 3);
+  assert.equal((await processOcrJob(scope, successful)).status, 'idle');
+  await enqueueOcr(user.id, scan.id);
+  let started, finish;
+  const began = new Promise(resolve => { started = resolve; });
+  const release = new Promise(resolve => { finish = resolve; });
+  const pending = processOcrJob(scope, async () => { started(); await release; return result; });
+  await began;
+  await prisma.expenseScan.update({ where: { id: scan.id }, data: { version: { increment: 1 }, parsed: { number: 'NEW MANUAL' }, status: 'needs_review' } });
+  finish();
+  assert.equal((await pending).status, 'superseded');
+  assert.equal((await prisma.expenseScan.findUnique({ where: { id: scan.id } })).parsed.number, 'NEW MANUAL');
+  await enqueueOcr(user.id, scan.id);
+  let startedOld, releaseOld;
+  const oldBegan = new Promise(resolve => { startedOld = resolve; });
+  const oldRelease = new Promise(resolve => { releaseOld = resolve; });
+  const oldWorker = processOcrJob(scope, async () => { startedOld(); await oldRelease; return { ...result, rawText: 'STALE' }; });
+  await oldBegan;
+  await prisma.ocrJob.update({ where: { id: scan.id }, data: { leaseUntil: new Date(0) } });
+  assert.equal((await processOcrJob(scope, successful)).status, 'completed');
+  releaseOld();
+  assert.equal((await oldWorker).status, 'superseded');
+  assert.notEqual((await prisma.expenseScan.findUnique({ where: { id: scan.id } })).rawText, 'STALE');
+  await enqueueOcr(user.id, scan.id);
+  const member = await prisma.user.create({ data: { email: 'ocr-revoked@example.test', password: 'unused' } });
+  await prisma.ocrJob.update({ where: { id: scan.id }, data: { userId: member.id } });
+  assert.equal((await processOcrJob(scope, async () => { throw new Error('Unauthorized provider call'); })).status, 'skipped');
+  assert.equal((await prisma.ocrJob.findUnique({ where: { id: scan.id } })).status, 'cancelled');
+  await prisma.expenseScan.update({ where: { id: scan.id }, data: { status: 'converted' } });
+  await assert.rejects(enqueueOcr(user.id, scan.id), /decyzję/);
+  console.log('PASS: OCR durable queue, single claim, retries, manual-edit race, expired lease, stale worker and access revocation');
+}
+run().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

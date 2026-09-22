@@ -1,3 +1,5 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
@@ -246,13 +248,16 @@ export async function performIncomingSync(companyId?: string | null) {
         ?? header.acquisitionTimestamp
         ?? syncTo.toISOString();
 
-      const invoice = await prisma.invoice.create({
+      const invoice = await prisma.$transaction(async tx => {
+      await assertAccountingPeriodsOpen(tx, [{ companyId: companyProfile?.id, issueDate: parsed.issueDate }]);
+      const invoice = await tx.invoice.create({
         data: {
           userId: user.id,
           number: parsed.number,
           type: "purchase",
           sellerCompanyId: companyProfile?.id ?? null,
           status: "issued",
+          documentStatus: "issued",
           approvalStatus: "pending",
           contractorId: contractor.id,
           issueDate: parsed.issueDate,
@@ -281,9 +286,12 @@ export async function performIncomingSync(companyId?: string | null) {
         include: { sellerCompany: true },
       });
 
-      await prisma.ksefIncomingImport.update({
+      await captureInvoicePrint(tx, invoice, "ksef-import");
+      await tx.ksefIncomingImport.update({
         where: { id: reservationId },
         data: { invoiceId: invoice.id },
+      });
+      return invoice;
       });
 
       existingSet.add(ksefNumber);

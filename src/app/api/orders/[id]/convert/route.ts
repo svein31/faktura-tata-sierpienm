@@ -1,3 +1,5 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { offerAmounts } from "@/lib/offer-validation";
 import { recordAuditLog } from "@/lib/audit";
@@ -38,6 +40,7 @@ export async function POST(
     if (Math.abs(totals.totalNet - order.totalNet) > 0.011 || Math.abs(totals.totalGross - order.totalGross) > 0.011) throw new ApiError(400, "Kwoty zlecenia nie odpowiadają pozycjom i stawkom VAT. Wystaw fakturę w formularzu z właściwymi stawkami.");
     const invoiceData = await conversionInvoiceData(user.id, order, lines, `Rozliczenie zlecenia ${order.number}: ${order.title}. ${order.notes || ""}`.trim());
     return await prisma.$transaction(async tx => {
+    await assertAccountingPeriodsOpen(tx, [{ companyId: invoiceData.sellerCompanyId, issueDate: invoiceData.issueDate }]);
     if (order.billedInvoiceId || order.status === "cancelled") throw new ApiError(409, "Zlecenie jest już rozliczone lub anulowane.");
     await tx.order.update({ where: { id: order.id, updatedAt: order.updatedAt }, data: { status: "completed" } });
     const invoiceNumber = await conversionNumber(tx, order.companyId, user.id);
@@ -50,6 +53,7 @@ export async function POST(
       },
     });
 
+    await captureInvoicePrint(tx, invoice, "order-conversion");
     await tx.order.update({
       where: { id: order.id },
       data: { status: "completed", billedInvoiceId: invoice.id },
@@ -62,4 +66,3 @@ export async function POST(
     return handleApiError(e);
   }
 }
-

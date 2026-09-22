@@ -5,6 +5,7 @@ import { stockItemToDto } from "@/lib/warehouse/dto";
 import { assertCanManageStock } from "@/lib/warehouse/guard";
 import { roundQty } from "@/lib/warehouse/math";
 import { isObjectId } from "@/lib/warehouse/warehouses";
+import { companyAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!item) {
       throw new ApiError(404, "Nie znaleziono pozycji magazynowej.", "STOCK_ITEM_NOT_FOUND");
     }
+    const warehouse = await prisma.warehouse.findUnique({ where: { id: item.warehouseId } });
+    if (warehouse?.companyId) await companyAccess(prisma, user.id, warehouse.companyId, "canIssueInvoices");
 
     const body = await readJson(req);
     const data: Record<string, unknown> = {};

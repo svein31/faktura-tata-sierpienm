@@ -1,3 +1,5 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import "server-only";
 import { prisma } from "@/lib/db";
 import { parseInvoiceBody } from "@/lib/parsers";
@@ -33,6 +35,7 @@ export async function generateRecurringInvoices(now = new Date()) {
       const settings = template.recurringAutoSend ? await prisma.ksefSettings.findUnique({ where: { userId: actorId } }) : null;
       const actor = await prisma.user.findUniqueOrThrow({ where: { id: actorId }, select: { name: true, email: true } });
       const invoice = await prisma.$transaction(async tx => {
+        await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: data.issueDate }]);
         const existing = await tx.recurringOccurrence.findUnique({ where: { templateId_scheduledDate: { templateId: template.id, scheduledDate } } });
         const claimed = await tx.invoice.updateMany({ where: { id: template.id, AND: [{ OR: [{ version: template.version }, ...((template.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] }], isRecurring: true, recurringNextDate: scheduledDate,
           OR: [{ recurringPaused: false }, { recurringPaused: null }, { recurringPaused: { isSet: false } }],
@@ -41,6 +44,7 @@ export async function generateRecurringInvoices(now = new Date()) {
         if (existing) return { id: existing.invoiceId };
         if (await tx.invoice.count({ where: { sellerCompanyId: companyId, number: data.number } })) throw new Error("Numer cykliczny jest już używany przez inny dokument.");
         const created = await tx.invoice.create({ data: { ...data, userId: actorId, version: 1 } });
+        await captureInvoicePrint(tx, created, "recurring");
         await tx.recurringOccurrence.create({ data: { templateId: template.id, scheduledDate, invoiceId: created.id } });
         if (template.recurringAutoSend) {
           const environment = settings?.environment || "test";

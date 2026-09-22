@@ -326,6 +326,7 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  costReviewId String? @db.ObjectId
   documentKind String?
   advanceReceivedDate String?
   settlementMetadata Json?
@@ -612,7 +613,83 @@ model Order {
   @@index([status])
 }
 
+model PdfTemplateVersion {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  version Int
+  name String
+  config Json
+  createdBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  @@unique([companyId, version])
+}
+
+model PdfTemplateSetting {
+  id String @id @map("_id") @db.ObjectId
+  version Int @default(0)
+  templateId String? @db.ObjectId
+}
+
+model InvoicePrintContext {
+  id String @id @map("_id") @db.ObjectId
+  companyId String? @db.ObjectId
+  data Json
+  captureReason String
+  createdAt DateTime @default(now())
+}
+
+model InvoicePrintVersion {
+  id String @id @map("_id") @db.ObjectId
+  invoiceId String @db.ObjectId
+  sourceHash String
+  invoiceData Json
+  sourceVersion Int
+  pdfBase64 String?
+  pdfSha256 String?
+  createdAt DateTime @default(now())
+  @@index([invoiceId, createdAt])
+}
+
+model Project {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  name String
+  description String @default("")
+  materialBasis String @default("documents")
+  status String @default("active")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, id])
+}
+
+model ProjectEntry {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  projectId String @db.ObjectId
+  kind String
+  sourceId String? @db.ObjectId
+  materialPurchase Boolean @default(false)
+  description String @default("")
+  workDate String?
+  minutes Int?
+  hourlyCost Float?
+  currency String?
+  createdBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  @@index([projectId, id])
+  @@index([companyId, sourceId])
+}
+
+model ProjectSourceClaim {
+  id String @id @map("_id") @db.ObjectId
+  entryId String @db.ObjectId
+  @@index([entryId])
+}
+
 model Expense {
+  lines Json?
+  costReviewId String? @db.ObjectId
   companyId String? @db.ObjectId
   @@index([companyId, issueDate])
   id             String            @id @default(auto()) @map("_id") @db.ObjectId
@@ -999,6 +1076,7 @@ model WhitelistCheck {
 // ════════════════════════════════════════════════════════════════════════
 
 model Warehouse {
+  currency String? // Explicit only for newly configured stock; never infer legacy currency.
   /// Transaction serialization token; no business meaning, safe for legacy records.
   operationKey String?
   id     String @id @default(auto()) @map("_id") @db.ObjectId
@@ -1023,6 +1101,67 @@ model Warehouse {
 
   @@unique([userId, code])
   @@index([userId])
+}
+
+/// Exactly-once command receipt, committed in the same transaction as business changes.
+model WorkspaceCommand {
+  id String @id @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  companyId String @db.ObjectId
+  action String
+  payloadHash String
+  result Json
+  createdAt DateTime @default(now())
+  @@index([companyId, createdAt])
+}
+
+model CostReviewPolicy {
+  id String @id @map("_id") @db.ObjectId // companyId
+  steps Json
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
+}
+
+model CostReview {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  documentType String
+  documentId String @db.ObjectId
+  requestedBy String @db.ObjectId
+  number String
+  snapshot Json
+  steps Json
+  currentStep Int @default(0)
+  status String @default("pending")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, status, createdAt])
+}
+
+model CostReviewEvent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  reviewId String @db.ObjectId
+  companyId String @db.ObjectId
+  userId String @db.ObjectId
+  authorName String
+  action String
+  message String
+  step Int
+  createdAt DateTime @default(now())
+  @@index([reviewId, createdAt])
+}
+
+model AccountingWorkspace {
+  id String @id @map("_id") @db.ObjectId
+  companyId String @db.ObjectId
+  month String
+  items Json
+  version Int @default(1)
+  updatedBy String @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId, month])
 }
 
 /// Stan magazynowy pozycji w danym magazynie (żywy licznik)
@@ -1495,6 +1634,7 @@ model Webhook {
 
 /// Zdjęcie faktury/paragonu zrobione aparatem → OCR → moduł kosztów
 model ExpenseScan {
+  ocrResult Json?
   companyId String? @db.ObjectId
   sha256 String?
   version Int @default(1)
@@ -1628,6 +1768,52 @@ model DueReminderDelivery {
   createdAt DateTime @default(now())
   @@index([companyId])
   @@index([status, createdAt])
+}
+
+model OcrJob {
+ id String @id @map("_id") @db.ObjectId // expenseScan id; one current job per original
+ companyId String @db.ObjectId
+ userId String @db.ObjectId
+ scanVersion Int
+ status String @default("queued")
+ attempts Int @default(0)
+ leaseToken String?
+ leaseUntil DateTime @default(now())
+ nextAttemptAt DateTime @default(now())
+ lastError String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([status, nextAttemptAt])
+ @@index([companyId, updatedAt])
+}
+
+model AccountingPeriod {
+ id String @id @map("_id") @db.ObjectId
+ companyId String @db.ObjectId
+ month String
+ status String @default("open")
+ operationKey String
+ version Int @default(0)
+ closedAt DateTime?
+ closedBy String? @db.ObjectId
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([companyId, month])
+}
+
+model AccountingPeriodEvent {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ periodId String @db.ObjectId
+ companyId String @db.ObjectId
+ userId String @db.ObjectId
+ authorName String
+ action String
+ reason String
+ version Int
+ snapshot Json
+ createdAt DateTime @default(now())
+ @@index([periodId, id])
+ @@index([companyId, createdAt])
 }
 
 model InvoiceSettlement {

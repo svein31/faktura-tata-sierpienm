@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, readJson, str } from "@/lib/api";
 import { companyProfileToDto, companyToDto, contractorToDto, emailLogToDto, invoiceToDto } from "@/lib/dto";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
+import { invoicePdf } from "@/lib/pdf/invoice-print";
 import {
   getEmailConfigStatus,
   isValidEmail,
@@ -421,7 +422,7 @@ export async function POST(req: Request) {
     // A. Załącznik PDF faktury (domyślny)
     if (attachPdf) {
       try {
-        const pdfBuffer = await generateInvoicePdfBuffer(invoiceData, buyerContractor, effectiveSeller);
+        const pdfBuffer = invoiceRecord ? (await invoicePdf(invoiceRecord.id)).buffer : await generateInvoicePdfBuffer(invoiceData, buyerContractor, effectiveSeller);
         const filename = `Faktura_${safeDocNumber}.pdf`;
         attachments.push({
           filename,

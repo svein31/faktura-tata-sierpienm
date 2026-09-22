@@ -1,89 +1,37 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json } from "@/lib/api";
-import { invoiceToDto, contractorToDto, companyProfileToDto } from "@/lib/dto";
-import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
-import { getCompanyMembership } from "@/lib/permissions";
-
+import { ApiError, handleApiError, json } from "@/lib/api";
+import { companyAccess } from "@/lib/company-write";
+import { objectId } from "@/lib/company-scope";
+import { invoicePdf } from "@/lib/pdf/invoice-print";
 export const runtime = "nodejs";
-
 type Ctx = { params: Promise<{ id: string }> };
-
-/**
- * GET /api/invoices/[id]/pdf — Generuje i zwraca plik PDF faktury (dostępny dla wystawcy i członków firmy).
- */
 export async function GET(req: Request, { params }: Ctx) {
   try {
-    const user = await getSessionUser();
-    if (!user) {
-      return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
+    const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const { id } = await params;
+    if (!objectId(id)) throw new ApiError(404, "Nie znaleziono faktury.");
+    const invoice = await prisma.invoice.findUnique({ where: { id }, select: { userId: true, sellerCompanyId: true } });
+    if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
+    if (invoice.sellerCompanyId) await companyAccess(prisma, user.id, invoice.sellerCompanyId);
+    else if (invoice.userId !== user.id) throw new ApiError(404, "Nie znaleziono faktury.");
+    const query = new URL(req.url).searchParams, version = query.get("version");
+    if (version && !objectId(version)) throw new ApiError(400, "Nieprawidłowa wersja PDF.");
+    if (query.get("history") === "1") {
+      const cursor = query.get("cursor");
+      if (cursor && !objectId(cursor)) throw new ApiError(400, "Nieprawidłowa strona.");
+      const anchor = cursor ? await prisma.invoicePrintVersion.findFirst({ where: { id: cursor, invoiceId: id }, select: { createdAt: true } }) : null;
+      if (cursor && !anchor) throw new ApiError(400, "Nieprawidłowa strona.");
+      const versions = await prisma.invoicePrintVersion.findMany({ where: { invoiceId: id, ...(anchor ? { OR: [{ createdAt: { lt: anchor.createdAt } }, { createdAt: anchor.createdAt, id: { lt: cursor! } }] } : {}) }, select: { id: true, sourceVersion: true, createdAt: true, pdfSha256: true }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 31 });
+      const context = await prisma.invoicePrintContext.findUnique({ where: { id }, select: { captureReason: true, createdAt: true } });
+      return json({ versions: versions.slice(0, 30), nextCursor: versions.length > 30 ? versions[29].id : null, context });
     }
-
-    if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
-      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
-    }
-
-    const invoiceRecord = await prisma.invoice.findUnique({
-      where: { id: (await params).id },
-      include: {
-        sellerCompany: {
-          include: { bankAccounts: true },
-        },
-      },
-    });
-
-    if (!invoiceRecord) {
-      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
-    }
-
-    // Weryfikacja dostępu: własna faktura LUB faktura firmy, w której użytkownik jest członkiem
-    let hasAccess = invoiceRecord.userId === user.id;
-    if (!hasAccess && invoiceRecord.sellerCompanyId) {
-      const membership = await getCompanyMembership(user.id, invoiceRecord.sellerCompanyId);
-      hasAccess = !!membership;
-    }
-
-    if (!hasAccess) {
-      return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
-    }
-
-    const invoiceDto = invoiceToDto(invoiceRecord);
-
-    let contractorDto = undefined;
-    if (invoiceRecord.contractorId) {
-      const contractorRecord = await prisma.contractor.findUnique({
-        where: { id: invoiceRecord.contractorId },
-      });
-      if (contractorRecord) {
-        contractorDto = contractorToDto(contractorRecord);
-      }
-    }
-
-    let companyDto = undefined;
-    if (invoiceRecord.sellerCompany) {
-      companyDto = companyProfileToDto(invoiceRecord.sellerCompany);
-    } else {
-      const defaultCompany = await prisma.companyProfile.findFirst({
-        where: { userId: invoiceRecord.userId, isDefault: true },
-      });
-      if (defaultCompany) {
-        companyDto = companyProfileToDto(defaultCompany);
-      }
-    }
-
-    const pdfBuffer = await generateInvoicePdfBuffer(invoiceDto, contractorDto, companyDto);
-
-    const safeFilename = `faktura-${invoiceRecord.number.replace(/[^a-zA-Z0-9._-]/g, "_")}.pdf`;
-
-    return new Response(new Uint8Array(pdfBuffer), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${safeFilename}"`,
-        "Cache-Control": "private, max-age=0, must-revalidate",
-      },
-    });
-  } catch (e) {
-    return handleApiError(e);
-  }
+    const pdf = await invoicePdf(id, version || undefined);
+    const filename = `faktura-${pdf.number.replace(/[^a-zA-Z0-9._-]/g, "_")}.pdf`;
+    return new Response(new Uint8Array(pdf.buffer), { headers: {
+      "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="${filename}"`,
+      "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+      ...(pdf.versionId ? { "X-PDF-Version": pdf.versionId } : {}), ...(pdf.sha256 ? { "X-PDF-SHA256": pdf.sha256 } : {}),
+    } });
+  } catch (e) { return handleApiError(e); }
 }

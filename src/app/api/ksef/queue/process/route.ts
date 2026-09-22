@@ -1,6 +1,8 @@
 import { requireCompanyAccess } from "@/lib/permissions";
 import { invoiceToDto } from "@/lib/dto";
 import { prisma } from "@/lib/db";
+import { claimKsefTransmission } from "@/lib/ksef/transmission-claim";
+import { ApiError } from "@/lib/api";
 import { handleApiError, json } from "@/lib/api";
 import { KsefClient, buildFa3Xml, validateFa3Xml, generateDemoUpoXml } from "@/lib/ksef/index";
 import { companyProfileToDto, companyToDto } from "@/lib/dto";
@@ -122,7 +124,10 @@ export async function POST(req: Request) {
         const elemRef = `${ymd}-EE-${rand}0000-B67F415CDC-2C`;
         const upoXml = generateDemoUpoXml(elemRef, ksefNumber);
 
-        await prisma.invoice.update({
+        try {
+        await prisma.$transaction(async tx => {
+        await claimKsefTransmission(tx, { invoiceId: invoice.id, version: invoice.version, userId: task.userId, taskId: task.id });
+        await tx.invoice.update({
           where: { id: invoice.id },
           data: {
             status: "ksef_active",
@@ -135,10 +140,17 @@ export async function POST(req: Request) {
           },
         });
 
-        await prisma.ksefQueueTask.update({
+        await tx.ksefQueueTask.update({
           where: { id: task.id },
           data: { status: "completed", lockedUntil: null },
         });
+        });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Nie można rozpocząć wysyłki.";
+          await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: message } });
+          results.push({ taskId: task.id, invoiceId: invoice.id, status: "failed", message });
+          continue;
+        }
 
         results.push({ taskId: task.id, invoiceId: invoice.id, status: "completed", message: "Zarejestrowano w demo KSeF" });
         continue;
@@ -304,9 +316,9 @@ export async function POST(req: Request) {
             accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
           update: { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
         });
-        const onlineSession = await client.openOnlineSession(loginRes.accessToken);
-
+        await prisma.$transaction(tx => claimKsefTransmission(tx, { invoiceId: invoice.id, version: invoice.version, userId: task.userId, taskId: task.id }));
         submissionStarted = true;
+        const onlineSession = await client.openOnlineSession(loginRes.accessToken);
         const sendRes = await client.sendInvoiceEncrypted(
           loginRes.accessToken,
           onlineSession.referenceNumber,
@@ -351,6 +363,11 @@ export async function POST(req: Request) {
       } catch (procErr: any) {
         const errorMsg = procErr?.message || String(procErr);
         const nextAttempts = task.attempts + 1;
+        if (!submissionStarted && procErr instanceof ApiError) {
+          await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: errorMsg } });
+          results.push({ taskId: task.id, invoiceId: invoice.id, status: "failed", message: errorMsg });
+          continue;
+        }
 
         if (submissionStarted || nextAttempts >= task.maxAttempts) {
           await prisma.ksefQueueTask.update({

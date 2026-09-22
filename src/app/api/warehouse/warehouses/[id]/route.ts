@@ -1,4 +1,7 @@
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
+import { companyAccess } from "@/lib/company-write";
+import { lockWarehouses } from "@/lib/warehouse/transaction";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, bool, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { recordAuditLog } from "@/lib/audit";
@@ -10,12 +13,13 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-async function ownedWarehouse(userId: string, id: string) {
+async function ownedWarehouse(userId: string, id: string, prisma: Prisma.TransactionClient) {
   if (!isObjectId(id)) {
     throw new ApiError(400, "Nieprawidłowy identyfikator magazynu.", "INVALID_WAREHOUSE_ID");
   }
   const warehouse = await prisma.warehouse.findFirst({ where: { id, userId } });
   if (!warehouse) throw new ApiError(404, "Nie znaleziono magazynu.", "WAREHOUSE_NOT_FOUND");
+  if (warehouse.companyId) await companyAccess(prisma, userId, warehouse.companyId, "canIssueInvoices");
   return warehouse;
 }
 
@@ -26,7 +30,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     assertCanManageStock(user);
 
-    const warehouse = await ownedWarehouse(user.id, (await params).id);
+    return await prisma.$transaction(async prisma => {
+    const warehouse = await ownedWarehouse(user.id, (await params).id, prisma);
+    await lockWarehouses(prisma, user.id, [warehouse.id]);
     const body = await readJson(req);
 
     const data: Record<string, unknown> = {};
@@ -77,6 +83,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const updated = await prisma.warehouse.update({ where: { id: warehouse.id }, data });
 
     await recordAuditLog({
+      client: prisma, companyId: warehouse.companyId,
       userId: user.id,
       userName: user.name ?? null,
       userEmail: user.email,
@@ -84,9 +91,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
       entityType: "warehouse",
       entityId: updated.id,
       description: `Zaktualizowano magazyn ${updated.code} — ${updated.name}`,
-    }).catch(() => undefined);
+    });
 
     return json({ warehouse: warehouseToDto(updated) });
+    });
   } catch (e) {
     return handleApiError(e);
   }
@@ -102,7 +110,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     assertCanManageStock(user);
 
-    const warehouse = await ownedWarehouse(user.id, (await params).id);
+    return await prisma.$transaction(async prisma => {
+    const warehouse = await ownedWarehouse(user.id, (await params).id, prisma);
+    await lockWarehouses(prisma, user.id, [warehouse.id]);
 
     const total = await prisma.warehouse.count({ where: { userId: user.id } });
     if (total <= 1) {
@@ -114,7 +124,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     const nonZero = await prisma.stockItem.count({
-      where: { userId: user.id, warehouseId: warehouse.id, quantity: { not: 0 } },
+      where: { userId: user.id, warehouseId: warehouse.id, OR: [{ quantity: { not: 0 } }, { reserved: { not: 0 } }] },
     });
     if (nonZero > 0) {
       throw new ApiError(
@@ -136,6 +146,12 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       );
     }
 
+    const history = await Promise.all([
+      prisma.stockDocument.count({ where: { warehouseId: warehouse.id } }),
+      prisma.stockMovement.count({ where: { warehouseId: warehouse.id } }),
+      prisma.stocktaking.count({ where: { warehouseId: warehouse.id } }),
+    ]);
+    if (history.some(Boolean)) throw new ApiError(409, "Magazyn ma historię dokumentów. Dezaktywuj go zamiast usuwać.");
     await prisma.warehouse.delete({ where: { id: warehouse.id } });
 
     // Magazyn domyślny musi zawsze istnieć.
@@ -150,6 +166,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     await recordAuditLog({
+      client: prisma, companyId: warehouse.companyId,
       userId: user.id,
       userName: user.name ?? null,
       userEmail: user.email,
@@ -157,9 +174,10 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       entityType: "warehouse",
       entityId: warehouse.id,
       description: `Usunięto magazyn ${warehouse.code} — ${warehouse.name}`,
-    }).catch(() => undefined);
+    });
 
     return json({ ok: true });
+    });
   } catch (e) {
     return handleApiError(e);
   }

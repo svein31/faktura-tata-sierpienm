@@ -1,3 +1,5 @@
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
@@ -45,10 +47,12 @@ export async function POST(req:Request){try{
  const saleDate=kind==="advance"?receivedDate:source.saleDate;
  const data=await parseInvoiceBody({number,type:"sale",status:kind==="advance"?"paid":"issued",documentStatus:"issued",contractorId:source.contractorId,sellerCompanyId:companyId,issueDate,saleDate,dueDate:addCalendarDays(issueDate,source.paymentTermDays),paymentTermDays:source.paymentTermDays,paymentMethod:source.paymentMethod,currency:source.currency,language:source.language,lines,...inheritedFx,notes:`Na podstawie proformy ${source.number}. ${advances.map(a=>`Zaliczka ${a.number}: ${invoiceTotals({lines:a.lines as unknown as InvoiceLine[]}).gross.toFixed(2)} ${source.currency}`).join("; ")}`}, {contractorOwnedBy:id=>contractorForCompany(user.id,id,companyId),companyOwnedBy:async id=>id===companyId,allowSettlementLines:true});
  const invoice=await prisma.$transaction(async tx=>{
+  await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate }]);
   const locked=await tx.invoice.updateMany({where:{id:source.id,isProforma:true,OR:[{version:source.version},...((source.version??1)<=1?[{version:{isSet:false}}]:[])]},data:{version:(source.version||1)+1}});if(!locked.count)throw new ApiError(409,"Proforma zmieniła się. Odśwież i ponów operację.");
   if(await tx.invoice.count({where:{sellerCompanyId:companyId,number}}))throw new ApiError(409,"Numer jest już używany.");
   const metadata={sourceId:source.id,sourceNumber:source.number,orderLines:order,advances:advances.map(a=>({id:a.id,number:a.number,ksefNumber:a.ksefNumber,gross:invoiceTotals({lines:a.lines as unknown as InvoiceLine[]}).gross}))};
   const created=await tx.invoice.create({data:{...data,userId:user.id,documentKind:kind,advanceReceivedDate:kind==="advance"?receivedDate:null,settlementMetadata:metadata as unknown as Prisma.InputJsonValue,lines:lines as unknown as Prisma.InputJsonValue,totalNet:totals.net,totalVat:totals.vat,totalGross:totals.gross,totalNetPln:data.totalNetPln,totalVatPln:data.totalVatPln,totalGrossPln:data.totalGrossPln,...(kind==="advance"?{paidAmount:totals.gross}:{}),version:1}});
+  await captureInvoicePrint(tx, created, "settlement");
   await tx.invoiceSettlement.create({data:{invoiceId:created.id,sourceId:source.id,companyId,kind,requestKey,finalKey:kind==="final"?`final:${source.id}`:`advance:${created.id}`}});
   await recordAuditLog({client:tx,userId:user.id,userName:user.name,userEmail:user.email,companyId,documentId:created.id,entityType:"invoice",entityId:created.id,action:`${kind}_invoice_created`,details:{sourceId:source.id,net:totals.net,gross:totals.gross}});return created;
  });return json({invoice:invoiceToDto(invoice)},{status:201});
