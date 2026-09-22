@@ -288,6 +288,7 @@ async function preflightOut(input: IssueInput, prisma: Prisma.TransactionClient)
     }
 
     const after = roundQty(item.quantity - quantity);
+    if (item.reserved > 0 && after < item.reserved) throw new ApiError(409, "Wydanie narusza zarezerwowany stan. Najpierw zwolnij rezerwację.");
     if (after < 0) {
       if (!input.allowNegative) {
         throw new ApiError(
@@ -721,13 +722,18 @@ export async function cancelStockDocumentInTransaction(
         );
       }
 
-      // Średnia ważona nie jest przeliczana wstecz — korekta wartości odbywa się po bieżącej średniej.
-      const avg = roundMoney(item.avgPurchasePrice);
+      // Reverse the original movement value, not today's weighted average.
+      const reversedValue = roundMoney(-movement.valueNet);
+      const valueNet = roundMoney(item.valueNet + reversedValue);
+      if (after < 0 || after < item.reserved || valueNet < 0 || (after === 0 && valueNet !== 0)) {
+        throw new ApiError(409, "Nie można odwrócić historycznej wartości po późniejszych ruchach lub rezerwacjach. Najpierw wyjaśnij te operacje.");
+      }
       await prisma.stockItem.update({
         where: { id: item.id },
         data: {
           quantity: after,
-          valueNet: roundMoney(after * avg),
+          valueNet,
+          avgPurchasePrice: after > 0 ? roundMoney(valueNet / after) : 0,
           lastMovementAt: new Date(),
         },
       });
@@ -746,7 +752,7 @@ export async function cancelStockDocumentInTransaction(
           quantityBefore: before,
           quantityAfter: after,
           unitPriceNet: roundMoney(movement.unitPriceNet),
-          valueNet: roundMoney(quantityChange * movement.unitPriceNet),
+          valueNet: reversedValue,
           reason: `Anulowanie ${doc.type} ${doc.number}: ${cancelReason}`,
         },
       });

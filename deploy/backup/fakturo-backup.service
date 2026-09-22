@@ -1,0 +1,18 @@
+[Unit]
+Description=Encrypted Fakturo MongoDB backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=fakturo-backup
+Group=fakturo-backup
+WorkingDirectory=/opt/fakturo
+EnvironmentFile=/etc/fakturo/backup.env
+ExecStart=/bin/sh -c 'exec /usr/bin/node scripts/backup/run.mjs create "/var/lib/fakturo-backups/backup-$(date -u +%%Y%%m%%dT%%H%%M%%SZ).enc"'
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/fakturo-backups

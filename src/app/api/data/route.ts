@@ -24,7 +24,8 @@ export const runtime = "nodejs";
  * Zwraca firmy własne oraz firmy, w których użytkownik jest członkiem zespołu
  * (księgowa, pracownik, podgląd) wraz z rolami i uprawnieniami w każdej z nich.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const listMode = new URL(req.url).searchParams.get("invoiceMode") === "list";
   try {
     const user = await getSessionUser();
     if (!user) {
@@ -144,7 +145,7 @@ export async function GET() {
         where: catalogWhere(user.id, accessibleCompanyIds),
         orderBy: { createdAt: "desc" },
       }),
-      prisma.invoice.findMany({
+      listMode ? Promise.resolve([]) : prisma.invoice.findMany({
         where: {
           OR: [
             { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] },

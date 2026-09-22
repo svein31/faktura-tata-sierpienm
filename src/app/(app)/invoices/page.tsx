@@ -1,5 +1,5 @@
 "use client";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
+import { useInvoiceSearch } from "@/lib/use-invoice-search";
 
 import * as React from "react";
 import Link from "next/link";
@@ -58,10 +58,7 @@ export default function InvoicesPage() {
   const router = useRouter();
   const toast = useToast();
   const { contractors, setDraft, deleteInvoice, company, ksef, approveInvoices } = useAppStore();
-  const companyInvoices = useCompanyInvoices();
-  const allInvoices = useAppStore((s) => s.invoices);
   const [showUnassigned, setShowUnassigned] = React.useState(false);
-  const invoices = showUnassigned ? allInvoices.filter((i) => !i.sellerCompanyId) : companyInvoices;
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
@@ -80,30 +77,9 @@ export default function InvoicesPage() {
     setShowUnassigned(false); setSelectedIds([]); setToDelete(null); setConfirmKsef(null); setSelectedForEmail(null);
   }, [selectedCompanyId]);
 
-  const filtered = React.useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return [...invoices]
-      .sort((a, b) => b.issueDate.localeCompare(a.issueDate))
-      .filter((inv) => {
-        if (typeFilter === "proforma" && !inv.isProforma) return false;
-        if (typeFilter === "sale" && (inv.type !== "sale" || inv.isProforma)) return false;
-        if (typeFilter === "purchase" && inv.type !== "purchase") return false;
-        if (currencyFilter !== "all" && inv.currency !== currencyFilter) return false;
-        if (approvalFilter !== "all" && inv.type === "purchase") {
-          const isAppr = inv.approvalStatus === "approved";
-          if (approvalFilter === "approved" && !isAppr) return false;
-          if (approvalFilter === "pending" && isAppr) return false;
-        }
-        const s = effectiveStatus(inv);
-        if (statusFilter !== "all" && s !== statusFilter) return false;
-        if (q) {
-          const ctr = getContractor(contractors, inv.contractorId)?.name ?? "";
-          const hay = `${inv.number} ${ctr} ${inv.contractorId} ${inv.notes ?? ""} ${inv.ksef?.number ?? ""}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      });
-  }, [invoices, contractors, search, statusFilter, typeFilter, approvalFilter, currencyFilter]);
+  const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter });
+  const invoices = results.invoices, filtered = invoices;
+  React.useEffect(() => { setSelectedIds([]); }, [results.key]);
 
   const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || approvalFilter !== "all" || currencyFilter !== "all";
 
@@ -199,7 +175,7 @@ export default function InvoicesPage() {
     } else {
       toast("error", "Błąd wysyłki KSeF", "Nie udało się przesłać zaznaczonych dokumentów do bramki KSeF.");
     }
-    setSelectedIds([]);
+    setSelectedIds([]); results.reload();
   };
 
   const handleBulkExportCsv = () => {
@@ -266,7 +242,7 @@ export default function InvoicesPage() {
       } catch {}
     }
     toast("success", "Oznaczono jako opłacone", `Zaktualizowano status ${selectedInvoices.length} dokumentów.`);
-    setSelectedIds([]);
+    setSelectedIds([]); results.reload();
   };
 
   const editInvoice = (id: string) => {
@@ -398,6 +374,13 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2" aria-label="Stronicowanie faktur">
+        <Button variant="subtle" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
+        <span role="status" className="text-sm">Strona {results.page} · {results.total} wyników{results.loading ? " · Ładowanie…" : ""}</span>
+        <Button variant="subtle" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
+        <Button variant="subtle" onClick={results.first}>Pierwsza strona</Button>
+      </div>
+      {results.error && <div role="alert" className="text-destructive">{results.error} <Button onClick={results.reload}>Spróbuj ponownie</Button></div>}
       <SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {
         setSearch(typeof f.search === "string" ? f.search : "");
         if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
@@ -411,7 +394,7 @@ export default function InvoicesPage() {
         description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            {allInvoices.some((i) => !i.sellerCompanyId) && <Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
+            {<Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
             <Link href="/invoices/recurring">
               <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs border-border/70">
                 <Repeat className="h-3.5 w-3.5 text-purple-400" />
@@ -457,7 +440,7 @@ export default function InvoicesPage() {
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 typeFilter === "all" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
               }`}>
-                {invoices.length}
+                {results.counts.all}
               </span>
             </button>
 
@@ -478,7 +461,7 @@ export default function InvoicesPage() {
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 typeFilter === "sale" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
               }`}>
-                {invoices.filter((i) => i.type === "sale").length}
+                {results.counts.sale}
               </span>
             </button>
 
@@ -496,9 +479,9 @@ export default function InvoicesPage() {
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 typeFilter === "purchase" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
               }`}>
-                {invoices.filter((i) => i.type === "purchase").length}
+                {results.counts.purchase}
               </span>
-              {invoices.some((i) => i.type === "purchase" && i.approvalStatus !== "approved") && (
+              {(results.counts.purchase > results.counts.approved) && (
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
@@ -524,7 +507,7 @@ export default function InvoicesPage() {
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 typeFilter === "proforma" ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
               }`}>
-                {invoices.filter((i) => i.isProforma).length}
+                {results.counts.proforma}
               </span>
             </button>
           </div>
@@ -548,7 +531,7 @@ export default function InvoicesPage() {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 }`}
               >
-                Wszystkie ({invoices.filter((i) => i.type === "purchase").length})
+                Wszystkie ({results.counts.purchase})
               </button>
               <button
                 type="button"
@@ -562,7 +545,7 @@ export default function InvoicesPage() {
                 <Clock className="h-3.5 w-3.5 text-amber-500" />
                 <span>Do akceptacji</span>
                 <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
-                  {invoices.filter((i) => i.type === "purchase" && i.approvalStatus !== "approved").length}
+                  {(results.counts.purchase - results.counts.approved)}
                 </span>
               </button>
               <button
@@ -577,7 +560,7 @@ export default function InvoicesPage() {
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                 <span>Zaakceptowane</span>
                 <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-                  {invoices.filter((i) => i.type === "purchase" && i.approvalStatus === "approved").length}
+                  {results.counts.approved}
                 </span>
               </button>
             </motion.div>
@@ -729,7 +712,7 @@ export default function InvoicesPage() {
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-2">
             <Filter className="h-3.5 w-3.5 text-primary" />
-            Liczba pozycji: <b className="text-foreground">{filtered.length}</b>
+            Wyniki: <b className="text-foreground">{results.total}</b> · na stronie {filtered.length}
           </span>
           <span className="hidden items-center gap-1.5 sm:flex font-mono text-[11px]">
             <ArrowDownUp className="h-3 w-3" /> Data wystawienia (malejąco)
@@ -994,7 +977,7 @@ export default function InvoicesPage() {
             </tbody>
           </table>
 
-          {filtered.length === 0 && (
+          {!results.loading && !results.error && filtered.length === 0 && (
             <EmptyState
               icon={FileText}
               title="Brak faktur spełniających kryteria"

@@ -19,4 +19,5 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: python3 -m pip install lxml==6.0.2
+      - run: npx playwright install --with-deps chromium
       - run: npm run verify

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 
@@ -15,6 +15,9 @@ import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
  */
 export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const mode = pathname === "/invoices" ? "list" : "full";
+  const dataMode = useAppStore(s => s.dataMode);
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);
 
@@ -25,9 +28,9 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     let retry: ReturnType<typeof setTimeout> | undefined;
     setError(false);
     const boot = async (automaticRetry: boolean) => {
-      if (useAppStore.getState().hydrated) return;
+      if (useAppStore.getState().hydrated && useAppStore.getState().dataMode === mode) return;
       try {
-        await useAppStore.getState().bootstrap();
+        await useAppStore.getState().bootstrap(mode);
       } catch {
         if (cancelled) return;
         if (automaticRetry) retry = setTimeout(() => void boot(false), 2000);
@@ -36,18 +39,18 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     };
     void boot(true);
     return () => { cancelled = true; clearTimeout(retry); };
-  }, [attempt]);
+  }, [attempt, mode]);
 
   // SWR-style: cicha rewalidacja w tle przy powrocie na stronę
   React.useEffect(() => {
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && useAppStore.getState().dataMode === mode) {
         void useAppStore.getState().revalidate();
       }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () => document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, []);
+  }, [mode]);
 
   React.useEffect(() => {
     if (authError) {
@@ -57,14 +60,14 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     }
   }, [authError, router]);
 
-  if (!hydrated && error) return (
+  if ((!hydrated || dataMode !== mode) && error) return (
     <div role="alert" className="rounded-2xl border border-border p-6 space-y-3">
       <h2 className="font-semibold">Nie udało się wczytać danych</h2>
       <p className="text-sm text-muted-foreground">Sprawdź połączenie z internetem i spróbuj ponownie.</p>
       <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setAttempt(n => n + 1)}>Spróbuj ponownie</button>
     </div>
   );
-  if (!hydrated) {
+  if (!hydrated || dataMode !== mode) {
     return (
       <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true">
         {/* Nagłówek — natychmiast widoczna struktura */}

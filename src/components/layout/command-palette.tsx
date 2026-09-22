@@ -28,7 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAppStore, getContractor } from "@/lib/store";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
+import { useInvoiceSearch } from "@/lib/use-invoice-search";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 
 type SearchCategory = "all" | "invoices" | "contractors" | "actions" | "nav";
@@ -51,10 +51,11 @@ interface CommandItem {
 export function CommandPalette() {
   const router = useRouter();
   const { contractors, products } = useAppStore();
-  const invoices = useCompanyInvoices();
+  const companyId = useAppStore(s => s.selectedCompanyId);
 
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const { invoices } = useInvoiceSearch({ companyId: companyId || "unassigned", search: query }, open);
   const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);

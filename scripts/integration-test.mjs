@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { backupDrill } from './backup/drill.mjs';
+import { browserChecks } from './browser-checks.mjs';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createServer } from 'node:net';
@@ -43,6 +45,7 @@ async function api(method, path, body, cookie, extraHeaders = {}) {
 try {
   smtp.listen(0,'127.0.0.1'); await once(smtp,'listening');
   await mongoClient.connect();
+  await backupDrill(databaseUrl);
   const migrationDb = mongoClient.db('migration_checks');
   const fixtureOwner = new ObjectId(), fixtureCompany = new ObjectId(), fixtureContact = new ObjectId();
   await migrationDb.collection('CompanyProfile').insertOne({ _id: fixtureCompany, userId: fixtureOwner });
@@ -775,6 +778,7 @@ try {
   const [ocrCode] = await once(ocrTests, 'exit');
   assert.equal(ocrCode, 0, 'OCR queue concurrency and recovery checks must pass');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
+  await browserChecks(base);
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }

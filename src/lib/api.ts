@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reportUnexpectedError } from "@/lib/error-report";
 
 /** Błąd aplikacji z kodem HTTP — rzucany w route handlerach i łapany przez handleApiError. */
 export class ApiError extends Error {
@@ -70,7 +71,7 @@ export function handleApiError(e: unknown): NextResponse {
       { status: 409 }
     );
   }
-  console.error("[api-error]", e);
-  return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL" }, { status: 500 });
+  const incident = reportUnexpectedError(e);
+  return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL", incident }, { status: 500 });
 }
 

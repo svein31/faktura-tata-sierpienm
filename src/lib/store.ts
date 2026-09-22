@@ -25,6 +25,7 @@ import { PURCHASE_INVOICE_READ_ONLY } from "./invoice-policy";
 export interface AppState {
   /** true po udanym bootstrapie z backendu. */
   hydrated: boolean;
+  dataMode: "full" | "list";
   authError: boolean;
 
   company: CompanyProfile | null;
@@ -42,7 +43,7 @@ export interface AppState {
   draftInvoice: Invoice | null;
   draftInvoiceIsNew: boolean;
 
-  bootstrap: () => Promise<void>;
+  bootstrap: (mode?: "full" | "list") => Promise<void>;
   /** SWR-style silent revalidation — refreshes data without resetting hydrated. */
   revalidate: () => Promise<void>;
   resetData: () => void;
@@ -94,8 +95,10 @@ export async function apiError(res: Response, fallback: string): Promise<Error> 
 
 const EMPTY_PREFS: NotificationPrefs = { browserEnabled: false, soundEnabled: true };
 
+let dataRequestVersion = 0;
 export const useAppStore = create<AppState>((set, get) => ({
   hydrated: false,
+  dataMode: "full",
   authError: false,
 
   company: null,
@@ -114,8 +117,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   /* ── Bootstrap ──────────────────────────────────────────────────────── */
 
-  bootstrap: async () => {
-    const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+  bootstrap: async (mode = "full") => {
+    const requestVersion = ++dataRequestVersion;
+    const res = await fetch(mode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+    if (requestVersion !== dataRequestVersion) return;
     if (res.status === 401) {
       set({ hydrated: true, authError: true });
       return;
@@ -131,6 +136,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       notifications: AppNotification[];
       notificationPrefs: NotificationPrefs;
     };
+    if (requestVersion !== dataRequestVersion) return;
     const companies = data.companies ?? (data.company ? [data.company] : []);
     const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
 
@@ -145,14 +151,16 @@ export const useAppStore = create<AppState>((set, get) => ({
       notifications: data.notifications,
       notificationPrefs: data.notificationPrefs ?? EMPTY_PREFS,
       hydrated: true,
+      dataMode: mode,
       authError: false,
     });
   },
 
   revalidate: async () => {
     if (!get().hydrated) return; // bootstrap not done yet
+    const requestVersion = ++dataRequestVersion;
     try {
-      const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+      const res = await fetch(get().dataMode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
       if (!res.ok) return; // silently ignore errors during revalidation
       const data = (await res.json()) as {
         company: CompanyProfile | null;
@@ -164,6 +172,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         notifications: AppNotification[];
         notificationPrefs: NotificationPrefs;
       };
+      if (requestVersion !== dataRequestVersion) return;
       const companies = data.companies ?? (data.company ? [data.company] : []);
       const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
 
@@ -183,9 +192,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  resetData: () =>
+  resetData: () => {
+    dataRequestVersion++;
     set({
       hydrated: false,
+      dataMode: "full",
       authError: false,
       company: null,
       companies: [],
@@ -198,12 +209,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       notificationPrefs: EMPTY_PREFS,
       draftInvoice: null,
       draftInvoiceIsNew: true,
-    }),
+    });
+  },
 
   /* ── Zarządzanie spółkami (Multi-Company) — Optimistic UI ────────────────── */
 
   fetchCompanies: async () => {
-    const res = await fetch("/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+    const res = await fetch(get().dataMode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
     if (!res.ok) throw await apiError(res, "Nie udało się pobrać listy firm.");
     const data = (await res.json()) as { companies: CompanyProfile[] };
     const defaultComp = resolveSelectedCompany(data.companies, get().selectedCompanyId);
