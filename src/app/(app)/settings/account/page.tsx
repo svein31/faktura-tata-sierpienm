@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
+  CreditCard,
   CheckCircle2,
   Download,
   Eye,
@@ -38,6 +39,7 @@ import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { TwoFactorAuthCard } from "@/components/security/two-factor-auth-card";
+import { SubscriptionCard } from "@/components/subscription/subscription-card";
 
 export default function AccountSettingsPage() {
   const toast = useToast();
@@ -266,18 +268,21 @@ export default function AccountSettingsPage() {
       />
 
       <Tabs
+        className="max-w-full overflow-x-auto"
         value={activeTab}
         onChange={setActiveTab}
         items={[
           { value: "security", label: "Bezpieczeństwo i Hasło", icon: <Lock className="h-3.5 w-3.5" /> },
           { value: "email", label: "Dane Konta i E-mail", icon: <Mail className="h-3.5 w-3.5" /> },
           { value: "preferences", label: "Personalizacja i Preferencje", icon: <Sliders className="h-3.5 w-3.5" /> },
+          { value: "billing", label: "Plan", icon: <CreditCard className="h-3.5 w-3.5" /> },
           { value: "sessions", label: "Sesje i Bezpieczeństwo", icon: <ShieldAlert className="h-3.5 w-3.5" /> },
           { value: "privacy", label: "Prywatność i zgody", icon: <Shield className="h-3.5 w-3.5" /> },
         ]}
       />
 
       {activeTab === "security" && <MfaSettings />}
+      {activeTab === "billing" && <SubscriptionCard />}
 
       <AnimatePresence mode="wait">
         {/* ── 1. BEZPIECZEŃSTWO I HASŁO ── */}
@@ -875,4 +880,3 @@ export default function AccountSettingsPage() {
     </div>
   );
 }
-

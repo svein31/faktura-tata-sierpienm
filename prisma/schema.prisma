@@ -72,6 +72,19 @@ model User {
   webhooks            Webhook[]
   // PWA / OCR (sekcja 7)
   expenseScans        ExpenseScan[]
+  subscription        Subscription?
+}
+
+/// Stan planu aplikacji; brak rekordu oznacza brak aktywnej subskrypcji.
+model Subscription {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String    @unique @db.ObjectId
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             String?   // monthly | yearly
+  status           String    @default("inactive") // inactive | active | past_due | canceled
+  currentPeriodEnd DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 /// Trwała sesja użytkownika powiązana z bazą danych
