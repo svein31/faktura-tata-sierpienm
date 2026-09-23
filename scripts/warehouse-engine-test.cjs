@@ -86,6 +86,22 @@ async function run() {
   assert.equal(closedLarge.documents.length,2);
   assert.equal(await prisma.stockItem.count({where:{warehouseId:large.id,quantity:0}}),201);
   assert.ok((await prisma.stockDocument.findMany({where:{warehouseId:large.id}})).every(doc=>doc.lines.length<=200));
+  const valued = await prisma.warehouse.create({ data: { userId: user.id, code: 'VALUES', name: 'Valuation' } });
+  const valuedParams = { ...params, warehouseId: valued.id };
+  const oldReceipt = await applyStockDocument({ ...valuedParams, lines: [{ ...line, quantity: 10, unitPriceNet: 10, valueNet: 100 }] });
+  await applyStockDocument({ ...valuedParams, lines: [{ ...line, quantity: 10, unitPriceNet: 30, valueNet: 300 }] });
+  await cancelStockDocument(user.id, oldReceipt.document.id, 'Historical value');
+  let valuedItem = await prisma.stockItem.findFirstOrThrow({ where: { warehouseId: valued.id } });
+  assert.equal(valuedItem.quantity, 10); assert.equal(valuedItem.valueNet, 300); assert.equal(valuedItem.avgPurchasePrice, 30);
+  await prisma.stockItem.update({ where: { id: valuedItem.id }, data: { reserved: 9 } });
+  await assert.rejects(applyStockDocument({ ...valuedParams, type: 'WZ', lines: [{ ...line, quantity: 2, valueNet: 20 }] }), /rezerw/);
+  await prisma.stockItem.update({ where: { id: valuedItem.id }, data: { reserved: 0 } });
+  const historicalOut = await applyStockDocument({ ...valuedParams, type: 'WZ', lines: [{ ...line, quantity: 2, valueNet: 20 }] });
+  await applyStockDocument({ ...valuedParams, lines: [{ ...line, quantity: 2, unitPriceNet: 80, valueNet: 160 }] });
+  await cancelStockDocument(user.id, historicalOut.document.id, 'Restore historical issue');
+  valuedItem = await prisma.stockItem.findFirstOrThrow({ where: { warehouseId: valued.id } });
+  assert.equal(valuedItem.quantity, 12); assert.equal(valuedItem.valueNet, 460);
+  console.log('PASS: historical receipt/issue value reversal after price changes and reserved stock protection');
   console.log('PASS: 201-position stocktaking batches and second-batch atomic rollback');
   console.log('PASS: warehouse engine concurrency, atomic rollback, audit failure, MM pairs and stocktaking freeze/close');
 }

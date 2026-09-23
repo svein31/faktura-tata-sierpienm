@@ -29,10 +29,10 @@ export async function GET(req: Request) {
     if (filters.search) {
       // Join inside the scoped query: no unbounded list of contractor ids in the browser or request.
       selection.push({ $lookup: { from: "Contractor", let: { id: "$contractorId" }, pipeline: [
-        { $match: { $expr: { $eq: [{ $toString: "$_id" }, "$$id"] } } }, { $project: { name: 1 } },
+        { $match: { $expr: { $eq: [{ $toString: "$_id" }, "$$id"] } } }, { $project: { name: 1, nip: 1 } },
       ], as: "searchContractor" } });
       const regex = { $regex: literalRegex(filters.search), $options: "i" };
-      selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name"].map(field => ({ [field]: regex })) } });
+      selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name", "searchContractor.nip"].map(field => ({ [field]: regex })) } });
     }
     let after: Record<string, unknown>[] = [];
     if (filters.cursor) {

@@ -1,4 +1,5 @@
 "use client";
+import { csvCell } from "@/lib/accountant-summary";
 import { useInvoiceSearch } from "@/lib/use-invoice-search";
 
 import * as React from "react";
@@ -202,18 +203,18 @@ export default function InvoicesPage() {
       const t = invoiceTotals(inv);
       return [
         inv.isProforma ? "Proforma" : inv.type === "purchase" ? "Zakup" : "Sprzedaz",
-        `"${inv.number}"`,
+        inv.number,
         inv.issueDate,
         inv.dueDate,
-        `"${ctr?.name || ""}"`,
-        `"${ctr?.nip || ""}"`,
+        ctr?.name || "",
+        ctr?.nip || "",
         inv.currency,
         (inv.totalNet ?? t.net).toFixed(2),
         (inv.totalVat ?? t.vat).toFixed(2),
         (inv.totalGross ?? t.gross).toFixed(2),
         inv.paymentStatus === "paid" || inv.status === "paid" ? "Oplacona" : "Nieoplacona",
-        `"${inv.ksefNumber || inv.ksef?.number || ""}"`,
-      ].join(";");
+        inv.ksefNumber || inv.ksef?.number || "",
+      ].map(csvCell).join(";");
     });
 
     const csv = "\uFEFF" + [headers.join(";"), ...rows].join("\r\n");

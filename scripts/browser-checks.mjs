@@ -42,10 +42,13 @@ export async function browserChecks(base) {
     await invoiceSearch.fill('BROWSER/001');
     await expect(page.getByText(/Strona 1 · 1 wyników/)).toBeVisible();
     // Route transition must load full data for legacy consumers and preserve functionality.
-    await page.goto('/projects'); await expect(page.getByRole('button', { name: 'Utwórz projekt' })).toBeVisible();
+    await page.goto('/projects'); await page.locator('summary').filter({ hasText: 'Nowy projekt' }).click();
+    await expect(page.getByRole('button', { name: 'Utwórz projekt' })).toBeVisible();
     await page.getByLabel('Nazwa', { exact: true }).fill('Browser Project');
     await page.getByRole('button', { name: 'Utwórz projekt' }).click();
     await page.getByRole('button', { name: /Browser Project/ }).click();
+    await page.locator('summary').filter({ hasText: 'Dodaj czas pracy' }).click();
+    await page.getByLabel('Data pracy', { exact: true }).fill('2026-09-22');
     await page.getByLabel('Opis', { exact: true }).fill('Browser work');
     await page.getByLabel('Liczba minut').fill('60'); await page.getByLabel('Koszt godziny pracy').fill('120');
     await page.getByRole('button', { name: 'Zapisz czas' }).click();
