@@ -7,6 +7,7 @@ import { contractorForCompany } from "@/lib/company-scope";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { addCalendarDays, nextRecurrence, warsawDate } from "@/lib/scheduling";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 
 export async function generateRecurringInvoices(now = new Date()) {
   const today = warsawDate(now), started = Date.now();
@@ -43,7 +44,8 @@ export async function generateRecurringInvoices(now = new Date()) {
         if (!claimed.count) throw new Error("Harmonogram zmienił się w czasie generowania.");
         if (existing) return { id: existing.invoiceId };
         if (await tx.invoice.count({ where: { sellerCompanyId: companyId, number: data.number } })) throw new Error("Numer cykliczny jest już używany przez inny dokument.");
-        const created = await tx.invoice.create({ data: { ...data, userId: actorId, version: 1 } });
+        const issuedAt = !data.isProforma ? await claimInvoiceQuota(tx, actorId, companyId, now) : null;
+        const created = await tx.invoice.create({ data: { ...data, userId: actorId, issuedAt, version: 1 } });
         await captureInvoicePrint(tx, created, "recurring");
         await tx.recurringOccurrence.create({ data: { templateId: template.id, scheduledDate, invoiceId: created.id } });
         if (template.recurringAutoSend) {

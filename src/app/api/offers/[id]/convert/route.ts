@@ -1,5 +1,6 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
@@ -78,10 +79,12 @@ export async function POST(
       // Konwersja do faktury
       await assertAccountingPeriodsOpen(tx, [{ companyId: invoiceData!.sellerCompanyId, issueDate: invoiceData!.issueDate }]);
       const invoiceNumber = await conversionNumber(tx, offer.companyId, user.id);
+      const issuedAt = await claimInvoiceQuota(tx, user.id, offer.companyId);
       const invoice = await tx.invoice.create({
         data: {
           userId: user.id,
           ...invoiceData!,
+          issuedAt,
           number: invoiceNumber,
           shareToken: crypto.randomBytes(16).toString("hex"),
         },

@@ -8,6 +8,7 @@ import { SUBSCRIPTION_STATUS_LABELS, type SubscriptionPlan, type SubscriptionSta
 type Plan = { id: SubscriptionPlan; label: string; amountPln: number; period: string };
 type BillingData = {
   plans: Plan[];
+  quota: { tier: "free" | "pro"; used: number; limit: number | null; remaining: number | null };
   subscription: { plan: SubscriptionPlan | null; status: SubscriptionStatus; currentPeriodEnd: string | null };
 };
 
@@ -35,7 +36,7 @@ export function SubscriptionCard() {
         <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
           Plan aplikacji
           {subscription && <Badge tone={subscription.status === "active" ? "success" : subscription.status === "past_due" ? "warning" : "outline"}>
-            {SUBSCRIPTION_STATUS_LABELS[subscription.status]}
+            {data?.quota.tier === "pro" ? "Pro" : "Free"} · {SUBSCRIPTION_STATUS_LABELS[subscription.status]}
           </Badge>}
         </CardTitle>
       </CardHeader>
@@ -52,6 +53,9 @@ export function SubscriptionCard() {
           {subscription?.currentPeriodEnd && <p className="text-xs text-muted-foreground">
             Koniec bieżącego okresu: {new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium" }).format(new Date(subscription.currentPeriodEnd))}
           </p>}
+          <p className="text-xs text-muted-foreground">{data.quota.tier === "free"
+            ? `W tym miesiącu wystawiono ${data.quota.used} z ${data.quota.limit} faktur. Zostało ${data.quota.remaining}.`
+            : "Faktury bez limitu miesięcznego."}</p>
           <p className="text-xs text-muted-foreground">
             Oba plany obejmują ten sam zakres funkcji. Informacje o planach są obecnie poglądowe; wybór i płatności nie są uruchomione.
           </p>

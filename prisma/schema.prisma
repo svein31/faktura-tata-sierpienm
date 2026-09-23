@@ -16,6 +16,7 @@ datasource db {
 
 model User {
   workspacePreferences Json?
+  billingQuotaVersion Int? @default(0)
   id                  String                  @id @default(auto()) @map("_id") @db.ObjectId
   email               String                  @unique
   password            String // Zawsze zhashowane bcrypt (12 rund)
@@ -343,6 +344,7 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  issuedAt        DateTime?
   costReviewId String? @db.ObjectId
   documentKind String?
   advanceReceivedDate String?
@@ -354,6 +356,8 @@ model Invoice {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
   userId          String          @db.ObjectId
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([sellerCompanyId, issuedAt])
+  @@index([userId, issuedAt])
   number          String
   type            String
   status          String          @default("draft")

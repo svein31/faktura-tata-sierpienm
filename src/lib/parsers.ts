@@ -279,7 +279,7 @@ export async function parseInvoiceBody(
     number,
     type,
     status,
-    documentStatus: typeof body.documentStatus === "string" ? cleanStr(body.documentStatus, 20, "documentStatus") : (status === "draft" ? "draft" : "issued"),
+    documentStatus: status === "draft" ? "draft" : (typeof body.documentStatus === "string" ? cleanStr(body.documentStatus, 20, "documentStatus") : "issued"),
     paymentStatus: typeof body.paymentStatus === "string" ? cleanStr(body.paymentStatus, 20, "paymentStatus") : (status === "paid" ? "paid" : "unpaid"),
     paidAmount: typeof body.paidAmount === "number" ? Math.max(0, body.paidAmount) : (status === "paid" ? undefined : 0),
     contractorId,

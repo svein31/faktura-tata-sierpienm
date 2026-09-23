@@ -1,5 +1,6 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import { conversionInvoiceData, conversionNumber } from "@/lib/document-conversion";
 import { offerAmounts } from "@/lib/offer-validation";
 import { recordAuditLog } from "@/lib/audit";
@@ -44,10 +45,12 @@ export async function POST(
     if (order.billedInvoiceId || order.status === "cancelled") throw new ApiError(409, "Zlecenie jest już rozliczone lub anulowane.");
     await tx.order.update({ where: { id: order.id, updatedAt: order.updatedAt }, data: { status: "completed" } });
     const invoiceNumber = await conversionNumber(tx, order.companyId, user.id);
+    const issuedAt = await claimInvoiceQuota(tx, user.id, order.companyId);
     const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
         ...invoiceData,
+        issuedAt,
         number: invoiceNumber,
         shareToken: crypto.randomBytes(16).toString("hex"),
       },

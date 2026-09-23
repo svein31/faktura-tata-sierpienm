@@ -321,6 +321,8 @@ export async function POST(req: Request) {
       }
       if (invoiceRecord.isOffline && (!invoiceRecord.qrCodeI || !invoiceRecord.qrCodeII))
         return NextResponse.json({ error: "OFFLINE_NOT_ISSUED", message: "Faktura offline wymaga podpisanych kodów I i II przed wysłaniem." }, { status: 409 });
+      if (invoiceRecord.type === "sale" && !invoiceRecord.isProforma && invoiceRecord.status === "draft" && !invoiceRecord.issuedAt)
+        return NextResponse.json({ error: "DRAFT_NOT_ISSUED", message: "Najpierw wystaw fakturę, a potem wyślij ją e-mailem." }, { status: 409 });
 
       invoiceData = invoiceToDto(invoiceRecord);
 
@@ -372,6 +374,8 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+    if (!invoiceRecord && invoiceData.type === "sale" && !invoiceData.isProforma)
+      return NextResponse.json({ error: "INVOICE_NOT_ISSUED", message: "Zapisz i wystaw fakturę przed wysłaniem jej e-mailem." }, { status: 409 });
     if (invoiceData.isOffline && (!invoiceRecord || !invoiceRecord.qrCodeI || !invoiceRecord.qrCodeII))
       return NextResponse.json({ error: "OFFLINE_NOT_ISSUED", message: "Najpierw wystaw fakturę offline z podpisanym Kodem II." }, { status: 409 });
 

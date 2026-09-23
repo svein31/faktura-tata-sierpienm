@@ -8,6 +8,7 @@ import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 
 export const runtime = "nodejs";
 
@@ -69,10 +70,13 @@ export async function POST(req: Request) {
 
     const invoice = await prisma.$transaction(async tx => {
     await assertAccountingPeriodsOpen(tx, [{ companyId: data.sellerCompanyId, issueDate: data.issueDate }]);
+    const issuedAt = data.type === "sale" && !data.isProforma && data.status !== "draft"
+      ? await claimInvoiceQuota(tx, user.id, data.sellerCompanyId) : null;
     const invoice = await tx.invoice.create({
       data: {
         userId: user.id,
         ...data,
+        issuedAt,
         version: 1,
         recurringUserId: data.isRecurring ? user.id : null,
       },

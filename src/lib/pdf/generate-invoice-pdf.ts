@@ -576,6 +576,12 @@ export async function generateInvoicePdfBuffer(
 
   // ── Stopka na każdej stronie ──
   for (const [index, footerPage] of pdfDoc.getPages().entries()) {
+  if (invoice.status === "draft" && !invoice.ksefNumber && !invoice.qrCodeII) {
+    footerPage.drawText("SZKIC - NIE WYSTAWIONO", {
+      x: width - 195, y: footerPage.getHeight() - 27,
+      size: 9, font: fontBold, color: rgb(0.7, 0.2, 0.2),
+    });
+  }
   footerPage.drawLine({
     start: { x: 40, y: 45 },
     end: { x: width - 40, y: 45 },

@@ -10,6 +10,7 @@ import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
 import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 
 export const runtime = "nodejs";
 
@@ -171,6 +172,8 @@ export async function PUT(req: Request, { params }: Ctx) {
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
+    if (existing.issuedAt && data.status === "draft")
+      throw new ApiError(409, "Wystawionej faktury nie można przywrócić do szkicu.");
 
     if (data.sellerCompanyId !== existing.sellerCompanyId) {
       throw new ApiError(400, "Nie można przenieść zapisanej faktury do innej firmy. Utwórz nowy dokument w wybranej firmie.");
@@ -199,11 +202,14 @@ export async function PUT(req: Request, { params }: Ctx) {
       { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
       { companyId: data.sellerCompanyId, issueDate: data.issueDate },
     ]);
+    const issuedAt = data.type === "sale" && !data.isProforma && !existing.issuedAt && (existing.status === "draft" || existing.isProforma) && data.status !== "draft"
+      ? await claimInvoiceQuota(tx, user.id, existing.sellerCompanyId) : existing.issuedAt;
     await captureInvoicePrint(tx, existing, "before-edit");
     const invoice = await tx.invoice.update({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
         ...data,
+        issuedAt,
         version: nextVersion,
         recurringUserId: data.isRecurring ? user.id : null,
       },
@@ -277,7 +283,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     // Ochrona integralności księgowej: zabronione usuwanie wystawionych dokumentów
-    const isDraft = existing.status === "draft" && existing.documentStatus === "draft";
+    const isDraft = existing.status === "draft" && existing.documentStatus === "draft" && !existing.issuedAt;
     if (!isDraft && !existing.isProforma) {
       throw new ApiError(
         400,
