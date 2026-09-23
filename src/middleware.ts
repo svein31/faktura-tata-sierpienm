@@ -45,6 +45,7 @@ export function middleware(request: NextRequest) {
   const isPublicPath =
     pathname === "/" ||
     pathname === "/demo" ||
+    pathname === "/pomoc" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||

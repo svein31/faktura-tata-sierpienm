@@ -34,28 +34,28 @@ const NAV_ITEMS = [
  */
 function LegalContent({ content }: { content: string }) {
   const lines = content.split("\n").filter((l) => l.trim().length > 0);
+  const inline = (value: string) => value.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index} className="font-semibold text-slate-800 dark:text-slate-200">{part.slice(2, -2)}</strong>;
+    if (part.startsWith("`") && part.endsWith("`")) return <code key={index} className="rounded bg-slate-100 px-1 dark:bg-slate-800">{part.slice(1, -1)}</code>;
+    if (part.startsWith("*") && part.endsWith("*")) return <em key={index}>{part.slice(1, -1)}</em>;
+    return part;
+  });
 
   return (
     <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed print:text-xs print:text-slate-800">
       {lines.map((line, i) => {
         const trimmed = line.trim();
-        // Wykryj punkty numerowane (1., a), itp.)
+        if (/^---+$/.test(trimmed)) return <hr key={i} className="my-4 border-slate-200 dark:border-slate-800" />;
+        if (/^#{1,6}\s/.test(trimmed)) return <h3 key={i} className="pt-3 font-semibold text-slate-900 dark:text-slate-100">{inline(trimmed.replace(/^#{1,6}\s+/, ""))}</h3>;
         const isNumbered = /^\d+\./.test(trimmed);
         const isSubpoint = /^[a-z]\)/.test(trimmed);
-        const isBold = trimmed.startsWith("**");
-
-        // Podmień markdown bold na <strong>
-        const formatted = trimmed.replace(
-          /\*\*(.+?)\*\*/g,
-          '<strong class="text-slate-800 dark:text-slate-200 font-semibold">$1</strong>'
-        );
+        const isBullet = trimmed.startsWith("- ");
 
         return (
           <p
             key={i}
-            className={`${isSubpoint ? "pl-6" : isNumbered ? "pl-2" : ""} ${isBold ? "font-medium text-slate-800 dark:text-slate-200" : ""}`}
-            dangerouslySetInnerHTML={{ __html: formatted }}
-          />
+            className={`${isSubpoint || (isBullet && line.startsWith("  ")) ? "pl-6" : isNumbered || isBullet ? "pl-2" : ""} ${trimmed.startsWith("**") ? "font-medium text-slate-800 dark:text-slate-200" : ""}`}
+          >{isBullet ? <>• {inline(trimmed.slice(2))}</> : inline(trimmed)}</p>
         );
       })}
     </div>

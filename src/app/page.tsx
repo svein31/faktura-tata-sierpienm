@@ -23,9 +23,11 @@ import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-b
 import { getSessionUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { title: "FakturaProsto — Faktury VAT i KSeF", description: "Faktury VAT, demonstracja działania i integracja z KSeF.", url: "/" },
   title: "FakturaProsto — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
   description:
-    "Bezpieczna platforma do wystawiania polskich faktur VAT zgodnych z KSeF API 2.0 i schematem FA(3). Pobieranie danych z GUS, natychmiastowe UPO i audytowalność.",
+    "Platforma do wystawiania polskich faktur VAT w schemacie FA(3), pobierania danych z GUS i obsługi dokumentów KSeF.",
   robots: {
     index: true,
     follow: true,
@@ -102,7 +104,7 @@ export default async function LandingPage() {
             {/* Badge zgodności */}
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
               <ShieldCheck className="h-4 w-4" />
-              <span>Pełna zgodność z KSeF 2.0 i schematem FA(3) Ministerstwa Finansów</span>
+              <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
 
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.12]">
@@ -143,6 +145,7 @@ export default async function LandingPage() {
               </Link>
             </div>
 
+            <a href="#funkcje" className="mt-4 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline md:hidden">Zobacz funkcje ↓</a>
             <div className="mt-5 flex items-center justify-center gap-6 text-[12px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Brak wymogu karty
@@ -199,7 +202,7 @@ export default async function LandingPage() {
                 <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Nabywca (Kontrahent)</p>
                 <p className="mt-1 font-bold text-foreground text-sm">Przykładowy Kontrahent S.A.</p>
                 <p className="text-muted-foreground">NIP: 5270000024 · ul. Biznesowa 25, 00-950 Warszawa</p>
-                <p className="text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">Czynny podatnik VAT (GUS)</p>
+                <p className="text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
               </div>
             </div>
 
@@ -408,6 +411,7 @@ export default async function LandingPage() {
               <span>© {new Date().getFullYear()} FakturaProsto. Wszelkie prawa zastrzeżone.</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link href="/pomoc" className="hover:text-foreground transition-colors">Pomoc i kontakt</Link>
               <Link href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>
@@ -444,4 +448,3 @@ export default async function LandingPage() {
     </div>
   );
 }
-

@@ -269,7 +269,7 @@ export default function DemoPage() {
               Interaktywny symulator e-Faktur FA(3)
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-              Edytuj pozycje, zweryfikuj poprawność XML i zasymuluj wysyłkę do KSeF z odbiorem UPO.
+              Edytuj pozycje, sprawdź XML i zasymuluj wysyłkę do KSeF z przykładowym UPO.
             </p>
           </div>
 
@@ -584,11 +584,11 @@ export default function DemoPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-foreground">
-                    {ksefNumber ? "Faktura zarejestrowana w KSeF" : "Brak wysyłki"}
+                    {ksefNumber ? "Symulacja zakończona" : "Brak wysyłki"}
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     {ksefNumber
-                      ? "Dokument otrzymał urzędowy numer KSeF i wygenerowano poświadczenie odbioru (UPO)."
+                      ? "To tylko przykład: nie wysłano faktury do KSeF. Numer i UPO są fikcyjne i nie mają skutków prawnych."
                       : "Kliknij przycisk „Wyślij do KSeF”, aby przeprowadzić symulację."}
                   </p>
                 </div>
@@ -596,15 +596,16 @@ export default function DemoPage() {
 
               {ksefNumber ? (
                 <div className="space-y-4">
+                  <p role="status" className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-700 dark:text-sky-300">DEMO — przykładowa odpowiedź, bez rejestracji w KSeF.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border border-border/60 text-xs">
                     <div>
-                      <p className="text-muted-foreground">Nadany Numer KSeF:</p>
+                      <p className="text-muted-foreground">Przykładowy numer (DEMO):</p>
                       <p className="font-mono font-bold text-sm text-foreground mt-0.5">{ksefNumber}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Kod odpowiedzi KSeF:</p>
+                      <p className="text-muted-foreground">Przykładowy kod odpowiedzi:</p>
                       <p className="font-bold text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        200 — Dokument zarejestrowany poprawnie
+                        200 — symulacja przyjęcia dokumentu
                       </p>
                     </div>
                   </div>
@@ -612,7 +613,7 @@ export default function DemoPage() {
                   <div>
                     <h4 className="text-xs font-bold text-foreground mb-2 flex items-center gap-1.5">
                       <FileCode2 className="h-4 w-4 text-primary" />
-                      <span>Urzędowe Poświadczenie Odbioru (UPO XML):</span>
+                      <span>Przykładowe UPO XML (DEMO, nieurzędowe):</span>
                     </h4>
                     <pre className="p-4 rounded-xl bg-muted/40 font-mono text-xs overflow-x-auto text-foreground max-h-60 border border-border/60">
                       {upoXml}

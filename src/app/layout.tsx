@@ -13,12 +13,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fakturaprosto.pl"),
   title: {
     default: "FakturaProsto — Faktury VAT & KSeF 2.0",
     template: "%s · FakturaProsto",
   },
   description:
     "Fintech-grade platforma do wystawiania polskich faktur VAT, integracji z Krajowym Systemem e-Faktur (KSeF) i bazą GUS BIR.",
+  openGraph: {
+    type: "website",
+    locale: "pl_PL",
+    siteName: "FakturaProsto",
+    title: "FakturaProsto — Faktury VAT i KSeF",
+    description: "Faktury VAT, demonstracja działania i integracja z KSeF.",
+  },
+  twitter: { card: "summary" },
   icons: { icon: "/icon.svg" },
   manifest: "/manifest.webmanifest",
 };
@@ -58,4 +67,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
