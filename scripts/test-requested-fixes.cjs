@@ -34,7 +34,7 @@ function routeMocks(invoice, role = "owner") {
       delete: async () => { writes++; },
     },
     companyProfile: {findUnique: async () => ({id: "company", userId: "owner"})},
-    companyMember: {findUnique: async () => role ? ({id: "member",role}) : null},
+    companyMember: {findUnique: async () => role ? ({id: "member",role}) : null, findMany: async () => []},
     paymentRecord: {create: async () => { writes++; }, findMany: async () => []},
   };
   mocks = {
@@ -56,6 +56,15 @@ test("purchase preview remains available; update/delete/payment reject before wr
   assert.equal((await route.PUT(req(),ctx)).status,403);
   assert.equal((await route.DELETE(req(),ctx)).status,403);
   assert.equal((await payments.POST(req({amount:50}),ctx)).status,403);
+  assert.equal(writes(),0);
+});
+test("previously issued invoice cannot become a deletable draft", async () => {
+  const writes = routeMocks({id,userId:"user",sellerCompanyId:null,type:"sale",status:"draft",documentStatus:"draft",issuedAt:new Date("2026-09-10"),version:1});
+  mocks["@/lib/parsers"] = {parseInvoiceBody: async () => ({sellerCompanyId:null,type:"sale",status:"draft",isProforma:false})};
+  const route = load("src/app/api/invoices/[id]/route.ts");
+  const ctx = {params:{id}};
+  assert.equal((await route.PUT(req({status:"draft"}),ctx)).status,409);
+  assert.equal((await route.DELETE(req(),ctx)).status,400);
   assert.equal(writes(),0);
 });
 test("purchase approval and revocation work for accountants", async () => {

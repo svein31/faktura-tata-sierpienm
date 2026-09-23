@@ -173,6 +173,12 @@ export async function PUT(req: Request, { params }: Ctx) {
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
 
+    // Wystawienie jest nieodwracalne: cofnięcie do szkicu/proformy pozwoliłoby usunąć dokument i ominąć licznik.
+    if ((existing.issuedAt || (existing.type === "sale" && !existing.isProforma && existing.status !== "draft")) &&
+      (data.status === "draft" || data.isProforma || data.type !== "sale")) {
+      throw new ApiError(409, "Wystawionej faktury nie można przywrócić do szkicu ani proformy. Użyj korekty.");
+    }
+
     if (data.sellerCompanyId !== existing.sellerCompanyId) {
       throw new ApiError(400, "Nie można przenieść zapisanej faktury do innej firmy. Utwórz nowy dokument w wybranej firmie.");
     }
@@ -282,7 +288,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
     // Ochrona integralności księgowej: zabronione usuwanie wystawionych dokumentów
     const isDraft = existing.status === "draft" && existing.documentStatus === "draft";
-    if (!isDraft && !existing.isProforma) {
+    if (existing.issuedAt || (!isDraft && !existing.isProforma)) {
       throw new ApiError(
         400,
         `Faktura ${existing.number} została już wystawiona lub przekazana do obiegu gospodarczego. Zgodnie z przepisami ustawy o VAT nie można jej usunąć. Aby dokonać korekty lub anulowania, wystaw fakturę korygującą.`
