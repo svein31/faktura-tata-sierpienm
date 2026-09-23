@@ -1,4 +1,7 @@
 # ── DEPLOY: cyber_Folks (hosting współdzielony + panel Node.js) ──────────────
+# ARCHIWUM: ten przewodnik dotyczy starego wariantu SQLite. Bieżąca aplikacja używa MongoDB.
+# Nie wykonuj opisanych niżej kroków SQLite ani skryptów kopiujących plik bazy.
+# Aktualne wymagania i bramki przed uruchomieniem: docs/RELIABILITY.md i docs/RELEASE-CHECKLIST.md.
 #
 # Fakturo to aplikacja Next.js (Node.js) z trwałą bazą SQLite (Prisma).
 # Poniżej kompletna instrukcja wdrożenia na cyber_Folks.

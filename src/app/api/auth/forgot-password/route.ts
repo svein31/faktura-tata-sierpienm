@@ -95,10 +95,12 @@ export async function POST(req: Request) {
           `,
         });
       } else {
-        console.log(`[DEV/DEMO] Link resetu hasła dla ${user.email}: ${resetLink}`);
+        // Never write account recovery tokens to logs, including on a misconfigured host.
+        console.warn("[ForgotPassword] Brak dostawcy poczty; nie wysłano wiadomości resetującej.");
       }
     } catch (mailErr) {
-      console.error("[ForgotPassword] Błąd wysyłki e-mail:", mailErr);
+      // A transport exception can contain credentials or the full message body.
+      console.error("[ForgotPassword] Nie udało się wysłać wiadomości resetującej.", mailErr instanceof Error ? mailErr.name : "unknown");
     }
 
     return json(neutralResponse);

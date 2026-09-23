@@ -1,5 +1,7 @@
 # FakturaProsto — wieloużytkownikowe faktury VAT + KSeF (SaaS)
 
+> **Uwaga:** część poniższego README opisuje dawną wersję SQLite i lokalną symulację KSeF. Bieżący schemat używa MongoDB; aktualny zakres i ograniczenia opisują `docs/IMPLEMENTATION.md`, `docs/RELIABILITY.md` oraz `docs/RELEASE-CHECKLIST.md`. Nie stosuj poniższych instrukcji SQLite do obecnej instalacji.
+
 Premium SaaS do polskich faktur VAT i Krajowego Systemu e-Faktur (KSeF).
 Aplikacja full-stack (Next.js App Router + Prisma/SQLite) z prawdziwą
 wieloużytkownikową izolacją danych, kontami e-mail, sesjami HTTP oraz
@@ -317,4 +319,3 @@ Serwis posiada pełny, produkcyjny moduł prawny dopasowany do specyfiki SaaS fa
   - **Panel prywatności** w `Ustawienia → Twoje konto → Prywatność i zgody`.
   - **Eksport danych RODO (art. 20)**: Generowanie ustrukturyzowanego pliku JSON z kompletem danych profilowych, powiązań firmowych, historii zgód i podsumowania dokumentów (`GET /api/user/export-data`).
   - **Prawo do usunięcia konta (art. 17)**: Dostępne w zakładce „Bezpieczeństwo konta”.
-
