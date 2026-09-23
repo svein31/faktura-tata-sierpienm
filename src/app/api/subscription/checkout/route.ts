@@ -33,7 +33,6 @@ export async function POST(req: Request) {
 
     const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode: "subscription",
-      payment_method_types: ["card", "blik"],
       line_items: [
         {
           price: priceId,

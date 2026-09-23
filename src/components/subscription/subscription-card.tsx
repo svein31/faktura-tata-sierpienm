@@ -358,7 +358,7 @@ export function SubscriptionCard() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                    <span>Bezpieczna płatność Stripe · Karty płatnicze, Apple Pay, Google Pay, BLIK</span>
+                    <span>Bezpieczna płatność Stripe · Karty płatnicze, Apple Pay, Google Pay</span>
                   </div>
 
                   <Button
