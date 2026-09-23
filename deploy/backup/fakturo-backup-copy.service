@@ -1,0 +1,10 @@
+[Unit]
+Description=Copy encrypted Fakturo archives to independent off-host storage
+After=network-online.target fakturo-backup.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=fakturo-backup
+EnvironmentFile=/etc/fakturo/backup-copy.env
+ExecStart=/usr/bin/node /opt/fakturo/scripts/ops/copy-backups.mjs
