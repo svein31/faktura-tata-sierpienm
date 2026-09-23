@@ -46,7 +46,7 @@ export async function GET(req: Request) {
         invoice: { select: { number: true } },
       }, orderBy: { updatedAt: "desc" }, take: 20 }) : Promise.resolve([]),
     ]);
-    const data = raw[0], finance = data?.finance[0];
+    const data = raw[0];
     const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0 };
     const counts = { ...(data?.counts[0] || zero), reviews: 0, tasks: 0 };
     const actions: Action[] = [...(data?.actions || [])];
@@ -65,33 +65,33 @@ export async function GET(req: Request) {
       }
     }
     const byMonth = new Map<string, Money[]>();
-    for (const row of finance?.months || []) {
+    for (const row of data?.months || []) {
       const list = byMonth.get(row._id.month) || [];
       list.push(normalizeMoney(row, row._id.currency));
       byMonth.set(row._id.month, list);
     }
     const rateGroups = new Map<string, { rate: string; value: number }[]>();
-    for (const row of finance?.rates || []) {
+    for (const row of data?.rates || []) {
       const list = rateGroups.get(row._id.currency) || [];
       list.push({ rate: row._id.rate, value: round2(row.value) });
       rateGroups.set(row._id.currency, list);
     }
     const contractors = new Map<string, { id: string; count: number; gross: number }[]>();
-    for (const row of finance?.contractors || []) {
+    for (const row of data?.contractors || []) {
       const list = contractors.get(row._id.currency) || [];
       list.push({ id: row._id.contractorId, count: row.count, gross: round2(row.gross) });
       contractors.set(row._id.currency, list);
     }
     const totalActions = counts.rejected + counts.uncertain + counts.overdue + counts.drafts + counts.offline + counts.reviews + counts.tasks;
     const previousMonth = months.at(-2)!;
-    const totals = (finance?.totals || []).map(row => normalizeMoney(row, row._id)).sort((a, b) => a.currency.localeCompare(b.currency));
+    const totals = (data?.totals || []).map(row => normalizeMoney(row, row._id)).sort((a, b) => a.currency.localeCompare(b.currency));
     return json({
       checkedAt: new Date().toISOString(), counts, actions: actions.sort((a, b) => a.priority - b.priority || a.label.localeCompare(b.label)).slice(0, 8),
       actionTotal: totalActions, currencies: totals.map(row => row.currency), totals,
       currentMonth: byMonth.get(month) || [], previousMonth: byMonth.get(previousMonth) || [],
       months: months.map(key => ({ key, values: byMonth.get(key) || [] })),
       vatByRate: [...rateGroups].map(([currency, rates]) => ({ currency, rates })),
-      statusCounts: (finance?.status || []).map(row => ({ name: row._id, value: row.value })),
+      statusCounts: (data?.status || []).map(row => ({ name: row._id, value: row.value })),
       contractors: [...contractors].map(([currency, rows]) => ({ currency, rows })),
       recent: data?.recent || [],
       ksefQueue: queue.map(task => ({

@@ -31,6 +31,7 @@ const action = (condition: unknown, kind: string, label: unknown, detail: unknow
  * The database groups rows before crossing the API boundary; no client-visible invoice scan.
  */
 export function overviewPipeline(companyId: string, today: string, months: string[]): Prisma.InputJsonObject[] {
+  const financeMatch = { $match: { type: "sale", status: { $ne: "draft" }, isProforma: { $ne: true } } };
   const rejected = { $or: [{ $eq: ["$ksefStatus", "rejected"] }, { $eq: ["$status", "ksef_rejected"] }] };
   const uncertain = { $eq: ["$ksefStatus", "verify_needed"] };
   const offline = { $and: [{ $eq: ["$isOffline", true] }, { $eq: [{ $ifNull: ["$ksefNumber", ""] }, ""] }, { $ne: ["$ksefStatus", "accepted"] }] };
@@ -38,6 +39,7 @@ export function overviewPipeline(companyId: string, today: string, months: strin
   const overdue = { $and: [{ $eq: ["$type", "sale"] }, { $ne: ["$status", "draft"] }, { $ne: ["$status", "paid"] }, { $ne: ["$paymentStatus", "paid"] }, { $gt: ["$dueDate", ""] }, { $lt: ["$dueDate", today] }] };
   return [
     { $match: { sellerCompanyId: { $oid: companyId } } },
+    ...valued,
     { $facet: {
       counts: [{ $group: { _id: null, rejected: yes(rejected), uncertain: yes(uncertain), overdue: yes(overdue), drafts: yes(draft), offline: yes(offline) } }],
       actions: [
@@ -52,17 +54,11 @@ export function overviewPipeline(companyId: string, today: string, months: strin
         { $sort: { priority: 1, label: 1 } }, { $limit: 8 },
       ],
       recent: [{ $sort: { _id: -1 } }, { $limit: 5 }, { $project: { _id: 0, id: { $toString: "$_id" }, number: 1, currency: 1, gross: "$totalGross", issueDate: 1 } }],
-      finance: [
-        { $match: { type: "sale", status: { $ne: "draft" }, isProforma: { $ne: true } } },
-        ...valued,
-        { $facet: {
-          totals: [moneyGroup("$currency")],
-          months: [{ $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
-          rates: [{ $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
-          contractors: [{ $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { gross: -1, "_id.contractorId": 1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
-          status: [{ $group: { _id: { $cond: [rejected, "KSeF: odrzucona", { $cond: [{ $or: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$status", "paid"] }] }, "Opłacona", { $cond: [overdue, "Po terminie", "Wystawiona"] }] }] }, value: { $sum: 1 } } }],
-        } },
-      ],
+      totals: [financeMatch, moneyGroup("$currency")],
+      months: [financeMatch, { $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
+      rates: [financeMatch, { $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
+      contractors: [financeMatch, { $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { gross: -1, "_id.contractorId": 1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
+      status: [financeMatch, { $group: { _id: { $cond: [rejected, "KSeF: odrzucona", { $cond: [{ $or: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$status", "paid"] }] }, "Opłacona", { $cond: [overdue, "Po terminie", "Wystawiona"] }] }] }, value: { $sum: 1 } } }],
     } },
   ] as Prisma.InputJsonObject[];
 }
@@ -71,9 +67,9 @@ export type OverviewRaw = {
   counts: { rejected: number; uncertain: number; overdue: number; drafts: number; offline: number }[];
   actions: { id: string; kind: string; label: string; detail: string; href: string; priority: number }[];
   recent: { id: string; number: string; currency: string; gross: number | null; issueDate: string }[];
-  finance: { totals: { _id: string; net: number; vat: number; gross: number; count: number }[];
-    months: { _id: { month: string; currency: string }; net: number; vat: number; gross: number; count: number }[];
-    rates: { _id: { currency: string; rate: string }; value: number }[];
-    contractors: { _id: { currency: string; contractorId: string }; count: number; gross: number }[];
-    status: { _id: string; value: number }[] }[];
+  totals: { _id: string; net: number; vat: number; gross: number; count: number }[];
+  months: { _id: { month: string; currency: string }; net: number; vat: number; gross: number; count: number }[];
+  rates: { _id: { currency: string; rate: string }; value: number }[];
+  contractors: { _id: { currency: string; contractorId: string }; count: number; gross: number }[];
+  status: { _id: string; value: number }[];
 };
