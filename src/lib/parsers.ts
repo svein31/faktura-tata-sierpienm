@@ -187,6 +187,13 @@ export async function parseInvoiceBody(
 
   const status = cleanStr(body.status, 20, "status") as (typeof STATUSES)[number];
   if (!STATUSES.includes(status)) throw new ApiError(400, "Nieprawidłowy status faktury.");
+  if (body.isOffline) {
+    const reason = cleanStr(body.offlineReason, 30, "offlineReason");
+    if (!["offline24", "unavailability", "failure", "total_failure"].includes(reason)) throw new ApiError(400, "Wybierz poprawny tryb offline.");
+    const deadline = String(body.offlineDeadline || "").slice(0,10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || !Number.isFinite(Date.parse(deadline))) throw new ApiError(400, "Podaj termin przesłania dokumentu offline.");
+    if (status !== "draft") throw new ApiError(409, "Wystawienie offline wymaga podpisanego kodu II. Zapisz szkic do czasu podłączenia certyfikatu Offline.");
+  }
 
   const contractorId = cleanStr(body.contractorId, 100, "contractorId");
   if (!contractorId || !(await opts.contractorOwnedBy(contractorId))) {
@@ -300,7 +307,8 @@ export async function parseInvoiceBody(
     originalLines: Array.isArray(body.originalLines) ? (body.originalLines as unknown as Prisma.InputJsonValue) : undefined,
     // Offline
     isOffline: Boolean(body.isOffline),
-    offlineReason: cleanStr(body.offlineReason, 500, "offlineReason") || null,
+    offlineReason: body.isOffline ? cleanStr(body.offlineReason, 30, "offlineReason") : null,
+    offlineDeadline: body.isOffline && typeof body.offlineDeadline === "string" && /^\d{4}-\d{2}-\d{2}(T00:00:00.000Z)?$/.test(body.offlineDeadline) ? new Date(body.offlineDeadline) : null,
     // Cykliczne
     isRecurring: Boolean(body.isRecurring),
     recurringAnchorDay: body.isRecurring ? Number(String(body.recurringNextDate).slice(8, 10)) : null,

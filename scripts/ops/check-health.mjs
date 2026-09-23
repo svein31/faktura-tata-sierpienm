@@ -29,4 +29,15 @@ if (!problems.length) {
 }
 const event = { kind: "fakturo_health_check", ok: !problems.length, checkedAt: new Date().toISOString(), problems };
 console.log(JSON.stringify(event));
+if (problems.length && process.env.MONITOR_ALERT_WEBHOOK_URL) {
+  const url = process.env.MONITOR_ALERT_WEBHOOK_URL;
+  if (!/^https:\/\//.test(url)) {
+    console.error("Alert delivery URL must use HTTPS");
+  } else {
+    try {
+      const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(event), signal: AbortSignal.timeout(10000) });
+      if (!response.ok) console.error("Alert delivery failed");
+    } catch { console.error("Alert delivery unavailable"); }
+  }
+}
 if (problems.length) process.exitCode = 1;

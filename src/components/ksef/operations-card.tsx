@@ -30,6 +30,19 @@ export function KsefOperationsCard() {
   const [error, setError] = React.useState("");
   const [refresh, setRefresh] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
+  const [checking, setChecking] = React.useState<string | null>(null);
+
+  async function checkTask(invoiceId: string) {
+    setChecking(invoiceId);
+    try {
+      const response = await fetch(`/api/ksef/status/${encodeURIComponent(invoiceId)}`, { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Nie udało się sprawdzić statusu.");
+      toast("success", result.status === "ACCEPTED" ? "Potwierdzono w KSeF" : result.status === "REJECTED" ? "KSeF odrzucił fakturę" : "Status nadal niepewny; nie ponawiaj wysyłki.");
+      setRefresh(n => n + 1);
+    } catch (cause) { toast("error", "Sprawdzenie KSeF", cause instanceof Error ? cause.message : "Błąd odczytu."); }
+    finally { setChecking(null); }
+  }
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -90,7 +103,7 @@ export function KsefOperationsCard() {
         <div className="mt-3 grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <p className="font-medium">Zadania do sprawdzenia</p>
-            {urgent.slice(0, 5).map(task => <Link key={task.id} href={`/invoices/${task.invoiceId}`} className="block rounded-lg border p-2 hover:border-primary/50"><span className="font-medium">{task.number} · {task.stuck ? "Opóźnione" : taskLabel[task.status]}</span><span className="ml-1 text-muted-foreground">({task.attempts}/{task.maxAttempts})</span><p className="mt-1 text-muted-foreground">{task.nextStep}</p></Link>)}
+            {urgent.slice(0, 5).map(task => <div key={task.id} className="rounded-lg border p-2"><Link href={`/invoices/${task.invoiceId}`} className="font-medium text-primary hover:underline">{task.number} · {task.stuck ? "Opóźnione" : taskLabel[task.status]}</Link><span className="ml-1 text-muted-foreground">({task.attempts}/{task.maxAttempts})</span><p className="mt-1 text-muted-foreground">{task.nextStep}</p>{task.status === "verify_needed" && <button type="button" disabled={checking === task.invoiceId} onClick={() => void checkTask(task.invoiceId)} className="mt-1 text-primary underline disabled:opacity-50">{checking === task.invoiceId ? "Sprawdzanie…" : "Sprawdź status w MF"}</button>}</div>)}
             {!urgent.length && <p className="text-muted-foreground">Brak zadań wymagających uwagi w ostatnich 40 wpisach.</p>}
           </div>
           <div className="space-y-2">

@@ -482,12 +482,13 @@ export async function generateInvoicePdfBuffer(
   });
 
   try {
-    const qrUrl = invoice.qrCodeI || buildKsefVerificationUrl({
+    const qrUrl = invoice.qrCodeI || (invoice.ksefXml ? buildKsefVerificationUrl({
       sellerNip: sellerNip,
       issueDate: invoice.issueDate,
       environment: invoice.ksef?.environment || "test",
-      ksefNumber: invoice.ksefNumber || invoice.ksef?.number,
-    });
+      xmlContent: invoice.ksefXml,
+    }) : null);
+    if (!qrUrl) throw new Error("Brak XML faktury potrzebnego do kodu I.");
     const qrLabel = getKsefQrLabel(invoice.ksefNumber || invoice.ksef?.number, invoice.isOffline);
     const qrPng = await generateQrPngBuffer(qrUrl, 160);
     const qrImage = await pdfDoc.embedPng(qrPng);
@@ -520,8 +521,8 @@ export async function generateInvoicePdfBuffer(
       });
     }
   } catch (err) {
-    console.warn("[PDF] Nie udało się wygenerować kodu QR KSeF:", err);
-    page.drawText("KSeF QR", { x: qrBoxX + 15, y: y - 42, size: 8, font: fontRegular, color: grayColor });
+    console.warn("[PDF] Kod QR KSeF niedostępny:", err);
+    page.drawText(cleanText("Kod QR niedostępny"), { x: qrBoxX + 4, y: y - 42, size: 7, font: fontRegular, color: grayColor });
   }
 
   y -= 95;

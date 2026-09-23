@@ -16,7 +16,7 @@ import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const mode = ["/invoices", "/dashboard", "/analytics", "/settings/health"].includes(pathname) ? "list" : "full";
+  const mode = ["/invoices", "/dashboard", "/analytics", "/settings/health", "/ksef"].includes(pathname) ? "list" : "full";
   const dataMode = useAppStore(s => s.dataMode);
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);

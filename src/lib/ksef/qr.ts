@@ -52,7 +52,7 @@ export function formatKsefDate(dateStr: string): string {
  * Oblicza skrót SHA-256 w formacie Base64URL dla treści XML faktury
  */
 export function calculateXmlDigestBase64Url(xmlContent: string): string {
-  const hash = crypto.createHash("sha256").update(Buffer.from(xmlContent.trim(), "utf8")).digest();
+  const hash = crypto.createHash("sha256").update(Buffer.from(xmlContent, "utf8")).digest();
   return toBase64Url(hash);
 }
 
@@ -64,7 +64,8 @@ export function buildKsefVerificationUrl(params: KsefQrParams): string {
   const nipClean = sellerNip.replace(/[^0-9]/g, "");
   const formattedDate = formatKsefDate(issueDate);
 
-  const digest = xmlHashBase64Url || (xmlContent ? calculateXmlDigestBase64Url(xmlContent) : toBase64Url(crypto.randomBytes(32)));
+  if (!xmlHashBase64Url && !xmlContent) throw new Error("Kod I wymaga dokładnej treści XML lub jej skrótu SHA-256.");
+  const digest = xmlHashBase64Url || calculateXmlDigestBase64Url(xmlContent!);
 
   const domain = environment === "production"
     ? "qr.ksef.mf.gov.pl"
@@ -78,18 +79,10 @@ export function buildKsefVerificationUrl(params: KsefQrParams): string {
 /**
  * Buduje oficjalny adres URL KOD II dla trybu awaryjnego / offline
  */
-export function buildKsefOfflineCertUrl(params: KsefQrParams): string {
-  const { sellerNip, xmlContent, xmlHashBase64Url, environment = "test" } = params;
-  const nipClean = sellerNip.replace(/[^0-9]/g, "");
-  const digest = xmlHashBase64Url || (xmlContent ? calculateXmlDigestBase64Url(xmlContent) : toBase64Url(crypto.randomBytes(32)));
-
-  const domain = environment === "production"
-    ? "qr.ksef.mf.gov.pl"
-    : environment === "demo"
-      ? "qr-demo.ksef.mf.gov.pl"
-      : "qr-test.ksef.mf.gov.pl";
-
-  return `https://${domain}/certificate/${nipClean}/${digest}`;
+export function buildKsefOfflineCertUrl(_params: KsefQrParams): string {
+  // KOD II requires a KSeF Offline certificate and a cryptographic signature.
+  // Never present an unsigned URL as a valid certificate.
+  throw new Error("Kod II wymaga podpisu certyfikatem KSeF typu Offline.");
 }
 
 /**

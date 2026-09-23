@@ -1,187 +1,63 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
-import { KsefClient, type KsefEnvironment, generateDemoUpoXml } from "@/lib/ksef/index";
-import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
+import { requireCompanyAccess } from "@/lib/permissions";
+import { KsefClient, type KsefEnvironment } from "@/lib/ksef/index";
+import { recordAuditLog } from "@/lib/audit";
+import { accessibleCompanyIds } from "@/lib/company-scope";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-interface RouteParams {
-  params: Promise<{
-    refNumber: string;
-  }>;
-}
-
-/**
- * GET /api/ksef/status/[refNumber]
- *
- * Sprawdzenie statusu przetwarzania dokumentu w KSeF 2.0 i pobranie UPO.
- */
-export async function GET(req: Request, { params }: RouteParams) {
+export async function GET(_req: Request, { params }: { params: Promise<{ refNumber: string }> }) {
   try {
     const user = await getSessionUser();
-    const refNumber = decodeURIComponent((await params).refNumber || "").trim();
-
-    if (!refNumber) {
-      throw new ApiError(400, "Brak numeru referencyjnego faktury (refNumber).");
-    }
-
-    // Znajdź fakturę w bazie
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(refNumber);
-    const orClauses: Array<{ referenceNumber?: string; ksefNumber?: string; id?: string }> = [
-      { referenceNumber: refNumber },
-      { ksefNumber: refNumber },
-    ];
-    if (isObjectId) {
-      orClauses.push({ id: refNumber });
-    }
-
+    if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const ref = (await params).refNumber.trim();
+    if (!ref || ref.length > 150) throw new ApiError(400, "Nieprawidłowy numer referencyjny.");
+    const companies = await accessibleCompanyIds(user.id);
     const invoice = await prisma.invoice.findFirst({
-      where: {
-        OR: orClauses,
-        ...(user ? { userId: user.id } : {}),
-      },
-      include: { ksefSession: true },
+      where: { AND: [
+        { OR: [{ referenceNumber: ref }, { ksefNumber: ref }, ...(/^[a-f\d]{24}$/i.test(ref) ? [{ id: ref }] : [])] },
+        { OR: [{ sellerCompanyId: { in: companies } }, { userId: user.id, sellerCompanyId: null }] },
+      ] },
+      include: { sellerCompany: true, ksefSession: true },
     });
+    if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
+    if (invoice.sellerCompanyId) {
+      const access = await requireCompanyAccess(user.id, invoice.sellerCompanyId, "canSendKsef");
+      if (!access.ok) throw new ApiError(access.status, access.error);
+    } else if (invoice.userId !== user.id) throw new ApiError(404, "Nie znaleziono faktury.");
 
-    const ksefJson = (invoice?.ksef as any) || {};
-    const env: KsefEnvironment = (ksefJson.environment || "test") as KsefEnvironment;
-
-    // Obsługa trybu DEMO
-    if (env === "demo") {
-      const demoKsefNum = invoice?.ksefNumber || `5260301706-20260909-${Date.now().toString(16).slice(-12).toUpperCase()}-11`;
-      const upo = invoice?.upoXml || generateDemoUpoXml(refNumber, demoKsefNum);
-
-      if (invoice && (!invoice.upoXml || invoice.status !== "ksef_active")) {
-        await prisma.invoice.update({
-          where: { id: invoice.id },
-          data: {
-            status: "ksef_active",
-            ksefNumber: demoKsefNum,
-            upoXml: upo,
-            ksef: {
-              ...ksefJson,
-              number: demoKsefNum,
-              status: "ACTIVE",
-            },
-          },
-        });
-      }
-
-      return json({
-        success: true,
-        referenceNumber: refNumber,
-        ksefReferenceNumber: demoKsefNum,
-        processingCode: 200,
-        processingDescription: "Dokument zarejestrowany poprawnie w KSeF (demo)",
-        acquisitionTimestamp: ksefJson.sentAt || new Date().toISOString(),
-        status: "ACCEPTED",
-        upoXml: upo,
-        hasUpo: true,
-      });
+    const meta = (invoice.ksef && typeof invoice.ksef === "object" && !Array.isArray(invoice.ksef) ? invoice.ksef : {}) as Record<string, unknown>;
+    const env = meta.environment as KsefEnvironment;
+    if (env !== "production" && env !== "test") {
+      return json({ success: true, status: invoice.ksefStatus === "accepted" ? "ACCEPTED" : "PENDING", ksefReferenceNumber: invoice.ksefNumber, hasUpo: Boolean(invoice.upoXml), message: "Tryb demonstracyjny: brak odczytu z MF." });
     }
-
-    // Środowisko produkcyjne / testowe KSeF 2.0
-    const client = new KsefClient({ environment: env });
-
-    // Pobierz aktywny accessToken dla sesji
-    let accessToken = invoice?.ksefSession?.accessToken;
-    if (!accessToken) {
-      const session = await prisma.ksefSession.findFirst({
-        where: {
-          environment: env,
-          status: "ACTIVE",
-          validUntil: { gt: new Date() },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-      accessToken = session?.accessToken || "";
-    }
-
-    const sessionRef = ksefJson.sessionReferenceNumber || invoice?.ksefSession?.referenceNumber || "";
-    const invoiceElementRef = invoice?.referenceNumber || refNumber;
-
-    if (!accessToken || !sessionRef) {
-      // Jeśli nie ma sesji, zwróć bieżący stan z bazy
-      return json({
-        success: true,
-        referenceNumber: refNumber,
-        ksefReferenceNumber: invoice?.ksefNumber,
-        processingCode: ksefJson.processingCode || 100,
-        processingDescription: ksefJson.processingDescription || "Oczekuje na przetworzenie w KSeF",
-        acquisitionTimestamp: ksefJson.sentAt || invoice?.sentAt?.toISOString(),
-        status: invoice?.status === "ksef_active" ? "ACCEPTED" : "PENDING",
-        upoXml: invoice?.upoXml,
-        hasUpo: Boolean(invoice?.upoXml),
-      });
-    }
-
-    // Odpytaj KSeF 2.0 o status
-    const statusResult = await client.getInvoiceStatus(accessToken, sessionRef, invoiceElementRef);
-
-    if (invoice) {
-      const isAccepted = statusResult.status === "ACCEPTED" && Boolean(statusResult.ksefReferenceNumber);
-      const isRejected = statusResult.status === "REJECTED";
-      const newStatus = isAccepted ? "ksef_active" : isRejected ? "ksef_rejected" : invoice.status;
-      const ksefRef = isAccepted ? statusResult.ksefReferenceNumber : (isRejected ? null : invoice.ksefNumber);
-
-      const ksefStatus = isAccepted ? "accepted" : isRejected ? "rejected" : "sending";
-      const documentStatus = isAccepted ? "accepted" : isRejected ? "rejected" : (invoice.documentStatus || "ready");
-
-      await prisma.invoice.update({
-        where: { id: invoice.id },
-        data: {
-          status: newStatus,
-          documentStatus,
-          ksefStatus,
-          ksefNumber: ksefRef,
-          upoXml: statusResult.upoXml || invoice.upoXml,
-          ksef: {
-            ...ksefJson,
-            number: ksefRef,
-            status: isAccepted ? "ACTIVE" : isRejected ? "REJECTED" : "QUEUED",
-            processingCode: statusResult.processingCode,
-            processingDescription: statusResult.processingDescription,
-            acquisitionTimestamp: statusResult.acquisitionTimestamp || new Date().toISOString(),
-          },
-        },
-      });
-
-      if (invoice.userId && (isAccepted || isRejected)) {
-        await prisma.notification.create({
-          data: {
-            userId: invoice.userId,
-            kind: "ksef_status",
-            title: isAccepted
-              ? `Faktura ${invoice.number} zarejestrowana w KSeF`
-              : `Błąd przetwarzania faktury ${invoice.number} w KSeF`,
-            body: isAccepted
-              ? `Numer KSeF: ${ksefRef}`
-              : `Powód: ${statusResult.processingDescription}`,
-            link: `/invoices/${invoice.id}`,
-            read: false,
-          },
-        });
-
-        if (isAccepted) {
-          void triggerAutoEmailOnKsef(invoice.id);
+    const sessionRef = typeof meta.sessionReferenceNumber === "string" ? meta.sessionReferenceNumber : invoice.ksefSession?.referenceNumber;
+    const nip = (invoice.sellerCompany?.nip || invoice.nip || "").replace(/\D/g, "");
+    if (!invoice.referenceNumber || !sessionRef || !nip) throw new ApiError(409, "Brak danych poprzedniej wysyłki. Sprawdź dokument w KSeF ręcznie.");
+    const session = await prisma.ksefSession.findFirst({ where: {
+      userId: invoice.userId, nip, environment: env, status: "ACTIVE", validUntil: { gt: new Date() },
+    }, orderBy: { createdAt: "desc" } });
+    if (!session?.accessToken) throw new ApiError(409, "Brak aktywnej sesji KSeF dla tej firmy. Odnów uwierzytelnienie i sprawdź ponownie.");
+    const result = await new KsefClient({ environment: env }).getInvoiceStatus(session.accessToken, sessionRef, invoice.referenceNumber);
+    const accepted = result.status === "ACCEPTED" && Boolean(result.ksefReferenceNumber);
+    const rejected = result.status === "REJECTED";
+    if (accepted || rejected) {
+      await prisma.$transaction(async tx => {
+        const updated = await tx.invoice.updateMany({ where: { id: invoice.id, referenceNumber: invoice.referenceNumber, ksefNumber: null, ksefStatus: { in: ["verify_needed", "sending", "queued"] } }, data: {
+          status: accepted ? "ksef_active" : "ksef_rejected",
+          documentStatus: accepted ? "accepted" : "rejected", ksefStatus: accepted ? "accepted" : "rejected",
+          ...(accepted ? { ksefNumber: result.ksefReferenceNumber, upoXml: result.upoXml || invoice.upoXml } : {}),
+          ksef: { ...meta, number: accepted ? result.ksefReferenceNumber : null, status: accepted ? "ACTIVE" : "REJECTED", processingCode: result.processingCode, processingDescription: result.processingDescription },
+        } });
+        if (updated.count) {
+          await tx.ksefQueueTask.updateMany({ where: { invoiceId: invoice.id, status: "verify_needed" }, data: { status: accepted ? "completed" : "failed", lockedUntil: null, errorDetails: rejected ? result.processingDescription : null } });
+          await recordAuditLog({ client: tx, companyId: invoice.sellerCompanyId, userId: user.id, userName: user.name, userEmail: user.email, action: "ksef.status_reconciled", entityType: "invoice", entityId: invoice.id, details: { result: result.status, referenceNumber: invoice.referenceNumber } });
         }
-      }
+      });
     }
-
-    return json({
-      success: true,
-      referenceNumber: refNumber,
-      ksefReferenceNumber: statusResult.ksefReferenceNumber || invoice?.ksefNumber,
-      processingCode: statusResult.processingCode,
-      processingDescription: statusResult.processingDescription,
-      acquisitionTimestamp: statusResult.acquisitionTimestamp,
-      status: statusResult.status,
-      upoXml: statusResult.upoXml || invoice?.upoXml,
-      hasUpo: Boolean(statusResult.upoXml || invoice?.upoXml),
-    });
-  } catch (e) {
-    return handleApiError(e);
-  }
+    return json({ success: true, status: result.status, processingCode: result.processingCode, processingDescription: result.processingDescription, ksefReferenceNumber: result.ksefReferenceNumber || invoice.ksefNumber, hasUpo: Boolean(result.upoXml || invoice.upoXml), upoXml: result.upoXml || invoice.upoXml });
+  } catch (error) { return handleApiError(error); }
 }

@@ -168,7 +168,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         await useAppStore.getState().revalidate();
         toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription}`);
       } else {
-        toast("error", "Nie udało się pobrać statusu", data.message);
+        toast("error", "Nie udało się pobrać statusu", data.error || data.message);
       }
     } catch {
       toast("error", "Błąd sieci", "Nie udało się sprawdzić statusu w KSeF.");

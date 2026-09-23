@@ -92,6 +92,9 @@ interface FormState {
   currency: Currency;
   language: InvoiceLanguage;
   notes: string;
+  isOffline?: boolean;
+  offlineReason?: string;
+  offlineDeadline?: string;
   lines: ReturnType<typeof newLine>[];
   // Faktura korygująca
   isCorrection?: boolean;
@@ -124,6 +127,9 @@ function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState
     currency: inv.currency,
     language: inv.language,
     notes: inv.notes ?? "",
+    isOffline: inv.isOffline ?? false,
+    offlineReason: inv.offlineReason ?? "",
+    offlineDeadline: inv.offlineDeadline?.slice(0,10) ?? "",
     lines: inv.lines.map((l) => ({ ...l })),
     isCorrection: inv.isCorrection ?? false,
     correctionReason: inv.correctionReason ?? "",
@@ -156,6 +162,9 @@ function freshForm(defaultCompanyId: string = ""): FormState {
     currency: "PLN",
     language: "PL",
     notes: "",
+    isOffline: false,
+    offlineReason: "",
+    offlineDeadline: "",
     lines: [newLine()],
     isCorrection: false,
     correctionReason: "",
@@ -432,6 +441,7 @@ export function InvoiceCreator() {
   const validate = (): string[] => {
     const errs: string[] = [];
     if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
+    if (form.isOffline && (!form.offlineReason || !form.offlineDeadline)) errs.push("Tryb offline wymaga wskazania przyczyny i terminu przesłania.");
     if (form.isCorrection && !form.correctionReason?.trim()) {
       errs.push("Faktura korygująca wymaga podania przyczyny korekty.");
     }
@@ -525,6 +535,9 @@ export function InvoiceCreator() {
       paymentMethod: form.paymentMethod,
       paymentTermDays: form.paymentTermDays,
       notes: form.notes.trim() || undefined,
+      isOffline: Boolean(form.isOffline),
+      offlineReason: form.isOffline ? form.offlineReason : undefined,
+      offlineDeadline: form.isOffline && form.offlineDeadline ? new Date(form.offlineDeadline).toISOString() : undefined,
       lines: form.lines
         .filter((l) => l.name.trim() && l.quantity > 0)
         .map((l) => ({ ...l, netPrice: round2(Number(l.netPrice) || 0), quantity: round2(Number(l.quantity) || 0) })),
@@ -1220,6 +1233,7 @@ export function InvoiceCreator() {
               </div>
             </div>
 
+            {form.type === "sale" && !form.isProforma && <details className="rounded-xl border p-3 text-xs"><summary className="cursor-pointer font-medium">Wystawienie offline</summary><div className="mt-3 space-y-2"><label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(form.isOffline)} onChange={e=>set({isOffline:e.target.checked})} /> Oznacz jako dokument offline</label>{form.isOffline&&<><div className="grid gap-2 sm:grid-cols-2"><label>Powód<Select value={form.offlineReason||""} onChange={e=>set({offlineReason:e.target.value})}><option value="">Wybierz powód</option><option value="offline24">Offline24</option><option value="unavailability">Niedostępność KSeF</option><option value="failure">Awaria KSeF</option><option value="total_failure">Awaria całkowita</option></Select></label><label>Termin przesłania ustalony przez operatora<Input type="date" value={form.offlineDeadline||""} onChange={e=>set({offlineDeadline:e.target.value})} /></label></div><p className="text-muted-foreground">Sprawdź termin w komunikatach MF. Wystawienie i udostępnienie dokumentu offline wymaga prawidłowych kodów I i II z certyfikatem typu Offline; samo oznaczenie nie tworzy tych kodów.</p></>}</div></details>}
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label>Metoda płatności</Label>
@@ -1558,4 +1572,3 @@ export function InvoiceCreator() {
     </div>
   );
 }
-

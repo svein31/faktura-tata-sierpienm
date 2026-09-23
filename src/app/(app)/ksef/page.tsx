@@ -1,5 +1,4 @@
 "use client";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
 import { KsefOperationsCard } from "@/components/ksef/operations-card";
 
 import * as React from "react";
@@ -115,7 +114,34 @@ function KsefPageInner() {
   const searchParams = useSearchParams();
   const store = useAppStore();
   const { ksef, updateKsef, company, updateCompany, contractors } = store;
-  const invoices = useCompanyInvoices();
+  const companyId = useAppStore(s => s.selectedCompanyId);
+  const [invoices, setInvoices] = React.useState<Invoice[]>([]);
+  const [nextCursor, setNextCursor] = React.useState<string | null>(null);
+  const [listError, setListError] = React.useState("");
+  const [listLoading, setListLoading] = React.useState(false);
+  const loadInvoices = React.useCallback(async (cursor?: string, signal?: AbortSignal) => {
+    if (!companyId) return;
+    setListLoading(true);
+    try {
+      const query = new URLSearchParams({ companyId });
+      if (cursor) query.set("cursor", cursor);
+      const response = await fetch(`/api/invoices/search?${query}`, { signal, cache: "no-store" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Nie udało się wczytać faktur.");
+      if (signal?.aborted) return;
+      setInvoices(current => cursor ? [...current, ...body.invoices] : body.invoices);
+      setNextCursor(body.nextCursor);
+      setListError("");
+    } catch (error) {
+      if (!signal?.aborted) setListError(error instanceof Error ? error.message : "Błąd wczytywania.");
+    } finally { if (!signal?.aborted) setListLoading(false); }
+  }, [companyId]);
+  React.useEffect(() => {
+    const controller = new AbortController();
+    setInvoices([]); setNextCursor(null); setListError("");
+    void loadInvoices(undefined, controller.signal);
+    return () => controller.abort();
+  }, [loadInvoices]);
   const companySafe = company ?? EMPTY_COMPANY;
   const ksefSafe = ksef ?? {
     environment: "demo" as KsefEnv,
@@ -291,6 +317,7 @@ function KsefPageInner() {
       if (res.ok && data.success && data.ksefNumber) {
         if (data.invoice) {
           store.applyInvoice(data.invoice);
+          setInvoices(current => current.map(item => item.id === data.invoice.id ? data.invoice : item));
         } else if (selectedInvoiceId) {
           store.setInvoiceKsef(selectedInvoiceId, {
             number: data.ksefNumber,
@@ -325,6 +352,7 @@ function KsefPageInner() {
         return;
       }
       await store.revalidate();
+      await loadInvoices();
       toast("success", "Pobrano faktury zakupowe z KSeF", `Zaimportowano: ${data.importedCount ?? 0} dokumentów.`);
     } catch {
       toast("error", "Błąd sieci", "Nie udało się połączyć z usługą synchronizacji.");
@@ -348,6 +376,7 @@ function KsefPageInner() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd zapisu harmonogramu");
       await store.revalidate();
+      await loadInvoices();
       toast("success", "Zapisano harmonogram pobierania z KSeF", `Interwał: co ${autoSyncIntervalHours}h`);
     } catch (e: any) {
       toast("error", "Błąd zapisu harmonogramu", e?.message);
@@ -370,6 +399,7 @@ function KsefPageInner() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd aktualizacji statusu");
       await store.revalidate();
+      await loadInvoices();
       toast(
         targetStatus === "approved" ? "success" : "info",
         targetStatus === "approved" ? "Zatwierdzono fakturę dla księgowości" : "Cofnięto zatwierdzenie"
@@ -498,6 +528,11 @@ function KsefPageInner() {
       </div>
 
       <KsefOperationsCard />
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <span>Faktury na ekranie: {invoices.length}{nextCursor ? "+" : ""}</span>
+        {nextCursor && <button type="button" disabled={listLoading} onClick={() => void loadInvoices(nextCursor)} className="font-medium text-primary disabled:opacity-50">{listLoading ? "Wczytywanie…" : "Pokaż kolejne 30"}</button>}
+        {listError && <button type="button" onClick={() => void loadInvoices()} className="text-destructive underline">{listError} · Ponów</button>}
+      </div>
 
       {/* ── Modern Tabs Navigation ── */}
       <Tabs
@@ -987,7 +1022,7 @@ function KsefPageInner() {
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
                     <FileText className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground">Brak wysłanych dokumentów do KSeF</p>
+                  <p className="text-sm font-semibold text-foreground">{nextCursor ? "Brak wysłanych dokumentów na wczytanej stronie" : "Brak wysłanych dokumentów do KSeF"}</p>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                     Przejdź do zakładki „Inspektor FA(3) i Wysyłka” lub wyślij fakturę bezpośrednio z listy faktur.
                   </p>
@@ -1200,7 +1235,7 @@ function KsefPageInner() {
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
                     <CloudDownload className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground">Brak pobranych faktur zakupowych</p>
+                  <p className="text-sm font-semibold text-foreground">{nextCursor ? "Brak zakupów na wczytanej stronie" : "Brak pobranych faktur zakupowych"}</p>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                     Kliknij przycisk „Pobierz Faktury Zakupowe”, aby zaimportować dokumenty wystawione na Twój NIP przez kontrahentów.
                   </p>
