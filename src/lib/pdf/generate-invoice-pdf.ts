@@ -502,7 +502,7 @@ export async function generateInvoicePdfBuffer(
       height: qrSize,
     });
 
-    const isAcceptedKsef = Boolean((invoice.ksefNumber || invoice.ksef?.number) && !invoice.isOffline);
+    const isAcceptedKsef = Boolean(invoice.ksefNumber || invoice.ksef?.number);
     page.drawText(cleanText(qrLabel), {
       x: qrBoxX + 4,
       y: y - 66,
@@ -526,6 +526,15 @@ export async function generateInvoicePdfBuffer(
   }
 
   y -= 95;
+  if (invoice.isOffline && !invoice.ksefNumber) {
+    if (!invoice.qrCodeII || !invoice.qrCodeI) throw new Error("Faktura offline wymaga podpisanych kodów I i II.");
+    ensureSpace(78);
+    const certImage = await pdfDoc.embedPng(await generateQrPngBuffer(invoice.qrCodeII, 180));
+    page.drawImage(certImage, { x: 45, y: y - 61, width: 55, height: 55 });
+    page.drawText("CERTYFIKAT", { x: 45, y: y - 70, size: 7, font: fontBold, color: darkColor });
+    page.drawText(cleanText("Potwierdzenie wystawcy dokumentu offline"), { x: 110, y: y - 34, size: 8, font: fontRegular, color: grayColor });
+    y -= 80;
+  }
 
   // ── Przeliczenie NBP dla walut obcych (art. 31a ustawy o VAT) ──
   if (invoice.currency && invoice.currency !== "PLN" && invoice.exchangeRate) {

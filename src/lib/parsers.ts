@@ -4,7 +4,7 @@
  * wyłącznie handlery HTTP.
  */
 
-import { ApiError, cleanStr, num } from "./api";
+import { ApiError, FieldError, cleanStr, num } from "./api";
 import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
 import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
@@ -189,9 +189,9 @@ export async function parseInvoiceBody(
   if (!STATUSES.includes(status)) throw new ApiError(400, "Nieprawidłowy status faktury.");
   if (body.isOffline) {
     const reason = cleanStr(body.offlineReason, 30, "offlineReason");
-    if (!["offline24", "unavailability", "failure", "total_failure"].includes(reason)) throw new ApiError(400, "Wybierz poprawny tryb offline.");
+    if (!["offline24", "unavailability", "failure", "total_failure"].includes(reason)) throw new FieldError("offlineReason", "Wybierz poprawny tryb offline.");
     const deadline = String(body.offlineDeadline || "").slice(0,10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || !Number.isFinite(Date.parse(deadline))) throw new ApiError(400, "Podaj termin przesłania dokumentu offline.");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || !isIsoCalendarDate(deadline)) throw new FieldError("offlineDeadline", "Podaj poprawny termin przesłania dokumentu offline.");
     if (status !== "draft") throw new ApiError(409, "Wystawienie offline wymaga podpisanego kodu II. Zapisz szkic do czasu podłączenia certyfikatu Offline.");
   }
 
@@ -210,7 +210,7 @@ export async function parseInvoiceBody(
   }
 
   const number = cleanStr(body.number, 50, "number");
-  if (!number) throw new ApiError(400, "Podaj numer faktury.");
+  if (!number) throw new FieldError("number", "Podaj numer faktury.");
 
   // Waluta: PLN, EUR, USD, GBP lub dowolny kod trzyliterowy
   const currencyRaw = cleanStr(body.currency, 10, "currency").toUpperCase() || "PLN";
@@ -228,7 +228,7 @@ export async function parseInvoiceBody(
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
   for (const f of ["issueDate", "saleDate", "dueDate"] as const) {
     const v = cleanStr(body[f], 10, f);
-    if (!dateRe.test(v) || !isIsoCalendarDate(v)) throw new ApiError(400, `Nieprawidłowa data: ${f}.`);
+    if (!dateRe.test(v) || !isIsoCalendarDate(v)) throw new FieldError(f, `Nieprawidłowa data: ${f}.`);
   }
 
   if (body.isRecurring) {

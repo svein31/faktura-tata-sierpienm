@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { contractorHistory } from "@/lib/crm";
-import { formatMoney, invoiceTotals } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Pencil, Plus, Search, Trash2, UserPlus, Users, ShieldCheck } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -52,14 +51,29 @@ const emptyDraft: ContractorDraft = {
 
 export default function ContractorsPage() {
   const toast = useToast();
-  const { contractors: allContractors, invoices, selectedCompanyId, addContractor, updateContractor, deleteContractor } = useAppStore();
+  const { contractors: allContractors, selectedCompanyId, addContractor, updateContractor, deleteContractor } = useAppStore();
 
   const contractors = allContractors.filter(item => !item.companyId || item.companyId === selectedCompanyId);
 
   const [historyId, setHistoryId] = React.useState<string | null>(null);
   const [historyPage, setHistoryPage] = React.useState(0);
+  const [historyCursors, setHistoryCursors] = React.useState<(string | null)[]>([null]);
+  type History = { invoices: {id:string;number:string;issueDate:string;type:string;status:string;documentStatus:string|null;isProforma:boolean|null;currency:string;totalGross:number|null}[]; nextCursor:string|null; total:number; balances:{currency:string;receivable:number;payable:number}[] };
+  const [history, setHistory] = React.useState<History | null>(null);
+  const [historyError, setHistoryError] = React.useState("");
   React.useEffect(() => { setHistoryId(null); setHistoryPage(0); }, [selectedCompanyId]);
-  const crm = contractorHistory(invoices, historyId || "", selectedCompanyId || null);
+  React.useEffect(() => {
+    if (!historyId) return;
+    const controller = new AbortController();
+    setHistory(null); setHistoryError("");
+    const query = new URLSearchParams({companyId:selectedCompanyId || "unassigned"});
+    if (historyCursors[historyPage]) query.set("cursor", historyCursors[historyPage]!);
+    fetch(`/api/contractors/${historyId}/history?${query}`, {signal:controller.signal,cache:"no-store"})
+      .then(async response => {const body=await response.json(); if (!response.ok) throw new Error(body.error || "Nie udało się pobrać historii."); return body as History;})
+      .then(body => {if (!controller.signal.aborted) setHistory(body);})
+      .catch(error => {if (!controller.signal.aborted) setHistoryError(error instanceof Error ? error.message : "Błąd połączenia.");});
+    return () => controller.abort();
+  }, [historyId,selectedCompanyId,historyPage,historyCursors]);
   const [search, setSearch] = React.useState("");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
@@ -207,10 +221,10 @@ export default function ContractorsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => { setHistoryId(c.id); setHistoryPage(0); }}
+                        onClick={() => { setHistoryCursors([null]); setHistoryPage(0); setHistoryId(c.id); }}
                         className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
                       >
-                        Saldo ({invoices.filter(i => i.contractorId === c.id && (i.sellerCompanyId || null) === (selectedCompanyId || null)).length})
+                        Saldo
                       </Button>
                       <Button
                         variant="subtle"
@@ -415,13 +429,15 @@ export default function ContractorsPage() {
 
       <Dialog open={!!historyId} onClose={() => setHistoryId(null)} title="Historia i saldo kontrahenta" size="lg">
         <p className="mb-3 text-sm">{contractors.find(c => c.id === historyId)?.name} — wybrana firma</p>
-        {crm.balances.map(b => <p key={b.currency}>Należności: {formatMoney(b.receivable, b.currency)} · Zobowiązania: {formatMoney(b.payable, b.currency)} · Saldo: {formatMoney(b.receivable - b.payable, b.currency)}</p>)}
+        {!history && !historyError && <p role="status" className="text-sm">Wczytywanie historii…</p>}
+        {historyError && <p role="alert" className="text-sm text-destructive">{historyError}</p>}
+        {history?.balances.map(b => <p key={b.currency}>Należności: {formatMoney(b.receivable, b.currency)} · Zobowiązania: {formatMoney(b.payable, b.currency)} · Saldo: {formatMoney(b.receivable - b.payable, b.currency)}</p>)}
         <p className="my-2 text-xs text-muted-foreground">Saldo według zapisanych rozliczeń. Szkice, anulowane dokumenty i proformy pominięte. Kwoty ujemne oznaczają nadpłatę lub korektę.</p>
         <div className="max-h-80 overflow-auto"><table className="w-full text-sm"><thead><tr><th>Numer</th><th>Data</th><th>Typ / status</th><th>Brutto</th></tr></thead><tbody>
-          {crm.history.slice(historyPage * 20, (historyPage + 1) * 20).map(i => <tr key={i.id}><td><Link className="underline" href={`/invoices/${i.id}`}>{i.number}</Link></td><td>{i.issueDate}</td><td>{i.isProforma ? "Proforma" : i.type === "sale" ? "Sprzedaż" : "Zakup"} / {i.documentStatus || i.status}</td><td>{formatMoney(invoiceTotals(i).gross, i.currency)}</td></tr>)}
+          {history?.invoices.map(i => <tr key={i.id}><td><Link className="underline" href={`/invoices/${i.id}`}>{i.number}</Link></td><td>{i.issueDate}</td><td>{i.isProforma ? "Proforma" : i.type === "sale" ? "Sprzedaż" : "Zakup"} / {i.documentStatus || i.status}</td><td>{formatMoney(i.totalGross || 0, i.currency)}</td></tr>)}
         </tbody></table></div>
-        {!crm.history.length && <p>Brak faktur w tej firmie.</p>}
-        <div className="mt-3 flex gap-2"><Button disabled={!historyPage} onClick={() => setHistoryPage(p => p - 1)}>Poprzednie</Button><Button disabled={(historyPage + 1) * 20 >= crm.history.length} onClick={() => setHistoryPage(p => p + 1)}>Następne</Button></div>
+        {history && !history.total && <p>Brak faktur w tej firmie.</p>}
+        {history && <div className="mt-3 flex items-center gap-2"><span className="text-xs text-muted-foreground">{historyPage*20+1}–{historyPage*20+history.invoices.length} z {history.total}</span><Button disabled={!historyPage} onClick={() => setHistoryPage(p => p - 1)}>Poprzednie</Button><Button disabled={!history.nextCursor} onClick={() => {setHistoryCursors(current => [...current.slice(0,historyPage+1),history.nextCursor]);setHistoryPage(p=>p+1);}}>Następne</Button></div>}
       </Dialog>
 
       <ConfirmDialog

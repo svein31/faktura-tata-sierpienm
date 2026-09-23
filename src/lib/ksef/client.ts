@@ -552,7 +552,8 @@ export class KsefClient {
     sessionRef: string,
     xmlContent: string,
     symmetricKey: Buffer,
-    iv: Buffer
+    iv: Buffer,
+    offlineMode = false
   ): Promise<KsefInvoiceSendResult> {
     if (this.environment === "demo") {
       const now = new Date();
@@ -574,7 +575,7 @@ export class KsefClient {
       encryptedInvoiceHash: encPackage.encryptedDigestBase64,
       encryptedInvoiceSize: encPackage.encryptedFileSize,
       encryptedInvoiceContent: encPackage.encryptedDataBase64,
-      offlineMode: false,
+      offlineMode,
     };
 
     const sendRes = await this.request<any>(`/sessions/online/${encodeURIComponent(sessionRef)}/invoices`, {

@@ -72,6 +72,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
 
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [sending, setSending] = React.useState(false);
+  const [issuingOffline, setIssuingOffline] = React.useState(false);
   const [checkingStatus, setCheckingStatus] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
   const [emailModalOpen, setEmailModalOpen] = React.useState(false);
@@ -124,7 +125,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const handleSendKsef = async () => {
     setSending(true);
     try {
-      const xml = buildFa3Xml({ invoice, seller: companySafe, buyer: contractor });
+      const xml = invoice.isOffline ? invoice.ksefXml || "" : buildFa3Xml({ invoice, seller: companySafe, buyer: contractor });
       const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -156,6 +157,18 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleIssueOffline = async () => {
+    setIssuingOffline(true);
+    try {
+      const response = await fetch("/api/ksef/offline/issue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ invoiceId: invoice.id }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Nie udało się wystawić faktury offline.");
+      useAppStore.getState().applyInvoice(body.invoice);
+      toast("success", "Wystawiono offline", "Kod I i podpisany Kod II są gotowe w PDF.");
+    } catch (error) { toast("error", "Wystawienie offline", error instanceof Error ? error.message : "Błąd połączenia."); }
+    finally { setIssuingOffline(false); }
   };
 
   const handleCheckKsefStatus = async () => {
@@ -199,6 +212,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       {/* Pasek nawigacji i akcji */}
       <div className="no-print flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
+          {invoice.isOffline && <span className="rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">{invoice.qrCodeII ? "Offline · wystawiona" : "Offline · szkic"}{invoice.offlineDeadline ? ` · termin ${new Date(invoice.offlineDeadline).toLocaleDateString("pl-PL")}` : ""}</span>}
+          {invoice.isOffline && invoice.status === "draft" && <Button variant="subtle" size="sm" loading={issuingOffline} onClick={handleIssueOffline}>Wystaw offline z Kodem II</Button>}
           <Button
             variant="ghost"
             size="icon"
@@ -230,11 +245,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             variant="outline"
             size="sm"
             onClick={() => setEmailModalOpen(true)}
+            disabled={Boolean(invoice.isOffline && !invoice.qrCodeII)}
             className="rounded-xl gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/10 shadow-2xs"
           >
             <Mail className="h-3.5 w-3.5" /> Wyślij e-mailem
           </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportPdf} className="rounded-xl gap-1.5 text-xs">
+          <Button variant="outline" size="sm" onClick={exports.exportPdf} disabled={Boolean(invoice.isOffline && !invoice.qrCodeII)} className="rounded-xl gap-1.5 text-xs">
             <Printer className="h-3.5 w-3.5" /> Drukuj / PDF
           </Button>
           <Button variant="outline" size="sm" onClick={exports.exportXml} className="rounded-xl gap-1.5 text-xs">
@@ -279,7 +295,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             )
           )}
 
-          {!ksefNum && invoice.type === "sale" && (
+          {!ksefNum && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
             <Button
               variant="subtle"
               size="sm"

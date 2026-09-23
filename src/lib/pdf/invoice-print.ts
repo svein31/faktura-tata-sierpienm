@@ -8,7 +8,7 @@ import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "@/lib/pdf/print-config";
 
 type ContextData = { company?: CompanyProfile; contractor?: Contractor; config: PrintConfig; templateId?: string; templateVersion: number };
-const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "qrCodeI", "advanceReceivedDate", "settlementMetadata"] as const;
+const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
 export function printInvoiceData(invoice: Invoice) {
   const data: Record<string, unknown> = Object.fromEntries(fields.filter(key => invoice[key] !== undefined).map(key => [key, invoice[key]]));
   // Never archive XML, tokens, UPO, operational history or credentials in print data.
@@ -48,6 +48,7 @@ export async function invoicePdf(invoiceId: string, versionId?: string) {
   const prepared = await prisma.$transaction(async tx => {
     const invoice = await tx.invoice.findUnique({ where: { id: invoiceId } });
     if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
+    if (invoice.isOffline && (!invoice.qrCodeI || !invoice.qrCodeII)) throw new ApiError(409, "Najpierw wystaw fakturę offline z podpisanym Kodem II.");
     if (versionId) {
       const version = await tx.invoicePrintVersion.findFirst({ where: { id: versionId, invoiceId } });
       const context = await tx.invoicePrintContext.findUnique({ where: { id: invoiceId } });

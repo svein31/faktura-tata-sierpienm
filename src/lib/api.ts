@@ -13,6 +13,14 @@ export class ApiError extends Error {
   }
 }
 
+export class FieldError extends ApiError {
+  readonly fieldErrors: Record<string, string>;
+  constructor(field: string, message: string, status = 400) {
+    super(status, message, "FIELD_INVALID");
+    this.fieldErrors = { [field]: message };
+  }
+}
+
 export function json(data: unknown, init?: { status?: number; headers?: Record<string, string> }): NextResponse {
   return NextResponse.json(data, {
     status: init?.status ?? 200,
@@ -60,7 +68,7 @@ export function cleanStr(v: unknown, maxLen: number, field: string): string {
 
 export function handleApiError(e: unknown): NextResponse {
   if (e instanceof ApiError) {
-    return json({ error: e.message, code: e.code ?? "BAD_REQUEST" }, { status: e.status });
+    return json({ error: e.message, code: e.code ?? "BAD_REQUEST", ...(e instanceof FieldError ? { fieldErrors: e.fieldErrors } : {}) }, { status: e.status });
   }
   // Unikalność e-mail (P2002) — ogólny komunikat (brak enumeracji użytkowników).
   const code = (e as { code?: string })?.code;
@@ -74,4 +82,3 @@ export function handleApiError(e: unknown): NextResponse {
   const incident = reportUnexpectedError(e);
   return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL", incident }, { status: 500 });
 }
-

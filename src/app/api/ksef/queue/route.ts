@@ -77,6 +77,8 @@ export async function POST(req: Request) {
     if (invoice.type === "purchase") {
       throw new ApiError(400, "Faktury zakupowe nie podlegają kolejkowaniu do wysyłki KSeF.");
     }
+    if (invoice.isOffline && (invoice.status === "draft" || !invoice.qrCodeI || !invoice.qrCodeII || !invoice.ksefXml))
+      throw new ApiError(409, "Wystaw fakturę offline z podpisanym Kodem II przed przesłaniem.");
 
     if (invoice.ksefNumber) {
       throw new ApiError(400, `Faktura posiada już nadany numer KSeF (${invoice.ksefNumber}).`);

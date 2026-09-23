@@ -74,6 +74,8 @@ export async function POST(req: Request) {
     if (!invoice) {
       throw new ApiError(404, "Nie znaleziono faktury do wysyłki.");
     }
+    if (invoice.isOffline && (invoice.status === "draft" || !invoice.qrCodeI || !invoice.qrCodeII || !invoice.ksefXml))
+      throw new ApiError(409, "Wystaw fakturę offline z podpisanym Kodem II przed przesłaniem.");
 
     // Weryfikacja uprawnienia do wysyłki KSeF w zespole
     if (invoice?.sellerCompanyId) {
@@ -157,6 +159,8 @@ export async function POST(req: Request) {
     if (!xml || !xml.includes("<Faktura")) {
       throw new ApiError(400, "Brak prawidłowego dokumentu XML FA(3).");
     }
+    if (invoice.isOffline && xml !== invoice.ksefXml)
+      throw new ApiError(409, "XML wysyłki musi być identyczny z podpisanym dokumentem offline.");
 
     // Walidacja schematu FA(3)
     const val = validateFa3Xml(xml);
@@ -343,7 +347,8 @@ export async function POST(req: Request) {
         onlineSession.referenceNumber,
         xml,
         onlineSession.symmetricKey,
-        onlineSession.iv
+        onlineSession.iv,
+        Boolean(invoice.isOffline)
       );
     } catch (sendErr: any) {
       // W razie błędu sieciowego lub timeoutu — oznacz jako weryfikacja wymagana

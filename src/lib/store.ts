@@ -84,9 +84,10 @@ export interface AppState {
 export async function apiError(res: Response, fallback: string): Promise<Error> {
   let message = fallback;
   try {
-    const data = (await res.json()) as { error?: string; message?: string };
+    const data = (await res.json()) as { error?: string; message?: string; fieldErrors?: Record<string,string> };
     if (typeof data.error === "string" && data.error) message = data.error;
     else if (typeof data.message === "string" && data.message) message = data.message;
+    if (data.fieldErrors && typeof data.fieldErrors === "object") return Object.assign(new Error(message), { fieldErrors: data.fieldErrors });
   } catch {
     /* ignore */
   }
@@ -812,5 +813,4 @@ export const STATUS_META: Record<EffectiveStatus, { label: string; color: string
   ksef_active: { label: "KSeF: aktywna", color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
   ksef_rejected: { label: "KSeF: odrzucona", color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20", dot: "bg-rose-500" },
 };
-
 

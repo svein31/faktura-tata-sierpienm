@@ -282,6 +282,11 @@ export async function POST(req: Request) {
         }
 
         const val = validateFa3Xml(xml);
+        if (invoice.isOffline && (!invoice.qrCodeI || !invoice.qrCodeII || !invoice.ksefXml || xml !== invoice.ksefXml)) {
+          await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: "Brak podpisanych kodów offline lub niezgodny XML." } });
+          results.push({ taskId: task.id, invoiceId: invoice.id, status: "failed", message: "Nieprawidłowy dokument offline" });
+          continue;
+        }
         if (!val.ok) {
           const errs = val.issues.map((i) => `[${i.path}] ${i.message}`).join("; ");
           await prisma.ksefQueueTask.update({
@@ -324,7 +329,8 @@ export async function POST(req: Request) {
           onlineSession.referenceNumber,
           xml,
           onlineSession.symmetricKey,
-          onlineSession.iv
+          onlineSession.iv,
+          Boolean(invoice.isOffline)
         );
 
         const invoiceRef = sendRes.elementReferenceNumber;
@@ -409,4 +415,3 @@ export async function POST(req: Request) {
     return handleApiError(e);
   }
 }
-

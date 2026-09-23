@@ -319,6 +319,8 @@ export async function POST(req: Request) {
           { status: 404 }
         );
       }
+      if (invoiceRecord.isOffline && (!invoiceRecord.qrCodeI || !invoiceRecord.qrCodeII))
+        return NextResponse.json({ error: "OFFLINE_NOT_ISSUED", message: "Faktura offline wymaga podpisanych kodów I i II przed wysłaniem." }, { status: 409 });
 
       invoiceData = invoiceToDto(invoiceRecord);
 
@@ -370,6 +372,8 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+    if (invoiceData.isOffline && (!invoiceRecord || !invoiceRecord.qrCodeI || !invoiceRecord.qrCodeII))
+      return NextResponse.json({ error: "OFFLINE_NOT_ISSUED", message: "Najpierw wystaw fakturę offline z podpisanym Kodem II." }, { status: 409 });
 
     const effectiveSeller: CompanyProfile = sellerProfile || {
       id: "default",

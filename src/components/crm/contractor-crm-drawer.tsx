@@ -21,7 +21,6 @@ import {
   Calendar,
   ExternalLink,
 } from "lucide-react";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +29,7 @@ import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
 import { formatMoney, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Contractor, Invoice } from "@/lib/types";
+import type { Contractor } from "@/lib/types";
 
 interface ContractorCrmDrawerProps {
   contractor: Contractor | null;
@@ -39,8 +38,20 @@ interface ContractorCrmDrawerProps {
 
 export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawerProps) {
   const toast = useToast();
-  const invoices = useCompanyInvoices();
-  const { updateContractor } = useAppStore();
+  const { updateContractor, selectedCompanyId } = useAppStore();
+  type Summary = { invoices:{id:string;number:string;issueDate:string;dueDate:string;status:string;paymentStatus:string|null;totalGross:number|null;currency:string}[]; sales:{currency:string;count:number;turnover:number;overdue:number}[];balances:{currency:string;receivable:number;payable:number}[] };
+  const [summary, setSummary] = React.useState<Summary | null>(null);
+  const [summaryError, setSummaryError] = React.useState("");
+  React.useEffect(() => {
+    if (!contractor) return;
+    const controller = new AbortController();
+    setSummary(null); setSummaryError("");
+    fetch(`/api/contractors/${contractor.id}/history?companyId=${encodeURIComponent(selectedCompanyId||"unassigned")}&type=sale`, {signal:controller.signal,cache:"no-store"})
+      .then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||"Nie udało się pobrać kartoteki.");return body as Summary;})
+      .then(body=>{if(!controller.signal.aborted)setSummary(body);})
+      .catch(error=>{if(!controller.signal.aborted)setSummaryError(error instanceof Error?error.message:"Błąd połączenia.");});
+    return ()=>controller.abort();
+  }, [contractor?.id, selectedCompanyId]);
 
   const [saving, setSaving] = React.useState(false);
   const [creditLimit, setCreditLimit] = React.useState<number>(contractor?.creditLimit || 0);
@@ -56,33 +67,13 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
   if (!contractor) return null;
 
   // Faktury dla tego kontrahenta
-  const contractorInvoices = invoices.filter((i) => i.contractorId === contractor.id && i.type === "sale");
+  const contractorInvoices = summary?.invoices || [];
 
   // Wyliczenia analityczne
-  let totalGrossTurnover = 0;
-  let unpaidGrossTotal = 0;
-  let overdueCount = 0;
-  let onTimePaidCount = 0;
-  let totalDaysToPay = 0;
-  let paidCount = 0;
-
-  const today = new Date().toISOString().slice(0, 10);
-
-  contractorInvoices.forEach((inv) => {
-    const gross = inv.totalGross || 0;
-    totalGrossTurnover += gross;
-
-    if (inv.status === "paid" || inv.paymentStatus === "paid") {
-      paidCount++;
-      // Założenie symulacyjne dla czasu spłaty
-      onTimePaidCount++;
-    } else {
-      unpaidGrossTotal += gross;
-      if (inv.dueDate && inv.dueDate < today) {
-        overdueCount++;
-      }
-    }
-  });
+  const totalGrossTurnover = summary?.sales.find(s=>s.currency==="PLN")?.turnover || 0;
+  const unpaidGrossTotal = summary?.balances.find(b=>b.currency==="PLN")?.receivable || 0;
+  const overdueCount = summary?.sales.reduce((sum,s)=>sum+s.overdue,0) || 0;
+  const salesCount = summary?.sales.reduce((sum,s)=>sum+s.count,0) || 0;
 
   // Scoring wiarygodności płatniczej (A / B / C / D)
   let scoreGrade: "A" | "B" | "C" | "D" = "A";
@@ -97,7 +88,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
     scoreGrade = "C";
     scoreLabel = "Sporadyczne opóźnienia";
     scoreTone = "warning";
-  } else if (contractorInvoices.length > 3) {
+  } else if (salesCount > 3) {
     scoreGrade = "A";
     scoreLabel = "Wzorowa terminowość (100%)";
     scoreTone = "success";
@@ -172,6 +163,8 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
               <X className="h-4 w-4" />
             </Button>
           </div>
+          {!summary && !summaryError && <p role="status" className="mt-2 text-xs text-muted-foreground">Wczytywanie danych kontrahenta…</p>}
+          {summaryError && <p role="alert" className="mt-2 text-xs text-destructive">{summaryError}</p>}
 
           <div className="mt-6 space-y-6">
             {/* 1. Karta Scoringu Płatniczego */}
@@ -200,7 +193,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                 <div>
                   <p className="text-sm font-semibold text-foreground">{scoreLabel}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Na podstawie {contractorInvoices.length} wystawionych dokumentów.
+                    Na podstawie {salesCount} wystawionych dokumentów.
                     {overdueCount > 0
                       ? ` Liczba przeterminowanych faktur: ${overdueCount}.`
                       : " Brak przeterminowanych należności."}
@@ -300,7 +293,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                   {formatMoney(totalGrossTurnover, "PLN")}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Wszystkie wystawione faktury
+                  Faktury sprzedaży w PLN
                 </p>
               </Card>
 
@@ -324,7 +317,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                  Ostatnie dokumenty ({contractorInvoices.length})
+                  Ostatnie dokumenty ({salesCount})
                 </h4>
                 <Link
                   href={`/invoices?search=${encodeURIComponent(contractor.nip)}`}

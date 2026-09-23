@@ -20,6 +20,13 @@ export interface KsefQrParams {
   ksefNumber?: string | null;
 }
 
+export interface KsefOfflineSigningParams extends KsefQrParams {
+  certificatePem: string;
+  privateKeyPem: string;
+  contextType: "Nip";
+  contextValue: string;
+}
+
 /**
  * Przekształca ciąg bajtów lub Base64 na format Base64URL bez dopełnienia '='
  */
@@ -79,10 +86,36 @@ export function buildKsefVerificationUrl(params: KsefQrParams): string {
 /**
  * Buduje oficjalny adres URL KOD II dla trybu awaryjnego / offline
  */
-export function buildKsefOfflineCertUrl(_params: KsefQrParams): string {
-  // KOD II requires a KSeF Offline certificate and a cryptographic signature.
-  // Never present an unsigned URL as a valid certificate.
-  throw new Error("Kod II wymaga podpisu certyfikatem KSeF typu Offline.");
+export function buildKsefOfflineCertUrl(params: KsefQrParams | KsefOfflineSigningParams): string {
+  if (!("certificatePem" in params && "privateKeyPem" in params && "contextType" in params && "contextValue" in params))
+    throw new Error("Kod II wymaga podpisu certyfikatem KSeF typu Offline.");
+  const signing = params as KsefOfflineSigningParams;
+  const nip = signing.sellerNip.replace(/\D/g, "");
+  const context = signing.contextValue.replace(/\D/g, "");
+  if (!/^\d{10}$/.test(nip) || signing.contextType !== "Nip" || !/^\d{10}$/.test(context))
+    throw new Error("Kod II wymaga poprawnego kontekstu NIP.");
+  if (!signing.xmlContent && !signing.xmlHashBase64Url) throw new Error("Brak skrótu XML.");
+  const hash = signing.xmlHashBase64Url || calculateXmlDigestBase64Url(signing.xmlContent!);
+  if (!/^[a-zA-Z0-9_-]{43}$/.test(hash)) throw new Error("Nieprawidłowy skrót XML.");
+  const cert = new crypto.X509Certificate(signing.certificatePem);
+  const now = Date.now();
+  if (now < new Date(cert.validFrom).getTime() || now > new Date(cert.validTo).getTime())
+    throw new Error("Certyfikat KSeF nie jest obecnie ważny.");
+  const key = crypto.createPrivateKey(signing.privateKeyPem);
+  if (key.asymmetricKeyType !== cert.publicKey.asymmetricKeyType) throw new Error("Klucz nie odpowiada certyfikatowi.");
+  const domain = signing.environment === "production" ? "qr.ksef.mf.gov.pl" : signing.environment === "demo" ? "qr-demo.ksef.mf.gov.pl" : "qr-test.ksef.mf.gov.pl";
+  const path = `${domain}/certificate/Nip/${context}/${nip}/${cert.serialNumber}/${hash}`;
+  const message = Buffer.from(path, "utf8");
+  const options = key.asymmetricKeyType === "rsa"
+    ? { key, padding: crypto.constants.RSA_PKCS1_PSS_PADDING, saltLength: 32 }
+    : { key, dsaEncoding: "ieee-p1363" as const };
+  if (key.asymmetricKeyType === "rsa" && (key.asymmetricKeyDetails?.modulusLength || 0) < 2048) throw new Error("Klucz RSA jest za krótki.");
+  if (key.asymmetricKeyType === "ec" && key.asymmetricKeyDetails?.namedCurve !== "prime256v1") throw new Error("Wymagany klucz ECDSA P-256.");
+  if (!["rsa", "ec"].includes(key.asymmetricKeyType || "")) throw new Error("Nieobsługiwany algorytm certyfikatu.");
+  const sig = crypto.sign("sha256", message, options);
+  if (!crypto.verify("sha256", message, { key: cert.publicKey, ...(key.asymmetricKeyType === "rsa" ? { padding: crypto.constants.RSA_PKCS1_PSS_PADDING, saltLength: 32 } : { dsaEncoding: "ieee-p1363" as const }) }, sig))
+    throw new Error("Klucz nie odpowiada certyfikatowi.");
+  return `https://${path}/${sig.toString("base64url")}`;
 }
 
 /**
@@ -102,8 +135,8 @@ export async function generateQrPngBuffer(url: string, width = 200): Promise<Buf
  * Jeśli faktura zarejestrowana w KSeF -> numer KSeF
  * Jeśli brak potwierdzenia lub tryb awaryjny -> "OFFLINE"
  */
-export function getKsefQrLabel(ksefNumber?: string | null, isOffline?: boolean): string {
-  if (ksefNumber && ksefNumber.trim() && !isOffline) {
+export function getKsefQrLabel(ksefNumber?: string | null, _isOffline?: boolean): string {
+  if (ksefNumber && ksefNumber.trim()) {
     return `KSeF: ${ksefNumber.trim()}`;
   }
   return "OFFLINE";

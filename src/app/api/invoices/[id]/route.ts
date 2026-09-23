@@ -157,6 +157,8 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
 
     // 4. Parsowanie pełnego ciała zapytania
+    if (existing.isOffline && existing.qrCodeII)
+      throw new ApiError(409, "Wystawionej faktury offline nie można zmieniać: podpisany XML i kody QR muszą pozostać identyczne.");
     const memberships = await prisma.companyMember.findMany({
       where: { userId: user.id },
       select: { companyId: true, company: { select: { userId: true } } },

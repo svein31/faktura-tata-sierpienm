@@ -345,9 +345,29 @@ export function InvoiceCreator() {
   };
   const [saving, setSaving] = React.useState<"save" | "ksef" | null>(null);
   const [errors, setErrors] = React.useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string,string>>({});
   const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
 
-  const set = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
+  const set = (patch: Partial<FormState>) => {
+    setForm((f) => ({ ...f, ...patch }));
+    setFieldErrors(current => {
+      const next = { ...current };
+      for (const key of Object.keys(patch)) delete next[key];
+      return next;
+    });
+  };
+
+  const showValidation = (messages: string[], fromServer?: Record<string,string>) => {
+    const fields: Record<string,string> = { ...fromServer };
+    if (!form.issueDate) fields.issueDate = "Podaj datę wystawienia.";
+    if (!form.useNewContractor && !form.contractorId) fields.contractorId = "Wybierz kontrahenta.";
+    if (form.isOffline && !form.offlineReason) fields.offlineReason = "Wybierz powód.";
+    if (form.isOffline && !form.offlineDeadline) fields.offlineDeadline = "Podaj termin przesłania.";
+    setErrors(messages);
+    setFieldErrors(fields);
+    const first = Object.keys(fields)[0];
+    if (first) requestAnimationFrame(() => document.getElementById(`invoice-${first}`)?.focus());
+  };
 
   // Synchronizacja firmy domyślnej po załadowaniu danych
   React.useEffect(() => {
@@ -580,7 +600,7 @@ export function InvoiceCreator() {
 
   const handleSave = async () => {
     const errs = validate();
-    setErrors(errs);
+    showValidation(errs);
     if (errs.length) {
       toast("error", "Nie można zapisać faktury", errs[0]);
       return;
@@ -594,6 +614,8 @@ export function InvoiceCreator() {
       store.setDraft(null, true);
       router.push("/invoices");
     } catch (e) {
+      const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
+      if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać", e instanceof Error ? e.message : undefined);
       setSaving(null);
     }
@@ -602,7 +624,7 @@ export function InvoiceCreator() {
   const handleSaveDraft = async () => {
     const errs = validate();
     if (errs.length) {
-      setErrors(errs);
+      showValidation(errs);
       toast("error", "Popraw błędy", errs[0]);
       return;
     }
@@ -614,6 +636,8 @@ export function InvoiceCreator() {
       store.setDraft(null, true);
       router.push("/invoices");
     } catch (e) {
+      const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
+      if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać szkicu", e instanceof Error ? e.message : undefined);
     }
   };
@@ -632,7 +656,7 @@ export function InvoiceCreator() {
       return;
     }
     const errs = validate();
-    setErrors(errs);
+    showValidation(errs);
     if (errs.length) {
       toast("error", "Popraw błędy", errs[0]);
       return;
@@ -732,17 +756,14 @@ export function InvoiceCreator() {
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -8, height: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300 space-y-1.5 shadow-xs overflow-hidden"
+              role="alert"
+              className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300 space-y-1 shadow-xs overflow-hidden"
             >
               <div className="flex items-center gap-2 font-bold text-[13px]">
                 <AlertOctagon className="h-4 w-4 shrink-0 text-rose-500" />
                 <span>Uzupełnij wymagane pola przed zapisem:</span>
               </div>
-              <ul className="list-disc list-inside space-y-0.5 pl-1 text-[11.5px] opacity-95">
-                {errors.map((e, idx) => (
-                  <li key={idx}>{e}</li>
-                ))}
-              </ul>
+              <p className="text-[11.5px]">{errors[0]}{errors.length > 1 ? ` · jeszcze ${errors.length - 1} do poprawy` : ""}</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1012,6 +1033,7 @@ export function InvoiceCreator() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <Select
+                id="invoice-contractorId" aria-invalid={Boolean(fieldErrors.contractorId)} aria-describedby={fieldErrors.contractorId ? "invoice-contractorId-error" : undefined}
                 value={form.useNewContractor ? "__new__" : form.contractorId}
                 onChange={(e) => {
                   if (e.target.value === "__new__") set({ useNewContractor: true, contractorId: "" });
@@ -1026,6 +1048,7 @@ export function InvoiceCreator() {
                 ))}
                 <option value="__new__">➕ Dodaj nowego kontrahenta…</option>
               </Select>
+              {fieldErrors.contractorId && <p id="invoice-contractorId-error" className="text-xs text-destructive">{fieldErrors.contractorId}</p>}
               {selectedContractor && (
                 <Badge tone={selectedContractor.isVatPayer ? "success" : "outline"}>
                   {selectedContractor.isVatPayer ? "płatnik VAT" : "zwolniony z VAT"}
@@ -1214,11 +1237,13 @@ export function InvoiceCreator() {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label>Data wystawienia *</Label>
-                <Input type="date" value={form.issueDate} onChange={(e) => set({ issueDate: e.target.value })} />
+                <Input id="invoice-issueDate" type="date" value={form.issueDate} aria-invalid={Boolean(fieldErrors.issueDate)} aria-describedby={fieldErrors.issueDate ? "invoice-issueDate-error" : undefined} onChange={(e) => set({ issueDate: e.target.value })} />
+                {fieldErrors.issueDate && <p id="invoice-issueDate-error" className="text-xs text-destructive">{fieldErrors.issueDate}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label>Data sprzedaży</Label>
-                <Input type="date" value={form.saleDate} onChange={(e) => set({ saleDate: e.target.value })} />
+                <Input id="invoice-saleDate" type="date" value={form.saleDate} aria-invalid={Boolean(fieldErrors.saleDate)} aria-describedby={fieldErrors.saleDate ? "invoice-saleDate-error" : undefined} onChange={(e) => set({ saleDate: e.target.value })} />
+                {fieldErrors.saleDate && <p id="invoice-saleDate-error" className="text-xs text-destructive">{fieldErrors.saleDate}</p>}
               </div>
               <div className="space-y-1.5">
                 <Label>
@@ -1226,14 +1251,34 @@ export function InvoiceCreator() {
                   {!form.dueTouched && <span className="font-normal text-muted-foreground">(auto)</span>}
                 </Label>
                 <Input
-                  type="date"
+                  id="invoice-dueDate" type="date" aria-invalid={Boolean(fieldErrors.dueDate)} aria-describedby={fieldErrors.dueDate ? "invoice-dueDate-error" : undefined}
                   value={form.dueDate}
                   onChange={(e) => set({ dueDate: e.target.value, dueTouched: true })}
                 />
+                {fieldErrors.dueDate && <p id="invoice-dueDate-error" className="text-xs text-destructive">{fieldErrors.dueDate}</p>}
               </div>
             </div>
 
-            {form.type === "sale" && !form.isProforma && <details className="rounded-xl border p-3 text-xs"><summary className="cursor-pointer font-medium">Wystawienie offline</summary><div className="mt-3 space-y-2"><label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(form.isOffline)} onChange={e=>set({isOffline:e.target.checked})} /> Oznacz jako dokument offline</label>{form.isOffline&&<><div className="grid gap-2 sm:grid-cols-2"><label>Powód<Select value={form.offlineReason||""} onChange={e=>set({offlineReason:e.target.value})}><option value="">Wybierz powód</option><option value="offline24">Offline24</option><option value="unavailability">Niedostępność KSeF</option><option value="failure">Awaria KSeF</option><option value="total_failure">Awaria całkowita</option></Select></label><label>Termin przesłania ustalony przez operatora<Input type="date" value={form.offlineDeadline||""} onChange={e=>set({offlineDeadline:e.target.value})} /></label></div><p className="text-muted-foreground">Sprawdź termin w komunikatach MF. Wystawienie i udostępnienie dokumentu offline wymaga prawidłowych kodów I i II z certyfikatem typu Offline; samo oznaczenie nie tworzy tych kodów.</p></>}</div></details>}
+            {form.type === "sale" && !form.isProforma && <details className="rounded-xl border p-3 text-xs" open={form.isOffline && Boolean(fieldErrors.offlineReason || fieldErrors.offlineDeadline) ? true : undefined}>
+              <summary className="cursor-pointer font-medium">Wystawienie offline</summary>
+              <div className="mt-3 space-y-2">
+                <label className="flex items-center gap-2"><input type="checkbox" checked={Boolean(form.isOffline)} onChange={e => set({ isOffline: e.target.checked })} /> Oznacz jako dokument offline</label>
+                {form.isOffline && <>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <label>Powód
+                      <Select id="invoice-offlineReason" value={form.offlineReason || ""} aria-invalid={Boolean(fieldErrors.offlineReason)} aria-describedby={fieldErrors.offlineReason ? "invoice-offlineReason-error" : undefined} onChange={e => set({ offlineReason: e.target.value })}>
+                        <option value="">Wybierz powód</option><option value="offline24">Offline24</option><option value="unavailability">Niedostępność KSeF</option><option value="failure">Awaria KSeF</option><option value="total_failure">Awaria całkowita</option>
+                      </Select>{fieldErrors.offlineReason && <span id="invoice-offlineReason-error" className="block text-destructive">{fieldErrors.offlineReason}</span>}
+                    </label>
+                    <label>Termin przesłania ustalony przez operatora
+                      <Input id="invoice-offlineDeadline" type="date" value={form.offlineDeadline || ""} aria-invalid={Boolean(fieldErrors.offlineDeadline)} aria-describedby={fieldErrors.offlineDeadline ? "invoice-offlineDeadline-error" : undefined} onChange={e => set({ offlineDeadline: e.target.value })} />
+                      {fieldErrors.offlineDeadline && <span id="invoice-offlineDeadline-error" className="block text-destructive">{fieldErrors.offlineDeadline}</span>}
+                    </label>
+                  </div>
+                  <p className="text-muted-foreground">Sprawdź termin w komunikatach MF. Wystawienie offline wymaga kodów I i II podpisanych certyfikatem typu Offline. Bez niego możesz zapisać tylko szkic.</p>
+                </>}
+              </div>
+            </details>}
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label>Metoda płatności</Label>
@@ -1496,10 +1541,10 @@ export function InvoiceCreator() {
               <Button onClick={handleSaveDraft} variant="outline">
                 <Save className="h-4 w-4" /> Szkic
               </Button>
-              <Button onClick={handleSave} loading={saving === "save"}>
+              {!form.isOffline && <Button onClick={handleSave} loading={saving === "save"}>
                 <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
-              </Button>
-              {!isPurchase && !isKsefRegistered && !form.isProforma && (
+              </Button>}
+              {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
                 <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">
                   <Send className="h-4 w-4" /> Wyślij do KSeF
                 </Button>
@@ -1535,26 +1580,16 @@ export function InvoiceCreator() {
           <Button onClick={handleSaveDraft} variant="outline">
             <Save className="h-4 w-4" /> Szkic
           </Button>
-          <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
+          {!form.isOffline && <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
             <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
-          </Button>
-          {!isPurchase && !isKsefRegistered && !form.isProforma && (
+          </Button>}
+          {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
             <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
               <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
             </Button>
           )}
         </div>
 
-        {errors.length > 0 && (
-          <div className="no-print mt-3 rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-[12.5px] text-red-600 dark:text-red-400">
-            <p className="mb-1 font-semibold">Popraw przed zapisem:</p>
-            <ul className="list-inside list-disc space-y-0.5">
-              {errors.map((e) => (
-                <li key={e}>{e}</li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       {/* Szybkie dodanie nowej firmy / NIP */}
