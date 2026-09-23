@@ -816,6 +816,6 @@ export function generateDemoUpoXml(elementReferenceNumber: string, ksefReference
   <NumerReferencyjnySesji>${elementReferenceNumber}</NumerReferencyjnySesji>
   <DataICzasDoreczenia>${date}</DataICzasDoreczenia>
   <Status>200</Status>
-  <OpisStatusu>Dokument został zarejestrowany w Krajowym Systemie e-Faktur.</OpisStatusu>
+  <OpisStatusu>SYMULACJA DEMO: dokument nie został wysłany do Ministerstwa Finansów; to potwierdzenie nie jest urzędowym UPO.</OpisStatusu>
 </Potwierdzenie>`;
 }

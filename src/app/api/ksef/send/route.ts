@@ -12,7 +12,6 @@ import {
   generateDemoUpoXml,
 } from "@/lib/ksef/index";
 import { companyProfileToDto, companyToDto } from "@/lib/dto";
-import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { recordAuditLog } from "@/lib/audit";
 
@@ -221,8 +220,8 @@ export async function POST(req: Request) {
           data: {
             userId: session.id,
             kind: "ksef_status",
-            title: `Faktura ${updatedInvoice.number} zarejestrowana w KSeF (demo)`,
-            body: `Numer KSeF: ${ksefNumber} · UPO wygenerowane pomyślnie.`,
+            title: `Faktura ${updatedInvoice.number}: symulacja KSeF`,
+            body: `Numer symulacyjny: ${ksefNumber} · wygenerowano nieurzędowe potwierdzenie demo.`,
             link: `/invoices/${updatedInvoice.id}`,
             read: false,
           },
@@ -237,7 +236,7 @@ export async function POST(req: Request) {
           action: "ksef_sent",
           entityType: "invoice",
           entityId: updatedInvoice.id,
-          description: `Zarejestrowano fakturę ${updatedInvoice.number} w KSeF (demo: ${ksefNumber})`,
+          description: `Zasymulowano przyjęcie faktury ${updatedInvoice.number} (demo: ${ksefNumber})`,
           details: {
             ksefNumber,
             referenceNumber: elemRef,
@@ -245,8 +244,7 @@ export async function POST(req: Request) {
           },
         });
 
-        // Automatyczna wysyłka e-mail, jeśli użytkownik włączył opcję dla tej faktury
-        void triggerAutoEmailOnKsef(updatedInvoice.id);
+        // Symulacji nie wysyłamy automatycznie do kontrahenta jako potwierdzonej przez MF.
       }
 
       return json({
@@ -259,7 +257,7 @@ export async function POST(req: Request) {
         documentStatus: "accepted",
         timestamp: sentAt,
         hasUpo: true,
-        message: `Faktura została zarejestrowana w KSeF (symulacja demo). Przydzielony numer: ${ksefNumber}`,
+        message: `Symulacja lokalna: dokument nie trafił do MF. Numer demonstracyjny: ${ksefNumber}`,
         environment: "demo",
         invoice: updatedInvoice ? invoiceToDto(updatedInvoice) : null,
       });

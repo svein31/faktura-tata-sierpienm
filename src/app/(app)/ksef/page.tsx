@@ -83,7 +83,7 @@ const ENV_CONFIG: Record<
   demo: {
     label: "Tryb Demonstracyjny",
     gateway: "Lokalny symulator e-Faktur FA(3)",
-    desc: "Bezpieczna symulacja lokalna ze schematem FA(3) i generowaniem autentycznego UPO bez połączenia z MF.",
+    desc: "Lokalna symulacja FA(3). Potwierdzenie demo nie jest urzędowym UPO i nie pochodzi z MF.",
     badgeTone: "info",
     glowClass: "shadow-sky-500/15 ring-sky-500/30",
     borderClass: "border-sky-500/40 bg-sky-500/5",
@@ -761,8 +761,8 @@ function KsefPageInner() {
                 <div className="flex items-start gap-2.5">
                   <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                   <div>
-                    <b className="text-foreground">Autentyczność UPO:</b> Urzędowe Poświadczenie Odbioru jest pobierane
-                    w formacie XML bezpośrednio z bramki MF i archiwizowane w bazie.
+                    <b className="text-foreground">Potwierdzenia:</b> W środowiskach MF UPO pobierane jest z bramki MF.
+                    W trybie demo powstaje wyłącznie lokalny plik symulacyjny, bez mocy urzędowej.
                   </div>
                 </div>
               </CardContent>
@@ -1011,7 +1011,7 @@ function KsefPageInner() {
               <div>
                 <CardTitle className="text-[17px]">Zarejestrowane e-Faktury w KSeF</CardTitle>
                 <CardDescription>
-                  Wykaz faktur przesłanych do Krajowego Systemu e-Faktur z przypisanymi identyfikatorami i Urzędowymi Poświadczeniami Odbioru (UPO).
+                  Dokumenty i potwierdzenia. W trybie demo numery i pliki UPO są wyłącznie symulacją; nie potwierdzają przyjęcia przez MF.
                 </CardDescription>
               </div>
             </CardHeader>
