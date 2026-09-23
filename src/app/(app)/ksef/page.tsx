@@ -1,5 +1,6 @@
 "use client";
 import { useCompanyInvoices } from "@/lib/use-company-invoices";
+import { KsefOperationsCard } from "@/components/ksef/operations-card";
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
@@ -36,7 +37,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
-  UploadCloud,
   XCircle,
 } from "lucide-react";
 import { useAppStore, getContractor } from "@/lib/store";
@@ -411,12 +411,8 @@ function KsefPageInner() {
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2.5 mb-2">
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                KSeF API 2.0 / FA(3) Ready
+              <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                KSeF API 2.0 / FA(3)
               </span>
               <Badge tone={currentEnv.badgeTone} className="font-mono uppercase text-[11px] px-2.5 py-0.5">
                 {currentEnv.label}
@@ -500,6 +496,8 @@ function KsefPageInner() {
           </motion.div>
         )}
       </div>
+
+      <KsefOperationsCard />
 
       {/* ── Modern Tabs Navigation ── */}
       <Tabs
@@ -612,39 +610,13 @@ function KsefPageInner() {
                   </p>
                 </div>
 
-                {/* Certyfikat X.509 opcjonalny */}
+                {/* Opcjonalny opis, nie jest używany do uwierzytelniania. */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <UploadCloud className="h-3.5 w-3.5 text-muted-foreground" />
-                    Certyfikat Kwalifikowany / Pieczęć (.p12 / .pfx) [opcjonalnie]
+                    Nazwa certyfikatu (opcjonalny opis)
                   </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={certDraft}
-                      onChange={(e) => setCertDraft(e.target.value)}
-                      placeholder="Nazwa pliku certyfikatu..."
-                      className="flex-1 rounded-xl text-xs"
-                    />
-                    <Button
-                      variant="outline"
-                      className="rounded-xl text-xs"
-                      onClick={() => {
-                        const el = document.createElement("input");
-                        el.type = "file";
-                        el.accept = ".p12,.pfx";
-                        el.onchange = () => {
-                          const f = el.files?.[0];
-                          if (f) {
-                            setCertDraft(f.name);
-                            toast("info", "Wybrano certyfikat", f.name);
-                          }
-                        };
-                        el.click();
-                      }}
-                    >
-                      Wybierz plik
-                    </Button>
-                  </div>
+                  <Input value={certDraft} onChange={(e) => setCertDraft(e.target.value)} placeholder="Nazwa do własnej informacji..." className="rounded-xl text-xs" />
+                  <p className="text-[11px] text-muted-foreground">To tylko opis. Daty ważności publicznego certyfikatu dodasz w panelu „Stan KSeF” powyżej.</p>
                 </div>
 
                 {/* Automatyczna walidacja XSD */}
@@ -1351,4 +1323,3 @@ export default function KsefPage() {
     </Suspense>
   );
 }
-

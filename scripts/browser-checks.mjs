@@ -34,6 +34,30 @@ export async function browserChecks(base) {
     assert.equal(overview.actionTotal, 32);
     assert.equal(overview.actions.length, 8);
     assert.equal(overview.totals.length, 0);
+    const issued = await post('/api/invoices', {
+      number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
+      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      lines: [{ id: 'line', name: 'Browser service', quantity: 2, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
+    });
+    const issuedOverview = await get(`/api/overview?companyId=${company.id}&months=12`);
+    assert.equal(issuedOverview.totals.find(row => row.currency === 'PLN')?.gross, 246);
+    assert.equal(issuedOverview.months.length, 12);
+    assert.equal(issuedOverview.months.at(-1).values[0].gross, 246);
+    assert.equal(issuedOverview.counts.drafts, 32);
+    const changed = await context.request.put(`/api/invoices/${issued.invoice.id}`, { data: {
+      number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
+      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      lines: [{ id: 'line', name: 'Browser service', quantity: 3, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
+    } });
+    assert.ok(changed.ok(), JSON.stringify(await changed.json()));
+    assert.equal((await get(`/api/overview?companyId=${company.id}&months=12`)).totals[0].gross, 369);
+    assert.equal((await context.request.get(`/api/overview?companyId=${company.id}&months=7`)).status(), 400);
+    const center = await get(`/api/ksef/center?companyId=${company.id}`);
+    assert.equal(center.certificate.notice, 'missing');
+    assert.equal(center.tasks.length, 0);
+    assert.ok(['AVAILABLE', 'MAINTENANCE', 'FAILURE', 'TOTAL_FAILURE', 'UNAVAILABLE'].includes(center.official.status));
+    assert.equal((await context.request.post('/api/ksef/center', { data: { companyId: company.id, action: 'upload', certificateBase64: 'invalid' } })).status(), 400);
+    assert.equal((await context.request.get('/api/ksef/center?companyId=000000000000000000000000')).status(), 403);
     const inaccessible = await context.request.get('/api/overview?companyId=000000000000000000000000');
     assert.equal(inaccessible.status(), 403);
     await page.goto('/invoices');
@@ -46,12 +70,15 @@ export async function browserChecks(base) {
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();
     await page.goto('/analytics');
     await expect(page.getByRole('heading', { name: 'Analityka' })).toBeVisible();
+    await page.getByLabel('Wykres').selectOption('12');
+    await page.goto('/ksef');
+    await expect(page.getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
-    await expect(page.getByText(/Strona 1 · 32 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 1 · 33 wyników/)).toBeVisible();
     await page.getByRole('button', { name: 'Następna', exact: true }).click();
-    await expect(page.getByText(/Strona 2 · 32 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 2 · 33 wyników/)).toBeVisible();
     await page.getByRole('button', { name: 'Poprzednia', exact: true }).click();
-    await expect(page.getByText(/Strona 1 · 32 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 1 · 33 wyników/)).toBeVisible();
     const invoiceSearch = page.getByPlaceholder(/Szukaj|numer|Numer/).first();
     await invoiceSearch.fill('BROWSER/001');
     await expect(page.getByText(/Strona 1 · 1 wyników/)).toBeVisible();
@@ -78,7 +105,7 @@ export async function browserChecks(base) {
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const route of ['/dashboard', '/analytics', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
+    for (const route of ['/dashboard', '/analytics', '/ksef', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();

@@ -21,7 +21,7 @@ export type Overview = {
   ksefQueue: { id: string; invoiceId: string; number: string; status: string; attempts: number; maxAttempts: number; environment: string; updatedAt: string; nextAttemptAt: string | null; guidance: string }[];
 };
 
-export function useOverview() {
+export function useOverview(months: 6 | 12 | 24 = 6) {
   const companyId = useAppStore(s => s.selectedCompanyId);
   const [data, setData] = React.useState<Overview | null>(null);
   const [error, setError] = React.useState("");
@@ -30,12 +30,12 @@ export function useOverview() {
   React.useEffect(() => {
     const controller = new AbortController();
     setData(null); setError("");
-    if (companyId) fetch(`/api/overview?companyId=${encodeURIComponent(companyId)}`, { signal: controller.signal, cache: "no-store" })
+    if (companyId) fetch(`/api/overview?companyId=${encodeURIComponent(companyId)}&months=${months}`, { signal: controller.signal, cache: "no-store" })
       .then(async res => { const result = await res.json(); if (!res.ok) throw new Error(result.error || "Nie udało się pobrać podsumowania."); return result as Overview; })
       .then(result => { if (!controller.signal.aborted) setData(result); })
       .catch(err => { if (!controller.signal.aborted) setError(err.message); });
     return () => controller.abort();
-  }, [companyId, refresh]);
+  }, [companyId, months, refresh]);
 
   return { data, error, companyId, reload: () => setRefresh(n => n + 1) };
 }

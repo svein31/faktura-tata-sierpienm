@@ -266,6 +266,10 @@ model CompanyProfile {
   postalCode     String?
   bankAccount    String?
   ksefToken      String?
+  ksefCertFingerprint String?
+  ksefCertValidFrom DateTime?
+  ksefCertValidTo DateTime?
+  ksefCertCheckedAt DateTime?
   isDefault      Boolean   @default(false)
   logoUrl        String?   @default("")
   createdAt      DateTime  @default(now())
