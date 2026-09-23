@@ -31,6 +31,7 @@ export async function browserChecks(base) {
     assert.equal((await get('/api/data?invoiceMode=list')).invoices.length, 0);
     await page.goto('/invoices');
     await expect(page.getByRole('heading', { name: 'Faktury', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Odrzuć opcjonalne' }).click();
     const dismiss = page.getByRole('button', { name: /Pomiń|Rozumiem|Zakończ/ });
     if (await dismiss.count()) await dismiss.first().click();
     await expect(page.getByText(/Strona 1 · 32 wyników/)).toBeVisible();
