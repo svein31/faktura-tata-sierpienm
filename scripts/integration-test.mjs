@@ -135,6 +135,12 @@ try {
   assert.ok(a.cookie); assert.ok(b.cookie);
   const login = await api('POST', '/api/auth/login', { email: 'a@example.com', password: 'Integration123!' });
   assert.equal(login.res.status, 200); assert.ok(login.cookie);
+  // The broad integration scenario issues many documents; keep its owner unrestricted.
+  // Free quota boundaries are covered by the dedicated quota tests.
+  await db.subscription.create({ data: {
+    userId: a.data.user.id, plan: 'yearly', status: 'active',
+    currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  } });
   const bootstrap = await api('GET', '/api/data', undefined, a.cookie);
   assert.equal(bootstrap.res.status, 200); assert.deepEqual(bootstrap.data.invoices, []);
   const company = await api('POST', '/api/companies', { companyName: 'Firma A', nip: '5260301706' }, a.cookie);
