@@ -37,6 +37,7 @@
     "react-dom": "19.3.0",
     "recharts": "^2.12.7",
     "server-only": "^0.0.1",
+    "stripe": "^22.6.2",
     "tailwind-merge": "^2.5.2",
     "zustand": "^4.5.5"
   },
