@@ -18,7 +18,6 @@ import {
   ArrowRight,
   HelpCircle,
   Send,
-  Cloud,
   CreditCard,
   Globe,
   History,
@@ -350,33 +349,6 @@ const HELP_SECTIONS: HelpSection[] = [
     },
   },
 
-  // ── KONFIGURACJA E-MAIL NA NETLIFY ──
-  {
-    id: "netlify-email-setup",
-    category: "email",
-    categoryLabel: "Wysyłka e-mail / Netlify",
-    title: "Konfiguracja serwera pocztowego na Netlify (Resend / SMTP)",
-    icon: Cloud,
-    steps: [
-      {
-        title: "1. Otwórz Netlify Dashboard",
-        description: "Zaloguj się na app.netlify.com, wejdź w projekt ta-fax i kliknij Site configuration → Environment variables.",
-      },
-      {
-        title: "2. Dodaj klucz Resend API",
-        description: "Wpisz zmienną RESEND_API_KEY (twój klucz re_... z resend.com) oraz EMAIL_FROM (np. FakturaProsto <onboarding@resend.dev>).",
-      },
-      {
-        title: "3. Trigger deploy",
-        description: "Przejdź do zakładki Deploys → kliknij Trigger deploy → Deploy site, aby funkcje załadowały nowe zmienne.",
-      },
-    ],
-    quickAction: {
-      label: "Przejdź do faktur",
-      href: "/invoices",
-    },
-  },
-
   // ── ZESPÓŁ I UPRAWNIENIA (WIELODOSTĘP) ──
   {
     id: "team-roles-permissions",
@@ -464,7 +436,7 @@ const HELP_SECTIONS: HelpSection[] = [
     id: "foreign-contractors-vat-tin",
     category: "company",
     categoryLabel: "Kontrahenci zagraniczni",
-    title: "Kontrahenci z Unii Europejskiej (VAT UE / VIES) oraz spoza UE (TIN)",
+    title: "Kontrahenci z Unii Europejskiej (format VAT UE) oraz spoza UE (TIN)",
     icon: Building2,
     badge: "Nowość • UE i Świat",
     steps: [
@@ -474,9 +446,9 @@ const HELP_SECTIONS: HelpSection[] = [
           "W formularzu kontrahenta wskaż: NIP (Polska), VAT UE (kraje Unii Europejskiej), TIN / Tax ID (spoza UE, np. Ghana, USA, Wielka Brytania) lub „Brak identyfikatora”.",
       },
       {
-        title: "2. Podmioty z Unii Europejskiej (VIES)",
+        title: "2. Podmioty z Unii Europejskiej (format VAT UE)",
         description:
-          "Wybierz 2-literowy kod kraju (np. DE dla Niemiec, FR dla Francji) i wpisz numer. System weryfikuje poprawność prefiksu i struktury numeru VAT UE.",
+          "Wybierz 2-literowy kod kraju (np. DE dla Niemiec, FR dla Francji) i wpisz numer. System sprawdza format numeru VAT UE, ale nie potwierdza aktywności podatnika w rejestrze VIES.",
       },
       {
         title: "3. Podmioty spoza UE (np. USA, Ghana, Azja)",

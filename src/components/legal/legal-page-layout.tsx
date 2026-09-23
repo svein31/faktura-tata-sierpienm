@@ -45,6 +45,17 @@ function LegalContent({ content }: { content: string }) {
     <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed print:text-xs print:text-slate-800">
       {lines.map((line, i) => {
         const trimmed = line.trim();
+        if (trimmed.startsWith("|")) {
+          if (i > 0 && lines[i - 1].trim().startsWith("|")) return null;
+          const tableLines: string[] = [];
+          for (let j = i; j < lines.length && lines[j].trim().startsWith("|"); j++) tableLines.push(lines[j]);
+          const parseCells = (row: string) => row.trim().replace(/^\||\|$/g, "").split("|").map(cell => cell.trim());
+          const [header, divider, ...body] = tableLines;
+          if (divider && parseCells(divider).every(cell => /^:?-{3,}:?$/.test(cell))) {
+            return <div key={i} className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700"><table className="w-full min-w-[640px] border-collapse text-left text-xs"><thead className="bg-slate-100 dark:bg-slate-800"><tr>{parseCells(header).map((cell, index) => <th key={index} scope="col" className="border-b p-2 font-semibold">{inline(cell)}</th>)}</tr></thead><tbody>{body.map((row, rowIndex) => <tr key={rowIndex} className="border-t border-slate-200 dark:border-slate-700">{parseCells(row).map((cell, cellIndex) => <td key={cellIndex} className="p-2 align-top">{inline(cell)}</td>)}</tr>)}</tbody></table></div>;
+          }
+          return <p key={i}>{inline(trimmed)}</p>;
+        }
         if (/^---+$/.test(trimmed)) return <hr key={i} className="my-4 border-slate-200 dark:border-slate-800" />;
         if (/^#{1,6}\s/.test(trimmed)) return <h3 key={i} className="pt-3 font-semibold text-slate-900 dark:text-slate-100">{inline(trimmed.replace(/^#{1,6}\s+/, ""))}</h3>;
         const isNumbered = /^\d+\./.test(trimmed);

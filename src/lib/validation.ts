@@ -1,7 +1,7 @@
 /**
  * Walidacja i formatowanie identyfikatorów podatkowych:
  * - Polski NIP (10 cyfr z sumą wagową)
- * - VAT UE (VIES dla krajów członkowskich UE)
+ * - Format VAT UE dla krajów członkowskich UE (bez sprawdzania rejestru VIES)
  * - Zagraniczny TIN / Tax ID (alfanumeryczny, zachowujący separatory i zera)
  * - REGON
  */
@@ -155,7 +155,7 @@ export function validateTaxId(
     };
   }
 
-  // 2. VAT UE (VIES)
+  // 2. Format VAT UE (bez połączenia z VIES)
   if (type === "vat_eu") {
     const clean = raw.replace(/\s+/g, "").toUpperCase();
     // Sprawdź czy numer ma już prefiks kraju

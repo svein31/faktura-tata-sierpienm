@@ -34,6 +34,7 @@ type SubscriptionInfo = {
 
 type BillingApiResponse = {
   plans: typeof SUBSCRIPTION_PLANS;
+  quota: { tier: "free" | "pro"; used: number; limit: number | null; remaining: number | null };
   subscription: SubscriptionInfo;
 };
 
@@ -181,6 +182,9 @@ export function SubscriptionCard() {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {data?.quota && <p role="status" className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+          {data.quota.tier === "free" ? `Konto Free · wystawiono ${data.quota.used} z ${data.quota.limit} faktur w tym miesiącu` : "Konto Pro · bez limitu faktur"}
+        </p>}
         {/* Baner informacyjny powrotu ze Stripe */}
         {bannerMessage && (
           <div

@@ -45,6 +45,15 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useSessionUser();
+  const [accountTier, setAccountTier] = React.useState<"free" | "pro" | null>(null);
+  React.useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/subscription", { signal: controller.signal, cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => { if (!controller.signal.aborted && data?.quota?.tier) setAccountTier(data.quota.tier); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   const match = TITLES.find((t) => t.re.test(pathname));
   const title = match?.title ?? "FakturaProsto";
 
@@ -226,9 +235,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
               {initials || "?"}
             </div>
+            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground md:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
             <div className="hidden leading-tight md:block text-left">
-              <p className="max-w-[120px] truncate text-[12px] font-semibold text-foreground">
-                {user.name}
+              <p className="flex max-w-[155px] items-center gap-1 text-[12px] font-semibold text-foreground">
+                <span className="truncate">{user.name}</span>
+                {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
               </p>
               <p className="max-w-[120px] truncate text-[10.5px] text-muted-foreground">
                 {user.email}

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownUp,
+  ChevronDown,
   CloudDownload,
   Copy,
   Download,
@@ -922,18 +923,6 @@ export default function InvoicesPage() {
                             </Button>
                           )}
 
-                          {ksefNum && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDownloadUpo(ksefNum)}
-                              title="Pobierz UPO (Urzędowe Poświadczenie Odbioru)"
-                              className="h-8 w-8 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-
                           {/* Konwersja proformy na fakturę VAT */}
                           {inv.isProforma && (
                             <Button
@@ -970,35 +959,17 @@ export default function InvoicesPage() {
                             <Mail className="h-3.5 w-3.5" />
                           </Button>
 
-                          {inv.type !== "purchase" && (<Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => editInvoice(inv.id)}
-                            title="Edytuj"
-                            className="h-8 w-8 rounded-lg"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>)}
-
-                          {inv.type !== "purchase" && (<Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => duplicateInvoice(inv.id)}
-                            title="Duplikuj"
-                            className="h-8 w-8 rounded-lg"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>)}
-
-                          {inv.type !== "purchase" && (<Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setToDelete(inv.id)}
-                            title="Usuń"
-                            className="h-8 w-8 rounded-lg text-muted-foreground hover:text-rose-500"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>)}
+                          {(ksefNum || inv.type !== "purchase") && <details className="text-left">
+                            <summary className="flex h-8 cursor-pointer list-none items-center rounded-lg border px-2 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" aria-label={`Więcej działań dla faktury ${inv.number}`} title="Więcej działań">Więcej <ChevronDown className="ml-1 h-3 w-3" /></summary>
+                            <div className="mt-1 min-w-36 rounded-xl border bg-card p-1">
+                              {ksefNum && <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => handleDownloadUpo(ksefNum)}><Download className="h-3.5 w-3.5" /> Pobierz UPO</button>}
+                              {inv.type !== "purchase" && <>
+                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-3.5 w-3.5" /> Edytuj</button>
+                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-3.5 w-3.5" /> Duplikuj</button>
+                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-rose-600 hover:bg-muted" onClick={() => setToDelete(inv.id)}><Trash2 className="h-3.5 w-3.5" /> Usuń</button>
+                              </>}
+                            </div>
+                          </details>}
                         </div>
                       </td>
                     </motion.tr>

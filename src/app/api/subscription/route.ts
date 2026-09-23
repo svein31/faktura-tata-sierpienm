@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { prisma } from "@/lib/db";
+import { currentInvoiceQuota } from "@/lib/invoice-quota";
 import {
   SUBSCRIPTION_PLANS,
   SUBSCRIPTION_STATUS_LABELS,
@@ -43,6 +44,7 @@ export async function GET() {
 
     return json({
       plans: SUBSCRIPTION_PLANS,
+      quota: await currentInvoiceQuota(user.id),
       subscription: {
         plan,
         status,

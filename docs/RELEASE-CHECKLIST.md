@@ -21,6 +21,7 @@ Stan kodu i zielone CI nie potwierdzają konfiguracji hostingu ani usług zewnę
 - Wykonaj rzeczywisty backup, odtwórz go do odizolowanej bazy i potwierdź dane oraz indeksy. Uruchom harmonogram kopii i alert o braku świeżej kopii.
 - Zweryfikuj harmonogramy zadań, monitor kondycji, alerty na błędy aplikacji i nieudane zadania oraz procedurę zatrzymania wdrożenia.
 - Uruchom pełny scenariusz użytkownika na docelowym adresie: rejestracja → firma → kontrahent → szkic → wystawienie → PDF → e-mail → KSeF → korekta.
-- Włącz limit konta Free dopiero po potwierdzeniu działającej ścieżki uzyskania Pro i scenariusza po wyczerpaniu limitu. Odrębna gałąź z limitem nie jest częścią bieżącego `main`.
+- Sprawdź limit Free przy piątej i szóstej fakturze, przy wystawieniu przez członka zespołu oraz podczas zmiany miesiąca. Potwierdź scenariusz użytkownika po wyczerpaniu limitu.
+- Zweryfikuj w oficjalnym rejestrze dane operatora przed premierą: kod 61-546 oraz miasto Warszawa zapisane obecnie w `src/lib/legal/config.ts` są niespójne. Potwierdź także adres siedziby i rzeczywistych podwykonawców; nie poprawiaj ich na podstawie domysłu.
 
 Nie oznaczaj tych punktów jako wykonanych na podstawie samych testów CI. Po zmianie dostawcy lub wersji API powtórz odpowiedni test integracyjny.

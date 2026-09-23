@@ -12,6 +12,7 @@ import { invoiceTotals } from "@/lib/format";
 import { warsawDate, addCalendarDays } from "@/lib/scheduling";
 import { isIsoCalendarDate } from "@/lib/nbp";
 import { recordAuditLog } from "@/lib/audit";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import type { InvoiceLine } from "@/lib/types";
 import type { Prisma } from "@prisma/client";
 export const runtime="nodejs";
@@ -50,8 +51,9 @@ export async function POST(req:Request){try{
   await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate }]);
   const locked=await tx.invoice.updateMany({where:{id:source.id,isProforma:true,OR:[{version:source.version},...((source.version??1)<=1?[{version:{isSet:false}}]:[])]},data:{version:(source.version||1)+1}});if(!locked.count)throw new ApiError(409,"Proforma zmieniła się. Odśwież i ponów operację.");
   if(await tx.invoice.count({where:{sellerCompanyId:companyId,number}}))throw new ApiError(409,"Numer jest już używany.");
+  const issuedAt=await claimInvoiceQuota(tx,user.id,companyId);
   const metadata={sourceId:source.id,sourceNumber:source.number,orderLines:order,advances:advances.map(a=>({id:a.id,number:a.number,ksefNumber:a.ksefNumber,gross:invoiceTotals({lines:a.lines as unknown as InvoiceLine[]}).gross}))};
-  const created=await tx.invoice.create({data:{...data,userId:user.id,documentKind:kind,advanceReceivedDate:kind==="advance"?receivedDate:null,settlementMetadata:metadata as unknown as Prisma.InputJsonValue,lines:lines as unknown as Prisma.InputJsonValue,totalNet:totals.net,totalVat:totals.vat,totalGross:totals.gross,totalNetPln:data.totalNetPln,totalVatPln:data.totalVatPln,totalGrossPln:data.totalGrossPln,...(kind==="advance"?{paidAmount:totals.gross}:{}),version:1}});
+  const created=await tx.invoice.create({data:{...data,userId:user.id,issuedAt,documentKind:kind,advanceReceivedDate:kind==="advance"?receivedDate:null,settlementMetadata:metadata as unknown as Prisma.InputJsonValue,lines:lines as unknown as Prisma.InputJsonValue,totalNet:totals.net,totalVat:totals.vat,totalGross:totals.gross,totalNetPln:data.totalNetPln,totalVatPln:data.totalVatPln,totalGrossPln:data.totalGrossPln,...(kind==="advance"?{paidAmount:totals.gross}:{}),version:1}});
   await captureInvoicePrint(tx, created, "settlement");
   await tx.invoiceSettlement.create({data:{invoiceId:created.id,sourceId:source.id,companyId,kind,requestKey,finalKey:kind==="final"?`final:${source.id}`:`advance:${created.id}`}});
   await recordAuditLog({client:tx,userId:user.id,userName:user.name,userEmail:user.email,companyId,documentId:created.id,entityType:"invoice",entityId:created.id,action:`${kind}_invoice_created`,details:{sourceId:source.id,net:totals.net,gross:totals.gross}});return created;

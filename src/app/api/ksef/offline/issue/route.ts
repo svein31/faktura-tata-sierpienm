@@ -11,6 +11,7 @@ import { KSEF_V2_URLS, type KsefEnvironment } from "@/lib/ksef/constants";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { recordAuditLog } from "@/lib/audit";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 
 export const runtime = "nodejs";
 
@@ -76,8 +77,9 @@ export async function POST(req: Request) {
     const qrCodeII = buildKsefOfflineCertUrl({ ...params, certificatePem, privateKeyPem: signer.privateKeyPem, contextType: "Nip", contextValue: nip });
     const updated = await prisma.$transaction(async tx => {
       await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
+      const issuedAt = await claimInvoiceQuota(tx, user.id, invoice.sellerCompanyId);
       const changed = await tx.invoice.updateMany({ where: { id: invoice.id, version: invoice.version, status: "draft", referenceNumber: null, qrCodeII: null }, data: {
-        status: "issued", documentStatus: "issued", ksefStatus: "ready", ksefXml: xml, qrCodeI, qrCodeII, version: (invoice.version || 1) + 1,
+        status: "issued", documentStatus: "issued", issuedAt, ksefStatus: "ready", ksefXml: xml, qrCodeI, qrCodeII, version: (invoice.version || 1) + 1,
       } });
       if (!changed.count) throw new ApiError(409, "Faktura zmieniła się przed wystawieniem. Odśwież dokument.");
       const record = await tx.invoice.findUniqueOrThrow({ where: { id: invoice.id } });

@@ -6,10 +6,13 @@ import { isAbsolute, resolve } from "node:path";
 const endpoint = process.env.MONITOR_HEALTH_URL;
 const directory = process.env.MONITOR_BACKUP_DIR;
 const maxHours = Number(process.env.MONITOR_BACKUP_MAX_AGE_HOURS || "36");
+const ksefUrl = process.env.MONITOR_KSEF_URL || "https://api-test.ksef.mf.gov.pl/v2";
+const nbpUrl = "https://api.nbp.pl/api/exchangerates/tables/A/?format=json";
 const problems = [];
 if (!endpoint || !/^https:\/\//.test(endpoint)) problems.push("MONITOR_HEALTH_URL must use HTTPS");
 if (!directory || !isAbsolute(directory)) problems.push("MONITOR_BACKUP_DIR must be absolute");
 if (!Number.isFinite(maxHours) || maxHours <= 0) problems.push("Invalid backup age limit");
+if (!/^https:\/\/api(?:-test|-demo)?\.ksef\.mf\.gov\.pl\/v2\/?$/.test(ksefUrl)) problems.push("Invalid KSeF gateway URL");
 
 if (!problems.length) {
   try {
@@ -17,6 +20,16 @@ if (!problems.length) {
     const body = await response.json();
     if (!response.ok || body.ok !== true || body.db !== "ok") problems.push("Health probe failed");
   } catch { problems.push("Health probe unavailable"); }
+  // A 4xx at the API root still proves gateway reachability; this is not an authenticated KSeF flow.
+  try {
+    const response = await fetch(ksefUrl, { signal: AbortSignal.timeout(10000), cache: "no-store" });
+    if (response.status >= 500) problems.push("KSeF gateway returned a server error");
+  } catch { problems.push("KSeF gateway unavailable"); }
+  try {
+    const response = await fetch(nbpUrl, { signal: AbortSignal.timeout(10000), cache: "no-store" });
+    const body = response.ok ? await response.json() : null;
+    if (!Array.isArray(body) || !body[0]?.effectiveDate || !Array.isArray(body[0]?.rates)) problems.push("NBP rates unavailable");
+  } catch { problems.push("NBP rates unavailable"); }
   try {
     const files = await readdir(directory);
     const archives = files.filter(file => file.endsWith(".enc"));

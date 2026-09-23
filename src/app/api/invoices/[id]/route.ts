@@ -10,6 +10,7 @@ import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
 import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
+import { claimInvoiceQuota } from "@/lib/invoice-quota";
 
 export const runtime = "nodejs";
 
@@ -199,11 +200,14 @@ export async function PUT(req: Request, { params }: Ctx) {
       { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
       { companyId: data.sellerCompanyId, issueDate: data.issueDate },
     ]);
+    const issuedAt = data.type === "sale" && !data.isProforma && !existing.issuedAt && (existing.status === "draft" || existing.isProforma) && data.status !== "draft"
+      ? await claimInvoiceQuota(tx, user.id, existing.sellerCompanyId) : existing.issuedAt;
     await captureInvoicePrint(tx, existing, "before-edit");
     const invoice = await tx.invoice.update({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },
       data: {
         ...data,
+        issuedAt,
         version: nextVersion,
         recurringUserId: data.isRecurring ? user.id : null,
       },
