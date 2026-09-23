@@ -1,629 +1,69 @@
 "use client";
-import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import {
-  AlertOctagon,
-  AlertTriangle,
-  ArrowRight,
-  Building2,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-  FileCode2,
-  FileEdit,
-  FileText,
-  Filter,
-  Layers,
-  Plus,
-  Radio,
-  Receipt,
-  RefreshCw,
-  Search,
-  Send,
-  ShieldAlert,
-  ShieldCheck,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Wifi,
-  WifiOff,
-  Zap,
-} from "lucide-react";
 import dynamic from "next/dynamic";
-import { VatDistributionChart } from "@/components/dashboard/vat-distribution-chart";
-import { AttentionInvoicesCard } from "@/components/dashboard/attention-invoices-card";
+import { ArrowRight, Plus, RefreshCw } from "lucide-react";
+import { useOverview } from "@/lib/use-overview";
+import { useAppStore } from "@/lib/store";
+import { formatMoney, monthLabel } from "@/lib/format";
 import { OnboardingBanner } from "@/components/ui/page-guide";
-import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { InfoTooltip } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { EmptyState } from "@/components/ui/empty-state";
-import { formatDate, formatDateTime, formatMoney, invoiceTotals, monthKey, monthLabel } from "@/lib/format";
-import { todayISO } from "@/lib/utils";
-import { EMPTY_COMPANY } from "@/lib/types";
-import type { EffectiveStatus } from "@/lib/store";
-import type { Invoice } from "@/lib/types";
 
-const RevenueAreaChart = dynamic(
-  () => import("@/components/charts").then((m) => m.RevenueAreaChart),
-  {
-    ssr: false,
-    loading: () => <Skeleton className="h-[240px] w-full rounded-2xl" />,
-  }
-);
-
-interface ActionCardProps {
-  title: string;
-  count: number;
-  subtext: string;
-  icon: React.ReactNode;
-  filterHref: string;
-  delay?: number;
-  tone?: string;
-}
-
-function ActionCard({ title, count, subtext, icon, filterHref, delay = 0 }: ActionCardProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.04, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="h-full"
-    >
-      <Link
-        href={filterHref}
-        className="block group h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
-      >
-        <div className="relative h-full flex flex-col justify-between rounded-2xl border border-border/70 bg-card p-5 sm:p-6 shadow-xs hover-lift hover:border-border/90 hover:shadow-md transition-all duration-200">
-          <div>
-            {/* Nagłówek po lewej, ikona w neutralnym kontenerze 40x40 po prawej */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <span className="text-[13px] sm:text-[14px] font-medium text-foreground/85 dark:text-foreground/90 leading-snug line-clamp-2 min-h-[38px] flex items-center">
-                  {title}
-                </span>
-              </div>
-
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 dark:bg-muted/40 border border-border/50 text-muted-foreground transition-colors duration-150">
-                {icon}
-              </div>
-            </div>
-
-            {/* Liczba (30-34px) + badge "Wymaga reakcji" z własnym paddingiem i odstępem */}
-            <div className="mt-3 sm:mt-3.5 flex items-center flex-wrap gap-2.5">
-              <AnimatedCounter
-                value={count}
-                className="text-[30px] sm:text-[34px] font-bold tracking-tight text-foreground tabular-nums leading-none"
-              />
-              {count > 0 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 shrink-0">
-                  Wymaga reakcji
-                </span>
-              )}
-            </div>
-
-            {/* Krótki opis (12-13px) */}
-            <p
-              className="mt-2 text-[12px] sm:text-[12.5px] text-muted-foreground leading-relaxed line-clamp-1 min-h-[18px]"
-              title={subtext}
-            >
-              {subtext}
-            </p>
-          </div>
-
-          {/* Odnośnik przy dolnej krawędzi */}
-          <div className="mt-5 pt-3.5 border-t border-border/50 flex items-center justify-between text-[12px] sm:text-[12.5px] font-medium text-primary transition-colors duration-150">
-            <span>Zobacz listę</span>
-            <ArrowRight className="h-3.5 w-3.5 text-primary/80 transition-colors duration-150" />
-          </div>
-        </div>
-      </Link>
-    </motion.div>
-  );
-}
+const RevenueAreaChart = dynamic(() => import("@/components/charts").then(m => m.RevenueAreaChart), { ssr: false });
+const money = (amount: number, currency: string) => formatMoney(amount, currency as Parameters<typeof formatMoney>[1]);
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { contractors, company, ksef } = useAppStore();
-  const invoices = useCompanyInvoices();
-  const today = todayISO();
-  const companySafe = company ?? EMPTY_COMPANY;
-  const ksefSafe = ksef ?? {
-    environment: "demo" as const,
-    tokenSet: false,
-    tokenMask: "",
-    certName: "",
-    autoValidate: true,
-  };
-
-  // Stan połączenia KSeF
-  const [pinging, setPinging] = React.useState(false);
-  const [ksefStatus, setKsefStatus] = React.useState<{
-    ok: boolean | null;
-    pingMs?: number;
-    checkedAt?: string;
-  }>({ ok: null });
-  const connectionGeneration = React.useRef(0);
-  React.useEffect(() => {
-    connectionGeneration.current += 1;
-    setKsefStatus({ ok: null });
-    setPinging(false);
-  }, [company?.id, ksefSafe.environment]);
-
-  const checkConnection = async () => {
-    const generation = ++connectionGeneration.current;
-    setPinging(true);
+  const { data, error, companyId, reload } = useOverview();
+  const company = useAppStore(s => s.company);
+  const ksef = useAppStore(s => s.ksef);
+  const [selectedCurrency, setSelectedCurrency] = React.useState("PLN");
+  const [gateway, setGateway] = React.useState<"idle" | "loading" | "ok" | "error">("idle");
+  React.useEffect(() => { setSelectedCurrency("PLN"); setGateway("idle"); }, [companyId]);
+  const currency = data?.currencies.includes(selectedCurrency) ? selectedCurrency : data?.currencies[0] || "PLN";
+  const current = data?.currentMonth.find(v => v.currency === currency);
+  const previous = data?.previousMonth.find(v => v.currency === currency);
+  const comparison = previous?.gross ? ((current?.gross || 0) / previous.gross - 1) * 100 : null;
+  const chart = data?.months.map(m => {
+    const item = m.values.find(v => v.currency === currency);
+    return { label: monthLabel(m.key), netto: item?.net || 0, brutto: item?.gross || 0 };
+  }) || [];
+  const checkGateway = async () => {
+    if (!companyId) return;
+    setGateway("loading");
     try {
-      const res = await fetch("/api/ksef/test-connection", {
+      const response = await fetch("/api/ksef/test-connection", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyId: company?.id, environment: ksefSafe.environment, gatewayOnly: true }),
+        body: JSON.stringify({ companyId, environment: ksef?.environment || "demo", gatewayOnly: true }),
         signal: AbortSignal.timeout(30000),
       });
-      const data = await res.json();
-      if (generation !== connectionGeneration.current) return;
-      setKsefStatus({
-        ok: res.ok && data.ok === true,
-        pingMs: data.pingMs,
-        checkedAt: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
-      });
-    } catch {
-      if (generation !== connectionGeneration.current) return;
-      setKsefStatus({
-        ok: false,
-        checkedAt: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
-      });
-    } finally {
-      if (generation === connectionGeneration.current) setPinging(false);
-    }
+      const result = await response.json();
+      setGateway(response.ok && result.ok ? "ok" : "error");
+    } catch { setGateway("error"); }
   };
 
-  // 1. Grupowanie dokumentów pod kątem pytań „Co wymaga działania?”
-  const rejectedInvoices = invoices.filter(
-    (i) => i.ksefStatus === "rejected" || (i.status as string) === "ksef_rejected"
-  );
-  const queuedInvoices = invoices.filter(
-    (i) =>
-      i.ksefStatus === "queued" ||
-      i.ksefStatus === "sending" ||
-      i.ksefStatus === "verify_needed" ||
-      i.status === "ksef_sent"
-  );
-  const overdueInvoices = invoices.filter((i) => {
-    if (i.paymentStatus === "overdue") return true;
-    if (i.status === "paid") return false;
-    return Boolean(i.dueDate && i.dueDate < today);
-  });
-  const draftInvoices = invoices.filter(
-    (i) => i.documentStatus === "draft" || i.status === "draft"
-  );
-  const offlineInvoices = invoices.filter(
-    (i) => i.isOffline && (!i.ksefNumber || i.ksefStatus !== "accepted")
-  );
-
-  // Ostatnie faktury
-  const recentInvoices = [...invoices]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 6);
-
-  // Statystyki finansowe & kalkulacja m/m
-  const currentMonth = monthKey(today);
-  const prevDate = new Date();
-  prevDate.setMonth(prevDate.getMonth() - 1);
-  const prevMonth = monthKey(prevDate.toISOString().slice(0, 10));
-
-  const salesIssued = invoices.filter((i) => i.type === "sale" && i.status !== "draft");
-  const monthRevenue = salesIssued
-    .filter((i) => monthKey(i.issueDate) === currentMonth)
-    .reduce((acc, i) => acc + (i.totalGross || invoiceTotals(i).gross), 0);
-
-  const prevMonthRevenue = salesIssued
-    .filter((i) => monthKey(i.issueDate) === prevMonth)
-    .reduce((acc, i) => acc + (i.totalGross || invoiceTotals(i).gross), 0);
-
-  const monthCount = salesIssued.filter((i) => monthKey(i.issueDate) === currentMonth).length;
-  const prevMonthCount = salesIssued.filter((i) => monthKey(i.issueDate) === prevMonth).length;
-
-  const mmDiff = monthRevenue - prevMonthRevenue;
-  const mmPercent = prevMonthRevenue > 0
-    ? ((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100
-    : monthRevenue > 0 ? 100 : 0;
-
-  // Wykres 6 miesięcy
-  const months: string[] = [];
-  for (let m = 5; m >= 0; m--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - m);
-    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-  }
-  const revenueData = months.map((mk) => {
-    const items = salesIssued.filter((i) => monthKey(i.issueDate) === mk);
-    return {
-      label: monthLabel(mk),
-      netto: items.reduce((a, i) => a + (i.totalNet || invoiceTotals(i).net), 0),
-      brutto: items.reduce((a, i) => a + (i.totalGross || invoiceTotals(i).gross), 0),
-    };
-  });
-
-  const envLabel = {
-    production: "Produkcja (MF)",
-    test: "Środowisko Testowe (MF)",
-    demo: "Symulator DEMO (Lokalny)",
-  }[ksefSafe.environment];
-
-  const envBadgeTone = {
-    production: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-    test: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-    demo: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30",
-  }[ksefSafe.environment];
-
-  return (
-    <div className="space-y-8">
-      {/* ── NAGŁÓWEK GŁÓWNY Z WYRAŹNYM PRZYCISKIEM „NOWA FAKTURA” ── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Co wymaga działania?
-            </h1>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${envBadgeTone}`}
-            >
-              KSeF: {envLabel}
-            </span>
-          </div>
-          <p className="mt-1 text-[13px] text-muted-foreground leading-relaxed">
-            Bieżące powiadomienia, kolejka e-Faktur KSeF i status płatności kontrahentów.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/invoices/new"
-            id="dashboard-new-invoice-btn"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-[13.5px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nowa faktura</span>
-          </Link>
-        </div>
+  return <div className="space-y-5">
+    <header className="flex flex-wrap items-center justify-between gap-3">
+      <div><h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1><p className="text-xs text-muted-foreground">Najważniejsze sprawy wybranej firmy</p></div>
+      <div className="flex gap-2"><button onClick={reload} aria-label="Odśwież przegląd" className="rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"><RefreshCw className="size-4" /></button><Link href="/invoices/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link></div>
+    </header>
+    {data && <OnboardingBanner hasCompany={Boolean(company?.nip)} hasKsef={Boolean(ksef?.tokenSet || ksef?.certName)} hasInvoices={Boolean(data.recent.length)} />}
+    {!companyId && <p className="rounded-xl border p-4 text-sm">Wybierz firmę, aby zobaczyć podsumowanie.</p>}
+    {error && <div role="alert" className="rounded-xl border border-rose-500/30 p-4 text-sm">{error} <button onClick={reload} className="ml-2 text-primary underline">Spróbuj ponownie</button></div>}
+    {companyId && !data && !error && <p role="status" className="rounded-xl border p-4 text-sm text-muted-foreground">Wczytywanie przeglądu…</p>}
+    {data && <>
+      <section aria-label="Sprawy wymagające działania" className="rounded-xl border bg-card shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"><h2 className="text-sm font-semibold">Do załatwienia <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{data.actionTotal}</span></h2><span className="text-xs text-muted-foreground">{data.actionTotal > 8 ? "8 najpilniejszych" : "Bieżące zadania"}</span></div>
+        {data.actions.length ? <div className="divide-y">{data.actions.map(action => <Link key={action.id} href={action.href} className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary"><span className="w-24 shrink-0 text-[11px] font-medium text-muted-foreground sm:w-28">{action.kind}</span><span className="min-w-0 flex-1 truncate text-sm font-medium" title={action.label + " — " + action.detail}>{action.label} <span className="ml-2 font-normal text-muted-foreground">{action.detail}</span></span><ArrowRight className="size-4 shrink-0 text-muted-foreground" /></Link>)}</div> : <p className="px-4 py-5 text-sm text-muted-foreground">Brak pilnych spraw dla tej firmy.</p>}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground"><Link href="/cost-reviews" className="hover:text-primary">Akceptacje: {data.counts.reviews}</Link><Link href="/accountant" className="hover:text-primary">Zadania: {data.counts.tasks}</Link><Link href="/invoices" className="hover:text-primary">Po terminie: {data.counts.overdue}</Link><Link href="/settings/health" className="hover:text-primary">KSeF: {data.counts.rejected + data.counts.uncertain}</Link></div>
+      </section>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <section aria-label="Przychody" className="min-w-0 rounded-xl border bg-card p-4 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs text-muted-foreground">Przychód brutto · bieżący miesiąc</p><p className="mt-1 text-2xl font-semibold tabular-nums">{money(current?.gross || 0, currency)}</p>{comparison !== null && <p className="text-xs text-muted-foreground">{comparison >= 0 ? "+" : ""}{comparison.toFixed(1)}% względem poprzedniego miesiąca</p>}</div><div className="flex gap-1" aria-label="Waluta">{data.currencies.map(c => <button key={c} onClick={() => setSelectedCurrency(c)} aria-pressed={currency === c} className={`rounded-md px-2 py-1 text-xs ${currency === c ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{c}</button>)}</div></div>
+          <div className="mt-3 h-[175px] overflow-hidden"><RevenueAreaChart data={chart} /></div><Link href="/analytics" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">Analityka <ArrowRight className="size-3" /></Link>
+        </section>
+        <section aria-label="Stan KSeF" className="rounded-xl border bg-card p-4 shadow-sm"><div className="flex items-center justify-between"><h2 className="text-sm font-semibold">KSeF</h2><span className="text-xs text-muted-foreground">{ksef?.environment === "production" ? "Produkcja" : ksef?.environment === "test" ? "Test" : "Demo"}</span></div><p className="mt-2 text-2xl font-semibold tabular-nums">{data.ksefQueue.filter(t => t.status === "failed" || t.status === "verify_needed").length}</p><p className="text-xs text-muted-foreground">zadań do sprawdzenia w ostatnich 20</p><div className="mt-4 flex items-center justify-between gap-2 border-t pt-3"><span className="text-xs text-muted-foreground">{gateway === "ok" ? "Bramka dostępna" : gateway === "error" ? "Błąd bramki" : "Bramka nie sprawdzona"}</span><button onClick={checkGateway} disabled={gateway === "loading"} className="text-xs font-medium text-primary disabled:opacity-50">{gateway === "loading" ? "Sprawdzam…" : "Sprawdź"}</button></div><Link href="/settings/health" className="mt-3 inline-flex items-center gap-1 text-xs text-primary">Historia i kolejki <ArrowRight className="size-3" /></Link></section>
       </div>
-
-      {/* Banner onboardingowy dla nowych kont */}
-      <OnboardingBanner
-        hasCompany={Boolean(companySafe?.nip)}
-        hasKsef={Boolean(ksefSafe?.tokenSet || ksefSafe?.certName)}
-        hasInvoices={invoices.length > 0}
-      />
-
-      {/* ── 5 LICZNIKÓW AKCJI („CO WYMAGA DZIAŁANIA?”) ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-5">
-        {/* 1. Faktury odrzucone */}
-        <ActionCard
-          title="Faktury odrzucone"
-          count={rejectedInvoices.length}
-          subtext={
-            rejectedInvoices.length === 0
-              ? "Brak odrzuconych dokumentów"
-              : "Wymagają poprawy i ponowienia"
-          }
-          icon={<AlertOctagon className="h-5 w-5" />}
-          filterHref="/invoices?status=ksef_rejected"
-          delay={0}
-        />
-
-        {/* 2. Oczekujące na wysyłkę / w kolejce KSeF */}
-        <ActionCard
-          title="KSeF: W kolejce / wysyłane"
-          count={queuedInvoices.length}
-          subtext={
-            queuedInvoices.length === 0
-              ? "Kolejka przetworzona"
-              : "Trwa wysyłka lub oczekiwanie na UPO"
-          }
-          icon={<Clock className="h-5 w-5" />}
-          filterHref="/invoices?status=ksef_sent"
-          delay={1}
-        />
-
-        {/* 3. Należności po terminie */}
-        <ActionCard
-          title="Należności po terminie"
-          count={overdueInvoices.length}
-          subtext={
-            overdueInvoices.length === 0
-              ? "Wszystkie płatności w terminie"
-              : "Zaległości wymagające kontaktu"
-          }
-          icon={<AlertTriangle className="h-5 w-5" />}
-          filterHref="/invoices?status=overdue"
-          delay={2}
-        />
-
-        {/* 4. Szkice do dokończenia */}
-        <ActionCard
-          title="Szkice do dokończenia"
-          count={draftInvoices.length}
-          subtext={
-            draftInvoices.length === 0
-              ? "Brak otwartych szkiców"
-              : "Niewystawione wersje robocze"
-          }
-          icon={<FileEdit className="h-5 w-5" />}
-          filterHref="/invoices?status=draft"
-          delay={3}
-        />
-
-        {/* 5. Dokumenty offline */}
-        <ActionCard
-          title="Dokumenty offline"
-          count={offlineInvoices.length}
-          subtext={
-            offlineInvoices.length === 0
-              ? "Brak faktur offline"
-              : "Oczekują na przesłanie do KSeF"
-          }
-          icon={<Zap className="h-5 w-5" />}
-          filterHref="/invoices?status=offline"
-          delay={4}
-        />
-      </div>
-
-      {/* ── KAFEL POŁĄCZENIA Z KSEF + PRZYCHÓD MIESIĄCA ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* KSeF Connection Widget */}
-        <Card className="rounded-2xl border border-border/80 bg-card/90 shadow-sm p-5">
-          <div className="flex items-center justify-between border-b border-border/60 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`h-2.5 w-2.5 rounded-full ${ksefStatus.ok === null ? "bg-slate-400" : ksefStatus.ok ? "bg-emerald-500" : "bg-rose-500"}`}
-              />
-              <span className="text-sm font-semibold text-foreground">Bramka KSeF 2.0</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={checkConnection}
-              disabled={pinging}
-              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <RefreshCw className={`h-3 w-3 ${pinging ? "animate-spin" : ""}`} />
-              <span>{pinging ? "Test…" : "Sprawdź"}</span>
-            </Button>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Środowisko:</span>
-              <span className="font-semibold text-foreground">{envLabel}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Status bramki:</span>
-              <span className={ksefStatus.ok === null ? "text-muted-foreground" : ksefStatus.ok ? "text-emerald-500 font-medium" : "text-rose-500 font-medium"}>
-                {ksefStatus.ok === null ? "Jeszcze nie sprawdzono" : ksefStatus.ok ? "Bramka dostępna" : "Błąd połączenia"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Czas odpowiedzi (ping):</span>
-              <span className="font-mono font-medium text-foreground">
-                {ksefStatus.pingMs ? `${ksefStatus.pingMs} ms` : "—"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Token autoryzacyjny:</span>
-              <span className="font-medium text-foreground">
-                {ksefSafe.tokenSet ? "Skonfigurowany ✓" : "Brak (tryb lokalny)"}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-5 border-t border-border/60 pt-3 flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">
-              Sprawdzono: {ksefStatus.checkedAt || "—"}
-            </span>
-            <Link
-              href="/ksef?tab=settings"
-              className="text-[11.5px] font-medium text-primary hover:underline"
-            >
-              Konfiguracja KSeF →
-            </Link>
-          </div>
-        </Card>
-
-        {/* Wykres Przychodu z dynamiką m/m */}
-        <div className="lg:col-span-2">
-          <Card className="h-full rounded-2xl border border-border/80 bg-card/90 shadow-sm p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3.5">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">Przychód w tym miesiącu</p>
-                <div className="flex flex-wrap items-baseline gap-2.5 mt-0.5">
-                  <AnimatedCounter
-                    value={monthRevenue}
-                    format={(val) => formatMoney(val, "PLN")}
-                    className="text-2xl font-bold tracking-tight text-foreground"
-                  />
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${
-                    mmDiff >= 0
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                      : "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
-                  }`}>
-                    {mmDiff >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    <span>{mmDiff >= 0 ? "+" : ""}{mmPercent.toFixed(1)}% m/m</span>
-                  </span>
-                  <span className="text-[11px] text-muted-foreground hidden sm:inline">
-                    (poprz. miesiąc: {formatMoney(prevMonthRevenue, "PLN")})
-                  </span>
-                </div>
-              </div>
-              <Link
-                href="/analytics"
-                className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
-              >
-                <span>Pełna analityka</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-            <div className="mt-4">
-              <RevenueAreaChart data={revenueData} />
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* ── LISTA FAKTUR WYMAGAJĄCYCH UWAGI & ROZKŁAD STAWEK VAT ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <AttentionInvoicesCard invoices={invoices} />
-        <VatDistributionChart invoices={invoices} />
-      </div>
-
-
-      {/* ── OSTATNIE DOKUMENTY Z SZYBKIMI AKCJAMI ── */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold tracking-tight text-foreground">
-            Ostatnio wystawione dokumenty
-          </h2>
-          <Link
-            href="/invoices"
-            className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
-          >
-            <span>Wszystkie faktury ({invoices.length})</span>
-            <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-
-        {recentInvoices.length === 0 ? (
-          <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
-            <EmptyState
-              icon={Receipt}
-              title="Brak wystawionych faktur"
-              description="Rozpocznij fakturowanie jednym kliknięciem i prześlij e-Fakturę bezpośrednio do KSeF."
-              action={
-                <Link href="/invoices/new">
-                  <Button size="sm" className="rounded-xl gap-1.5 font-medium">
-                    <Plus className="h-4 w-4" /> Wystaw fakturę
-                  </Button>
-                </Link>
-              }
-              className="py-6"
-            />
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-border/80 bg-card/90 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-border/70 bg-muted/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    <th className="py-3 px-4">Numer</th>
-                    <th className="py-3 px-4">Kontrahent</th>
-                    <th className="py-3 px-4">Data wystawienia</th>
-                    <th className="py-3 px-4">Kwota Brutto</th>
-                    <th className="py-3 px-4">Stan KSeF</th>
-                    <th className="py-3 px-4">Płatność</th>
-                    <th className="py-3 px-4 text-right">Akcje</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {recentInvoices.map((inv) => {
-                    const contractor = getContractor(contractors, inv.contractorId);
-                    const totals = invoiceTotals(inv);
-                    const isKsefAccepted = inv.ksefStatus === "accepted" || Boolean(inv.ksefNumber);
-                    const isKsefRejected = inv.ksefStatus === "rejected";
-
-                    return (
-                      <tr
-                        key={inv.id}
-                        className="hover:bg-muted/30 transition-colors group"
-                      >
-                        <td className="py-3.5 px-4 font-semibold text-foreground whitespace-nowrap">
-                          <Link
-                            href={`/invoices/${inv.id}`}
-                            className="hover:text-primary transition-colors flex items-center gap-1.5"
-                          >
-                            <span>{inv.number}</span>
-                            {inv.isCorrection && (
-                              <span className="px-1 py-0.2 rounded text-[9px] font-bold bg-amber-500/15 text-amber-600 border border-amber-500/30">
-                                KOR
-                              </span>
-                            )}
-                          </Link>
-                        </td>
-                        <td className="py-3.5 px-4 text-foreground/90 max-w-[200px] truncate">
-                          {contractor?.name || "—"}
-                        </td>
-                        <td className="py-3.5 px-4 text-muted-foreground whitespace-nowrap">
-                          {formatDate(inv.issueDate)}
-                        </td>
-                        <td className="py-3.5 px-4 font-semibold text-foreground whitespace-nowrap tabular-nums">
-                          {formatMoney(inv.totalGross ?? totals.gross, inv.currency)}
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          {isKsefAccepted ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                              <ShieldCheck className="h-3.5 w-3.5" />
-                              <span>Przyjęta</span>
-                            </span>
-                          ) : isKsefRejected ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
-                              <AlertOctagon className="h-3.5 w-3.5" />
-                              <span>Odrzucona</span>
-                            </span>
-                          ) : inv.ksefStatus === "queued" || inv.status === "ksef_sent" ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                              <Clock className="h-3.5 w-3.5" />
-                              <span>W kolejce</span>
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-muted-foreground">
-                              Niewysłana
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          {inv.paymentStatus === "paid" || inv.status === "paid" ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                              Opłacona
-                            </span>
-                          ) : inv.paymentStatus === "partially_paid" ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-sky-500/15 text-sky-600 border border-sky-500/20">
-                              Częściowo
-                            </span>
-                          ) : inv.dueDate && inv.dueDate < today ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                              Po terminie
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-muted text-muted-foreground border border-border">
-                              Nieopłacona
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                          <Link
-                            href={`/invoices/${inv.id}`}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                          >
-                            <span>Szczegóły</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+      <details className="rounded-xl border bg-card"><summary className="cursor-pointer px-4 py-3 text-sm font-semibold">Ostatnie dokumenty</summary><div className="divide-y border-t">{data.recent.map(inv => <Link key={inv.id} href={`/invoices/${inv.id}`} className="flex justify-between gap-3 px-4 py-2 text-sm hover:bg-muted/50"><span className="truncate">{inv.number}</span><span className="shrink-0 tabular-nums text-muted-foreground">{money(inv.gross || 0, inv.currency)}</span></Link>)}{data.recent.length === 0 && <p className="p-4 text-sm text-muted-foreground">Brak dokumentów.</p>}</div></details>
+    </>}
+  </div>;
 }
-

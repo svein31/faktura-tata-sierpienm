@@ -74,6 +74,10 @@ export default function AccountantPage() {
   const [currentMonth, setCurrentMonth] = React.useState(
     new Date().toISOString().slice(0, 7) // "YYYY-MM"
   );
+  React.useEffect(() => {
+    const month = new URLSearchParams(window.location.search).get("month");
+    if (month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)) setCurrentMonth(month);
+  }, []);
   const [loading, setLoading] = React.useState(true);
   const [summary, setSummary] = React.useState<MonthSummary | null>(null);
   const [invoices, setInvoices] = React.useState<Invoice[]>([]);

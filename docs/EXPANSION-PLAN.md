@@ -1,6 +1,6 @@
 # Expansion plan: eight approved stages
 
-Preserve existing functions and purchase invoice immutability. Dedicated payments/banking remain outside this scope. Stages 1–6 were merged in PR #4 on 22 September 2026. The remaining verification and reliability package is tracked on `codex/complete-expansion-sep22`; merge only after green CI. See `RELIABILITY.md` for operations, tests and deliberate limits.
+Preserve existing functions and purchase invoice immutability. Dedicated payments/banking remain outside this scope. Stages 1–6 were merged in PR #4 on 22 September 2026; the subsequent verification and reliability package reached main after green CI. See `RELIABILITY.md` for operations, tests and deliberate limits.
 
 | Stage | Implemented | Limits / operational action |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ Preserve existing functions and purchase invoice immutability. Dedicated payment
 | 4. OCR | Private originals, structured proposals, manual review and durable leased jobs. | OCR.space requires its own configured API key; manual review works without it. |
 | 5. Profitability | Company projects, source links, materials, labor and separate currency buckets. | Whole-source assignment; no percentage splits or conversion between currencies. |
 | 6. PDF templates | Versioned layouts, frozen parties/templates, archived print revisions and repeatable bytes. | Legacy data predating snapshots cannot be reconstructed; standard-font Polish transliteration remains. |
-| 7. Performance/mobile | Company-scoped server search and 30-row keyset pages on invoice list and command palette; touch-friendly invoice cards; prior warehouse/project/document pagination remains. | Legacy dashboards and forms still require full invoice bootstrap until their calculations migrate to server aggregates. |
+| 7. Performance/mobile | Company-scoped server search and 30-row keyset pages on invoice list and command palette; touch-friendly invoice cards; dashboard and analytics now receive compact company-scoped server summaries. | Legacy accounting/forms still require full invoice bootstrap; overview still scans invoice lines inside the server process. |
 | 8. Reliability | MongoDB/API and Chromium checks, durable OCR/webhook/KSeF workers, incident IDs, encrypted backup and isolated restore drill. | Hosting alert sink, off-host backup storage, secrets and production scheduling require operator setup; no production restore was performed. |
 
 ## Stage 1a — transactional warehouse engine

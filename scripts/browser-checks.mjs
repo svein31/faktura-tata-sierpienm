@@ -29,11 +29,24 @@ export async function browserChecks(base) {
     assert.equal((await get(`/api/invoices/search?companyId=${company.id}&search=Searchable`)).total, 32);
     assert.equal((await get(`/api/invoices/search?companyId=${company.id}&search=%5B`)).total, 0);
     assert.equal((await get('/api/data?invoiceMode=list')).invoices.length, 0);
+    const overview = await get(`/api/overview?companyId=${company.id}`);
+    assert.equal(overview.counts.drafts, 32);
+    assert.equal(overview.actionTotal, 32);
+    assert.equal(overview.actions.length, 8);
+    assert.equal(overview.totals.length, 0);
+    const inaccessible = await context.request.get('/api/overview?companyId=000000000000000000000000');
+    assert.equal(inaccessible.status(), 403);
     await page.goto('/invoices');
     await expect(page.getByRole('heading', { name: 'Faktury', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Odrzuć opcjonalne' }).click();
     const dismiss = page.getByRole('button', { name: /Pomiń|Rozumiem|Zakończ/ });
     if (await dismiss.count()) await dismiss.first().click();
+    await page.goto('/dashboard');
+    await expect(page.getByRole('heading', { name: 'Do załatwienia' })).toBeVisible();
+    await expect(page.getByText('BROWSER/001').first()).toBeVisible();
+    await page.goto('/analytics');
+    await expect(page.getByRole('heading', { name: 'Analityka' })).toBeVisible();
+    await page.goto('/invoices');
     await expect(page.getByText(/Strona 1 · 32 wyników/)).toBeVisible();
     await page.getByRole('button', { name: 'Następna', exact: true }).click();
     await expect(page.getByText(/Strona 2 · 32 wyników/)).toBeVisible();
@@ -65,7 +78,7 @@ export async function browserChecks(base) {
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const route of ['/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
+    for (const route of ['/dashboard', '/analytics', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();

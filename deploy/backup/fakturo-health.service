@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Fakturo API and encrypted backup freshness
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=fakturo-backup
+EnvironmentFile=/etc/fakturo/monitor.env
+ExecStart=/usr/bin/node /opt/fakturo/scripts/ops/check-health.mjs

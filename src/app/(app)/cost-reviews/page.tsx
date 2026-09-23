@@ -45,6 +45,11 @@ function Workspace({ companyId }: { companyId: string }) {
       if (mounted.current && current === detailGeneration.current) { setSelected(result.review); setEvents(previous => cursor ? [...previous, ...result.events] : result.events); setHistoryCursor(result.nextCursor); if (!cursor) setMessage(""); }
     } catch (e) { if (mounted.current && current === detailGeneration.current) setError(e instanceof Error ? e.message : "Błąd podglądu."); }
   };
+  React.useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("reviewId");
+    if (id && /^[0-9a-f]{24}$/i.test(id)) void open(id);
+    // A deep link is opened once when this company workspace mounts.
+  }, [companyId]);
   const command = async (body: Record<string, unknown>) => {
     if (busy) return; setBusy(true); setError("");
     try {

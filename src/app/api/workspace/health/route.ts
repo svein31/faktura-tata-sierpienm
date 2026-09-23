@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     await requireIntegrationOwner(user.id,companyId);
     const hooks = await prisma.statusWebhook.findMany({ where:{companyId},select:{id:true} });
     const [queue,ocr,webhooks] = await Promise.all([
-      prisma.ksefQueueTask.findMany({where:{invoice:{sellerCompanyId:companyId},status:{not:"completed"}},select:{id:true,status:true,attempts:true,updatedAt:true,invoiceId:true},orderBy:{updatedAt:"desc"},take:50}),
+      prisma.ksefQueueTask.findMany({where:{invoice:{sellerCompanyId:companyId}},select:{id:true,status:true,attempts:true,maxAttempts:true,environment:true,updatedAt:true,nextAttemptAt:true,invoiceId:true,invoice:{select:{number:true}}},orderBy:{updatedAt:"desc"},take:50}),
       prisma.expenseScan.findMany({where:{companyId,status:{in:["processing","failed"]}},select:{id:true,status:true,updatedAt:true,fileName:true},orderBy:{updatedAt:"desc"},take:50}),
       prisma.webhookDelivery.findMany({where:{webhookId:{in:hooks.map(h=>h.id)},status:{not:"delivered"}},select:{id:true,status:true,attempts:true,createdAt:true,nextAttemptAt:true},orderBy:{createdAt:"desc"},take:50}),
     ]);
