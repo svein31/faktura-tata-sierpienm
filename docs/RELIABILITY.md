@@ -24,6 +24,10 @@ The automated drill checks exact BSON values and indexes, empty collections, wro
 
 The invoice screen (including mobile document cards) and command palette query /api/invoices/search with company scope, literal search, server filters, totals and 30-row keyset pages. Page selections reset on filter/company/page changes. A lightweight /api/data?invoiceMode=list omits invoice bodies for that screen; existing accounting/report/form consumers still request the complete dataset so they cannot silently calculate totals from one page. This preserves their behavior; migration of those legacy consumers to server aggregates remains a separate performance limitation. New indexes are migration 012-invoice-search, reversible without deleting documents.
 
+The contractor page includes a collapsed CSV wizard with delimiter detection, column mapping, complete scrollable preview, NIP validation and duplicate detection. It imports at most 200 rows into the selected company. The server validates the mapped rows again, rechecks `canIssueInvoices`, and serializes competing imports within a transaction. Duplicate and invalid rows are skipped and counted; successful writes are audited. Existing contractor data is never overwritten.
+
+Saved invoice filters are collapsed by default. Batch actions apply only to selected rows on the current 30-row page. Purchase approvals continue through the cost workflow guard. Batch settlement requires `canRecordPayments`, a fresh invoice version and an open accounting period; one transaction records the remaining balance as a payment for each eligible sales invoice and updates its status, or rolls back the entire batch. Failed actions do not show a success message. Bulk KSeF dispatch counts queued transmissions as success and does not select drafts or already pending transmissions.
+
 Warehouse cancellation reverses historical movement value and rejects impossible negative/reserved states. It never silently substitutes today's average purchase price. Later movements may need resolving before a historical receipt can be cancelled.
 
 ## Compact overview and reporting

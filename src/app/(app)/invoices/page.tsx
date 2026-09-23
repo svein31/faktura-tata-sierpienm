@@ -71,6 +71,8 @@ export default function InvoicesPage() {
   const [sendingKsef, setSendingKsef] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [approving, setApproving] = React.useState(false);
+  const [markingPaid, setMarkingPaid] = React.useState(false);
+  const [confirmBulkPayment, setConfirmBulkPayment] = React.useState(false);
   const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
 
   const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
@@ -80,6 +82,12 @@ export default function InvoicesPage() {
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter });
   const invoices = results.invoices, filtered = invoices;
+  const permissions = company?.currentUserPermissions;
+  const canSendKsef = !!selectedCompanyId && !showUnassigned && permissions?.canSendKsef === true;
+  const canRecordPayments = !!selectedCompanyId && !showUnassigned && permissions?.canRecordPayments === true;
+  const canApprove = !!selectedCompanyId && !showUnassigned && (company?.currentUserRole === "owner" || company?.currentUserRole === "accountant");
+  const canExport = !!selectedCompanyId && !showUnassigned && permissions?.canExport === true;
+  const payableSelected = invoices.filter(i => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && i.status !== "draft" && i.documentStatus !== "draft" && i.status !== "paid" && i.paymentStatus !== "paid");
   React.useEffect(() => { setSelectedIds([]); }, [results.key]);
 
   const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || approvalFilter !== "all" || currencyFilter !== "all";
@@ -88,13 +96,15 @@ export default function InvoicesPage() {
     if (selectedIds.length === 0) return;
     setApproving(true);
     try {
-      await approveInvoices(selectedIds.filter((id) => invoices.some((i) => i.id === id && i.type === "purchase")), status);
+      const ids = selectedIds.filter((id) => invoices.some((i) => i.id === id && i.type === "purchase"));
+      if (!ids.length) return;
+      await approveInvoices(ids, status);
       toast(
         "success",
         status === "approved" ? "Zaakceptowano zaznaczone faktury" : "Cofnięto akceptację",
-        `Zaktualizowano ${selectedIds.length} dokumentów.`
+        `Zaktualizowano ${ids.length} dokumentów.`
       );
-      setSelectedIds([]);
+      setSelectedIds([]); results.reload();
     } catch (e) {
       toast("error", "Błąd", e instanceof Error ? e.message : undefined);
     } finally {
@@ -115,7 +125,7 @@ export default function InvoicesPage() {
 
   const handleBulkSendKsef = async () => {
     const eligible = invoices.filter(
-      (i) => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && !i.ksefNumber && !i.ksef?.number
+      (i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !["verify_needed", "queued", "processing", "sending"].includes(i.ksefStatus || "")
     );
     if (eligible.length === 0) {
       toast("info", "Brak faktur do wysłania", "Zaznaczone faktury są już zarejestrowane w KSeF, są proformami lub fakturami zakupowymi.");
@@ -150,10 +160,10 @@ export default function InvoicesPage() {
         });
 
         const data = await res.json();
-        if (res.ok && data.success && data.ksefNumber) {
+        if (res.ok && data.success) {
           if (data.invoice) {
             useAppStore.getState().applyInvoice(data.invoice);
-          } else {
+          } else if (data.ksefNumber) {
             useAppStore.getState().setInvoiceKsef(inv.id, {
               number: data.ksefNumber,
               status: data.status ?? "ACTIVE",
@@ -229,21 +239,16 @@ export default function InvoicesPage() {
   };
 
   const handleBulkMarkPaid = async () => {
-    const selectedInvoices = invoices.filter(
-      (i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "paid"
-    );
-    if (selectedInvoices.length === 0) {
-      toast("info", "Brak faktur do oznaczenia", "Wszystkie zaznaczone faktury sprzedaży są już opłacone.");
-      return;
-    }
-
-    for (const inv of selectedInvoices) {
-      try {
-        await useAppStore.getState().updateInvoice(inv.id, { status: "paid" });
-      } catch {}
-    }
-    toast("success", "Oznaczono jako opłacone", `Zaktualizowano status ${selectedInvoices.length} dokumentów.`);
-    setSelectedIds([]); results.reload();
+    if (!canRecordPayments || !payableSelected.length) return;
+    setMarkingPaid(true);
+    try {
+      const response = await fetch("/api/invoices/bulk/pay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: selectedCompanyId, invoices: payableSelected.map(invoice => ({ id: invoice.id, version: invoice.version ?? 1 })) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Nie udało się zarejestrować wpłat.");
+      toast("success", "Wpłaty zarejestrowane", `Rozliczono ${data.count} faktur.`);
+      setSelectedIds([]); results.reload(); void useAppStore.getState().revalidate();
+    } catch (error) { toast("error", "Nie zarejestrowano wpłat", error instanceof Error ? error.message : undefined); }
+    finally { setMarkingPaid(false); setConfirmBulkPayment(false); }
   };
 
   const editInvoice = (id: string) => {
@@ -382,14 +387,14 @@ export default function InvoicesPage() {
         <Button variant="subtle" onClick={results.first}>Pierwsza strona</Button>
       </div>
       {results.error && <div role="alert" className="text-destructive">{results.error} <Button onClick={results.reload}>Spróbuj ponownie</Button></div>}
-      <SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {
+      <details className="rounded-xl border bg-card px-3 pt-2 text-xs"><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary><SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {
         setSearch(typeof f.search === "string" ? f.search : "");
         if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
         if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
         if (["all", "PLN", "EUR", "USD"].includes(f.currencyFilter)) setCurrencyFilter(f.currencyFilter as typeof currencyFilter);
         if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
         setSelectedIds([]);
-      }} />
+      }} /></details>
       <PageHeader
         title="Faktury"
         description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
@@ -585,7 +590,7 @@ export default function InvoicesPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Wyślij do KSeF dla sprzedaży */}
-            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && !i.ksefNumber && !i.ksef?.number) && (
+            {canSendKsef && invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !["verify_needed", "queued", "processing", "sending"].includes(i.ksefStatus || "")) && (
               <Button
                 size="sm"
                 onClick={handleBulkSendKsef}
@@ -598,7 +603,7 @@ export default function InvoicesPage() {
             )}
 
             {/* Eksport CSV */}
-            <Button
+            {canExport && <Button
               variant="outline"
               size="sm"
               onClick={handleBulkExportCsv}
@@ -606,14 +611,15 @@ export default function InvoicesPage() {
               title="Pobierz zestawienie zaznaczonych dokumentów w formacie CSV"
             >
               <Download className="h-3.5 w-3.5" /> Eksport CSV
-            </Button>
+            </Button>}
 
             {/* Oznacz jako opłacone */}
-            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "paid") && (
+            {canRecordPayments && payableSelected.length > 0 && payableSelected.length === selectedIds.length && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleBulkMarkPaid}
+                onClick={() => setConfirmBulkPayment(true)}
+                loading={markingPaid}
                 className="rounded-xl text-xs h-8 gap-1.5 font-medium text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 shadow-2xs"
                 title="Oznacz zaznaczone faktury jako opłacone"
               >
@@ -622,7 +628,7 @@ export default function InvoicesPage() {
             )}
 
             {/* Akceptacja dla księgowości (faktury zakupowe) */}
-            {invoices.some((i) => selectedIds.includes(i.id) && i.type === "purchase") && (
+            {canApprove && invoices.some((i) => selectedIds.includes(i.id) && i.type === "purchase") && (
               <>
                 <Button
                   size="sm"
@@ -1019,6 +1025,15 @@ export default function InvoicesPage() {
       </div>
 
       <ConfirmDialog
+        open={confirmBulkPayment}
+        onClose={() => setConfirmBulkPayment(false)}
+        onConfirm={() => void handleBulkMarkPaid()}
+        title="Zarejestrować wpłaty?"
+        description={`Dla ${payableSelected.length} faktur zostaną zapisane wpłaty na pozostałą kwotę. Operacja obejmuje tylko wybraną firmę.`}
+        confirmLabel={markingPaid ? "Zapisywanie…" : "Zarejestruj wpłaty"}
+      />
+
+      <ConfirmDialog
         open={!!toDelete}
         onClose={() => setToDelete(null)}
         onConfirm={() => {
@@ -1059,4 +1074,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-

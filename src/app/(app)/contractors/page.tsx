@@ -20,6 +20,7 @@ import { formatNip, isValidNipFormat, normalizeNip } from "@/lib/validation";
 import type { Address, Contractor } from "@/lib/types";
 import { NipLookup } from "@/components/invoice/nip-lookup";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ContractorImportWizard } from "@/components/contractor/import-wizard";
 
 interface ContractorDraft {
   name: string;
@@ -150,6 +151,8 @@ export default function ContractorsPage() {
           </Button>
         }
       />
+
+      <ContractorImportWizard />
 
       <div className="relative mb-4 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -444,4 +447,3 @@ export default function ContractorsPage() {
     </div>
   );
 }
-

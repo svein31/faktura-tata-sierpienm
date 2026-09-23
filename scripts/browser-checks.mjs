@@ -60,11 +60,40 @@ export async function browserChecks(base) {
     assert.equal((await context.request.get('/api/ksef/center?companyId=000000000000000000000000')).status(), 403);
     const inaccessible = await context.request.get('/api/overview?companyId=000000000000000000000000');
     assert.equal(inaccessible.status(), 403);
+    const importRows = [
+      { name: 'CSV supplier', nip: '1234563218', street: 'Main 1', city: 'Poznań', postal: '60-001', email: '', phone: '' },
+      { name: 'CSV repeat', nip: '1234563218', street: '', city: '', postal: '', email: '', phone: '' },
+      { name: 'Existing buyer', nip: '5250001003', street: '', city: '', postal: '', email: '', phone: '' },
+      { name: 'Bad NIP', nip: '123', street: '', city: '', postal: '', email: '', phone: '' },
+    ];
+    const importPreview = await post('/api/contractors/import', { companyId: company.id, action: 'preview', rows: importRows });
+    assert.deepEqual([importPreview.ready, importPreview.duplicate, importPreview.invalid], [1, 2, 1]);
+    assert.equal((await post('/api/contractors/import', { companyId: company.id, action: 'import', rows: importRows })).created, 1);
+    assert.equal((await post('/api/contractors/import', { companyId: company.id, action: 'import', rows: importRows })).created, 0);
+    assert.equal((await context.request.post('/api/contractors/import', { data: { companyId: '000000000000000000000000', action: 'import', rows: importRows } })).status(), 403);
+    const currentInvoice = (await get(`/api/invoices/${issued.invoice.id}`)).invoice;
+    const drafts = first.invoices[0];
+    const paymentBatch = { companyId: company.id, invoices: [{ id: currentInvoice.id, version: currentInvoice.version }, { id: drafts.id, version: drafts.version }] };
+    assert.equal((await context.request.post('/api/invoices/bulk/pay', { data: paymentBatch })).status(), 409);
+    assert.equal((await get(`/api/invoices/${currentInvoice.id}/payments`)).payments.length, 0);
+    assert.equal((await context.request.post('/api/invoices/bulk/pay', { data: { ...paymentBatch, companyId: '000000000000000000000000' } })).status(), 403);
+    assert.equal((await post('/api/invoices/bulk/pay', { companyId: company.id, invoices: [paymentBatch.invoices[0]] })).count, 1);
+    const paid = await get(`/api/invoices/${currentInvoice.id}`);
+    assert.equal(paid.invoice.paymentStatus, 'paid');
+    assert.equal((await get(`/api/invoices/${currentInvoice.id}/payments`)).payments[0].amount, 369);
+    assert.equal((await context.request.post('/api/invoices/bulk/pay', { data: { companyId: company.id, invoices: [paymentBatch.invoices[0]] } })).status(), 409);
     await page.goto('/invoices');
     await expect(page.getByRole('heading', { name: 'Faktury', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Odrzuć opcjonalne' }).click();
     const dismiss = page.getByRole('button', { name: /Pomiń|Rozumiem|Zakończ/ });
     if (await dismiss.count()) await dismiss.first().click();
+    await page.goto('/contractors');
+    await page.locator('summary').filter({ hasText: 'Importuj kontrahentów z CSV' }).click();
+    await page.locator('input[type="file"]').setInputFiles({ name: 'kontrahenci.csv', mimeType: 'text/csv', buffer: Buffer.from('Nazwa;NIP;Miasto\nNowy CSV;5260301706;Poznań\n') });
+    await page.getByRole('button', { name: 'Sprawdź import' }).click();
+    await expect(page.getByRole('button', { name: 'Importuj 1' })).toBeVisible();
+    await page.getByRole('button', { name: 'Importuj 1' }).click();
+    await expect(page.getByText('Nowy CSV').first()).toBeVisible();
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: 'Do załatwienia' })).toBeVisible();
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();
