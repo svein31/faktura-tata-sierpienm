@@ -57,7 +57,7 @@ export function overviewPipeline(companyId: string, today: string, months: strin
       totals: [financeMatch, moneyGroup("$currency")],
       months: [financeMatch, { $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
       rates: [financeMatch, { $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
-      contractors: [financeMatch, { $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { gross: -1, "_id.contractorId": 1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
+      contractors: [financeMatch, { $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { gross: -1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
       status: [financeMatch, { $group: { _id: { $cond: [rejected, "KSeF: odrzucona", { $cond: [{ $or: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$status", "paid"] }] }, "Opłacona", { $cond: [overdue, "Po terminie", "Wystawiona"] }] }] }, value: { $sum: 1 } } }],
     } },
   ] as Prisma.InputJsonObject[];
