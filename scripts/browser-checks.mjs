@@ -67,6 +67,7 @@ export async function browserChecks(base) {
     for (const route of ['/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
+      if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Mobile overflow: ${route}`);
     }
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');

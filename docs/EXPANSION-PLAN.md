@@ -1,17 +1,17 @@
 # Expansion plan: eight approved stages
 
-Preserve existing functions and purchase invoice immutability. Do not expand payments/banking. Updated release instruction: keep all further work for stages 1–8 on `codex/full-expansion-1-8`. Intermediate commits are checkpoints only. Do not update main until all eight stages are complete and the complete package passes verification. Previously published stage 1a remains on main.
+Preserve existing functions and purchase invoice immutability. Dedicated payments/banking remain outside this scope. Stages 1–6 were merged in PR #4 on 22 September 2026. The remaining verification and reliability package is tracked on `codex/complete-expansion-sep22`; merge only after green CI. See `RELIABILITY.md` for operations, tests and deliberate limits.
 
-| Stage | State | Remaining work |
+| Stage | Implemented | Limits / operational action |
 | --- | --- | --- |
-| 1. Warehouse | Branch: company commands/UI, actor audit, idempotency, stocktaking UI; CI passed for c36ad88 | Browser E2E, history/valuation review and remaining legacy route audit |
-| 2. Cost workflow | Branch: sequential review policy, assignees, comments, in-app notifications, CAS decisions and immutable source guards; CI passed for a187614 | Browser E2E; automatic policy enrollment is not enabled |
-| 3. Accountant workspace | Branch: shared tasks, missing documents, period guards, closing/reopening and immutable snapshots; full CI passed at 3b118e0 | Browser E2E |
-| 4. OCR | Branch: structured proposals with source evidence, reviewed lines, durable leased jobs, private originals, retry and stale-result guards; full CI passed at 3c1df31 | Browser E2E |
-| 5. Profitability | Branch: company projects, source links, materials, labour costing, currency buckets, paginated UI and transactional commands; full CI passed at f267dcb | Browser E2E |
-| 6. PDF templates | Branch: append-only company templates, issued party snapshots, archived print revisions and identical PDF bytes; multi-page rendering visually checked | Full integration verification and browser E2E |
-| 7. Performance/mobile | Partially shipped in earlier read APIs | Replace full-list consumers safely with server pagination/aggregates; browser-tested mobile improvements |
-| 8. Reliability | CI/API tests already shipped | Browser E2E, durable queues, error monitoring, backup configuration and isolated restore drill |
+| 1. Warehouse | Company-scoped commands/UI, transactional movements and stocktaking, immutable audit, idempotency, historical-value cancellation and reservation guards. | Legacy company-less inventory remains separate; incompatible historical movements require manual reconciliation. |
+| 2. Cost workflow | Sequential approval, assignees, comments and in-app notifications; source purchase invoice immutable. | Policy enrollment is explicit, not automatic. |
+| 3. Accountant workspace | Shared tasks, close/reopen guards and immutable currency-separated period snapshots. | Periods use document issue dates; accountants must reconcile actual tax periods. |
+| 4. OCR | Private originals, structured proposals, manual review and durable leased jobs. | OCR.space requires its own configured API key; manual review works without it. |
+| 5. Profitability | Company projects, source links, materials, labor and separate currency buckets. | Whole-source assignment; no percentage splits or conversion between currencies. |
+| 6. PDF templates | Versioned layouts, frozen parties/templates, archived print revisions and repeatable bytes. | Legacy data predating snapshots cannot be reconstructed; standard-font Polish transliteration remains. |
+| 7. Performance/mobile | Company-scoped server search and 30-row keyset pages on invoice list and command palette; touch-friendly invoice cards; prior warehouse/project/document pagination remains. | Legacy dashboards and forms still require full invoice bootstrap until their calculations migrate to server aggregates. |
+| 8. Reliability | MongoDB/API and Chromium checks, durable OCR/webhook/KSeF workers, incident IDs, encrypted backup and isolated restore drill. | Hosting alert sink, off-host backup storage, secrets and production scheduling require operator setup; no production restore was performed. |
 
 ## Stage 1a — transactional warehouse engine
 

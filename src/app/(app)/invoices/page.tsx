@@ -720,7 +720,31 @@ export default function InvoicesPage() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="divide-y divide-border/50 md:hidden">
+          {filtered.map(inv => {
+            const contractor = getContractor(contractors, inv.contractorId);
+            const status = STATUS_META[effectiveStatus(inv)];
+            return <article key={inv.id} className="p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={selectedIds.includes(inv.id)} onChange={e => setSelectedIds(ids => e.target.checked ? [...ids, inv.id] : ids.filter(id => id !== inv.id))} className="mt-2 h-5 w-5 accent-primary" />
+                <div className="min-w-0 flex-1">
+                  <Link href={`/invoices/${inv.id}`} className="block min-h-11 font-semibold text-primary break-words py-1">{inv.number}</Link>
+                  <p className="text-xs text-muted-foreground break-words">{contractor?.name || "Klient detaliczny"}</p>
+                </div>
+                <span className="shrink-0 text-xs font-medium">{inv.currency}</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span>{formatDate(inv.issueDate)} · termin {formatDate(inv.dueDate)}</span>
+                <strong className="text-sm text-foreground">{formatMoney(inv.totalGross ?? invoiceTotals(inv).gross, inv.currency)}</strong>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Badge className={status.color}>{status.label}</Badge>
+                <Link href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
+              </div>
+            </article>;
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[980px] text-left text-xs">
             <thead>
               <tr className="border-b border-border/70 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
