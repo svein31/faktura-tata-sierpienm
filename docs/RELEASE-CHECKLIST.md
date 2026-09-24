@@ -13,6 +13,7 @@ Stan kodu i zielone CI nie potwierdzają konfiguracji hostingu ani usług zewnę
 
 - Zweryfikuj na aktualnym kontrakcie MF schemat FA(3), połączenie KSeF, wysyłkę, odrzucenie, stan niepewny, odbiór i pobranie UPO. Dane testowe nie zastępują tego sprawdzenia. Oddziel symulację lokalną od środowiska MF.
 - Sprawdź wyszukiwanie NIP (GUS/MF), kursy NBP i zachowanie interfejsu, gdy usługa zewnętrzna jest niedostępna.
+- Sprawdź VIES na rzeczywistym aktywnym i nieaktywnym numerze VAT UE oraz przy awarii usługi. Wynik sprawdzenia na żądanie nie zastępuje zapisu dowodu weryfikacji kontrahenta.
 - Sprawdź ręcznie PDF, korekty, zaliczki, faktury cykliczne i powtórny import tego samego wyciągu. Zapis wpłaty i salda faktury musi pozostać spójny po błędzie.
 - Funkcje wymagające dostawcy opcjonalnego, np. OCR, mogą być wyłączone, jeżeli użytkownik dostaje jasną alternatywę.
 
@@ -21,7 +22,8 @@ Stan kodu i zielone CI nie potwierdzają konfiguracji hostingu ani usług zewnę
 - Wykonaj rzeczywisty backup, odtwórz go do odizolowanej bazy i potwierdź dane oraz indeksy. Uruchom harmonogram kopii i alert o braku świeżej kopii.
 - Zweryfikuj harmonogramy zadań, monitor kondycji, alerty na błędy aplikacji i nieudane zadania oraz procedurę zatrzymania wdrożenia.
 - Uruchom pełny scenariusz użytkownika na docelowym adresie: rejestracja → firma → kontrahent → szkic → wystawienie → PDF → e-mail → KSeF → korekta.
+- Przejdź ręcznie każdą zakładkę na telefonie (mały i średni ekran): nawigacja, formularze, listy, modale, przewijanie i najważniejsza akcja. Po wdrożeniu uruchom też rozszerzony skrypt przeglądarkowy `RUN_ALL_MOBILE_CHECKS=1 node scripts/browser-checks.mjs` w środowisku z Chromium.
 - Sprawdź limit Free przy piątej i szóstej fakturze, przy wystawieniu przez członka zespołu oraz podczas zmiany miesiąca. Potwierdź scenariusz użytkownika po wyczerpaniu limitu.
-- Zweryfikuj w oficjalnym rejestrze dane operatora przed premierą: kod 61-546 oraz miasto Warszawa zapisane obecnie w `src/lib/legal/config.ts` są niespójne. Potwierdź także adres siedziby i rzeczywistych podwykonawców; nie poprawiaj ich na podstawie domysłu.
+- Dane operatora: OnePlace podaje „Ogórkowa 63S, 61-546 Warszawa”, ale urzędowy dokument PODGiK Poznań z 15.07.2025 podaje dla tego samego NIP „Ogórkowa 63S, 04-998 Warszawa”. W kodzie zastosowano kod z dokumentu urzędowego; przed premierą sprawdź aktualny wpis CEIDG, ponieważ źródła są rozbieżne. Potwierdź też faktycznych podwykonawców.
 
 Nie oznaczaj tych punktów jako wykonanych na podstawie samych testów CI. Po zmianie dostawcy lub wersji API powtórz odpowiedni test integracyjny.

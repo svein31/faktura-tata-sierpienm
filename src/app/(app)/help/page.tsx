@@ -448,7 +448,7 @@ const HELP_SECTIONS: HelpSection[] = [
       {
         title: "2. Podmioty z Unii Europejskiej (format VAT UE)",
         description:
-          "Wybierz 2-literowy kod kraju (np. DE dla Niemiec, FR dla Francji) i wpisz numer. System sprawdza format numeru VAT UE, ale nie potwierdza aktywności podatnika w rejestrze VIES.",
+          "Wybierz kod kraju i wpisz numer VAT UE. Przycisk „Sprawdź w VIES” pobiera bieżący wynik z Komisji Europejskiej; gdy usługa jest niedostępna, zobaczysz osobny komunikat. Sam zapis numeru sprawdza wyłącznie format.",
       },
       {
         title: "3. Podmioty spoza UE (np. USA, Ghana, Azja)",

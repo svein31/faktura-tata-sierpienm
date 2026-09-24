@@ -134,7 +134,15 @@ export async function browserChecks(base) {
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    for (const route of ['/dashboard', '/analytics', '/ksef', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates']) {
+    const mobileRoutes = ['/dashboard', '/analytics', '/ksef', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates'];
+    // Rozszerzony audyt po wdrożeniu; podstawowy zestaw pozostaje bramką CI.
+    if (process.env.RUN_ALL_MOBILE_CHECKS === '1') mobileRoutes.push(
+      '/invoices/new', '/invoices/recurring', '/advances', '/recurring', '/offers', '/orders', '/expenses',
+      '/finances', '/calendar', '/jpk', '/audit', '/contractors', '/products', '/accountant', '/cost-reviews',
+      '/reminders', '/settings/account', '/settings/companies', '/settings/currencies', '/settings/integrations',
+      '/settings/ksef', '/settings/team', '/help',
+    );
+    for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();

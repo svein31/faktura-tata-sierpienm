@@ -47,6 +47,7 @@ import type {
 import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
+import { ViesLookup } from "./vies-lookup";
 import { CompanyModal } from "@/components/company/company-modal";
 import { ShortcutsModal } from "./shortcuts-modal";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
@@ -1027,7 +1028,7 @@ export function InvoiceCreator() {
               <HelpTooltip text="Wpisz NIP klienta i kliknij 'GUS', aby automatycznie pobrać dane kontrahenta z Bazy REGON / Białej Listy MF." />
             </CardTitle>
             <CardDescription>
-              Wybierz kontrahenta z listy lub wpisz NIP, aby pobrać dane z bazy GUS / VIES
+              Wybierz kontrahenta albo pobierz dane z GUS. Zagraniczny VAT UE sprawdzisz osobno w VIES.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -1107,7 +1108,7 @@ export function InvoiceCreator() {
                         onChange={(e) => setNewContractorTaxIdType(e.target.value as any)}
                       >
                         <option value="nip">NIP (Polski - GUS BIR)</option>
-                        <option value="vat_eu">VAT UE / VIES (Unia Europejska)</option>
+                        <option value="vat_eu">VAT UE (Unia Europejska)</option>
                         <option value="tin">TIN / Tax ID (Zagraniczny)</option>
                         <option value="none">Brak (Osoba fizyczna / konsument)</option>
                       </Select>
@@ -1154,6 +1155,7 @@ export function InvoiceCreator() {
                           className="font-mono text-xs"
                         />
                       )}
+                      {newContractorTaxIdType === "vat_eu" && <ViesLookup vat={form.newContractor.nip} country={form.newContractor.country} />}
                     </div>
                   )}
                   <div className="grid gap-3 sm:grid-cols-2">

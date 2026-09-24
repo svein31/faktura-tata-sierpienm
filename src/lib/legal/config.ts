@@ -50,7 +50,7 @@ export const OPERATOR_CONFIG: OperatorConfig = {
   regon: "",
   krs: "",
   addressStreet: "ul. Ogórkowa 63S",
-  addressPostal: "61-546",
+  addressPostal: "04-998",
   addressCity: "Warszawa",
   addressCountry: "Polska",
   emailContact: "faktura.prosto@gmail.com",

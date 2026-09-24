@@ -90,7 +90,7 @@ export const TERMS_OF_SERVICE: LegalDocument = {
       content: `1. Operator udostępnia Użytkownikom za pośrednictwem Serwisu następujące narzędzia:
    a) wystawianie, ewidencjonowanie i edycja faktur sprzedaży (VAT, bez VAT, proforma, zaliczkowe, korygujące),
    b) wystawianie faktur w walutach obcych z automatycznym przeliczaniem kursów średnich NBP zgodnie z art. 31a ustawy o VAT,
-   c) rejestrowanie kontrahentów krajowych (weryfikacja w rejestrze GUS BIR 1.1) oraz zagranicznych (sprawdzenie formatu VAT UE, bez potwierdzenia w VIES, oraz TIN spoza UE),
+   c) rejestrowanie kontrahentów krajowych (weryfikacja w rejestrze GUS BIR 1.1) oraz zagranicznych (sprawdzenie formatu VAT UE, opcjonalne zapytanie do VIES na żądanie Użytkownika, TIN spoza UE),
    d) generowanie plików dokumentów w formacie PDF, ustrukturyzowanych XML FA(3) oraz zestawień księgowych (CSV, ZIP),
    e) moduł pracy wieloużytkownikowej w ramach jednej firmy (zapraszanie członków zespołu, nadawanie ról: Właściciel, Księgowa, Pracownik, Podgląd),
    f) integracja z Krajowym Systemem e-Faktur (KSeF) — generowanie struktur FA(3), odbiór UPO i podgląd statusów (w trybie testowym lub produkcyjnym zgodnie z konfiguracją Użytkownika),

@@ -15,13 +15,15 @@ import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
 import { InfoTooltip } from "@/components/ui/tooltip";
-import { formatNip, isValidNipFormat, normalizeNip } from "@/lib/validation";
+import { formatNip, validateTaxId } from "@/lib/validation";
 import type { Address, Contractor } from "@/lib/types";
 import { NipLookup } from "@/components/invoice/nip-lookup";
+import { ViesLookup } from "@/components/invoice/vies-lookup";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ContractorImportWizard } from "@/components/contractor/import-wizard";
 
 interface ContractorDraft {
+  taxIdType: "nip" | "vat_eu" | "tin" | "none";
   name: string;
   nip: string;
   regon: string;
@@ -36,6 +38,7 @@ interface ContractorDraft {
 }
 
 const emptyDraft: ContractorDraft = {
+  taxIdType: "nip",
   name: "",
   nip: "",
   regon: "",
@@ -98,8 +101,9 @@ export default function ContractorsPage() {
   const openEdit = (c: Contractor) => {
     setEditingId(c.id);
     setDraft({
+      taxIdType: c.taxIdType === "vat_eu" || c.taxIdType === "tin" || c.taxIdType === "none" ? c.taxIdType : "nip",
       name: c.name,
-      nip: c.nip,
+      nip: c.taxId || c.nip,
       regon: c.regon ?? "",
       address: { ...c.address },
       email: c.email ?? "",
@@ -118,13 +122,17 @@ export default function ContractorsPage() {
       toast("error", "Podaj nazwę kontrahenta");
       return;
     }
-    if (!isValidNipFormat(draft.nip)) {
-      toast("error", "Nieprawidłowy NIP", "NIP musi mieć 10 cyfr i poprawną sumę kontrolną.");
+    const taxId = validateTaxId(draft.nip, draft.taxIdType, draft.address.country);
+    if (!taxId.valid) {
+      toast("error", "Nieprawidłowy identyfikator", taxId.reason || "Sprawdź numer i kraj.");
       return;
     }
     const payload = {
       name: draft.name.trim(),
-      nip: normalizeNip(draft.nip),
+      nip: taxId.normalized,
+      taxId: taxId.displayValue,
+      taxIdType: draft.taxIdType,
+      country: draft.address.country.trim().toUpperCase() || "PL",
       regon: draft.regon.trim() || undefined,
       address: {
         street: draft.address.street.trim(),
@@ -181,7 +189,8 @@ export default function ContractorsPage() {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AnimatePresence initial={false}>
           {filtered.map((c) => {
-            const nipOk = isValidNipFormat(c.nip);
+            const idType = c.taxIdType || "nip";
+            const nipOk = validateTaxId(c.taxId || c.nip, idType, c.country || c.address.country).valid;
             return (
               <motion.div
                 key={c.id}
@@ -198,11 +207,11 @@ export default function ContractorsPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-[13.5px] font-semibold text-foreground tracking-tight">{c.name}</p>
-                        <p className="font-mono text-[11.5px] text-muted-foreground">{formatNip(c.nip)}</p>
+                        <p className="font-mono text-[11.5px] text-muted-foreground">{idType === "nip" ? formatNip(c.nip) : c.taxId || c.nip || "Brak ID"}</p>
                       </div>
                     </div>
                     <Badge tone={nipOk ? (c.isVatPayer ? "success" : "warning") : "danger"}>
-                      {nipOk ? (c.isVatPayer ? "płatnik VAT" : "zwolniony") : "zły NIP"}
+                      {nipOk ? (idType === "nip" ? (c.isVatPayer ? "płatnik VAT" : "zwolniony") : idType === "vat_eu" ? "VAT UE" : idType === "none" ? "bez ID" : "TIN") : "zły identyfikator"}
                     </Badge>
                   </div>
                   <div className="flex-1 px-4 pb-3 text-[12px] text-muted-foreground space-y-0.5">
@@ -289,7 +298,7 @@ export default function ContractorsPage() {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         title={editingId ? "Edytuj kontrahenta" : "Nowy kontrahent"}
-        description="NIP jest walidowany (format + suma kontrolna); możesz sprawdzić dane w GUS (demo)."
+        description="Dane polskie możesz pobrać z GUS, a VAT UE sprawdzić na żądanie w VIES."
         size="lg"
         footer={
           <>
@@ -312,8 +321,14 @@ export default function ContractorsPage() {
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label>NIP *</Label>
-            <NipLookup
+            <Label>Typ identyfikatora</Label>
+            <Select value={draft.taxIdType} onChange={e => setDraft({ ...draft, taxIdType: e.target.value as ContractorDraft["taxIdType"] })}>
+              <option value="nip">NIP (Polska)</option><option value="vat_eu">VAT UE</option><option value="tin">TIN / Tax ID</option><option value="none">Brak identyfikatora</option>
+            </Select>
+          </div>
+          {draft.taxIdType !== "none" && <div className="space-y-1.5 sm:col-span-2">
+            <Label>{draft.taxIdType === "nip" ? "NIP *" : draft.taxIdType === "vat_eu" ? "VAT UE *" : "TIN / Tax ID *"}</Label>
+            {draft.taxIdType === "nip" ? <NipLookup
               nip={draft.nip}
               onNipChange={(v) => setDraft({ ...draft, nip: v })}
               onFound={(c) =>
@@ -326,8 +341,9 @@ export default function ContractorsPage() {
                   isVatPayer: c.isVatPayer,
                 }))
               }
-            />
-          </div>
+            /> : <Input value={draft.nip} onChange={e => setDraft({ ...draft, nip: e.target.value })} placeholder={draft.taxIdType === "vat_eu" ? "np. DE123456789" : "Identyfikator zagraniczny"} />}
+            {draft.taxIdType === "vat_eu" && <ViesLookup vat={draft.nip} country={draft.address.country} />}
+          </div>}
           <div className="space-y-1.5">
             <Label>REGON</Label>
             <Input

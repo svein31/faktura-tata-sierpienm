@@ -114,10 +114,9 @@ export async function POST(req: Request) {
       authTested,
       authSuccess,
       authMessage: authMessage || (token ? "Token sprawdzony" : "Brak tokena do testu autoryzacji (podaj w formularzu)"),
-      message: `Bramka KSeF 2.0 (${environment}) jest w 100% aktywna i dostępna. Czas odpowiedzi: ${connectivity.pingMs}ms.`,
+      message: `Bramka KSeF 2.0 (${environment}) odpowiedziała na zapytanie. Czas odpowiedzi: ${connectivity.pingMs}ms. Status konkretnej faktury wymaga osobnego sprawdzenia.`,
     });
   } catch (e) {
     return handleApiError(e);
   }
 }
-

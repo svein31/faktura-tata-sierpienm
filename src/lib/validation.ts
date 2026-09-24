@@ -157,19 +157,20 @@ export function validateTaxId(
 
   // 2. Format VAT UE (bez połączenia z VIES)
   if (type === "vat_eu") {
-    const clean = raw.replace(/\s+/g, "").toUpperCase();
+    const clean = raw.replace(/[\s-]+/g, "").toUpperCase();
+    const vatCountry = country === "GR" ? "EL" : country;
     // Sprawdź czy numer ma już prefiks kraju
-    const hasPrefix = EU_COUNTRIES.has(clean.slice(0, 2));
-    const fullVatEu = hasPrefix ? clean : `${country}${clean}`;
+    const prefix = clean.slice(0, 2);
+    const hasPrefix = EU_COUNTRIES.has(prefix) || prefix === "EL" || prefix === "XI";
+    const fullVatEu = hasPrefix ? `${prefix === "GR" ? "EL" : prefix}${clean.slice(2)}` : `${vatCountry}${clean}`;
 
-    // Większość państw UE ma od 8 do 14 znaków po kodzie kraju
-    if (fullVatEu.length < 5 || fullVatEu.length > 18) {
+    if (!(EU_COUNTRIES.has(country) || country === "XI" || country === "EL") || (hasPrefix && fullVatEu.slice(0, 2) !== vatCountry) || !/^[A-Z0-9+*.]{2,12}$/.test(fullVatEu.slice(2))) {
       return {
         valid: false,
         type: "vat_eu",
         normalized: fullVatEu,
         displayValue: fullVatEu,
-        reason: "Nieprawidłowa długość numeru VAT UE.",
+        reason: "Nieprawidłowy numer VAT UE lub prefiks niezgodny z krajem.",
         label: "VAT UE",
       };
     }

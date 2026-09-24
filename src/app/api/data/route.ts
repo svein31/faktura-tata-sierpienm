@@ -131,8 +131,10 @@ export async function GET(req: Request) {
 
     const allCompanies = Array.from(companyMap.values());
     const accessibleCompanyIds = allCompanies.map((c) => c.id);
-    const linkedContacts = await prisma.invoice.findMany({ where: { sellerCompanyId: { in: accessibleCompanyIds } }, select: { contractorId: true } });
-    const linkedContactIds = [...new Set(linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id)))];
+    const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
+      by: ["contractorId"], where: { sellerCompanyId: { in: accessibleCompanyIds } },
+    }) : [];
+    const linkedContactIds = linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id));
 
     // Pobierz powiązane dane (faktury, kontrahenci, produkty itp.)
     const [ksef, contractors, products, invoices, notifications, prefs] = await Promise.all([
@@ -180,4 +182,3 @@ export async function GET(req: Request) {
     return handleApiError(e);
   }
 }
-

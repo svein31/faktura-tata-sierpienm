@@ -16,7 +16,9 @@ import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const mode = ["/invoices", "/dashboard", "/analytics", "/settings/health", "/ksef", "/contractors"].includes(pathname) ? "list" : "full";
+  // Ekrany korzystające z własnych zapytań dostają tylko katalogi, bez wszystkich faktur.
+  const fullInvoicePaths = new Set(["/invoices/new", "/invoices/recurring", "/advances", "/recurring", "/reminders", "/finances", "/calendar", "/settings/companies"]);
+  const mode = fullInvoicePaths.has(pathname) || (/^\/invoices\/[^/]+$/.test(pathname) && pathname !== "/invoices/new") ? "full" : "list";
   const dataMode = useAppStore(s => s.dataMode);
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);
