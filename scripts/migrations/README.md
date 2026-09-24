@@ -34,4 +34,4 @@ Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin 
 
 ### 015-auth-rate-limit
 
-Tworzy indeks TTL na `AuthRateLimit.expiresAt` (liczniki logowania, rejestracji i resetu hasła). `up` działa wielokrotnie; `down` usuwa jedynie indeks założony przez migrację i zachowuje rekordy. Przed publikacją sprawdź stan produkcyjnej migracji; brak indeksu nie usuwa starych liczników. Wymagany stabilny `NEXTAUTH_SECRET` o długości co najmniej 32 znaków.
+Tworzy indeks TTL na `AuthRateLimit.expiresAt` (liczniki logowania, rejestracji i resetu hasła). `up` działa wielokrotnie; `down` usuwa jedynie indeks założony przez migrację i zachowuje rekordy. Przed publikacją sprawdź stan produkcyjnej migracji; brak indeksu nie usuwa starych liczników. Zalecany stabilny `NEXTAUTH_SECRET`; istniejące wdrożenia bez niego używają `DATABASE_URL` jako klucza HMAC dla pseudonimu IP.
