@@ -126,6 +126,7 @@ try {
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
+  await migrateData(mongoClient.db('fakturo_integration'),'up','015-auth-rate-limit');
   console.log('[integration] Starting application');
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
