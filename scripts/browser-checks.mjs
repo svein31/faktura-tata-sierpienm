@@ -99,7 +99,7 @@ export async function browserChecks(base) {
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();
     await page.goto('/analytics');
     await expect(page.getByRole('heading', { name: 'Analityka' })).toBeVisible();
-    await page.getByLabel('Wykres').selectOption('12');
+    await page.getByRole('group', { name: 'Okres wykresu' }).getByRole('button', { name: '12 miesięcy' }).click();
     await page.goto('/ksef');
     await expect(page.getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
