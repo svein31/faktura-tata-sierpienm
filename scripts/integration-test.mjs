@@ -117,11 +117,17 @@ try {
     assert.deepEqual(await migrationDb.collection(collection).findOne({_id:preserved._id}),preserved);
     await migrateData(migrationDb,'up',migration);
   }
+  await migrateData(migrationDb,'up','015-auth-rate-limit');
+  await migrateData(migrationDb,'up','015-auth-rate-limit');
+  const ttlIndex = (await migrationDb.collection('AuthRateLimit').listIndexes().toArray()).find(i=>i.name==='AuthRateLimit_expiresAt_ttl');
+  assert.equal(ttlIndex.expireAfterSeconds,0,'Shared auth counters must expire');
+  await migrateData(migrationDb,'down','015-auth-rate-limit');
+  await migrateData(migrationDb,'up','015-auth-rate-limit');
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   console.log('[integration] Starting application');
-  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
   server.stderr.on('data', data => { logs += data; });
   let ready = false;
@@ -801,6 +807,16 @@ try {
   const [ocrCode] = await once(ocrTests, 'exit');
   assert.equal(ocrCode, 0, 'OCR queue concurrency and recovery checks must pass');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
+  // Concurrent requests hit one MongoDB counter, not separate per-process memory buckets.
+  const resets = await Promise.all(Array.from({length: 8}, () =>
+    api('POST','/api/auth/forgot-password',{email:'missing@example.com'})
+  ));
+  assert.equal(resets.filter(r=>r.res.status===200).length,5);
+  assert.equal(resets.filter(r=>r.res.status===429).length,3);
+  const sharedCounters = await mongoClient.db('fakturo_integration').collection('AuthRateLimit').find({}).toArray();
+  assert.ok(sharedCounters.some(counter=>counter.hits===8 && counter.expiresAt instanceof Date));
+  assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
+  console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
   if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base);
 } catch (error) { console.error(logs); throw error; }
 finally {
