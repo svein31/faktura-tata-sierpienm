@@ -6,7 +6,7 @@ Stan kodu i zielone CI nie potwierdzają konfiguracji hostingu ani usług zewnę
 
 - Potwierdź docelowy adres HTTPS, połączenie z bazą MongoDB (replica set), migracje danych i indeksy, uprawnienia dostępu oraz brak demonstracyjnych sekretów w środowisku.
 - Sprawdź faktyczne dane operatora, miejsce hostingu, dostawców poczty i treść dokumentów publicznych z osobą odpowiedzialną za usługę. Repozytorium nie potwierdza tych faktów.
-- Sprawdź rejestrację, logowanie, MFA, odzyskiwanie konta i wysyłkę e-mail na docelowym hostingu. Linków odzyskiwania konta nie wolno zapisywać w logach. Potwierdź 32-znakowy lub dłuższy NEXTAUTH_SECRET, działanie współdzielonego limitu prób oraz migrację 015-auth-rate-limit (indeks TTL w produkcyjnej bazie). Weryfikacja błędnych danych ma zwracać ogólny komunikat bez tekstu wyjątku.
+- Sprawdź rejestrację, logowanie, MFA, odzyskiwanie konta i wysyłkę e-mail na docelowym hostingu. Linków odzyskiwania konta nie wolno zapisywać w logach. Potwierdź stabilny NEXTAUTH_SECRET, działanie współdzielonego limitu prób oraz migrację 015-auth-rate-limit (indeks TTL w produkcyjnej bazie). Weryfikacja błędnych danych ma zwracać ogólny komunikat bez tekstu wyjątku.
 - Ogranicz uprawnienia dostępu do logów, bazy oraz kopii. Sprawdź politykę retencji i procedurę usuwania danych.
 
 ## Faktury i integracje
