@@ -18,7 +18,11 @@ const { claimKsefTransmission } = require('../src/lib/ksef/transmission-claim.ts
 
 // Always an isolated replica set; never use an inherited production database URL.
 console.log('[integration] Starting isolated MongoDB replica set');
-const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+const mongo = await MongoMemoryReplSet.create({
+  replSet: { count: 1 },
+  // Some isolated runners prohibit creating Unix sockets; the test connects over 127.0.0.1.
+  instanceOpts: [{ args: ['--nounixsocket'] }],
+});
 const databaseUrl = mongo.getUri('fakturo_integration');
 const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 const port = 41000 + Math.floor(Math.random() * 1000);
@@ -135,6 +139,12 @@ try {
   assert.ok(a.cookie); assert.ok(b.cookie);
   const login = await api('POST', '/api/auth/login', { email: 'a@example.com', password: 'Integration123!' });
   assert.equal(login.res.status, 200); assert.ok(login.cookie);
+  // The broad integration scenario issues many documents; keep its owner unrestricted.
+  // Free quota boundaries are covered by the dedicated quota tests.
+  await db.subscription.create({ data: {
+    userId: a.data.user.id, plan: 'yearly', status: 'active',
+    currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  } });
   const bootstrap = await api('GET', '/api/data', undefined, a.cookie);
   assert.equal(bootstrap.res.status, 200); assert.deepEqual(bootstrap.data.invoices, []);
   const company = await api('POST', '/api/companies', { companyName: 'Firma A', nip: '5260301706' }, a.cookie);
@@ -791,7 +801,7 @@ try {
   const [ocrCode] = await once(ocrTests, 'exit');
   assert.equal(ocrCode, 0, 'OCR queue concurrency and recovery checks must pass');
   console.log('PASS: MongoDB HTTP auth/MFA, CRUD, roles/revocation, isolation, audit and KSeF demo queue');
-  await browserChecks(base);
+  if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base);
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }
