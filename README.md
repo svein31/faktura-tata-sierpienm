@@ -28,7 +28,7 @@ Polska aplikacja do faktur, KSeF i organizacji pracy firmy. Stack: Next.js 15 (A
 
 Konto Free ma serwerowy limit **5 wystawionych faktur sprzedaży na miesiąc** liczony dla właściciela we wszystkich jego firmach; szkice i proformy nie zużywają limitu. W kodzie widnieją plany Pro **7 zł/miesiąc** i **59 zł/rok** z takim samym zakresem funkcji.
 
-**Rozbieżność do wyjaśnienia:** na aktualnym `main` endpointy `/api/subscription/checkout` i `/api/subscription/portal` odpowiadają 503, a więc repozytorium samo nie potwierdza zakupu Pro. Jeżeli zakup działa na witrynie, działające wdrożenie różni się od sprawdzonego kodu. Przed zmianą tego opisu trzeba zsynchronizować i przetestować kod płatności. Pola Stripe w modelu `Subscription` nie zastępują działającego Checkout, portalu i obsługi zdarzeń.
+Kod `Checkout`, portalu klienta i webhooków Stripe jest dostępny. Działanie zakupów i cyklu subskrypcji na produkcji wymaga osobnego testu z rzeczywistą konfiguracją; sama obecność endpointów i pól modelu nie potwierdza takiego testu.
 
 ## Zabezpieczenia aplikacji i danych
 
@@ -69,7 +69,7 @@ Unikalne indeksy chronią m.in. e-mail użytkownika, członkostwo firmy, numer N
 - **GUS, MF, VIES, NBP:** rzeczywiste wyniki zależą od kluczy, dostępności i aktualności usług; błąd pobierania nie potwierdza statusu kontrahenta.
 - **E-mail i OCR:** wysyłka wymaga SMTP/Resend; automatyzacje wymagają crona; OCR.space działa dopiero po dostarczeniu klucza, a wynik podlega kontroli człowieka.
 - **JPK:** JPK_FA(4) i **część ewidencyjna** JPK_V7M(3) tylko dla wspieranych przypadków. Plik VAT nie zawiera deklaracji, nie jest podpisywany ani składany do MF. Zakres i wymagane uzgodnienia z księgową: [docs/JPK.md](docs/JPK.md).
-- **Płatności:** patrz rozbieżność opisana w sekcji Free i Pro; repozytorium nie potwierdza aktywnego Checkout.
+- **Płatności:** kod Stripe Checkout, portalu i webhooków jest obecny; potwierdź na wdrożeniu zakup, odnowienie, nieudaną płatność i anulowanie.
 
 ## Uruchomienie i testy
 
