@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimitShared } from "@/lib/rate-limit";
+import { reportUnexpectedError } from "@/lib/error-report";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
     res.cookies.set("next-auth.session-token", token, cookieOpts);
     return res;
   } catch (error: unknown) {
-    console.error("Błąd logowania:", error);
+    if (!(error instanceof ApiError)) reportUnexpectedError(error);
 
     if (error instanceof ApiError) {
       return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
