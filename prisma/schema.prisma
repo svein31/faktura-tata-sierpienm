@@ -84,6 +84,7 @@ model Subscription {
   stripeCustomerId      String?   @unique
   stripeSubscriptionId  String?   @unique
   stripePriceId         String?
+  accessSource          String?   // complimentary; null for existing Stripe subscriptions
   plan                  String?   // monthly | yearly
   status                String    @default("inactive") // inactive | active | past_due | canceled | trialing | unpaid
   currentPeriodEnd      DateTime?
