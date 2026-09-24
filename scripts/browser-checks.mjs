@@ -103,14 +103,14 @@ export async function browserChecks(base) {
     await page.goto('/ksef');
     await expect(page.getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
-    await expect(page.getByText(/Strona 1 · 33 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 1 · 33 wyniki/)).toBeVisible();
     await page.getByRole('button', { name: 'Następna', exact: true }).click();
-    await expect(page.getByText(/Strona 2 · 33 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 2 · 33 wyniki/)).toBeVisible();
     await page.getByRole('button', { name: 'Poprzednia', exact: true }).click();
-    await expect(page.getByText(/Strona 1 · 33 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 1 · 33 wyniki/)).toBeVisible();
     const invoiceSearch = page.getByPlaceholder(/Szukaj|numer|Numer/).first();
     await invoiceSearch.fill('BROWSER/001');
-    await expect(page.getByText(/Strona 1 · 1 wyników/)).toBeVisible();
+    await expect(page.getByText(/Strona 1 · 1 wynik/)).toBeVisible();
     // Route transition must load full data for legacy consumers and preserve functionality.
     await page.goto('/projects'); await page.locator('summary').filter({ hasText: 'Nowy projekt' }).click();
     await expect(page.getByRole('button', { name: 'Utwórz projekt' })).toBeVisible();
