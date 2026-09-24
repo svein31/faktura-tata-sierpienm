@@ -33,7 +33,7 @@ export default function DocumentsPage() {
     finally { if (attempt === generation.current) setLoading(false); }
   }, [companyId, search]);
   React.useEffect(() => { setDocs([]); setSelected(null); setBusy(false); setMessage(""); setOcrReviewed(false); setLines([]); const timer = setTimeout(() => void load(), 250); return () => { clearTimeout(timer); generation.current += 1; }; }, [load]);
-  const open = async (id: string) => {
+  const open = React.useCallback(async (id: string) => {
     const currentCompany = companyId;
     setBusy(true); setError("");
     try {
@@ -43,7 +43,11 @@ export default function DocumentsPage() {
       setSelected(data.document); setFields({ ...empty, ...savedFields }); setLines(savedLines); setOcrReviewed(false);
     } catch (e) { if (currentCompany === scope.current) setError(e instanceof Error ? e.message : "Błąd podglądu."); }
     finally { if (currentCompany === scope.current) setBusy(false); }
-  };
+  }, [companyId]);
+  React.useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("document");
+    if (companyId && id && /^[a-f0-9]{24}$/i.test(id)) void open(id);
+  }, [companyId, open]);
   React.useEffect(() => {
     if (!selected || !["queued", "processing"].includes(selected.status)) return;
     const controller = new AbortController(), id = selected.id, currentCompany = companyId;
@@ -125,6 +129,7 @@ export default function DocumentsPage() {
         </div>
         <div className="space-y-3 rounded-xl border p-4">
           <h2 className="font-semibold">{labels[selected.status] || selected.status}</h2>
+          {selected.expenseId && <a className="text-sm text-primary underline" href="/expenses">Koszt zapisany — zobacz w wydatkach</a>}
           <p className="text-xs text-muted-foreground">Oryginalny plik pozostaje niezmienny. Zweryfikuj dane według oryginału. OCR odczytuje tekst; kwoty i dane sprzedawcy zatwierdza człowiek.</p>
           {selected.errorMessage && <p role="status" className="text-sm">{selected.errorMessage}</p>}
           {!immutable && <><Button disabled={busy || !ocrAvailable || ["queued", "processing"].includes(selected.status)} onClick={() => action("ocr")}>{busy ? "Przetwarzanie…" : "Odczytaj tekst OCR"}</Button><p className="text-xs text-muted-foreground">{ocrAvailable ? "Odczyt przesyła dokument do skonfigurowanej usługi OCR.space. Dostępny rozmiar i liczba stron zależą od planu tej usługi." : "OCR nie jest skonfigurowany. Możesz wpisać dane ręcznie."}</p></>}
