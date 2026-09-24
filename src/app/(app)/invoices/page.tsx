@@ -383,7 +383,7 @@ export default function InvoicesPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2" aria-label="Stronicowanie faktur">
         <Button variant="subtle" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
-        <span role="status" className="text-sm">Strona {results.page} · {results.total} wyników{results.loading ? " · Ładowanie…" : ""}</span>
+        <span role="status" className="text-sm">Strona {results.page} · {results.total} {results.total === 1 ? "wynik" : results.total % 10 >= 2 && results.total % 10 <= 4 && (results.total % 100 < 12 || results.total % 100 > 14) ? "wyniki" : "wyników"}{results.loading ? " · Ładowanie…" : ""}</span>
         <Button variant="subtle" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
         <Button variant="subtle" onClick={results.first}>Pierwsza strona</Button>
       </div>
