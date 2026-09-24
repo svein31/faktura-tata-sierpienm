@@ -8,6 +8,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-center";
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
+import { useToast } from "@/components/toast";
 
 const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/(dashboard)?$/, title: "Pulpit" },
@@ -45,6 +46,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const user = useSessionUser();
+  const toast = useToast();
   const [accountTier, setAccountTier] = React.useState<"free" | "pro" | null>(null);
   React.useEffect(() => {
     const controller = new AbortController();
@@ -74,7 +76,14 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     }
     if (showCompanyMenu) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      const handleEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") setShowCompanyMenu(false);
+      };
+      document.addEventListener("keydown", handleEscape);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("keydown", handleEscape);
+      };
     }
   }, [showCompanyMenu]);
 
@@ -86,9 +95,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Serwer nie potwierdził wylogowania.");
     } catch {
-      /* nawet bez sieci czyścimy stan lokalny */
+      toast("error", "Nie udało się wylogować", "Sprawdź połączenie i spróbuj ponownie.");
+      return;
     }
     useAppStore.getState().resetData();
     router.push("/login");
@@ -127,7 +138,9 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <div className="relative ml-2 sm:ml-4" ref={companyMenuRef}>
             <button
               type="button"
-              onClick={() => setShowCompanyMenu(!showCompanyMenu)}
+              onClick={() => companies.length > 1 ? setShowCompanyMenu(!showCompanyMenu) : router.push("/settings/companies")}
+              aria-label={companies.length > 1 ? "Wybierz firmę" : "Ustawienia firmy"}
+              aria-expanded={companies.length > 1 ? showCompanyMenu : undefined}
               className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs"
             >
               <div className="p-1 rounded-lg bg-primary/10 text-primary">
@@ -205,11 +218,12 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           type="button"
           onClick={handleOpenSearch}
           title="Szukaj lub polecenie (Ctrl+K / ⌘K)"
-          className="hidden sm:flex items-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs"
+          aria-label="Szukaj faktur, kontrahentów i poleceń"
+          className="flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs sm:min-w-0"
         >
           <Search className="h-3.5 w-3.5" />
           <span className="hidden md:inline">Szukaj...</span>
-          <kbd className="rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
             ⌘K
           </kbd>
         </button>
@@ -218,11 +232,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <Link
           href="/help"
           title="Instrukcja obsługi"
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs"
+          className="hidden h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs sm:flex"
         >
           <HelpCircle className="h-4 w-4" />
         </Link>
-        <ThemeToggle />
+        <div className="hidden sm:block"><ThemeToggle /></div>
 
         {/* Profil użytkownika + wylogowanie */}
         <div className="ml-1 flex items-center gap-0.5 rounded-xl border border-border/60 bg-card/50 py-1 pl-1 pr-1 shadow-2xs backdrop-blur-md">

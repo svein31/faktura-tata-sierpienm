@@ -86,6 +86,8 @@ export function SidebarContent({
   const user = useSessionUser();
   const prefs = useWorkspacePreference<string[]>("favorites");
   const favorites = Array.isArray(prefs.value) ? prefs.value.filter(path => ALL_NAV.some(item => item.href === path)) : [];
+  // Pulpit jest zawsze na początku menu; pozostałe ulubione mają jedno miejsce.
+  const quickLinks = favorites.filter(href => href !== "/dashboard");
   const toggleFavorite = (href: string) => void prefs.save(favorites.includes(href) ? favorites.filter(p => p !== href) : [...favorites, href]);
   const initials = user.name
     .split(/\s+/)
@@ -117,11 +119,11 @@ export function SidebarContent({
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
-        {favorites.length > 0 && <div className="space-y-1"><p className="px-3 text-[10.5px] uppercase font-semibold text-muted-foreground">Ulubione</p>{favorites.map(href => { const item = ALL_NAV.find(i => i.href === href)!; return <Link key={href} href={href} onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-muted"><item.icon size={16} />{item.label}</Link>; })}</div>}
+      <nav aria-label="Menu główne" className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
+        {quickLinks.length > 0 && <div className="space-y-1"><p className="px-3 text-[10.5px] uppercase font-semibold text-muted-foreground">Ulubione</p>{quickLinks.map(href => { const item = ALL_NAV.find(i => i.href === href)!; const active = pathname === href || pathname.startsWith(href + "/"); return <div key={href} className="flex items-center"><Link href={href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn("flex min-h-[40px] min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium hover:bg-muted/40", active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}><item.icon size={18} className="shrink-0" /><span className="truncate">{item.label}</span></Link><button disabled={!prefs.ready || prefs.saving} onClick={() => toggleFavorite(href)} aria-label={`Usuń z ulubionych: ${item.label}`} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className="fill-amber-400 text-amber-500" /></button></div>; })}</div>}
         {NAV_GROUPS.map(group => <div className="space-y-0.5" key={group.label}>
           <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">{group.label}</p>
-          {group.paths.map(href => {
+          {group.paths.filter(href => !quickLinks.includes(href)).map(href => {
             const item = ALL_NAV.find(i => i.href === href)!;
             const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
             return <div className="flex items-center group" key={href}>
@@ -135,22 +137,6 @@ export function SidebarContent({
         </div>)}
         {prefs.error && <p role="alert" className="px-3 text-xs text-rose-500">{prefs.error}</p>}
 
-        <div className="pt-2">
-          <div className="rounded-xl border border-border bg-muted/20 p-3 shadow-2xs">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-muted-foreground/30" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-muted-foreground/50" />
-              </span>
-              <span className="text-[11.5px] font-semibold text-foreground">
-                Integracje GUS i KSeF
-              </span>
-            </div>
-            <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
-              Status połączenia sprawdzisz w Centrum KSeF.
-            </p>
-          </div>
-        </div>
       </nav>
 
       {/* Linki prawne */}
