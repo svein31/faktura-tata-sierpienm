@@ -66,9 +66,30 @@ export async function POST(req: Request) {
       sessionParams.customer_email = user.email;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams);
+    } catch (stripeErr: unknown) {
+      const msg = stripeErr instanceof Error ? stripeErr.message : "";
+      // Jeśli w bazie zapisany był stary/nieistniejący ID klienta Stripe, zresetuj go i ponów
+      if (stripeCustomerId && msg.includes("No such customer")) {
+        console.warn("[Stripe Checkout] Nieprawidłowy klient Stripe w bazie, ponawianie z nowym klientem...");
+        await prisma.subscription.update({
+          where: { userId: user.id },
+          data: { stripeCustomerId: null },
+        }).catch(() => undefined);
+        delete sessionParams.customer;
+        delete sessionParams.customer_update;
+        sessionParams.customer_email = user.email;
+        session = await stripe.checkout.sessions.create(sessionParams);
+      } else {
+        const errorMsg = stripeErr instanceof Error ? stripeErr.message : "Błąd komunikacji ze Stripe.";
+        console.error("[Stripe Checkout Error]:", errorMsg, stripeErr);
+        throw new ApiError(400, `Błąd Stripe: ${errorMsg}`);
+      }
+    }
 
-    if (!session.url) {
+    if (!session?.url) {
       throw new ApiError(500, "Nie udało się wygenerować adresu sesji płatności Stripe.");
     }
 

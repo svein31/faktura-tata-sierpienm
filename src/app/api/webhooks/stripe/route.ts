@@ -8,33 +8,33 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  const stripe = getStripe();
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.error("[Stripe Webhook] Brak zdefiniowanej zmiennej STRIPE_WEBHOOK_SECRET w środowisku.");
-    return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 500 });
-  }
-
-  const signature = req.headers.get("stripe-signature");
-  if (!signature) {
-    console.warn("[Stripe Webhook] Odrzucono żądanie bez nagłówka stripe-signature.");
-    return json({ error: "Brak nagłówka stripe-signature." }, { status: 400 });
-  }
-
-  let event: Stripe.Event;
   try {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("[Stripe Webhook] Brak zdefiniowanej zmiennej STRIPE_WEBHOOK_SECRET w środowisku.");
+      return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 500 });
+    }
+
+    const signature = req.headers.get("stripe-signature");
+    if (!signature) {
+      console.warn("[Stripe Webhook] Odrzucono żądanie bez nagłówka stripe-signature.");
+      return json({ error: "Brak nagłówka stripe-signature." }, { status: 400 });
+    }
+
+    const stripe = getStripe();
     const rawBody = await req.text();
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Błąd weryfikacji podpisu.";
-    console.error("[Stripe Webhook] Weryfikacja sygnatury nie powiodła się:", message);
-    return json({ error: `Błąd weryfikacji podpisu: ${message}` }, { status: 400 });
-  }
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Błąd weryfikacji podpisu.";
+      console.error("[Stripe Webhook] Weryfikacja sygnatury nie powiodła się:", message);
+      return json({ error: `Błąd weryfikacji podpisu: ${message}` }, { status: 400 });
+    }
 
-  console.log(`[Stripe Webhook] Otrzymano zdarzenie: ${event.type} (ID: ${event.id})`);
+    console.log(`[Stripe Webhook] Otrzymano zdarzenie: ${event.type} (ID: ${event.id})`);
 
-  try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     return json({ received: true, eventId: event.id });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Błąd przetwarzania webhooka.";
-    console.error(`[Stripe Webhook] Błąd przetwarzania zdarzenia ${event.type}:`, message);
+    console.error("[Stripe Webhook] Błąd przetwarzania webhooka:", message);
     return json({ error: "Błąd przetwarzania zdarzenia webhooka." }, { status: 500 });
   }
 }

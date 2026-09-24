@@ -26,12 +26,19 @@ export async function POST(req: Request) {
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl(req);
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
-      return_url: `${baseUrl}/settings/account`,
-    });
+    let portalSession;
+    try {
+      portalSession = await stripe.billingPortal.sessions.create({
+        customer: subscription.stripeCustomerId,
+        return_url: `${baseUrl}/settings/account`,
+      });
+    } catch (portalErr: unknown) {
+      const msg = portalErr instanceof Error ? portalErr.message : "Błąd tworzenia portalu.";
+      console.error("[Stripe Portal Error]:", msg, portalErr);
+      throw new ApiError(400, `Błąd portalu Stripe: ${msg}`);
+    }
 
-    if (!portalSession.url) {
+    if (!portalSession?.url) {
       throw new ApiError(500, "Nie udało się utworzyć sesji portalu klienta Stripe.");
     }
 
