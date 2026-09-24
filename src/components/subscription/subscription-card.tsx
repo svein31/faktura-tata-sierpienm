@@ -29,6 +29,7 @@ type SubscriptionInfo = {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   hasPortal: boolean;
+  accessSource: string | null;
   isPro: boolean;
 };
 
@@ -232,11 +233,11 @@ export function SubscriptionCard() {
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-emerald-500" />
                       <h4 className="font-semibold text-foreground">
-                        {subscription.plan === "yearly" ? "Plan Roczny (Pro)" : "Plan Miesięczny (Pro)"}
+                        {subscription.accessSource === "complimentary" ? "Dostęp Pro przyznany" : subscription.plan === "yearly" ? "Plan Roczny (Pro)" : "Plan Miesięczny (Pro)"}
                       </h4>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Posiadasz aktywną subskrypcję. Wszystkie moduły aplikacji są w pełni odblokowane.
+                      {subscription.accessSource === "complimentary" ? "Pełny dostęp bez opłat i automatycznego odnawiania." : "Posiadasz aktywną subskrypcję. Wszystkie moduły aplikacji są w pełni odblokowane."}
                     </p>
                   </div>
 
