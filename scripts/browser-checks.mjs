@@ -98,10 +98,10 @@ export async function browserChecks(base) {
     await expect(page.getByRole('heading', { name: 'Do załatwienia' })).toBeVisible();
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();
     await page.goto('/analytics');
-    await expect(page.getByRole('heading', { name: 'Analityka' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Analityka' })).toBeVisible();
     await page.getByRole('group', { name: 'Okres wykresu' }).getByRole('button', { name: '12 miesięcy' }).click();
     await page.goto('/ksef');
-    await expect(page.getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
     await expect(page.getByText(/Strona 1 · 33 wyniki/)).toBeVisible();
     await page.getByRole('button', { name: 'Następna', exact: true }).click();
