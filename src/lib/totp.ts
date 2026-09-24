@@ -42,7 +42,9 @@ function encryptionKeys(): Buffer[] {
   // Keep the fallback for decrypting pending records after a dedicated key is added.
   const fallback = process.env.NEXTAUTH_SECRET || process.env.DATABASE_URL;
   const derived = fallback ? createHash("sha256").update("fakturaprosto:mfa:v1:").update(fallback).digest() : null;
-  const keys = [configured ? Buffer.from(configured, "hex") : null, derived].filter((key): key is Buffer => key !== null);
+  const keys: Buffer[] = [];
+  if (configured) keys.push(Buffer.from(configured, "hex"));
+  if (derived) keys.push(derived);
   if (!keys.length) throw new Error("2FA wymaga skonfigurowanego MFA_ENCRYPTION_KEY lub stałego sekretu serwera.");
   return keys;
 }
