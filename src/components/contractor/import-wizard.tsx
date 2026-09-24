@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select } from "@/components/ui/input";
 import { useAppStore } from "@/lib/store";
 import { useToast } from "@/components/toast";
 import { parseImportCsv } from "@/lib/csv-import";
@@ -50,7 +51,7 @@ export function ContractorImportWizard() {
       }} /></label>
       {file && <>
         <span className="ml-2 text-muted-foreground">{file.name} · {file.rows.length} wierszy</span>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{IMPORT_FIELDS.map(field => <label key={field} className="flex flex-col gap-1">{fieldNames[field]}<select className="min-w-0 rounded-lg border bg-background px-2 py-1.5" value={mapping[field]} onChange={event => { setMapping(previous => ({ ...previous, [field]: event.target.value })); setPreview(null); }}><option value="">Pomiń</option>{file.headers.map((header, index) => <option key={index} value={index}>{header || `Kolumna ${index + 1}`}</option>)}</select></label>)}</div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">{IMPORT_FIELDS.map(field => <label key={field} className="flex min-w-0 flex-col gap-1">{fieldNames[field]}<Select display="dropdown" className="min-w-0" value={mapping[field]} onChange={event => { setMapping(previous => ({ ...previous, [field]: event.target.value })); setPreview(null); }}><option value="">Pomiń</option>{file.headers.map((header, index) => <option key={index} value={index}>{header || `Kolumna ${index + 1}`}</option>)}</Select></label>)}</div>
         {duplicatedMapping && <p role="alert" className="text-destructive">Jedna kolumna może być przypisana tylko raz.</p>}
         <Button size="sm" variant="outline" disabled={!canPreview || busy} onClick={() => void send("preview")}>Sprawdź import</Button>
       </>}

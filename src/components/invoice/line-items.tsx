@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Trash2, ChevronDown } from "lucide-react";
+import { Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
@@ -216,7 +216,7 @@ export function LineItemsEditor({
                         />
                         {products.length > 0 && (
                           <div className="relative">
-                            <select
+                            <Select
                               value=""
                               onChange={(e) => e.target.value && applyProduct(line.id, e.target.value)}
                               disabled={disabled}
@@ -229,8 +229,7 @@ export function LineItemsEditor({
                                   {p.name} — {formatMoney(p.netPrice, currency)} / {p.unit}
                                 </option>
                               ))}
-                            </select>
-                            <ChevronDown className="pointer-events-none absolute right-1.5 top-1 h-3.5 w-3.5 text-muted-foreground/60" />
+                            </Select>
                           </div>
                         )}
                       </div>
