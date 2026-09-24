@@ -42,6 +42,9 @@ export function middleware(request: NextRequest) {
     pathname === "/powierzenie-danych" ||
     pathname === "/podwykonawcy";
 
+  const isPublicSeoPath = ["/program-do-faktur", "/faktury", "/poradnik-ksef", "/vat", "/narzedzia"]
+    .some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
+
   const isPublicPath =
     pathname === "/" ||
     pathname === "/demo" ||
@@ -52,6 +55,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/reset-password") ||
     pathname.startsWith("/invite") ||
     pathname.startsWith("/portal") ||
+    isPublicSeoPath ||
     isLegalPath;
 
   // 4. Zalogowany użytkownik wchodzący na stronę logowania/rejestracji -> przekieruj na /dashboard

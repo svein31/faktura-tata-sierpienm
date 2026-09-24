@@ -21,13 +21,15 @@ import {
 import { Logo } from "@/components/logo";
 import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-button";
 import { getSessionUser } from "@/lib/auth";
+import { JsonLd } from "@/components/seo/public-pages";
+import { PUBLIC_ORIGIN } from "@/lib/seo/content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  openGraph: { title: "FakturaProsto — Faktury VAT i KSeF", description: "Faktury VAT, demonstracja działania i integracja z KSeF.", url: "/" },
-  title: "FakturaProsto — Nowoczesne Faktury VAT i KSeF 2.0 dla Polskich Firm",
+  openGraph: { title: "FakturaProsto — faktury online i KSeF", description: "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.", url: "/" },
+  title: "Darmowy program do faktur online i KSeF | FakturaProsto",
   description:
-    "Platforma do wystawiania polskich faktur VAT w schemacie FA(3), pobierania danych z GUS i obsługi dokumentów KSeF.",
+    "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez rejestracji, poznaj KSeF i oblicz kwoty faktury w darmowych narzędziach.",
   robots: {
     index: true,
     follow: true,
@@ -39,6 +41,11 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      <JsonLd value={{ "@context": "https://schema.org", "@graph": [
+        { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#organization`, name: "FakturaProsto", url: PUBLIC_ORIGIN },
+        { "@type": "WebSite", "@id": `${PUBLIC_ORIGIN}/#website`, name: "FakturaProsto", url: PUBLIC_ORIGIN, inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` } },
+        { "@type": "SoftwareApplication", "@id": `${PUBLIC_ORIGIN}/#software`, name: "FakturaProsto", url: PUBLIC_ORIGIN, description: "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.", applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, offers: { "@type": "Offer", price: "0", priceCurrency: "PLN", description: "Plan Free: do 5 faktur miesięcznie", url: `${PUBLIC_ORIGIN}/register` } },
+      ] }} />
       {/* ── NAWIGACJA GŁÓWNA ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -62,6 +69,7 @@ export default async function LandingPage() {
                 Bez logowania
               </span>
             </Link>
+            <Link href="/program-do-faktur" className="hover:text-foreground transition-colors">Program do faktur</Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -412,6 +420,10 @@ export default async function LandingPage() {
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <Link href="/pomoc" className="hover:text-foreground transition-colors">Pomoc i kontakt</Link>
+              <Link href="/program-do-faktur" className="hover:text-foreground transition-colors">Darmowy program do faktur</Link>
+              <Link href="/faktury" className="hover:text-foreground transition-colors">Poradniki o fakturach</Link>
+              <Link href="/poradnik-ksef" className="hover:text-foreground transition-colors">KSeF 2026</Link>
+              <Link href="/narzedzia" className="hover:text-foreground transition-colors">Kalkulatory</Link>
               <Link href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>

@@ -15,11 +15,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://fakturaprosto.pl"),
   title: {
-    default: "FakturaProsto — Faktury VAT & KSeF 2.0",
+    default: "FakturaProsto — faktury online i KSeF",
     template: "%s · FakturaProsto",
   },
   description:
-    "Fintech-grade platforma do wystawiania polskich faktur VAT, integracji z Krajowym Systemem e-Faktur (KSeF) i bazą GUS BIR.",
+    "Wystawiaj faktury online i sprawdzaj status KSeF. Darmowe demo, praktyczne poradniki o fakturach i kalkulatory VAT.",
   openGraph: {
     type: "website",
     locale: "pl_PL",
