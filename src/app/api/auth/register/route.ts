@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
 import { rateLimitShared } from "@/lib/rate-limit";
+import { reportUnexpectedError } from "@/lib/error-report";
 import { recordLegalConsent } from "@/lib/legal/record-consent";
 import { LEGAL_VERSIONS } from "@/lib/legal/config";
 
@@ -175,7 +176,7 @@ export async function POST(req: Request) {
 
     return res;
   } catch (error: unknown) {
-    console.error("Błąd rejestracji:", error);
+    if (!(error instanceof ApiError)) reportUnexpectedError(error);
 
     if (error instanceof ApiError) {
       return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
