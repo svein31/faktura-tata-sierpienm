@@ -26,6 +26,7 @@ export async function GET() {
         currentPeriodEnd: true,
         cancelAtPeriodEnd: true,
         stripeCustomerId: true,
+        accessSource: true,
       },
     });
 
@@ -51,6 +52,7 @@ export async function GET() {
         currentPeriodEnd: record?.currentPeriodEnd?.toISOString() ?? null,
         cancelAtPeriodEnd: record?.cancelAtPeriodEnd ?? false,
         hasPortal: Boolean(record?.stripeCustomerId),
+        accessSource: record?.accessSource ?? null,
         isPro,
       },
     });
