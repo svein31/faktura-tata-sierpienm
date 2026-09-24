@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
@@ -11,7 +10,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitShared } from "@/lib/rate-limit";
 import { recordLegalConsent } from "@/lib/legal/record-consent";
 import { LEGAL_VERSIONS } from "@/lib/legal/config";
 
@@ -39,7 +38,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Rate limiting
-    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 25 });
+    const rl = await rateLimitShared(req, { windowMs: 15 * 60 * 1000, max: 25 }, "register");
     if (!rl.allowed) {
       return json(
         { error: "Zbyt wiele prób rejestracji. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
@@ -199,17 +198,16 @@ export async function POST(req: Request) {
     ) {
       return json(
         {
-          error: "Nie można połączyć się z bazą danych MongoDB Atlas. Upewnij się, że w panelu MongoDB Atlas w Network Access dodano adres 0.0.0.0/0.",
+          error: "Usługa jest chwilowo niedostępna. Spróbuj ponownie później.",
           code: "DATABASE_CONNECTION_ERROR",
         },
         { status: 503 }
       );
     }
 
-    const message = error instanceof Error ? error.message : "Nieznany błąd serwera.";
     return json(
       {
-        error: `Wystąpił błąd podczas rejestracji: ${message}`,
+        error: "Wystąpił błąd serwera podczas rejestracji. Spróbuj ponownie później.",
         code: "REGISTRATION_FAILED",
       },
       { status: 500 }
