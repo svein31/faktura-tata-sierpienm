@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { handleApiError, json, readJson, str } from "@/lib/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitShared } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email/sender";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     // Ograniczenie liczby prób: max 5 zapytań na 15 minut z jednego IP
-    const { allowed, retryAfterSeconds } = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 5 });
+    const { allowed, retryAfterSeconds } = await rateLimitShared(req, { windowMs: 15 * 60 * 1000, max: 5 }, "forgot-password");
     if (!allowed) {
       return json(
         {
