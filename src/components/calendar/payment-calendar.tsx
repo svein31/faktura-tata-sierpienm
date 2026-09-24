@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { nextPolishBusinessDay } from "@/lib/pl-tax-deadlines";
 import type { Expense, Invoice } from "@/lib/types";
 
 interface TaxEvent {
@@ -47,6 +48,7 @@ export function PaymentCalendar() {
   const invoices = useCompanyInvoices();
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [loadingExpenses, setLoadingExpenses] = React.useState(false);
+  const [expensesError, setExpensesError] = React.useState(false);
 
   // Aktualnie przeglądany miesiąc/rok
   const [currentDate, setCurrentDate] = React.useState(() => new Date());
@@ -59,16 +61,20 @@ export function PaymentCalendar() {
   // Pobranie kosztów
   React.useEffect(() => {
     let isMounted = true;
+    setExpenses([]);
+    setExpensesError(false);
+    if (!selectedCompanyId) { setLoadingExpenses(false); return; }
     async function loadExpenses() {
       try {
         setLoadingExpenses(true);
-        const res = await fetch("/api/expenses");
-        if (!res.ok) return;
+        const res = await fetch(`/api/expenses?companyId=${encodeURIComponent(selectedCompanyId!)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (isMounted) {
           setExpenses(data.expenses || []);
         }
       } catch (err) {
+        if (isMounted) setExpensesError(true);
         console.error("Nie udało się pobrać kosztów do kalendarza", err);
       } finally {
         if (isMounted) setLoadingExpenses(false);
@@ -112,9 +118,9 @@ export function PaymentCalendar() {
     return today.getFullYear() === year && today.getMonth() === month;
   };
 
-  // Stałe terminy podatkowe dla danego miesiąca
+  // Ogólne terminy; zakres obowiązków zależy od firmy i sposobu rozliczania.
   const taxEvents: TaxEvent[] = React.useMemo(() => {
-    return [
+    const events: TaxEvent[] = [
       {
         id: `zus-15-${year}-${month}`,
         day: 15,
@@ -134,12 +140,24 @@ export function PaymentCalendar() {
       {
         id: `vat-pit-25-${year}-${month}`,
         day: 25,
-        title: "VAT (JPK_V7) oraz PIT / CIT",
+        title: "VAT (JPK_V7)",
         category: "vat",
-        description: "Termin złożenia pliku JPK_V7M / JPK_V7K, zapłaty podatku od towarów i usług oraz zaliczki na podatek dochodowy (PIT-5, PIT-5L, CIT-8).",
+        description: "Zwykły termin złożenia JPK_V7 i rozliczenia VAT za poprzedni miesiąc, jeśli dotyczy firmy.",
         deadlineText: "25. dzień miesiąca",
       },
+      {
+        id: `pit-cit-20-${year}-${month}`,
+        day: 20,
+        title: "Zaliczka PIT / CIT",
+        category: "pit",
+        description: "Zwykły termin wpłaty zaliczki na podatek dochodowy za poprzedni miesiąc lub kwartał, jeśli jest należna.",
+        deadlineText: "20. dzień miesiąca",
+      },
     ];
+    return events.map((event) => {
+      const actual = nextPolishBusinessDay(year, month, event.day);
+      return { ...event, day: actual.getDate(), deadlineText: event.day === actual.getDate() ? event.deadlineText : `${event.deadlineText} → ${actual.getDate()}. dzień (dzień roboczy)` };
+    }).sort((a, b) => a.day - b.day);
   }, [year, month]);
 
   // Parsowanie i kategoryzacja pozycji dla danego miesiąca
@@ -163,9 +181,11 @@ export function PaymentCalendar() {
 
     // Dodanie faktur przychodowych
     invoices.forEach((inv) => {
+      if (inv.type !== "sale" || inv.status === "draft") return;
       const targetDateStr = inv.dueDate || inv.issueDate;
       if (!targetDateStr) return;
-      const d = new Date(targetDateStr);
+      const [invoiceYear, invoiceMonth, invoiceDay] = targetDateStr.slice(0, 10).split("-").map(Number);
+      const d = new Date(invoiceYear, invoiceMonth - 1, invoiceDay);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const dayNum = d.getDate();
         if (map.has(dayNum)) {
@@ -178,7 +198,8 @@ export function PaymentCalendar() {
     expenses.forEach((exp) => {
       const targetDateStr = exp.dueDate || exp.issueDate;
       if (!targetDateStr) return;
-      const d = new Date(targetDateStr);
+      const [expenseYear, expenseMonth, expenseDay] = targetDateStr.slice(0, 10).split("-").map(Number);
+      const d = new Date(expenseYear, expenseMonth - 1, expenseDay);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const dayNum = d.getDate();
         if (map.has(dayNum)) {
@@ -199,12 +220,14 @@ export function PaymentCalendar() {
 
     monthItems.forEach(({ invoices: dayInvs, expenses: dayExps }) => {
       dayInvs.forEach((inv) => {
+        if (inv.currency !== "PLN") return;
         totalIncomes += inv.totalGross || 0;
-        if (inv.status !== "paid") {
-          unpaidIncomes += inv.totalGross || 0;
+        if (inv.paymentStatus !== "paid" && inv.status !== "paid") {
+          unpaidIncomes += Math.max(0, (inv.totalGross || 0) - (inv.paidAmount || 0));
         }
       });
       dayExps.forEach((exp) => {
+        if (exp.currency !== "PLN") return;
         totalExpenses += exp.totalGross || 0;
         if (exp.paymentStatus !== "paid") {
           unpaidExpenses += exp.totalGross || 0;
@@ -242,7 +265,7 @@ export function PaymentCalendar() {
 
   const filteredDayInvoices = (selectedDayData?.invoices || []).filter((inv) => {
     if (filterType === "expenses" || filterType === "taxes") return false;
-    if (filterType === "unpaid") return inv.status !== "paid";
+    if (filterType === "unpaid") return inv.paymentStatus !== "paid" && inv.status !== "paid";
     return true;
   });
 
@@ -259,6 +282,8 @@ export function PaymentCalendar() {
 
   return (
     <div className="space-y-6">
+      {expensesError && <p role="alert" className="rounded-lg border border-rose-500/40 p-3 text-sm text-rose-400">Nie udało się wczytać kosztów. Odśwież stronę, aby ponowić próbę.</p>}
+      <p className="text-xs text-muted-foreground">Podsumowanie obejmuje tylko PLN. Daty podatkowe są ogólne; obowiązki zależą od sposobu rozliczania firmy.</p>
       {/* Pasek podsumowania finansowego */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
@@ -272,7 +297,7 @@ export function PaymentCalendar() {
             <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Do zapłaty przez klientów: <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidIncomes, "PLN")}</span>
+            Do zapłaty przez klientów (PLN): <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidIncomes, "PLN")}</span>
           </p>
         </Card>
 
@@ -287,7 +312,7 @@ export function PaymentCalendar() {
             <AnimatedCounter value={monthStats.totalExpenses} format={(v: number) => `-${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Pozostało do uregulowania: <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidExpenses, "PLN")}</span>
+            Pozostało do uregulowania (PLN): <span className="font-semibold text-foreground">{formatMoney(monthStats.unpaidExpenses, "PLN")}</span>
           </p>
         </Card>
 
@@ -308,7 +333,7 @@ export function PaymentCalendar() {
             />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Różnica wpływów i kosztów
+            Różnica wpływów i kosztów w PLN
           </p>
         </Card>
 
@@ -436,15 +461,18 @@ export function PaymentCalendar() {
                 isCurrentMonth() && dayNum === new Date().getDate();
               const isSelected = selectedDay === dayNum;
               const data = monthItems.get(dayNum);
-
-              const hasIncomes = (data?.invoices.length || 0) > 0;
-              const hasExpenses = (data?.expenses.length || 0) > 0;
+              const dayInvoices = filterType === "unpaid" ? data?.invoices.filter((inv) => inv.paymentStatus !== "paid" && inv.status !== "paid") : data?.invoices;
+              const dayExpenses = filterType === "unpaid" ? data?.expenses.filter((exp) => exp.paymentStatus !== "paid") : data?.expenses;
+              const hasIncomes = (dayInvoices?.length || 0) > 0;
+              const hasExpenses = (dayExpenses?.length || 0) > 0;
               const hasTaxes = (data?.taxes.length || 0) > 0;
 
               let dayIncomeTotal = 0;
               let dayExpenseTotal = 0;
-              data?.invoices.forEach((inv) => (dayIncomeTotal += inv.totalGross || 0));
-              data?.expenses.forEach((exp) => (dayExpenseTotal += exp.totalGross || 0));
+              dayInvoices?.forEach((inv) => { if (inv.currency === "PLN") dayIncomeTotal += filterType === "unpaid" ? Math.max(0, (inv.totalGross || 0) - (inv.paidAmount || 0)) : inv.totalGross || 0; });
+              dayExpenses?.forEach((exp) => { if (exp.currency === "PLN") dayExpenseTotal += exp.totalGross || 0; });
+              const hasOtherIncomeCurrency = dayInvoices?.some((inv) => inv.currency !== "PLN");
+              const hasOtherExpenseCurrency = dayExpenses?.some((exp) => exp.currency !== "PLN");
 
               return (
                 <button
@@ -492,21 +520,21 @@ export function PaymentCalendar() {
                     {/* Urzędy */}
                     {hasTaxes && (filterType === "all" || filterType === "taxes") && (
                       <div className="truncate rounded px-1 py-0.5 text-[10px] font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {data?.taxes[0].title}
+                        {data?.taxes.map((tax) => tax.title).join(" · ")}
                       </div>
                     )}
 
                     {/* Wpływy */}
                     {hasIncomes && (filterType === "all" || filterType === "incomes" || filterType === "unpaid") && (
                       <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-400">
-                        +{formatMoney(dayIncomeTotal, "PLN")}
+                        {dayIncomeTotal ? `+${formatMoney(dayIncomeTotal, "PLN")}` : "Wpływ"}{hasOtherIncomeCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
 
                     {/* Wydatki */}
                     {hasExpenses && (filterType === "all" || filterType === "expenses" || filterType === "unpaid") && (
                       <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-rose-500/15 text-rose-400">
-                        -{formatMoney(dayExpenseTotal, "PLN")}
+                        {dayExpenseTotal ? `-${formatMoney(dayExpenseTotal, "PLN")}` : "Wydatek"}{hasOtherExpenseCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
                   </div>
@@ -592,11 +620,11 @@ export function PaymentCalendar() {
                           <div className="mt-2 flex items-center justify-between">
                             <span className={cn(
                               "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                              inv.status === "paid"
+                              inv.paymentStatus === "paid" || inv.status === "paid"
                                 ? "bg-emerald-500/10 text-emerald-400"
                                 : "bg-amber-500/10 text-amber-400"
                             )}>
-                              {inv.status === "paid" ? "Opłacona" : "Do zapłaty"}
+                              {inv.paymentStatus === "paid" || inv.status === "paid" ? "Opłacona" : "Do zapłaty"}
                             </span>
                             <Link
                               href={`/invoices/${inv.id}`}
