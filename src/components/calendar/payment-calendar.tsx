@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useCompanyInvoices } from "@/lib/use-company-invoices";
 import { useAppStore } from "@/lib/store";
-import { formatMoney, formatDate } from "@/lib/format";
+import { formatMoney, formatDate, invoiceTotals } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -42,6 +42,8 @@ interface TaxEvent {
   description: string;
   deadlineText: string;
 }
+
+const invoiceGross = (invoice: Invoice) => invoice.totalGross || invoiceTotals(invoice).gross;
 
 export function PaymentCalendar() {
   const { selectedCompanyId, contractors } = useAppStore();
@@ -181,7 +183,7 @@ export function PaymentCalendar() {
 
     // Dodanie faktur przychodowych
     invoices.forEach((inv) => {
-      if (inv.type !== "sale" || inv.status === "draft" || (inv.totalGross || 0) <= 0) return;
+      if (inv.type !== "sale" || inv.status === "draft" || invoiceGross(inv) <= 0) return;
       const targetDateStr = inv.dueDate || inv.issueDate;
       if (!targetDateStr) return;
       const [invoiceYear, invoiceMonth, invoiceDay] = targetDateStr.slice(0, 10).split("-").map(Number);
@@ -222,9 +224,9 @@ export function PaymentCalendar() {
     monthItems.forEach(({ invoices: dayInvs, expenses: dayExps }) => {
       dayInvs.forEach((inv) => {
         if (inv.currency !== "PLN") return;
-        totalIncomes += inv.totalGross || 0;
+        totalIncomes += invoiceGross(inv);
         if (inv.paymentStatus !== "paid" && inv.status !== "paid") {
-          unpaidIncomes += Math.max(0, (inv.totalGross || 0) - (inv.paidAmount || 0));
+          unpaidIncomes += Math.max(0, invoiceGross(inv) - (inv.paidAmount || 0));
         }
       });
       dayExps.forEach((exp) => {
@@ -470,7 +472,7 @@ export function PaymentCalendar() {
 
               let dayIncomeTotal = 0;
               let dayExpenseTotal = 0;
-              dayInvoices?.forEach((inv) => { if (inv.currency === "PLN") dayIncomeTotal += filterType === "unpaid" ? Math.max(0, (inv.totalGross || 0) - (inv.paidAmount || 0)) : inv.totalGross || 0; });
+              dayInvoices?.forEach((inv) => { if (inv.currency === "PLN") dayIncomeTotal += filterType === "unpaid" ? Math.max(0, invoiceGross(inv) - (inv.paidAmount || 0)) : invoiceGross(inv); });
               dayExpenses?.forEach((exp) => { if (exp.currency === "PLN") dayExpenseTotal += exp.totalGross || 0; });
               const hasOtherIncomeCurrency = dayInvoices?.some((inv) => inv.currency !== "PLN");
               const hasOtherExpenseCurrency = dayExpenses?.some((exp) => exp.currency !== "PLN");
@@ -612,7 +614,7 @@ export function PaymentCalendar() {
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-foreground">{inv.number}</span>
                             <span className="font-bold text-emerald-400">
-                              +{formatMoney(inv.totalGross || 0, inv.currency || "PLN")}
+                              +{formatMoney(invoiceGross(inv), inv.currency || "PLN")}
                             </span>
                           </div>
                           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
