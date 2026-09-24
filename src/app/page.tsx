@@ -27,7 +27,7 @@ import { PUBLIC_ORIGIN } from "@/lib/seo/content";
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: { title: "FakturaProsto — faktury online i KSeF", description: "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.", url: "/" },
-  title: "Darmowy program do faktur online i KSeF | FakturaProsto",
+  title: "FakturaProsto — faktury online i KSeF dla firm",
   description:
     "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez rejestracji, poznaj KSeF i oblicz kwoty faktury w darmowych narzędziach.",
   robots: {
