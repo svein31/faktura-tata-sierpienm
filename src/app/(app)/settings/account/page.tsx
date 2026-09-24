@@ -47,6 +47,10 @@ export default function AccountSettingsPage() {
   const sessionUser = useSessionUser();
 
   const [activeTab, setActiveTab] = React.useState("security");
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "billing" || params.has("billing")) setActiveTab("billing");
+  }, []);
 
   // ── 1. Zmiana Hasła ──
   const [currentPassword, setCurrentPassword] = React.useState("");

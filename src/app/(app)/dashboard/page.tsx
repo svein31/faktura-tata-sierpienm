@@ -44,7 +44,7 @@ export default function DashboardPage() {
   return <div className="space-y-5">
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div><h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1><p className="text-xs text-muted-foreground">Najważniejsze sprawy wybranej firmy</p></div>
-      <div className="flex gap-2"><button onClick={reload} aria-label="Odśwież przegląd" className="rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"><RefreshCw className="size-4" /></button><Link href="/invoices/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link></div>
+      <div className="flex flex-wrap items-center gap-2"><Link href="/settings/account?tab=billing" className="inline-flex min-h-10 items-center rounded-lg border border-primary/40 px-3 py-2 text-sm font-semibold text-primary hover:bg-primary/10">Kup Pro</Link><button onClick={reload} aria-label="Odśwież przegląd" className="rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"><RefreshCw className="size-4" /></button><Link href="/invoices/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link></div>
     </header>
     {data && <OnboardingBanner hasCompany={Boolean(company?.nip)} hasKsef={Boolean(ksef?.tokenSet || ksef?.certName)} hasInvoices={Boolean(data.recent.length)} />}
     {!companyId && <p className="rounded-xl border p-4 text-sm">Wybierz firmę, aby zobaczyć podsumowanie.</p>}

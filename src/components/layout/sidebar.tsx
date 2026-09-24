@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useWorkspacePreference } from "@/lib/use-workspace-preference";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,7 +24,6 @@ import {
   BookOpen,
   Calendar,
   Globe,
-  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -85,13 +83,6 @@ export function SidebarContent({
   navLayoutId?: string;
 }) {
   const pathname = usePathname();
-  const currentGroup = NAV_GROUPS.find(group => group.paths.some(path => pathname === path || pathname.startsWith(path + "/")))?.label;
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(() => currentGroup && currentGroup !== "Start" ? [currentGroup] : []);
-  useEffect(() => {
-    if (currentGroup && currentGroup !== "Start") {
-      setExpandedGroups(previous => previous.includes(currentGroup) ? previous : [...previous, currentGroup]);
-    }
-  }, [currentGroup]);
   const user = useSessionUser();
   const prefs = useWorkspacePreference<string[]>("favorites");
   const favorites = Array.isArray(prefs.value) ? prefs.value.filter(path => ALL_NAV.some(item => item.href === path)) : [];
@@ -128,22 +119,8 @@ export function SidebarContent({
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
         {favorites.length > 0 && <div className="space-y-1"><p className="px-3 text-[10.5px] uppercase font-semibold text-muted-foreground">Ulubione</p>{favorites.map(href => { const item = ALL_NAV.find(i => i.href === href)!; return <Link key={href} href={href} onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-muted"><item.icon size={16} />{item.label}</Link>; })}</div>}
-        {NAV_GROUPS.map((group, index) => <div className="space-y-0.5" key={group.label}>
-          {index === 0 ? (
-            <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">{group.label}</p>
-          ) : (
-            <button
-              type="button"
-              aria-expanded={expandedGroups.includes(group.label)}
-              aria-controls={`sidebar-group-${index}-${navLayoutId}`}
-              onClick={() => setExpandedGroups(previous => previous.includes(group.label) ? previous.filter(label => label !== group.label) : [...previous, group.label])}
-              className="mb-1 flex min-h-9 w-full items-center justify-between rounded-lg px-3 text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-primary"
-            >
-              {group.label}
-              <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform", expandedGroups.includes(group.label) && "rotate-180")} />
-            </button>
-          )}
-          <div id={`sidebar-group-${index}-${navLayoutId}`} hidden={index !== 0 && !expandedGroups.includes(group.label)}>
+        {NAV_GROUPS.map(group => <div className="space-y-0.5" key={group.label}>
+          <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">{group.label}</p>
           {group.paths.map(href => {
             const item = ALL_NAV.find(i => i.href === href)!;
             const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
@@ -155,7 +132,6 @@ export function SidebarContent({
               <button disabled={!prefs.ready || prefs.saving} onClick={() => toggleFavorite(href)} aria-label={`${favorites.includes(href) ? "Usuń z" : "Dodaj do"} ulubionych: ${item.label}`} aria-pressed={favorites.includes(href)} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className={favorites.includes(href) ? "fill-amber-400 text-amber-500" : "text-muted-foreground/50"} /></button>
             </div>;
           })}
-          </div>
         </div>)}
         {prefs.error && <p role="alert" className="px-3 text-xs text-rose-500">{prefs.error}</p>}
 
