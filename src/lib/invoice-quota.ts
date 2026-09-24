@@ -34,12 +34,16 @@ export async function invoiceQuota(tx: Prisma.TransactionClient, ownerId: string
     { status: { not: "draft" } },
   ] };
   const used = await tx.invoice.count({ where: {
-    type: "sale", isProforma: { not: true },
+    type: "sale",
     OR: [
       ...(ids.length ? [{ sellerCompanyId: { in: ids } }] : []),
       { userId: ownerId, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] },
     ],
-    AND: [{ OR: [issued, legacy] }],
+    AND: [
+      // Historical MongoDB rows can lack isProforma entirely; omission means a normal invoice.
+      { OR: [{ isProforma: false }, { isProforma: null }, { isProforma: { isSet: false } }] },
+      { OR: [issued, legacy] },
+    ],
   } });
   return { tier: "free" as const, used, limit: FREE_INVOICE_LIMIT, remaining: Math.max(0, FREE_INVOICE_LIMIT - used) };
 }
