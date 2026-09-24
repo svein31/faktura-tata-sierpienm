@@ -31,3 +31,7 @@ Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin 
 
 
 - `007-document-workspace`: indeksy firmy/dat dla Offer, Order, Expense i ExpenseScan. Nie przypisuje starych rekordów do firm. Up/down zachowują oryginały i dane biznesowe. Preferencje użytkownika i zakresy kluczy są opcjonalnymi polami bez wymaganej migracji danych.
+
+### 015-auth-rate-limit
+
+Tworzy indeks TTL na `AuthRateLimit.expiresAt` (liczniki logowania, rejestracji i resetu hasła). `up` działa wielokrotnie; `down` usuwa jedynie indeks założony przez migrację i zachowuje rekordy. Przed publikacją sprawdź stan produkcyjnej migracji; brak indeksu nie usuwa starych liczników. Zalecany stabilny `NEXTAUTH_SECRET`; istniejące wdrożenia bez niego używają `DATABASE_URL` jako klucza HMAC dla pseudonimu IP.

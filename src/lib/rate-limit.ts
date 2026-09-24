@@ -1,3 +1,6 @@
+import { createHmac } from "node:crypto";
+import { MongoClient } from "mongodb";
+
 /**
  * Prosty, wbudowany rate limiter dla endpointów auth (per IP, per sekunda).
  * Pamięć procesu — wystarczający dla pojedynczego procesu Node (cyber_Folks).
@@ -65,4 +68,52 @@ export function rateLimit(req: Request, opts: { windowMs?: number; max?: number 
 
   bucket.hits.push(now);
   return { allowed: true };
+}
+
+
+/**
+ * Shared rate limit for public authentication endpoints.
+ * MongoDB's atomic increment counts attempts across all serverless instances.
+ * Fixed windows trade a small boundary burst for predictable and bounded storage.
+ */
+const shared = globalThis as unknown as { authRateLimitClient?: Promise<MongoClient> };
+
+function getRateLimitClient(): Promise<MongoClient> {
+  if (!process.env.DATABASE_URL?.startsWith("mongodb")) throw new Error("DATABASE_URL is required for auth rate limiting.");
+  if (!shared.authRateLimitClient) {
+    shared.authRateLimitClient = new MongoClient(process.env.DATABASE_URL, { maxPoolSize: 3 })
+      .connect()
+      .catch(error => { shared.authRateLimitClient = undefined; throw error; });
+  }
+  return shared.authRateLimitClient;
+}
+
+export async function rateLimitShared(
+  req: Request,
+  opts: { windowMs: number; max: number },
+  scope: "login" | "register" | "forgot-password"
+): Promise<RateLimitResult> {
+  // The database credential is a stable secret fallback on existing deployments.
+  // A dedicated NEXTAUTH_SECRET is preferred when available.
+  const secret = process.env.NEXTAUTH_SECRET || process.env.DATABASE_URL;
+  if (!secret) throw new Error("DATABASE_URL is required for auth rate limiting.");
+  const now = Date.now();
+  const bucketStart = Math.floor(now / opts.windowMs) * opts.windowMs;
+  // On the production proxy the final forwarded address is the last trusted hop.
+  // Use the platform client address when provided and never store an IP in plaintext.
+  const forwarded = req.headers.get("x-forwarded-for")?.split(",").pop()?.trim();
+  const ip = req.headers.get("x-nf-client-connection-ip")?.trim() || forwarded || req.headers.get("x-real-ip")?.trim() || "unknown";
+  const key = createHmac("sha256", secret).update(`${scope}:\0${ip}:\0${bucketStart}`).digest("hex");
+  const client = await getRateLimitClient();
+  const bucket = await client.db().collection<{ _id: string; hits: number; expiresAt: Date }>("AuthRateLimit")
+    .findOneAndUpdate(
+      { _id: key },
+      { $inc: { hits: 1 }, $setOnInsert: { expiresAt: new Date(bucketStart + 2 * opts.windowMs) } },
+      { upsert: true, returnDocument: "after" }
+    );
+  if (!bucket) throw new Error("Auth rate limit counter could not be recorded.");
+  return {
+    allowed: bucket.hits <= opts.max,
+    ...(bucket.hits > opts.max ? { retryAfterSeconds: Math.max(1, Math.ceil((bucketStart + opts.windowMs - now) / 1000)) } : {}),
+  };
 }

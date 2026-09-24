@@ -10,7 +10,8 @@ import {
   toPublicUser,
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitShared } from "@/lib/rate-limit";
+import { reportUnexpectedError } from "@/lib/error-report";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const rl = rateLimit(req, { windowMs: 15 * 60 * 1000, max: 30 });
+    const rl = await rateLimitShared(req, { windowMs: 15 * 60 * 1000, max: 30 }, "login");
     if (!rl.allowed) {
       return json(
         { error: "Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" },
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
     res.cookies.set("next-auth.session-token", token, cookieOpts);
     return res;
   } catch (error: unknown) {
-    console.error("Błąd logowania:", error);
+    if (!(error instanceof ApiError)) reportUnexpectedError(error);
 
     if (error instanceof ApiError) {
       return json({ error: error.message, code: error.code ?? "BAD_REQUEST" }, { status: error.status });
@@ -122,7 +123,7 @@ export async function POST(req: Request) {
     ) {
       return json(
         {
-          error: "Nie można połączyć się z bazą danych MongoDB Atlas. Upewnij się, że w MongoDB Atlas w Network Access dodano adres 0.0.0.0/0.",
+          error: "Usługa jest chwilowo niedostępna. Spróbuj ponownie później.",
           code: "DATABASE_CONNECTION_ERROR",
         },
         { status: 503 }
