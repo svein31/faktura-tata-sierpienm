@@ -1,3 +1,6 @@
+import { createHmac } from "node:crypto";
+import { MongoClient } from "mongodb";
+
 /**
  * Prosty, wbudowany rate limiter dla endpointów auth (per IP, per sekunda).
  * Pamięć procesu — wystarczający dla pojedynczego procesu Node (cyber_Folks).
@@ -73,9 +76,6 @@ export function rateLimit(req: Request, opts: { windowMs?: number; max?: number 
  * MongoDB's atomic increment counts attempts across all serverless instances.
  * Fixed windows trade a small boundary burst for predictable and bounded storage.
  */
-import { createHmac } from "node:crypto";
-import { MongoClient } from "mongodb";
-
 const shared = globalThis as unknown as { authRateLimitClient?: Promise<MongoClient> };
 
 function getRateLimitClient(): Promise<MongoClient> {
