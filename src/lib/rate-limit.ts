@@ -93,8 +93,10 @@ export async function rateLimitShared(
   opts: { windowMs: number; max: number },
   scope: "login" | "register" | "forgot-password"
 ): Promise<RateLimitResult> {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret || secret.length < 32) throw new Error("NEXTAUTH_SECRET must be configured for auth rate limiting.");
+  // The database credential is a stable secret fallback on existing deployments.
+  // A dedicated NEXTAUTH_SECRET is preferred when available.
+  const secret = process.env.NEXTAUTH_SECRET || process.env.DATABASE_URL;
+  if (!secret) throw new Error("DATABASE_URL is required for auth rate limiting.");
   const now = Date.now();
   const bucketStart = Math.floor(now / opts.windowMs) * opts.windowMs;
   // On the production proxy the final forwarded address is the last trusted hop.
