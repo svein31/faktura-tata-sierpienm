@@ -9,10 +9,9 @@ import {
   BadgeCheck,
   CheckCircle2,
   Clock,
+  Copy,
   Download,
   FileCode2,
-  FileDown,
-  FileJson2,
   FileText,
   Mail,
   Pencil,
@@ -114,6 +113,25 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const exports = useInvoiceExports(invoice, contractor, companySafe);
   const status = effectiveStatus(invoice);
   const totals = invoiceTotals(invoice);
+  const transferAccount = invoice.bankAccountSnapshot?.accountNumber || companySafe.bankAccount || companySafe.iban;
+  const amountDue = Math.max(0, Math.round((totals.gross - (invoice.paidAmount || 0)) * 100) / 100);
+  const canCopyTransfer = invoice.type === "sale" && invoice.paymentMethod === "transfer" && Boolean(transferAccount) && status !== "paid" && amountDue > 0;
+
+  const handleCopyTransfer = async () => {
+    if (!transferAccount) return;
+    const text = [
+      `Odbiorca: ${companySafe.companyName || companySafe.name}`,
+      `Rachunek: ${transferAccount}`,
+      `Kwota do zapłaty: ${formatMoney(amountDue, invoice.currency)}`,
+      `Tytuł przelewu: ${invoice.number}`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("success", "Skopiowano dane przelewu", invoice.number);
+    } catch {
+      toast("error", "Nie udało się skopiować", "Sprawdź uprawnienia schowka w przeglądarce.");
+    }
+  };
 
   const handleMarkPaid = () => {
     if (invoice.type === 'purchase') return;
@@ -253,14 +271,11 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           <Button variant="outline" size="sm" onClick={exports.exportPdf} disabled={Boolean(invoice.isOffline && !invoice.qrCodeII)} className="rounded-xl gap-1.5 text-xs">
             <Printer className="h-3.5 w-3.5" /> Drukuj / PDF
           </Button>
+          {canCopyTransfer && <Button variant="outline" size="sm" onClick={() => void handleCopyTransfer()} className="rounded-xl gap-1.5 text-xs">
+            <Copy className="h-3.5 w-3.5" /> Kopiuj dane przelewu
+          </Button>}
           <Button variant="outline" size="sm" onClick={exports.exportXml} className="rounded-xl gap-1.5 text-xs">
             <FileCode2 className="h-3.5 w-3.5" /> Pobierz FA(3)
-          </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportHtml} className="rounded-xl gap-1.5 text-xs">
-            <FileDown className="h-3.5 w-3.5" /> HTML
-          </Button>
-          <Button variant="outline" size="sm" onClick={exports.exportJson} className="rounded-xl gap-1.5 text-xs">
-            <FileJson2 className="h-3.5 w-3.5" /> JSON
           </Button>
           {invoice.type !== "purchase" && (<Button variant="outline" size="sm" onClick={handleEdit} className="rounded-xl gap-1.5 text-xs">
             <Pencil className="h-3.5 w-3.5" /> Edytuj

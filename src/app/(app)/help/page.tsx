@@ -477,7 +477,7 @@ const HELP_SECTIONS: HelpSection[] = [
     id: "multi-currency-bank-accounts",
     category: "finances",
     categoryLabel: "Konta i Banki",
-    title: "Rachunki wielowalutowe, IBAN, SWIFT/BIC i zabezpieczenie kodów QR",
+    title: "Rachunki wielowalutowe, IBAN i SWIFT/BIC",
     icon: CreditCard,
     badge: "Nowość • IBAN & SWIFT",
     steps: [
@@ -497,9 +497,9 @@ const HELP_SECTIONS: HelpSection[] = [
           "Gdy w kreatorze faktury wybierzesz walutę EUR lub USD, system automatycznie zaproponuje dedykowany rachunek dla tej waluty lub pozwoli wybrać inne konto z listy.",
       },
       {
-        title: "4. Blokada polskiego kodu QR dla transakcji nie-PLN",
+        title: "4. Sprawdź dane przelewu na fakturze",
         description:
-          "Zgodnie z przepisami bankowymi i standardem KIR/ZBP polski kod QR do przelewów dotyczy wyłącznie złotówek (PLN). Przy fakturach walutowych generowanie kodu QR jest bezpiecznie blokowane, a na wydruku eksponowane są parametry SWIFT/BIC i IBAN.",
+          "Faktura pokazuje numer rachunku i dane SWIFT/BIC, jeśli są potrzebne. Na ekranie faktury sprzedaży możesz skopiować dane przelewu dla kontrahenta. Kody QR na oficjalnym PDF służą weryfikacji KSeF, a nie płatności.",
       },
     ],
     quickAction: {

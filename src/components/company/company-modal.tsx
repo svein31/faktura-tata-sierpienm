@@ -433,7 +433,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
             className="font-mono text-[12.5px]"
           />
           <p className="text-[11px] text-muted-foreground">
-            Będzie domyślnie umieszczany na fakturach wystawianych z tego profilu spółki oraz w kodzie QR do płatności.
+            Będzie domyślnie umieszczany na fakturach wystawianych z tego profilu firmy.
           </p>
         </div>
 

@@ -13,22 +13,6 @@ import {
 } from "@/lib/format";
 import { invoiceLabels, paymentMethodLabel } from "@/lib/i18n";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
-import { QRCodeSVG } from "qrcode.react";
-export function buildQrPayload(invoice: Invoice, contractor: Contractor | undefined, company: CompanyProfile): string {
-  const t = invoiceTotals(invoice);
-  const iban = (invoice.type === "sale" ? (company.bankAccount || company.iban) : contractor?.iban) ?? "";
-  const recipient = invoice.type === "sale" ? (company.companyName || company.name || "") : (contractor?.name ?? "");
-  return [
-    "SPL",
-    "PL",
-    "TRANSFER",
-    iban.replace(/\s/g, ""),
-    t.gross.toFixed(2),
-    invoice.currency,
-    invoice.number,
-    recipient,
-  ].join("|");
-}
 
 export function InvoicePreview({
   invoice,
@@ -68,12 +52,6 @@ export function InvoicePreview({
   const buyerNip = invoice.type === "sale" ? (contractor?.taxId || contractor?.nip || "—") : company.nip;
   const sellerRegon = invoice.type === "sale" ? (company.regon ?? "") : (contractor?.regon ?? "");
   const buyerRegon = invoice.type === "sale" ? (contractor?.regon ?? "") : (company.regon ?? "");
-
-  // Blokada polskiego kodu QR przelewowego dla transakcji nie-PLN
-  const showQr =
-    invoice.currency === "PLN" &&
-    invoice.paymentMethod === "transfer" &&
-    (invoice.type === "sale" ? compIban : contractor?.iban);
 
   const logoUrl = invoice.type === "sale" ? company.logoUrl : undefined;
   const accentColor = invoice.type === "sale" ? (company.accentColor || company.primaryColor) : undefined;
@@ -326,21 +304,6 @@ export function InvoicePreview({
               <span className="tabular-nums">{formatMoney(t.gross, invoice.currency)}</span>
             </div>
           </div>
-          {showQr && (
-            <div className="mt-3 flex items-center gap-3 rounded-lg border border-border p-3">
-              <QRCodeSVG
-                value={buildQrPayload(invoice, contractor, company)}
-                size={72}
-                bgColor="transparent"
-                fgColor="currentColor"
-                level="M"
-              />
-              <div className="text-[11px] leading-snug text-muted-foreground">
-                <p className="font-semibold text-foreground">QR — płatność</p>
-                <p>Skanuj, aby zapłacić przelewem (format SPL, demo).</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -351,4 +314,3 @@ export function InvoicePreview({
     </div>
   );
 }
-
