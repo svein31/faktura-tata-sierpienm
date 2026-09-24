@@ -9,7 +9,7 @@ Aplikacja FakturaProsto obsługuje subskrypcje cykliczne (recurring) za pośredn
 - **Plan Miesięczny (`monthly`)**: 7,00 zł / miesiąc (PLN)
 - **Plan Roczny (`yearly`)**: 59,00 zł / rok (PLN) — odpowiednik ~4,92 zł/mies. (oszczędność ~30%)
 
-Oba plany gwarantują pełny dostęp do wszystkich funkcji systemu: wystawiania e-faktur VAT, integracji z KSeF 2.0, bazy kontrahentów GUS/Biała Lista, magazynu oraz deklaracji JPK.
+Oba plany gwarantują pełny dostęp do wszystkich funkcji systemu: wystawiania e-faktur VAT, integracji z KSeF 2.0, bazy kontrahentów GUS/Biała Lista, magazynu oraz eksportu JPK w zakresie opisanym w [docs/JPK.md](JPK.md).
 
 ---
 
