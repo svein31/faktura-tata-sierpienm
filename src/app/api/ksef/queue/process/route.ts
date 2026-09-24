@@ -15,6 +15,17 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
+    if (process.env.KSEF_PAUSE_DISPATCH === "true") {
+      return json(
+        {
+          message: "Kolejka KSeF jest tymczasowo wstrzymana przez administratora (KSEF_PAUSE_DISPATCH=true).",
+          processed: 0,
+          paused: true,
+        },
+        { status: 503 }
+      );
+    }
+
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET || process.env.KSEF_QUEUE_SECRET;
     

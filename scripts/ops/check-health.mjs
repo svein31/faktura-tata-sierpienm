@@ -54,7 +54,8 @@ if (problems.length === 0 || (problems.length === 1 && !offsiteConfigured)) {
     }
   } catch { problems.push("Cannot verify offsite backup freshness"); }
 }
-const event = { kind: "fakturo_health_check", ok: !problems.length, checkedAt: new Date().toISOString(), problems };
+const recipient = process.env.MONITOR_ALERT_RECIPIENT || process.env.MONITOR_ALERT_EMAIL || (process.env.MONITOR_ALERT_WEBHOOK_URL ? "MONITOR_ALERT_WEBHOOK_URL" : "systemd/cron exit-code monitor");
+const event = { kind: "fakturo_health_check", ok: !problems.length, checkedAt: new Date().toISOString(), problems, alertRecipient: problems.length ? recipient : undefined };
 console.log(JSON.stringify(event));
 if (problems.length && process.env.MONITOR_ALERT_WEBHOOK_URL) {
   const url = process.env.MONITOR_ALERT_WEBHOOK_URL;
@@ -63,8 +64,9 @@ if (problems.length && process.env.MONITOR_ALERT_WEBHOOK_URL) {
   } else {
     try {
       const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(event), signal: AbortSignal.timeout(10000) });
-      if (!response.ok) console.error("Alert delivery failed");
-    } catch { console.error("Alert delivery unavailable"); }
+      if (!response.ok) console.error(`Alert delivery failed for recipient: ${recipient}`);
+      else console.log(`Alert delivered successfully to ${recipient}`);
+    } catch { console.error(`Alert delivery unavailable for recipient: ${recipient}`); }
   }
 }
 if (problems.length) process.exitCode = 1;

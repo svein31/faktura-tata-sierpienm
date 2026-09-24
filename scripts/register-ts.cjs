@@ -3,6 +3,15 @@ const path = require("node:path");
 const Module = require("node:module");
 const ts = require("typescript");
 const root = path.resolve(__dirname, "..");
+if (process.platform === "win32") {
+  const extraPaths = [
+    "C:\\Users\\wwwyc\\AppData\\Local\\Programs\\Python\\Python312",
+    "C:\\Users\\wwwyc\\AppData\\Local\\Programs\\Python\\Python312\\Scripts",
+    "C:\\Program Files\\Git\\usr\\bin",
+    "C:\\Program Files\\Git\\mingw64\\bin",
+  ];
+  process.env.PATH = extraPaths.filter(p => fs.existsSync(p)).join(path.delimiter) + path.delimiter + process.env.PATH;
+}
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
   if (request === "server-only") return {};

@@ -64,7 +64,7 @@ export const OPERATOR_CONFIG: OperatorConfig = {
 export interface SubprocessorInfo {
   id: string;
   name: string;
-  category: "database" | "hosting" | "email" | "infrastructure";
+  category: "database" | "hosting" | "email" | "infrastructure" | "payments";
   categoryLabel: string;
   purpose: string;
   location: string;
@@ -106,6 +106,16 @@ export const SUBPROCESSORS: SubprocessorInfo[] = [
     location: "Unia Europejska / USA",
     transferMechanism: "Standardowe Klauzule Umowne (SCC) oraz Data Privacy Framework.",
     privacyPolicyUrl: "https://resend.com/legal/privacy-policy",
+  },
+  {
+    id: "stripe-payments",
+    name: "Stripe Inc. / Stripe Payments Europe, Ltd.",
+    category: "payments",
+    categoryLabel: "Obsługa płatności i subskrypcji",
+    purpose: "Bezpieczne przetwarzanie płatności bezgotówkowych kartami płatniczymi, obsługa odnawialnych subskrypcji planu Pro oraz rozliczenia.",
+    location: "Irlandia (UE) / USA",
+    transferMechanism: "EU-US Data Privacy Framework (DPF) oraz Standardowe Klauzule Umowne (SCC) zatwierdzone przez KE.",
+    privacyPolicyUrl: "https://stripe.com/legal/privacy-center",
   },
 ];
 

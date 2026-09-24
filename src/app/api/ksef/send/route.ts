@@ -27,6 +27,16 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
+    if (process.env.KSEF_PAUSE_DISPATCH === "true") {
+      return json(
+        {
+          error: "Wysyłka do KSeF została tymczasowo wstrzymana przez administratora (circuit breaker). Spróbuj ponownie później.",
+          code: "KSEF_DISPATCH_PAUSED",
+        },
+        { status: 503 }
+      );
+    }
+
     const session = await getSessionUser();
     if (!session) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 

@@ -53,6 +53,8 @@ import { ShortcutsModal } from "./shortcuts-modal";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 
+export const DRAFT_KEY = "fakturo_invoice_creator_draft";
+
 interface NewContractorDraft {
   name: string;
   nip: string;

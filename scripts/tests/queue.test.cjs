@@ -7,7 +7,7 @@ const original = Module._load;
 let mocked = {};
 Module._load = function(request, parent, main) { return Object.hasOwn(mocked, request) ? mocked[request] : original.call(this,request,parent,main); };
 function setup(status = 'PROCESSING', token = 'own-token') {
-  for (const key of Object.keys(require.cache)) if (key.includes('/src/')) delete require.cache[key];
+  for (const key of Object.keys(require.cache)) if (/[\\/]src[\\/]/.test(key)) delete require.cache[key];
   const writes = [], lookups = [];
   let sends = 0;
   const invoice = {id:'123456789012345678901234',userId:'owner',sellerCompanyId:'company',sellerCompany:{nip:'5260301706'},type:'sale',referenceNumber:'element',ksefStatus:'sending',ksef:{sessionReferenceNumber:'session'}};

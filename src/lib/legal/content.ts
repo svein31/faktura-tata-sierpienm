@@ -95,9 +95,23 @@ export const TERMS_OF_SERVICE: LegalDocument = {
    e) moduł pracy wieloużytkownikowej w ramach jednej firmy (zapraszanie członków zespołu, nadawanie ról: Właściciel, Księgowa, Pracownik, Podgląd),
    f) integracja z Krajowym Systemem e-Faktur (KSeF) — generowanie struktur FA(3), odbiór UPO i podgląd statusów (w trybie testowym lub produkcyjnym zgodnie z konfiguracją Użytkownika),
    g) rejestracja wpłat oraz trwały dziennik audytu operacji (Audit Log).
-2. **Model bezpłatny / płatny**:
-   a) W bieżącej fazie działania Serwis udostępniany jest w wersji bezpłatnej (brak konieczności podawania danych karty płatniczej ani uiszczania opłat za rejestrację).
-   b) W przypadku wprowadzenia w przyszłości planów płatnych lub pakietów rozszerzonych, Operator przedstawi jasny cennik i warunki subskrypcji. Zamówienie usługi płatnej będzie wymagało wyraźnego potwierdzenia przez Użytkownika z informacją o obowiązku zapłaty. Operator nie wprowadzi opłat za dotychczasowe bezpłatne korzystanie z mocą wsteczną.`,
+2. **Plany taryfowe i zasady odpłatności**:
+   a) **Plan Free (Darmowy)**:
+      - Umożliwia bezpłatne wystawienie do 5 faktur sprzedaży w każdym miesiącu kalendarzowym.
+      - Korzystanie z Planu Free nie wymaga podawania danych karty płatniczej ani ponoszenia opłat.
+   b) **Plan Pro (Subskrypcyjny - nielimitowany)**:
+      - Umożliwia nielimitowane wystawianie faktur, pełną integrację z KSeF, nielimitowany moduł zespołu oraz zaawansowany eksport.
+      - **Cennik**:
+        * **Subskrypcja miesięczna**: 7,00 zł brutto za każdy miesiąc rozliczeniowy.
+        * **Subskrypcja roczna**: 59,00 zł brutto za każdy rok rozliczeniowy (stanowiąca równowartość ok. 4,92 zł brutto miesięcznie).
+      - Wszystkie podane ceny są cenami brutto (zawierają należny podatek od towarów i usług).
+3. **Zasady subskrypcji i automatycznego odnawiania (zgodność z UOKiK)**:
+   a) Płatności subskrypcyjne obsługiwane są bezgotówkowo przez certyfikowanego dostawcę usług płatniczych Stripe Inc.
+   b) Subskrypcja Planu Pro odnawia się w sposób automatyczny na kolejny tożsamy okres rozliczeniowy (odpowiednio miesiąc lub rok) w dniu przypadającym na koniec bieżącego okresu, z zachowaniem tej samej ceny, chyba że Użytkownik zrezygnuje z subskrypcji przed upływem okresu rozliczeniowego.
+   c) **1-Click Cancel (Łatwa rezygnacja)**: Użytkownik może w dowolnej chwili i bez podawania jakichkolwiek przyczyn wyłączyć automatyczne odnawianie subskrypcji bezpośrednio w Serwisie (\`Ustawienia → Subskrypcja → Zarządzaj subskrypcją / Anuluj\`) lub z poziomu dedykowanego portalu klienta Stripe.
+   d) Po anulowaniu subskrypcji Użytkownik zachowuje pełen dostęp do funkcji Planu Pro do końca opłaconego okresu. Po tym czasie konto automatycznie przechodzi w tryb Planu Free (brak automatycznych obciążeń, brak jakichkolwiek kar umownych).
+   e) Wszelkie zmiany cennika wymagają powiadomienia Użytkownika drogą e-mail z co najmniej 30-dniowym wyprzedzeniem. Zmiana cen nie dotyczy okresu już opłaconego.
+   f) Konsument oraz Przedsiębiorca na prawach konsumenta (PNPK) ma prawo odstąpić od umowy zawartej na odległość w terminie 14 dni od jej zawarcia bez podania przyczyny, składając oświadczenie na adres ${OPERATOR_CONFIG.emailComplaints}, chyba że przed upływem tego terminu zażądał rozpoczęcia świadczenia usługi i przyjął do wiadomości utratę prawa do odstąpienia po jej całkowitym wykonaniu.`,
     },
     {
       title: "§ 6. Prawa i obowiązki stron oraz odpowiedzialność",
@@ -226,7 +240,7 @@ export const PRIVACY_POLICY: LegalDocument = {
 2. **Faktury i dokumentacja księgowa**: Zgodnie z art. 112a ustawy o podatku od towarów i usług oraz przepisami Ordynacji podatkowej, dokumenty księgowe przechowywane są przez okres 5 lat, licząc od końca roku kalendarzowego, w którym upłynął termin płatności podatku.
 3. **Dziennik audytu dokumentów (Audit Log) i logi bezpieczeństwa**: Przechowywane przez okres od 12 do 24 miesięcy od daty zdarzenia na potrzeby zapewnienia integralności i bezpieczeństwa systemu.
 4. **Rejestr zgód prawnych i akceptacji regulaminu**: Przechowywany przez czas posiadania Konta oraz do 5 lat po jego usunięciu na potrzeby wykazania spełnienia obowiązków prawnych (rozliczalność wg art. 5 ust. 2 RODO).
-5. **Kopie zapasowe (backupy bazy danych)**: Tworzone w cyklu automatycznym i nadpisywane cyklicznie w horyzoncie czasowym do 30-60 dni w zależności od procedury klastra chmurowego.
+5. **Kopie zapasowe (backupy bazy danych)**: Tworzone w cyklu automatycznym i retencjonowane w zarządzanym klastrze MongoDB Atlas oraz w zaszyfrowanych kopiach archiwalnych przez ściśle zdefiniowany okres 30 dni, po czym są automatycznie i bezpowrotnie nadpisywane/usuwane.
 6. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.`,
     },
     {
@@ -235,6 +249,7 @@ export const PRIVACY_POLICY: LegalDocument = {
    a) **Dostawca bazy danych w chmurze**: MongoDB Inc. (usługa MongoDB Atlas) — przechowywanie zaszyfrowanych danych w chmurze.
    b) **Dostawcy hostingu i infrastruktury serwerowej**: cyber_Folks S.A. (serwery w Polsce) oraz Netlify Inc. (serwery aplikacyjne i routing sieciowy).
    c) **Dostawca wysyłki poczty elektronicznej**: Resend Inc. lub operator własnego serwera pocztowego SMTP — doręczanie powiadomień i faktur PDF.
+   d) **Dostawca obsługi płatności i subskrypcji**: Stripe Inc. / Stripe Payments Europe, Ltd. — bezpieczne przetwarzanie płatności bezgotówkowych i transakcji subskrypcyjnych.
 2. Pełny, stale aktualizowany wykaz podwykonawców wraz z lokalizacją danych i mechanizmami prawnymi dostępny jest pod adresem ${OPERATOR_CONFIG.serviceUrl}/podwykonawcy.
 3. Ponadto dane mogą być przekazywane uprawnionym organom państwowym (np. Urzędy Skarbowe, sądy, organy ścigania) wyłącznie na podstawie wyraźnego i wiążącego żądania opartego o właściwe przepisy prawa.
 4. Integracje z systemami publicznymi:
@@ -246,7 +261,8 @@ export const PRIVACY_POLICY: LegalDocument = {
       content: `1. Część naszych dostawców technologicznych posiada siedzibę lub infrastrukturę poza terytorium EOG (w szczególności w Stanach Zjednoczonych Ameryki):
    - **MongoDB Inc.** (USA),
    - **Netlify Inc.** (USA),
-   - **Resend Inc.** (USA).
+   - **Resend Inc.** (USA),
+   - **Stripe Inc.** (USA / Irlandia).
 2. **Rzetelność informacji**: Nie twierdzimy fałszywie, że dane nigdy nie opuszczają terytorium EOG. Zapewniamy jednak, że transfer danych do tych podmiotów odbywa się wyłącznie w oparciu o prawnie wiążące i zatwierdzone mechanizmy ochronne zgodne z Rozdziałem V RODO:
    a) **Decyzja wykonawcza Komisji Europejskiej z dnia 10 lipca 2023 r.** stwierdzająca odpowiedni stopień ochrony danych w ramach ram ochrony danych UE-USA (*EU-US Data Privacy Framework* — DPF), do których certyfikowani są nasi partnerzy technologiczni,
    b) **Standardowe Klauzule Umowne (SCC)** przyjęte przez Komisję Europejską na mocy decyzji wykonawczej (UE) 2021/914, zawarte w umowach powierzenia z dostawcami.

@@ -20,8 +20,8 @@ const { claimKsefTransmission } = require('../src/lib/ksef/transmission-claim.ts
 console.log('[integration] Starting isolated MongoDB replica set');
 const mongo = await MongoMemoryReplSet.create({
   replSet: { count: 1 },
-  // Some isolated runners prohibit creating Unix sockets; the test connects over 127.0.0.1.
-  instanceOpts: [{ args: ['--nounixsocket'] }],
+  // Some isolated runners prohibit creating Unix sockets; on Windows this argument causes mongod to exit.
+  instanceOpts: process.platform !== 'win32' ? [{ args: ['--nounixsocket'] }] : [],
 });
 const databaseUrl = mongo.getUri('fakturo_integration');
 const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
