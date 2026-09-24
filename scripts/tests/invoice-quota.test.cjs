@@ -26,6 +26,7 @@ test('five free invoices across all owned companies block a sixth issue inside i
   assert.equal(writes, 1);
   assert.deepEqual(seenWhere.OR[0].sellerCompanyId.in, ['company1', 'company2']);
   assert.equal(seenWhere.type, 'sale');
+  assert.deepEqual(seenWhere.AND[0].OR, [{ isProforma: false }, { isProforma: null }, { isProforma: { isSet: false } }]);
   assert.equal((await invoiceQuota({ ...tx, invoice: { count: async () => 4 } }, 'owner')).remaining, 1);
 });
 
