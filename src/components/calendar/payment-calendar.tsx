@@ -181,7 +181,7 @@ export function PaymentCalendar() {
 
     // Dodanie faktur przychodowych
     invoices.forEach((inv) => {
-      if (inv.type !== "sale" || inv.status === "draft") return;
+      if (inv.type !== "sale" || inv.status === "draft" || (inv.totalGross || 0) <= 0) return;
       const targetDateStr = inv.dueDate || inv.issueDate;
       if (!targetDateStr) return;
       const [invoiceYear, invoiceMonth, invoiceDay] = targetDateStr.slice(0, 10).split("-").map(Number);
@@ -196,6 +196,7 @@ export function PaymentCalendar() {
 
     // Dodanie kosztów
     expenses.forEach((exp) => {
+      if ((exp.totalGross || 0) <= 0) return;
       const targetDateStr = exp.dueDate || exp.issueDate;
       if (!targetDateStr) return;
       const [expenseYear, expenseMonth, expenseDay] = targetDateStr.slice(0, 10).split("-").map(Number);
