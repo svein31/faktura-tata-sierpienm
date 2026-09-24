@@ -4,6 +4,8 @@
 
 Browser checks exercise invoice paging/search and route transitions, creating a project and logging time, publishing a PDF template, and desktop/mobile rendering of the warehouse, cost review, accountant and document workspaces. API tests separately cover permissions, concurrent writes, period closing, OCR retries, immutable PDF versions and purchase document immutability. This is automated regression coverage, not a claim that every possible user action was tested.
 
+Publiczny login, rejestracja i reset hasła używają wspólnego licznika MongoDB (15-minutowe stałe okna, osobno dla każdej operacji). Uruchom migrację `015-auth-rate-limit` na produkcji, aby indeks TTL usuwał stare liczniki; bez niej rejestracja i logowanie nadal zapisują próby, ale stare rekordy nie wygasają. Licznik wymaga `DATABASE_URL` i stabilnego `NEXTAUTH_SECRET` o długości co najmniej 32 znaków; gdy baza lub sekret są niedostępne, publiczne operacje uwierzytelniania kończą się błędem zamiast pomijać limit. Limity bazują na adresie przekazanym przez zaufany proxy; poza Netlify zweryfikuj konfigurację nagłówków i dodatkową ochronę przed ruchem rozproszonym.
+
 ## Queues and errors
 
 Existing durable KSeF, OCR, webhook and reminder queues remain authoritative. Netlify now schedules the KSeF worker every minute, alongside the existing other workers. Configure HTTPS APP_URL and CRON_SECRET. An uncertain KSeF result remains `verify_needed`; do not resend it without reconciliation. On other hosts, schedule POST /api/ksef/queue/process with the configured bearer secret. Inspect company queue health in the integration panel.
