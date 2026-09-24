@@ -1,7 +1,12 @@
 import type { Prisma } from "@prisma/client";
 
 const num = (value: unknown) => ({ $convert: { input: value, to: "double", onError: 0, onNull: 0 } });
-const hasSettlement = { $and: [{ $ne: ["$$line.settlementNet", null] }, { $ne: ["$$line.settlementVat", null] }] };
+// MongoDB treats absent fields differently from explicit nulls in some expressions.
+// Older invoice lines have neither settlement field; use quantity × price for them.
+const hasSettlement = { $and: [
+  { $ne: [{ $ifNull: ["$$line.settlementNet", null] }, null] },
+  { $ne: [{ $ifNull: ["$$line.settlementVat", null] }, null] },
+] };
 const lineNet = { $round: [{ $cond: [hasSettlement, num("$$line.settlementNet"), { $multiply: [num("$$line.quantity"), num("$$line.netPrice")] }] }, 2] };
 const lineVat = { $round: [{ $cond: [hasSettlement, num("$$line.settlementVat"), { $multiply: [lineNet, { $divide: [num("$$line.vatRate"), 100] }] }] }, 2] };
 const lineValues = {
@@ -53,7 +58,7 @@ export function overviewPipeline(companyId: string, today: string, months: strin
         { $unwind: "$entries" }, { $replaceRoot: { newRoot: "$entries" } },
         { $sort: { priority: 1, label: 1 } }, { $limit: 8 },
       ],
-      recent: [{ $sort: { _id: -1 } }, { $limit: 5 }, { $project: { _id: 0, id: { $toString: "$_id" }, number: 1, currency: 1, gross: "$totalGross", issueDate: 1 } }],
+      recent: [{ $sort: { _id: -1 } }, { $limit: 5 }, { $project: { _id: 0, id: { $toString: "$_id" }, number: 1, currency: 1, gross: 1, issueDate: 1 } }],
       totals: [financeMatch, moneyGroup("$currency")],
       months: [financeMatch, { $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
       rates: [financeMatch, { $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
