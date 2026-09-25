@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-button";
-import { getSessionUser } from "@/lib/auth";
+import { LandingHeaderActions, LandingPrimaryAction, LandingFooterActions } from "@/components/landing/auth-actions";
 import { JsonLd } from "@/components/seo/public-pages";
 import { PUBLIC_ORIGIN } from "@/lib/seo/content";
 
@@ -36,8 +36,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function LandingPage() {
-  const user = await getSessionUser();
+export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
@@ -47,70 +46,43 @@ export default async function LandingPage() {
         { "@type": "SoftwareApplication", "@id": `${PUBLIC_ORIGIN}/#software`, name: "FakturaProsto", url: PUBLIC_ORIGIN, description: "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.", applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, offers: { "@type": "Offer", price: "0", priceCurrency: "PLN", description: "Plan Free: do 5 faktur miesięcznie", url: `${PUBLIC_ORIGIN}/register` } },
       ] }} />
       {/* ── NAWIGACJA GŁÓWNA ── */}
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo />
-          </Link>
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background">
+        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-x-3 gap-y-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:py-0 sm:px-6">
+          <Logo className="w-full shrink-0 sm:w-auto" />
 
-          <nav className="hidden md:flex items-center gap-8 text-[13.5px] font-medium text-muted-foreground">
-            <a href="#funkcje" className="hover:text-foreground transition-colors">
+          <nav className="hidden xl:flex items-center gap-6 text-[13.5px] font-medium text-muted-foreground">
+            <a href="#funkcje" className="focus-visible:text-foreground">
               Funkcje
             </a>
-            <a href="#ksef" className="hover:text-foreground transition-colors">
+            <a href="#ksef" className="focus-visible:text-foreground">
               KSeF 2.0 & FA(3)
             </a>
-            <a href="#jak-dziala" className="hover:text-foreground transition-colors">
+            <a href="#jak-dziala" className="focus-visible:text-foreground">
               Jak to działa
             </a>
-            <Link href="/demo" className="text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+            <Link href="/demo" className="text-primary focus-visible:underline flex items-center gap-1">
               <span>Piaskownica Demo</span>
               <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary border border-primary/20 font-semibold">
                 Bez logowania
               </span>
             </Link>
-            <Link href="/program-do-faktur" className="hover:text-foreground transition-colors">Program do faktur</Link>
+            <Link href="/program-do-faktur" className="focus-visible:text-foreground">Program do faktur</Link>
           </nav>
 
-          <div className="flex items-center gap-3">
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all gap-1.5"
-              >
-                <span>Przejdź do aplikacji</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="inline-flex h-9 items-center justify-center rounded-xl px-3.5 text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  Zaloguj się
-                </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all"
-                >
-                  Załóż konto
-                </Link>
-              </>
-            )}
-          </div>
+          <LandingHeaderActions />
         </div>
       </header>
 
       {/* ── HERO SECTION ── */}
       <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
         {/* Delikatne tło gradientowe Apple/Stripe */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
-        <div className="pointer-events-none absolute top-1/3 -right-40 h-[450px] w-[450px] rounded-full bg-emerald-500/6 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 left-1/2 hidden h-[600px] w-[900px] sm:block -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/3 -right-40 hidden h-[450px] w-[450px] sm:block rounded-full bg-emerald-500/6 blur-3xl" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge zgodności */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
               <ShieldCheck className="h-4 w-4" />
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
@@ -127,23 +99,7 @@ export default async function LandingPage() {
 
             {/* CTA Buttons */}
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              {user ? (
-                <Link
-                  href="/dashboard"
-                  className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
-                >
-                  <span>Przejdź do aplikacji</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              ) : (
-                <Link
-                  href="/register"
-                  className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[14px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
-                >
-                  <span>Rozpocznij bezpłatnie</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              )}
+              <LandingPrimaryAction />
               <Link
                 href="/demo"
                 className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/80 px-6 text-[14px] font-medium text-foreground hover:bg-muted/70 active:scale-95 transition-all shadow-sm"
@@ -154,7 +110,7 @@ export default async function LandingPage() {
             </div>
 
             <a href="#funkcje" className="mt-4 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline md:hidden">Zobacz funkcje ↓</a>
-            <div className="mt-5 flex items-center justify-center gap-6 text-[12px] text-muted-foreground">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Brak wymogu karty
               </span>
@@ -168,7 +124,7 @@ export default async function LandingPage() {
           </div>
 
           {/* ── WIZUALIZACJA INTERFEJSU (PRAWDZIWY PODGLĄD FAKTURO) ── */}
-          <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl backdrop-blur-xl">
+          <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl sm:backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -181,7 +137,7 @@ export default async function LandingPage() {
                       KSeF: Przyjęta (200 OK)
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Numer KSeF: 5260301706-20260912-A1B2C3D4E5F6-11</p>
+                  <p className="break-all text-xs text-muted-foreground">Numer KSeF: 5260301706-20260912-A1B2C3D4E5F6-11</p>
                 </div>
               </div>
 
@@ -427,20 +383,7 @@ export default async function LandingPage() {
               <Link href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>
-              {user ? (
-                <Link href="/dashboard" className="hover:text-foreground transition-colors font-medium text-primary">
-                  Panel główny
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="hover:text-foreground transition-colors">
-                    Logowanie
-                  </Link>
-                  <Link href="/register" className="hover:text-foreground transition-colors">
-                    Rejestracja
-                  </Link>
-                </>
-              )}
+              <LandingFooterActions />
             </div>
           </div>
           {/* Linki prawne */}
