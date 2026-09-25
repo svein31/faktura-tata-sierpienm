@@ -206,6 +206,17 @@ try {
   assert.equal((await api('GET', '/api/data', undefined, b.cookie)).data.invoices.length, 0);
   const company2 = await api('POST', '/api/companies', { companyName: 'Firma prywatna', nip: '5250001003' }, a.cookie);
   assert.equal(company2.res.status, 201);
+  // One login may own both firms, but their bank accounts cannot cross invoices.
+  const firstBank = await db.companyBankAccount.create({ data: { companyId, accountNumber: '91100000000000000000000001' } });
+  const secondBank = await db.companyBankAccount.create({ data: { companyId: company2.data.company.id, accountNumber: '92100000000000000000000002' } });
+  assert.deepEqual((await api('GET', '/api/companies', undefined, a.cookie)).data.companies.map(c => c.id).sort(), [companyId, company2.data.company.id].sort());
+  const bankInvoiceBody = { ...invoice.data.invoice, number: 'BANK/2026/1', bankAccountId: secondBank.id, bankAccountSnapshot: { accountNumber: 'wrong' } };
+  assert.equal((await api('POST', '/api/invoices', bankInvoiceBody, a.cookie)).res.status, 400);
+  const bankInvoice = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: firstBank.id }, a.cookie);
+  assert.equal(bankInvoice.res.status, 201, JSON.stringify(bankInvoice.data));
+  assert.equal(bankInvoice.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
+  assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
+  assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
   assert.equal(privateContact.res.status, 201);
   const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);
