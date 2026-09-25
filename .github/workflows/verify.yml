@@ -11,6 +11,7 @@ jobs:
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: '1'
+      RUN_ALL_MOBILE_CHECKS: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
