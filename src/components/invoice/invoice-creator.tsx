@@ -216,7 +216,10 @@ export function InvoiceCreator() {
   const [isManualRate, setIsManualRate] = React.useState(false);
   const [manualRateInput, setManualRateInput] = React.useState("");
   const [manualJustification, setManualJustification] = React.useState("");
-  const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>("");
+  const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>(() =>
+    draftInvoice && !draftInvoiceIsNew && draftInvoice.sellerCompanyId === defaultCompany.id
+      ? draftInvoice.bankAccountId || "" : ""
+  );
   const [newContractorTaxIdType, setNewContractorTaxIdType] = React.useState<"nip" | "vat_eu" | "tin" | "none">("nip");
   const [shortcutsModalOpen, setShortcutsModalOpen] = React.useState(false);
 
