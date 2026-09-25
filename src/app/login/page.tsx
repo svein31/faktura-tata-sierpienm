@@ -16,7 +16,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
-  const { status, refresh } = useSession();
+  const { status } = useSession();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -70,6 +70,13 @@ function LoginForm() {
         // ignore
       }
 
+      if (data.code === "MFA_REQUIRED") {
+        setMfaRequired(true);
+        setError(data.error || "Podaj kod 2FA.");
+        setBusy(false);
+        return;
+      }
+
       if (!res.ok) {
         if (data.code?.startsWith("MFA_")) setMfaRequired(true);
         setError(data.error || "Nieprawidłowy e-mail lub hasło.");
@@ -78,12 +85,9 @@ function LoginForm() {
       }
 
       toast("success", `Witaj, ${data.user?.name ?? ""}`.trim(), "Logowanie powiodło się.");
-      try {
-        await refresh();
-      } catch {
-        // ignore
-      }
-      window.location.href = nextUrl;
+      // Full navigation reads the newly set session cookie once; refreshing context
+      // first would also trigger the authenticated router effect and abort a duplicate request.
+      window.location.replace(nextUrl);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       setError(msg ? `Błąd połączenia: ${msg}` : "Błąd sieci lub połączenia — spróbuj ponownie.");

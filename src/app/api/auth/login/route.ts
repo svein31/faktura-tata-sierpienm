@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     let mfaVerifiedAt: Date | undefined;
     if (mfa?.enabledAt) {
       const code = str(body.code).trim();
-      if (!code) return json({ error: "Podaj kod z aplikacji uwierzytelniającej lub kod odzyskiwania.", code: "MFA_REQUIRED" }, { status: 401 });
+      if (!code) return json({ success: false, error: "Podaj kod z aplikacji uwierzytelniającej lub kod odzyskiwania.", code: "MFA_REQUIRED" }, { status: 200, headers: { "Cache-Control": "no-store" } });
       const proof = code.length <= 128 ? await consumeMfaCode(user.id, code) : null;
       if (!proof) return json({ error: "Nieprawidłowy lub już użyty kod 2FA.", code: "MFA_INVALID" }, { status: 401 });
       mfaVerifiedAt = proof.record.enabledAt!;
