@@ -320,6 +320,8 @@ export interface Invoice {
   totalGross?: number;
   ksef?: KsefInfo;
   ksefNumber?: string | null;
+  /** Data nadania numeru KSeF z UPO, utrwalona na wersji wydruku. */
+  ksefAcceptedAt?: string | null;
   referenceNumber?: string | null;
   upoXml?: string | null;
   ksefXml?: string | null;
