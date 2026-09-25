@@ -10,6 +10,7 @@ import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber } from "@/lib/invoice-numbering";
+import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 
 export const runtime = "nodejs";
 
@@ -53,7 +54,8 @@ export async function POST(req: Request) {
         existing.map(inv => inv.number), String(body.issueDate || ""),
         invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
     }
-    const data = await buildData(number);
+    const parsed = await buildData(number);
+    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId) };
 
     // Weryfikacja granularnego uprawnienia do wystawiania faktur
     if (data.sellerCompanyId) {

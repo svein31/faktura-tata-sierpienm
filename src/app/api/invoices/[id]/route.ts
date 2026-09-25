@@ -4,6 +4,7 @@ import { KSEF_IN_FLIGHT } from "@/lib/ksef/transmission-claim";
 import { contractorForCompany } from "@/lib/company-scope";
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
+import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
@@ -166,12 +167,13 @@ export async function PUT(req: Request, { params }: Ctx) {
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
 
-    const data = await parseInvoiceBody(body, {
+    const parsed = await parseInvoiceBody(body, {
       contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
+    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId) };
 
     // Wystawienie jest nieodwracalne: cofnięcie do szkicu/proformy pozwoliłoby usunąć dokument i ominąć licznik.
     if ((existing.issuedAt || (existing.type === "sale" && !existing.isProforma && existing.status !== "draft")) &&
