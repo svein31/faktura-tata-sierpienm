@@ -1,11 +1,10 @@
-import { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
 import { prisma } from "@/lib/db";
 
 /** Resolve the bank account from the seller, never from a client-supplied snapshot. */
 export async function invoiceBankAccountForCompany(companyId: string | null, bankAccountId: string | null) {
   if (!bankAccountId) {
-    return { bankAccountId: null, bankAccountSnapshot: Prisma.JsonNull };
+    return { bankAccountId: null, bankAccountSnapshot: null };
   }
   if (!companyId || !/^[a-f\d]{24}$/i.test(bankAccountId)) {
     throw new ApiError(400, "Wybierz rachunek należący do firmy wystawiającej fakturę.");
