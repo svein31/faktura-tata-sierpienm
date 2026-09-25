@@ -470,6 +470,7 @@ export function InvoiceCreator() {
 
   const validate = (): string[] => {
     const errs: string[] = [];
+    if (editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id) errs.push("Ta faktura należy do innej firmy. Otwórz ją we właściwym kontekście.");
     if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
     if (form.isOffline && (!form.offlineReason || !form.offlineDeadline)) errs.push("Tryb offline wymaga wskazania przyczyny i terminu przesłania.");
     if (form.isCorrection && !form.correctionReason?.trim()) {
@@ -978,7 +979,7 @@ export function InvoiceCreator() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm font-medium">{effectiveSellerCompany.companyName || "Dodaj firmę"} · NIP: {formatNip(effectiveSellerCompany.nip)}</p>
-            {editing && draftInvoice?.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-red-600">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
+            {editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-red-600">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
             <div className="space-y-1">
               <label htmlFor="invoice-number" className="block text-xs font-semibold">Numer faktury</label>
               <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"

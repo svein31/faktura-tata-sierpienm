@@ -70,6 +70,7 @@ export async function POST(req: Request) {
         },
       });
       if (existingWithSameNumber) {
+        if (autoNumber && attempt < 7) continue;
         throw new ApiError(409, `Faktura o numerze "${data.number}" już istnieje w tej firmie.`);
       }
     } else {
@@ -81,6 +82,7 @@ export async function POST(req: Request) {
         },
       });
       if (existingWithSameNumber) {
+        if (autoNumber && attempt < 7) continue;
         throw new ApiError(409, `Faktura o numerze "${data.number}" już istnieje.`);
       }
     }
