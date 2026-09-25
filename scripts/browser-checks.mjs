@@ -11,7 +11,48 @@ export async function browserChecks(base) {
   }
   try {
     await context.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
+    // Public pages must fit a phone viewport without horizontal page scrolling.
+    const publicContext = await browser.newContext({
+      baseURL: base, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    const publicPage = await publicContext.newPage(), publicErrors = [];
+    publicPage.on('pageerror', error => publicErrors.push(error.message));
+    try {
+      for (const route of ['/', '/login', '/register', '/demo']) {
+        await publicPage.goto(route);
+        await expect(publicPage.locator('h1')).toBeVisible();
+        assert.ok(
+          await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+          `Public mobile overflow: ${route}`,
+        );
+      }
+      await publicPage.goto('/');
+      await publicPage.getByRole('link', { name: /Zobacz funkcje/ }).click();
+      await expect(publicPage.locator('#funkcje')).toBeInViewport();
+      assert.deepEqual(publicErrors, [], 'Public mobile pages must not report JavaScript errors');
+    } finally { await publicContext.close(); }
     await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
+    // A fresh phone browser should complete password login and reach the protected app.
+    const loginContext = await browser.newContext({
+      baseURL: base, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+    });
+    await loginContext.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
+    const loginPage = await loginContext.newPage(), loginErrors = [];
+    loginPage.on('pageerror', error => loginErrors.push(error.message));
+    try {
+      await loginPage.goto('/login');
+      await loginPage.getByRole('button', { name: 'Odrzuć opcjonalne' }).click();
+      await loginPage.getByLabel('Adres e-mail').fill('browser@example.com');
+      await loginPage.getByLabel('Hasło', { exact: true }).fill('BrowserTest123!');
+      await loginPage.getByRole('button', { name: 'Zaloguj się', exact: true }).click();
+      await expect(loginPage).toHaveURL(new RegExp('/dashboard(?:[?]|$)'));
+      await expect(loginPage.locator('main')).toBeVisible();
+      assert.ok(
+        await loginPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+        'Authenticated mobile dashboard overflow',
+      );
+      assert.deepEqual(loginErrors, [], 'Mobile login must not report JavaScript errors');
+    } finally { await loginContext.close(); }
     const company = (await post('/api/companies', { companyName: 'Browser Company', nip: '5260301706' })).company;
     const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer', nip: '5250001003' })).contractor;
     for (let n = 1; n <= 32; n++) await post('/api/invoices', {
