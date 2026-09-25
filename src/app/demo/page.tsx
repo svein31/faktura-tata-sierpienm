@@ -149,7 +149,7 @@ export default function DemoPage() {
   const totals = calculateTotals();
 
   // Konstrukcja DTO dla XML
-  const currentBuyer: Contractor = {
+  const currentBuyer = React.useMemo<Contractor>(() => ({
     id: "demo-buyer",
     name: buyerName,
     nip: buyerNip,
@@ -161,9 +161,9 @@ export default function DemoPage() {
     },
     isVatPayer: true,
     createdAt: new Date().toISOString(),
-  };
+  }), [buyerName, buyerNip, buyerStreet, buyerCity, buyerPostal]);
 
-  const invoiceDto: Invoice = {
+  const invoiceDto = React.useMemo<Invoice>(() => ({
     id: "demo-inv-1",
     number: invoiceNumber,
     type: "sale",
@@ -185,7 +185,7 @@ export default function DemoPage() {
       vatRate: l.vatRate,
     })),
     createdAt: new Date().toISOString(),
-  };
+  }), [invoiceNumber, paymentMethod, lines]);
 
   const generatedXml = React.useMemo(() => {
     try {
