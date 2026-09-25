@@ -128,7 +128,7 @@ try {
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   await migrateData(mongoClient.db('fakturo_integration'),'up','015-auth-rate-limit');
   console.log('[integration] Starting application');
-  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '11'.repeat(32), WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '', WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
   server.stderr.on('data', data => { logs += data; });
   let ready = false;
@@ -355,10 +355,15 @@ try {
   const setupMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
   assert.equal(setupMfa.res.status, 200, JSON.stringify(setupMfa.data));
   assert.ok(setupMfa.data.qrDataUrl.startsWith('data:image/png;base64,'));
+  const resumedMfa = await api('POST', '/api/auth/mfa', { action: 'setup', password: credentials.password }, a.cookie);
+  assert.equal(resumedMfa.res.status, 200, JSON.stringify(resumedMfa.data));
+  assert.equal(resumedMfa.data.secret, setupMfa.data.secret, 'Resuming pending setup must keep the scanned secret');
+  assert.equal((await api('GET', '/api/auth/mfa', undefined, a.cookie)).data.enabled, false);
   const activationCode = totpAt(setupMfa.data.secret, Date.now());
   const enabledMfa = await api('POST', '/api/auth/mfa', { action: 'enable', password: credentials.password, code: activationCode }, a.cookie);
   assert.equal(enabledMfa.res.status, 200, JSON.stringify(enabledMfa.data));
   assert.equal(enabledMfa.data.recoveryCodes.length, 8);
+  assert.equal((await api('GET', '/api/auth/mfa', undefined, a.cookie)).data.enabled, true);
   const storedMfa = await db.userMfa.findUniqueOrThrow({ where: { userId: a.data.user.id } });
   assert.notEqual(storedMfa.encryptedSecret, setupMfa.data.secret);
   assert.ok(!storedMfa.recoveryHashes.includes(enabledMfa.data.recoveryCodes[0]));

@@ -2,12 +2,16 @@ import { prisma } from "@/lib/db";
 import { getSession, verifyPassword } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { consumeMfaCode } from "@/lib/mfa";
-import { generateTotpSecret, encryptMfaSecret, generateRecoveryCodes, recoveryHash } from "@/lib/totp";
+import { generateTotpSecret, encryptMfaSecret, decryptMfaSecret, generateRecoveryCodes, recoveryHash } from "@/lib/totp";
 import { recordAuditLog } from "@/lib/audit";
 import { rateLimit } from "@/lib/rate-limit";
 import QRCode from "qrcode";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+async function setupResponse(secret: string, email: string, expiresInSeconds: number) {
+  const uri = `otpauth://totp/${encodeURIComponent(`FakturaProsto:${email}`)}?secret=${secret}&issuer=FakturaProsto&algorithm=SHA1&digits=6&period=30`;
+  return { secret, qrDataUrl: await QRCode.toDataURL(uri), expiresInSeconds };
+}
 export async function GET() {
   try {
     const session = await getSession();
@@ -25,9 +29,20 @@ export async function POST(req: Request) {
     const { user, sessionId } = session;
     if (password.length > 128 || !await verifyPassword(password, user.password)) throw new ApiError(401, "Nieprawidłowe hasło.");
     if (action === "setup") {
-      const secret = generateTotpSecret(), encryptedSecret = encryptMfaSecret(secret, user.id);
       const existing = await prisma.userMfa.findUnique({ where: { userId: user.id } });
       if (existing?.enabledAt) throw new ApiError(409, "2FA jest już włączone.");
+      // Reopening setup must keep the same secret while it is still valid.
+      // Otherwise a previously scanned QR code would silently stop matching.
+      if (existing && existing.failedAttempts >= 5 && existing.lockedUntil && existing.lockedUntil > new Date()) throw new ApiError(429, "Limit prób 2FA. Spróbuj później.");
+      if (existing?.setupExpiresAt && existing.setupExpiresAt > new Date()) {
+        try {
+          const secret = decryptMfaSecret(existing.encryptedSecret, user.id);
+          return json(await setupResponse(secret, user.email, Math.ceil((existing.setupExpiresAt.getTime() - Date.now()) / 1000)));
+        } catch {
+          // An unreadable, unconfirmed setup may be replaced after password verification.
+        }
+      }
+      const secret = generateTotpSecret(), encryptedSecret = encryptMfaSecret(secret, user.id);
       const data = { encryptedSecret, enabledAt: null, setupExpiresAt: new Date(Date.now() + 10 * 60_000), lastUsedStep: -1, recoveryHashes: [], failedAttempts: 0, lockedUntil: null };
       if (existing) {
         // Do not let repeated setup requests bypass the persisted attempt limit.
@@ -35,8 +50,7 @@ export async function POST(req: Request) {
         const updated = await prisma.userMfa.updateMany({ where: { id: existing.id, enabledAt: null }, data });
         if (!updated.count) throw new ApiError(409, "Konfiguracja 2FA została zmieniona. Odśwież stronę.");
       } else await prisma.userMfa.create({ data: { userId: user.id, ...data } });
-      const uri = `otpauth://totp/${encodeURIComponent(`FakturaProsto:${user.email}`)}?secret=${secret}&issuer=FakturaProsto&algorithm=SHA1&digits=6&period=30`;
-      return json({ secret, qrDataUrl: await QRCode.toDataURL(uri), expiresInSeconds: 600 }, { headers: { "Cache-Control": "no-store" } });
+      return json(await setupResponse(secret, user.email, 600));
     }
     if (!["enable", "disable", "recovery"].includes(action)) throw new ApiError(400, "Nieprawidłowa operacja 2FA.");
     const proof = code.length <= 128 ? await consumeMfaCode(user.id, code, action === "enable") : null;

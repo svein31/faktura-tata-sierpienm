@@ -38,7 +38,6 @@ import { useToast } from "@/components/toast";
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
-import { TwoFactorAuthCard } from "@/components/security/two-factor-auth-card";
 import { SubscriptionCard } from "@/components/subscription/subscription-card";
 
 export default function AccountSettingsPage() {
@@ -298,9 +297,6 @@ export default function AccountSettingsPage() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
-            {/* Uwierzytelnianie dwuskładnikowe 2FA TOTP */}
-            <TwoFactorAuthCard />
-
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
             <Card>
               <CardHeader>
