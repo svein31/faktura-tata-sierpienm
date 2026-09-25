@@ -139,6 +139,16 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   assert.ok(ready, 'Application must start');
+  // An expired session cookie must never bounce /login -> /dashboard -> /login.
+  const staleCookie = 'auth_session=expired-session-token';
+  for (const path of ['/login', '/register']) {
+    const page = await fetch(base + path, { headers: { Cookie: staleCookie }, redirect: 'manual' });
+    assert.equal(page.status, 200, path + ' must remain accessible with a stale cookie');
+  }
+  const protectedPage = await fetch(base + '/dashboard', { headers: { Cookie: staleCookie }, redirect: 'manual' });
+  assert.ok([307, 308].includes(protectedPage.status), 'protected page must reject stale cookie');
+  assert.equal(new URL(protectedPage.headers.get('location'), base).pathname, '/login');
+  console.log('[integration] PASS stale cookie cannot trigger login redirect loop');
   assert.equal((await api('GET', '/api/data')).res.status, 401);
   const a = await api('POST', '/api/auth/register', { name: 'Owner', email: 'a@example.com', password: 'Integration123!', acceptTerms: true });
   const b = await api('POST', '/api/auth/register', { name: 'Other', email: 'b@example.com', password: 'Integration123!', acceptTerms: true });

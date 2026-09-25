@@ -58,14 +58,11 @@ export function middleware(request: NextRequest) {
     isPublicSeoPath ||
     isLegalPath;
 
-  // 4. Zalogowany użytkownik wchodzący na stronę logowania/rejestracji -> przekieruj na /dashboard
-  if (token && (pathname === "/login" || pathname === "/register")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
-  // 5. Brak tokenu + próba wejścia na chronioną stronę -> Przekierowanie na /login
+  // Ciasteczko może wskazywać wygasłą lub usuniętą sesję. Nie przekierowuj
+  // z /login na podstawie samego tokenu: ekran logowania sprawdza sesję
+  // przez /api/auth/me i przekierowuje dopiero po potwierdzeniu w bazie.
+  // W przeciwnym razie /login i chroniony /dashboard zapętlają przekierowania.
+  // Brak tokenu + próba wejścia na chronioną stronę -> /login
   if (!token && !isPublicPath) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
