@@ -278,6 +278,7 @@ model CompanyProfile {
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   nip            String
   companyName    String
+  invoiceNumberPattern String? // e.g. {PREFIX} {NN}/{MM}/{YYYY}
   street         String?
   buildingNumber String?
   flatNumber     String?
@@ -301,6 +302,13 @@ model CompanyProfile {
 
   @@unique([userId, nip])
   @@index([userId])
+}
+
+/// Reservation makes duplicate numbers impossible under concurrent API requests.
+model InvoiceNumberClaim {
+  id        String   @id @map("_id")
+  invoiceId String?  @db.ObjectId
+  createdAt DateTime @default(now())
 }
 
 /// Członkostwo i uprawnienia użytkownika w firmie

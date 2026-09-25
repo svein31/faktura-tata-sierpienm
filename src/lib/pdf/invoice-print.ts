@@ -6,6 +6,7 @@ import { invoiceToDto, companyProfileToDto, contractorToDto } from "@/lib/dto";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "@/lib/pdf/print-config";
+import { buildKsefVerificationUrl } from "@/lib/ksef";
 
 type ContextData = { company?: CompanyProfile; contractor?: Contractor; config: PrintConfig; templateId?: string; templateVersion: number };
 const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
@@ -33,6 +34,11 @@ export async function captureInvoicePrint(tx: Prisma.TransactionClient, invoice:
   let context = await tx.invoicePrintContext.findUnique({ where: { id: invoice.id } });
   if (!context) context = await tx.invoicePrintContext.create({ data: { id: invoice.id, companyId: invoice.sellerCompanyId, captureReason, data: await currentPrintContext(tx, invoice) as unknown as Prisma.InputJsonValue } });
   const invoiceData = printInvoiceData(invoiceToDto(invoice));
+  if (invoice.ksefNumber && !invoiceData.qrCodeI && invoice.ksefXml) {
+    const seller = invoice.sellerCompanyId ? await tx.companyProfile.findUnique({ where: { id: invoice.sellerCompanyId }, select: { nip: true } }) : null;
+    const environment = (invoice.ksef as { environment?: "test" | "demo" | "production" } | null)?.environment || "test";
+    if (seller?.nip) invoiceData.qrCodeI = buildKsefVerificationUrl({ sellerNip: seller.nip, issueDate: invoice.issueDate, xmlContent: invoice.ksefXml, environment });
+  }
   const sourceHash = createHash("sha256").update(JSON.stringify({ context: context.data, invoice: invoiceData })).digest("hex");
   const id = createHash("sha256").update(`${invoice.id}:${sourceHash}`).digest("hex").slice(0, 24);
   const existing = await tx.invoicePrintVersion.findUnique({ where: { id } });
@@ -48,7 +54,7 @@ export async function invoicePdf(invoiceId: string, versionId?: string) {
   const prepared = await prisma.$transaction(async tx => {
     const invoice = await tx.invoice.findUnique({ where: { id: invoiceId } });
     if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
-    if (invoice.isOffline && (!invoice.qrCodeI || !invoice.qrCodeII)) throw new ApiError(409, "Najpierw wystaw fakturę offline z podpisanym Kodem II.");
+    if (invoice.isOffline && !invoice.ksefNumber && (!invoice.qrCodeI || !invoice.qrCodeII)) throw new ApiError(409, "Najpierw wystaw fakturę offline z podpisanym Kodem II.");
     if (versionId) {
       const version = await tx.invoicePrintVersion.findFirst({ where: { id: versionId, invoiceId } });
       const context = await tx.invoicePrintContext.findUnique({ where: { id: invoiceId } });
@@ -60,6 +66,7 @@ export async function invoicePdf(invoiceId: string, versionId?: string) {
     return { version, context, invoice: version ? version.invoiceData as unknown as Invoice : printInvoiceData(invoiceToDto(invoice)) };
   });
   if (prepared.version?.pdfBase64) return { buffer: Buffer.from(prepared.version.pdfBase64, "base64"), versionId: prepared.version.id, sha256: prepared.version.pdfSha256, number: prepared.invoice.number };
+  if (prepared.invoice.ksefNumber && !prepared.invoice.qrCodeI) throw new ApiError(409, "Brakuje danych kodu weryfikacji KSeF. Odśwież fakturę i ponów pobranie PDF.");
   const buffer = await generateInvoicePdfBuffer(prepared.invoice, prepared.context.contractor, prepared.context.company, prepared.context.config);
   const sha256 = createHash("sha256").update(buffer).digest("hex");
   if (!prepared.version) return { buffer, versionId: null, sha256, number: prepared.invoice.number };

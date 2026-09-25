@@ -26,6 +26,7 @@ import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatNip } from "@/lib/validation";
 import type { CompanyProfile } from "@/lib/types";
+import { DEFAULT_INVOICE_PATTERN, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
 
 export default function CompaniesSettingsPage() {
   const toast = useToast();
@@ -34,12 +35,31 @@ export default function CompaniesSettingsPage() {
     invoices,
     setDefaultCompanyProfile,
     deleteCompanyProfile,
+    fetchCompanies,
   } = useAppStore();
 
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<CompanyProfile | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [settingDefaultId, setSettingDefaultId] = React.useState<string | null>(null);
+  const [patterns, setPatterns] = React.useState<Record<string, string>>({});
+  const [savingPatternId, setSavingPatternId] = React.useState<string | null>(null);
+
+  const savePattern = async (company: CompanyProfile) => {
+    const pattern = patterns[company.id] ?? company.invoiceNumberPattern ?? DEFAULT_INVOICE_PATTERN;
+    try {
+      parseInvoicePattern(pattern);
+      setSavingPatternId(company.id);
+      const res = await fetch(`/api/companies/${company.id}/numbering`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pattern }),
+      });
+      if (!res.ok) { const body = await res.json(); throw new Error(body.error || "Nie można zapisać formatu."); }
+      await fetchCompanies();
+      toast("success", "Zapisano format numeru", pattern);
+    } catch (error) {
+      toast("error", "Nie można zapisać numeracji", error instanceof Error ? error.message : "Nieprawidłowy format.");
+    } finally { setSavingPatternId(null); }
+  };
 
   const defaultCompany = companies.find((c) => c.isDefault) ?? companies[0] ?? null;
   const companiesWithKsef = companies.filter((c) => Boolean(c.ksefTokenSet)).length;
@@ -99,6 +119,27 @@ export default function CompaniesSettingsPage() {
           </Button>
         }
       />
+
+      {companies.length > 0 && <Card className="p-5 space-y-4">
+        <div>
+          <h2 className="font-semibold">Numeracja faktur</h2>
+          <p className="text-sm text-muted-foreground">Ustaw format osobno dla każdej firmy. NN oznacza kolejny numer, MM miesiąc, a RRRR rok. Licznik zaczyna się od 01 w nowym miesiącu, jeśli format zawiera MM.</p>
+        </div>
+        {companies.filter(c => c.currentUserRole === "owner" || c.userId === useAppStore.getState().company?.userId).map(c => {
+          const pattern = patterns[c.id] ?? c.invoiceNumberPattern ?? DEFAULT_INVOICE_PATTERN;
+          let example = "Sprawdź format";
+          try { example = nextFormattedInvoiceNumber(pattern, [], "2026-07-01", "FV"); } catch { /* Show validation on save. */ }
+          return <div key={c.id} className="grid gap-2 border-t pt-3 sm:grid-cols-[180px_1fr_auto] sm:items-center">
+            <label htmlFor={`pattern-${c.id}`} className="text-sm font-medium">{c.companyName}</label>
+            <div>
+              <input id={`pattern-${c.id}`} value={pattern} onChange={event => setPatterns(prev => ({ ...prev, [c.id]: event.target.value }))}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm" placeholder="FV NN/MM/RRRR" maxLength={80} />
+              <p className="mt-1 text-xs text-muted-foreground">Przykład: {example}. Możesz wpisać też NN/RRRR albo FV/NNNN/RRRR.</p>
+            </div>
+            <Button type="button" size="sm" disabled={savingPatternId === c.id} onClick={() => void savePattern(c)}>Zapisz format</Button>
+          </div>;
+        })}
+      </Card>}
 
       {/* Karty podsumowania (tylko gdy dodano firmy) */}
       {companies.length > 0 && (

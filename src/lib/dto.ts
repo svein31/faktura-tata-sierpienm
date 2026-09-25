@@ -50,6 +50,7 @@ export function companyProfileToDto(cp: DbCompanyProfile): CompanyProfile {
     userId: cp.userId,
     nip: cp.nip,
     companyName: cp.companyName,
+    invoiceNumberPattern: cp.invoiceNumberPattern ?? null,
     street: cp.street ?? "",
     buildingNumber: cp.buildingNumber ?? "",
     flatNumber: cp.flatNumber ?? "",
@@ -547,5 +548,4 @@ export function prefsToDto(p: NotificationPreference | null): NotificationPrefs 
     soundEnabled: p?.soundEnabled ?? true,
   };
 }
-
 

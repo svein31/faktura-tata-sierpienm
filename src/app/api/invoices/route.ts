@@ -9,6 +9,7 @@ import { parseInvoiceBody } from "@/lib/parsers";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
+import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber } from "@/lib/invoice-numbering";
 
 export const runtime = "nodejs";
 
@@ -31,12 +32,28 @@ export async function POST(req: Request) {
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
 
-    const data = await parseInvoiceBody(body, {
+    const buildData = (number: string) => parseInvoiceBody({ ...body, number }, {
       contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
+
+    // The server picks the next number from persisted documents, not from a stale browser tab.
+    // A deterministic Mongo _id reserves that number atomically even on the first deploy.
+    for (let attempt = 0; attempt < 8; attempt++) {
+    const companyId = typeof body.sellerCompanyId === "string" ? body.sellerCompanyId : null;
+    const autoNumber = body.autoNumber === true;
+    let number = String(body.number ?? "");
+    if (autoNumber) {
+      if (!companyId || !/^[a-f0-9]{24}$/i.test(companyId)) throw new ApiError(400, "Wybierz firmę wystawiającą fakturę.");
+      const seller = await prisma.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
+      const existing = await prisma.invoice.findMany({ where: { sellerCompanyId: companyId }, select: { number: true } });
+      number = nextFormattedInvoiceNumber(seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
+        existing.map(inv => inv.number), String(body.issueDate || ""),
+        invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
+    }
+    const data = await buildData(number);
 
     // Weryfikacja granularnego uprawnienia do wystawiania faktur
     if (data.sellerCompanyId) {
@@ -53,6 +70,7 @@ export async function POST(req: Request) {
         },
       });
       if (existingWithSameNumber) {
+        if (autoNumber && attempt < 7) continue;
         throw new ApiError(409, `Faktura o numerze "${data.number}" już istnieje w tej firmie.`);
       }
     } else {
@@ -64,12 +82,15 @@ export async function POST(req: Request) {
         },
       });
       if (existingWithSameNumber) {
+        if (autoNumber && attempt < 7) continue;
         throw new ApiError(409, `Faktura o numerze "${data.number}" już istnieje.`);
       }
     }
 
+    try {
     const invoice = await prisma.$transaction(async tx => {
     await assertAccountingPeriodsOpen(tx, [{ companyId: data.sellerCompanyId, issueDate: data.issueDate }]);
+    await tx.invoiceNumberClaim.create({ data: { id: `${data.sellerCompanyId || user.id}:${data.number}` } });
     const issuedAt = data.type === "sale" && !data.isProforma && data.status !== "draft"
       ? await claimInvoiceQuota(tx, user.id, data.sellerCompanyId) : null;
     const invoice = await tx.invoice.create({
@@ -113,6 +134,15 @@ export async function POST(req: Request) {
     });
 
     return json({ invoice: invoiceToDto(invoice) }, { status: 201 });
+    } catch (error) {
+      if ((error as { code?: string }).code === "P2002" || (error as { code?: string }).code === "P2034") {
+        if (autoNumber && attempt < 7) continue;
+        throw new ApiError(409, `Numer "${number}" jest już zajęty. Odśwież numer i spróbuj ponownie.`);
+      }
+      throw error;
+    }
+    }
+    throw new ApiError(409, "Nie udało się nadać wolnego numeru faktury. Spróbuj ponownie.");
   } catch (e) {
     return handleApiError(e);
   }
