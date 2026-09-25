@@ -59,7 +59,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const match = TITLES.find((t) => t.re.test(pathname));
   const title = match?.title ?? "FakturaProsto";
 
-  const { companies, company, selectedCompanyId, setSelectedCompanyId } = useAppStore();
+  const companies = useAppStore((s) => s.companies);
+  const company = useAppStore((s) => s.company);
+  const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
+  const setSelectedCompanyId = useAppStore((s) => s.setSelectedCompanyId);
   const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);
   const companyMenuRef = React.useRef<HTMLDivElement>(null);
 
@@ -111,7 +114,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="no-print sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 backdrop-blur-xl sm:px-6">
+    <header className="no-print sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background px-4 sm:bg-background/85 sm:px-6 sm:backdrop-blur-xl">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenu}
