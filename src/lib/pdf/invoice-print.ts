@@ -7,11 +7,14 @@ import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "@/lib/pdf/print-config";
 import { buildKsefVerificationUrl } from "@/lib/ksef";
+import { ksefAcceptanceDateFromUpo } from "@/lib/pdf/ksef-acceptance-date";
 
 type ContextData = { company?: CompanyProfile; contractor?: Contractor; config: PrintConfig; templateId?: string; templateVersion: number };
-const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
+const PDF_LAYOUT_VERSION = 2;
+const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "ksefAcceptedAt", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
 export function printInvoiceData(invoice: Invoice) {
   const data: Record<string, unknown> = Object.fromEntries(fields.filter(key => invoice[key] !== undefined).map(key => [key, invoice[key]]));
+  if (invoice.ksefNumber && invoice.upoXml) data.ksefAcceptedAt = ksefAcceptanceDateFromUpo(invoice.upoXml, invoice.ksefNumber);
   // Never archive XML, tokens, UPO, operational history or credentials in print data.
   if (invoice.ksef) data.ksef = { number: invoice.ksef.number, environment: invoice.ksef.environment };
   return JSON.parse(JSON.stringify(data)) as Invoice;
@@ -39,7 +42,7 @@ export async function captureInvoicePrint(tx: Prisma.TransactionClient, invoice:
     const environment = (invoice.ksef as { environment?: "test" | "demo" | "production" } | null)?.environment || "test";
     if (seller?.nip) invoiceData.qrCodeI = buildKsefVerificationUrl({ sellerNip: seller.nip, issueDate: invoice.issueDate, xmlContent: invoice.ksefXml, environment });
   }
-  const sourceHash = createHash("sha256").update(JSON.stringify({ context: context.data, invoice: invoiceData })).digest("hex");
+  const sourceHash = createHash("sha256").update(JSON.stringify({ layout: PDF_LAYOUT_VERSION, context: context.data, invoice: invoiceData })).digest("hex");
   const id = createHash("sha256").update(`${invoice.id}:${sourceHash}`).digest("hex").slice(0, 24);
   const existing = await tx.invoicePrintVersion.findUnique({ where: { id } });
   if (existing) {

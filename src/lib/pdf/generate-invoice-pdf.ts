@@ -2,7 +2,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "../format";
 import { invoiceLabels, paymentMethodLabel } from "../i18n";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "../types";
-import { buildKsefVerificationUrl, generateQrPngBuffer, getKsefQrLabel } from "../ksef";
+import { buildKsefVerificationUrl, generateQrPngBuffer } from "../ksef";
 import { getTaxIdLabel } from "../validation";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "./print-config";
 import { remoteLogo } from "./remote-logo";
@@ -80,7 +80,6 @@ export async function generateInvoicePdfBuffer(
   const grayColor = rgb(0.42, 0.45, 0.5); // #6b7280
   const lightBg = rgb(0.96, 0.97, 0.98); // #f4f6f8
   const borderColor = rgb(0.88, 0.9, 0.92);
-  const successColor = rgb(0.08, 0.55, 0.35);
   const warningColor = rgb(0.85, 0.45, 0.05);
 
   let y = height - 40;
@@ -166,12 +165,23 @@ export async function generateInvoicePdfBuffer(
     }
   }
 
+  // Kody weryfikacyjne muszą towarzyszyć fakturze udostępnianej poza KSeF.
+  // Umieszczamy je w pierwszym nagłówku, a nie w bloku po podsumowaniu.
+  const ksefNumber = invoice.ksefNumber || invoice.ksef?.number;
+  const offlineWithoutNumber = invoice.isOffline && !ksefNumber;
+  const qrUrl = invoice.qrCodeI || (ksefNumber && invoice.ksefXml ? buildKsefVerificationUrl({
+    sellerNip: effectiveCompany.nip, issueDate: invoice.issueDate,
+    environment: invoice.ksef?.environment || "test", xmlContent: invoice.ksefXml,
+  }) : null);
+  if ((ksefNumber || offlineWithoutNumber) && !qrUrl) throw new Error("Brak danych kodu weryfikacyjnego KSeF.");
+  if (offlineWithoutNumber && !invoice.qrCodeII) throw new Error("Faktura offline wymaga podpisanych kodów I i II.");
+
   // ── Nagłówek dokumentu ──
   page.drawRectangle({
     x: 40,
-    y: y - 94,
+    y: y - 122,
     width: width - 80,
-    height: 104,
+    height: 132,
     color: lightBg,
   });
 
@@ -184,71 +194,87 @@ export async function generateInvoicePdfBuffer(
     });
   }
 
-  const titleX = logoImage ? 55 + logoWidth + 14 : 55;
+  const titleX = 55;
   const docTitle = invoice.isCorrection
     ? "FAKTURA KORYGUJACA"
     : invoice.type === "purchase" ? cleanText(L.purchaseDoc) : cleanText(L.saleDoc);
 
   page.drawText(docTitle.toUpperCase(), {
     x: titleX,
-    y: y - 22,
-    size: 14,
+    y: logoImage ? y - 68 : y - 22,
+    size: 12,
     font: fontBold,
     color: invoice.isCorrection ? rgb(0.7, 0.15, 0.15) : primaryColor,
   });
 
-  page.drawText(wrap(`Nr: ${invoice.number}`, width - titleX - 50, 10, true).join("\n"), {
-    x: titleX,
+  const numberX = offlineWithoutNumber ? 251 : 268;
+  const numberWidth = offlineWithoutNumber ? 149 : 195;
+  const cleanNumber = cleanText(invoice.number);
+  const numberSize = Math.min(10, Math.max(6, 10 * numberWidth / Math.max(1, fontBold.widthOfTextAtSize(cleanNumber, 10))));
+  page.drawText("NUMER FAKTURY", { x: numberX, y: y - 24, size: 7, font: fontBold, color: grayColor });
+  page.drawText(cleanNumber, {
+    x: numberX,
     y: y - 38,
-    size: 10,
-    lineHeight: 11,
+    size: numberSize,
     font: fontBold,
     color: darkColor,
   });
 
-  if (invoice.ksefNumber || invoice.ksef?.number) {
-    page.drawText(`KSeF: ${cleanText(invoice.ksefNumber || invoice.ksef?.number)}`, {
-      x: titleX,
-      y: y - 66,
-      size: 7.5,
-      font: fontRegular,
-      color: grayColor,
+  if (ksefNumber) {
+    const cleanKsef = cleanText(ksefNumber);
+    const size = Math.min(7.3, 7.3 * 195 / Math.max(1, fontBold.widthOfTextAtSize(cleanKsef, 7.3)));
+    page.drawText("NUMER KSeF", { x: numberX, y: y - 55, size: 7, font: fontBold, color: grayColor });
+    page.drawText(cleanKsef, { x: numberX, y: y - 67, size, font: fontBold, color: darkColor });
+    page.drawText(`Data przyjecia w KSeF: ${cleanText(invoice.ksefAcceptedAt || "brak danych UPO")}`, {
+      x: numberX, y: y - 83, size: 7, font: fontRegular, color: grayColor,
     });
-  } else if (invoice.isOffline) {
-    page.drawText(`Tryb awaryjny KSeF (OFFLINE)`, {
-      x: titleX,
-      y: y - 66,
-      size: 7.5,
-      font: fontBold,
-      color: warningColor,
+  } else if (offlineWithoutNumber) {
+    page.drawText("Tryb offline KSeF", { x: numberX, y: y - 57, size: 8, font: fontBold, color: warningColor });
+    if (invoice.offlineDeadline) page.drawText(`Termin: ${cleanText(invoice.offlineDeadline)}`, {
+      x: numberX, y: y - 72, size: 7, font: fontRegular, color: warningColor,
     });
   }
 
-  // Daty (prawa strona nagłówka)
+  if (qrUrl) {
+    const qrImage = await pdfDoc.embedPng(await generateQrPngBuffer(qrUrl, 240));
+    const qrSize = offlineWithoutNumber ? 60 : 68;
+    const qrX = offlineWithoutNumber ? 405 : 479;
+    page.drawImage(qrImage, { x: qrX, y: y - 77, width: qrSize, height: qrSize });
+    page.drawText(offlineWithoutNumber ? "OFFLINE" : "KSeF", {
+      x: qrX, y: y - 87, size: 6, font: fontBold, color: offlineWithoutNumber ? warningColor : darkColor,
+    });
+    if (offlineWithoutNumber) {
+      const certificate = await pdfDoc.embedPng(await generateQrPngBuffer(invoice.qrCodeII!, 240));
+      page.drawImage(certificate, { x: 477, y: y - 77, width: 60, height: 60 });
+      page.drawText("CERTYFIKAT", { x: 477, y: y - 87, size: 6, font: fontBold, color: darkColor });
+    }
+  }
+
+  // Daty w dolnym wierszu nagłówka
   const dateX = 52;
   page.drawText(`${cleanText(L.issueDate)}: ${cleanText(invoice.issueDate)}`, {
     x: dateX,
-    y: y - 84,
+    y: y - 110,
     size: 8,
     font: fontRegular,
     color: grayColor,
   });
   page.drawText(`${cleanText(L.saleDate)}: ${cleanText(invoice.saleDate)}`, {
     x: dateX + 168,
-    y: y - 84,
+    y: y - 110,
     size: 8,
     font: fontRegular,
     color: grayColor,
   });
   page.drawText(`${cleanText(L.dueDate)}: ${cleanText(invoice.dueDate)}`, {
     x: dateX + 336,
-    y: y - 84,
+    y: y - 110,
     size: 8,
     font: fontRegular,
     color: grayColor,
   });
 
-  y -= 115;
+  y -= 143;
 
   // ── Sprzedawca i Nabywca ──
   const colWidth = (width - 95) / 2;
@@ -402,7 +428,7 @@ export async function generateInvoicePdfBuffer(
   y -= 15;
   ensureSpace(100);
 
-  // ── Podsumowanie, Płatność i Kod QR CIRFMF ──
+  // ── Podsumowanie i płatność ──
   const summaryBoxWidth = 200;
   const summaryX = width - 40 - summaryBoxWidth;
 
@@ -436,7 +462,7 @@ export async function generateInvoicePdfBuffer(
   page.drawText(cleanText(formatMoney(t.gross, invoice.currency)), { x: summaryX + 110, y: y - 56, size: 11, font: fontBold, color: primaryColor });
 
   // Informacje o płatności (po lewej stronie)
-  const payInfoWidth = 195;
+  const payInfoWidth = summaryX - 48;
   page.drawRectangle({
     x: 40,
     y: y - 75,
@@ -468,67 +494,7 @@ export async function generateInvoicePdfBuffer(
     page.drawText(cleanText(compIban), { x: 50, y: y - 62, size: 8.5, font: fontBold, color: darkColor });
   }
 
-  // A draft has no KSeF verification code. Show QR only when required for a
-  // confirmed KSeF invoice or a certified offline document.
-  const qrBoxX = 40 + payInfoWidth + 8;
-  const qrBoxWidth = summaryX - qrBoxX - 8;
-  if (invoice.ksefNumber || invoice.ksef?.number || (invoice.isOffline && invoice.qrCodeI)) {
-    page.drawRectangle({
-    x: qrBoxX,
-    y: y - 75,
-    width: qrBoxWidth,
-    height: 80,
-    color: lightBg,
-    borderColor: borderColor,
-    borderWidth: 1,
-  });
-
-    const qrUrl = invoice.qrCodeI || (invoice.ksefXml ? buildKsefVerificationUrl({
-      sellerNip, issueDate: invoice.issueDate, environment: invoice.ksef?.environment || "test", xmlContent: invoice.ksefXml,
-    }) : null);
-    if (!qrUrl) throw new Error("Brak danych kodu weryfikacyjnego KSeF.");
-    const qrLabel = getKsefQrLabel(invoice.ksefNumber || invoice.ksef?.number, invoice.isOffline);
-    const qrPng = await generateQrPngBuffer(qrUrl, 160);
-    const qrImage = await pdfDoc.embedPng(qrPng);
-
-    const qrSize = 50;
-    const qrImgX = qrBoxX + (qrBoxWidth - qrSize) / 2;
-    page.drawImage(qrImage, {
-      x: qrImgX,
-      y: y - 56,
-      width: qrSize,
-      height: qrSize,
-    });
-
-    const isAcceptedKsef = Boolean(invoice.ksefNumber || invoice.ksef?.number);
-    wrap(qrLabel, qrBoxWidth - 8, 5.5, true).slice(0, 2).forEach((label, index) => {
-      page.drawText(label, {
-        x: qrBoxX + 4, y: y - 65 - index * 7, size: 5.5, font: fontBold,
-        color: isAcceptedKsef ? successColor : warningColor,
-      });
-    });
-
-    if (invoice.isOffline && invoice.offlineDeadline) {
-      page.drawText(`Termin: ${cleanText(invoice.offlineDeadline)}`, {
-        x: qrBoxX + 4,
-        y: y - 72,
-        size: 5.5,
-        font: fontRegular,
-        color: rgb(0.85, 0.2, 0.2),
-      });
-    }
-  }
-
   y -= 95;
-  if (invoice.isOffline && !invoice.ksefNumber) {
-    if (!invoice.qrCodeII || !invoice.qrCodeI) throw new Error("Faktura offline wymaga podpisanych kodów I i II.");
-    ensureSpace(78);
-    const certImage = await pdfDoc.embedPng(await generateQrPngBuffer(invoice.qrCodeII, 180));
-    page.drawImage(certImage, { x: 45, y: y - 61, width: 55, height: 55 });
-    page.drawText("CERTYFIKAT", { x: 45, y: y - 70, size: 7, font: fontBold, color: darkColor });
-    page.drawText(cleanText("Potwierdzenie wystawcy dokumentu offline"), { x: 110, y: y - 34, size: 8, font: fontRegular, color: grayColor });
-    y -= 80;
-  }
 
   // ── Przeliczenie NBP dla walut obcych (art. 31a ustawy o VAT) ──
   if (invoice.currency && invoice.currency !== "PLN" && invoice.exchangeRate) {
