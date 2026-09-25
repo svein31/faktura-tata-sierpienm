@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-3", className)}>
+    <Link href="/" aria-label="FakturaProsto — strona główna" className={cn("flex items-center gap-3", className)}>
       <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-sm ring-1 ring-white/20">
         <svg
           className="h-5 w-5"

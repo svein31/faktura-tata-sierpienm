@@ -108,6 +108,28 @@ export default function DemoPage() {
   const [ksefStatus, setKsefStatus] = React.useState<"idle" | "sending" | "accepted">("idle");
   const [ksefNumber, setKsefNumber] = React.useState<string | null>(null);
   const [upoXml, setUpoXml] = React.useState<string | null>(null);
+  const simulationTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const documentSignature = JSON.stringify({
+    buyerName, buyerNip, buyerStreet, buyerCity, buyerPostal,
+    invoiceNumber, paymentMethod, lines,
+  });
+  const previousDocumentSignature = React.useRef(documentSignature);
+
+  React.useEffect(() => {
+    if (previousDocumentSignature.current === documentSignature) return;
+    previousDocumentSignature.current = documentSignature;
+    if (simulationTimer.current) {
+      clearTimeout(simulationTimer.current);
+      simulationTimer.current = null;
+    }
+    setKsefStatus("idle");
+    setKsefNumber(null);
+    setUpoXml(null);
+  }, [documentSignature]);
+
+  React.useEffect(() => () => {
+    if (simulationTimer.current) clearTimeout(simulationTimer.current);
+  }, []);
 
   // Wyliczenia
   const calculateTotals = () => {
@@ -127,7 +149,7 @@ export default function DemoPage() {
   const totals = calculateTotals();
 
   // Konstrukcja DTO dla XML
-  const currentBuyer: Contractor = {
+  const currentBuyer = React.useMemo<Contractor>(() => ({
     id: "demo-buyer",
     name: buyerName,
     nip: buyerNip,
@@ -139,9 +161,9 @@ export default function DemoPage() {
     },
     isVatPayer: true,
     createdAt: new Date().toISOString(),
-  };
+  }), [buyerName, buyerNip, buyerStreet, buyerCity, buyerPostal]);
 
-  const invoiceDto: Invoice = {
+  const invoiceDto = React.useMemo<Invoice>(() => ({
     id: "demo-inv-1",
     number: invoiceNumber,
     type: "sale",
@@ -163,7 +185,7 @@ export default function DemoPage() {
       vatRate: l.vatRate,
     })),
     createdAt: new Date().toISOString(),
-  };
+  }), [invoiceNumber, paymentMethod, lines]);
 
   const generatedXml = React.useMemo(() => {
     try {
@@ -183,8 +205,10 @@ export default function DemoPage() {
   }, [generatedXml]);
 
   const handleSimulateKsefSend = () => {
+    if (simulationTimer.current) clearTimeout(simulationTimer.current);
     setKsefStatus("sending");
-    setTimeout(() => {
+    simulationTimer.current = setTimeout(() => {
+      simulationTimer.current = null;
       const now = new Date();
       const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
       const rand = Math.random().toString(16).slice(2, 8).toUpperCase();
@@ -226,17 +250,15 @@ export default function DemoPage() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* ── NAWIGACJA DEMO ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <Logo />
-            </Link>
+        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:justify-between sm:py-0 sm:px-6">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <Logo />
             <span className="rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
               Piaskownica DEMO
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
             <Link
               href="/"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -295,10 +317,11 @@ export default function DemoPage() {
         </div>
 
         {/* ── ZAKŁADKI: FORMULARZ / XML / WYNIK KSEF ── */}
-        <div className="flex gap-2 border-b border-border/70 pb-3 mb-6 text-xs font-semibold">
+        <div className="flex gap-2 overflow-x-auto border-b border-border/70 pb-3 mb-6 text-xs font-semibold">
           <button
             onClick={() => setActiveTab("form")}
-            className={`px-3.5 py-2 rounded-xl transition-all ${
+            aria-pressed={activeTab === "form"}
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl transition-all ${
               activeTab === "form"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted"
@@ -308,7 +331,8 @@ export default function DemoPage() {
           </button>
           <button
             onClick={() => setActiveTab("xml")}
-            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+            aria-pressed={activeTab === "xml"}
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === "xml"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted"
@@ -322,7 +346,8 @@ export default function DemoPage() {
           </button>
           <button
             onClick={() => setActiveTab("ksef")}
-            className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+            aria-pressed={activeTab === "ksef"}
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
               activeTab === "ksef"
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted"
@@ -428,8 +453,8 @@ export default function DemoPage() {
                 </Button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto" role="region" aria-label="Pozycje faktury demonstracyjnej" tabIndex={0}>
+                <table className="w-full min-w-[760px] text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground text-[11px]">
                       <th className="py-2 px-2">Nazwa pozycji</th>
@@ -438,7 +463,7 @@ export default function DemoPage() {
                       <th className="py-2 px-2 w-32">Cena netto</th>
                       <th className="py-2 px-2 w-24">Stawka VAT</th>
                       <th className="py-2 px-2 w-32 text-right">Wartość brutto</th>
-                      <th className="py-2 px-2 w-10"></th>
+                      <th scope="col" className="py-2 px-2 w-10"><span className="sr-only">Akcje</span></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60">
@@ -506,6 +531,8 @@ export default function DemoPage() {
                           </td>
                           <td className="py-2 px-2 text-center">
                             <button
+                              type="button"
+                              aria-label={`Usuń pozycję: ${line.name}`}
                               onClick={() => removeLine(line.id)}
                               disabled={lines.length <= 1}
                               className="p-1 rounded text-muted-foreground hover:text-rose-500 disabled:opacity-30"
