@@ -156,14 +156,14 @@ export function LineItemsEditor({
     <div className="space-y-4">
       {/* ── Tabela pozycji ── */}
       <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm">
-        <table className="w-full min-w-[820px] text-[13px]">
+        <table className="w-full min-w-[1060px] text-[13px]">
           <thead>
             <tr className="border-b border-border/60 bg-muted/30 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="px-3 py-2.5 w-9">#</th>
               <th className="px-2 py-2.5">Produkt / usługa</th>
               <th className="px-2 py-2.5 w-20 text-right">Ilość</th>
               <th className="px-2 py-2.5 w-16">J.m.</th>
-              <th className="px-2 py-2.5 w-28 text-right">Cena netto</th>
+              <th className="px-2 py-2.5 min-w-[170px] text-right">Cena netto</th>
               <th className="px-2 py-2.5 w-20 text-center">VAT</th>
               <th className="px-2 py-2.5 w-28 text-right">Wart. netto</th>
               <th className="px-2 py-2.5 w-24 text-right">Kwota VAT</th>
@@ -236,15 +236,16 @@ export function LineItemsEditor({
                     </td>
 
                     {/* Ilość */}
-                    <td className="px-2 py-1.5">
+                    <td className="px-2 py-1.5 min-w-[170px]">
                       <Input
+                        aria-label="Cena netto pozycji"
                         type="number"
                         min={0}
                         step="any"
                         value={line.quantity}
                         onChange={(e) => update(line.id, { quantity: Number(e.target.value) || 0 })}
                         disabled={disabled}
-                        className="h-8 text-right text-[12.5px]"
+                        className="h-9 w-full min-w-[150px] text-right text-[13px] tabular-nums"
                       />
                     </td>
 

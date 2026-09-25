@@ -147,6 +147,7 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
 }
 
 /* ── Profil Spółki / Firmy ─────────────────────────────────────────────── */
+import { parseInvoicePattern } from "@/lib/invoice-numbering";
 
 export function parseCompanyProfileBody(body: Record<string, unknown>) {
   const companyName = cleanStr(body.companyName ?? body.name, 250, "companyName");
@@ -158,10 +159,16 @@ export function parseCompanyProfileBody(body: Record<string, unknown>) {
   if (!isValidNipFormat(nip)) {
     throw new ApiError(400, "NIP ma nieprawidłowy format lub sumę kontrolną.");
   }
+  const invoiceNumberPattern = body.invoiceNumberPattern === undefined ? undefined : cleanStr(body.invoiceNumberPattern, 80, "invoiceNumberPattern") || null;
+  if (invoiceNumberPattern) {
+    try { parseInvoicePattern(invoiceNumberPattern); }
+    catch (error) { throw new ApiError(400, error instanceof Error ? error.message : "Nieprawidłowy format numeru."); }
+  }
 
   return {
     nip,
     companyName,
+    invoiceNumberPattern,
     street: cleanStr(body.street, 200, "street") || null,
     buildingNumber: cleanStr(body.buildingNumber, 30, "buildingNumber") || null,
     flatNumber: cleanStr(body.flatNumber, 30, "flatNumber") || null,

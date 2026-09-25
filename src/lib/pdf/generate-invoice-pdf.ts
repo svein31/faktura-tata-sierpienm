@@ -468,10 +468,12 @@ export async function generateInvoicePdfBuffer(
     page.drawText(cleanText(compIban), { x: 50, y: y - 62, size: 8.5, font: fontBold, color: darkColor });
   }
 
-  // ── Box KOD QR CIRFMF (w środku między płatnością a podsumowaniem) ──
+  // A draft has no KSeF verification code. Show QR only when required for a
+  // confirmed KSeF invoice or a certified offline document.
   const qrBoxX = 40 + payInfoWidth + 8;
   const qrBoxWidth = summaryX - qrBoxX - 8;
-  page.drawRectangle({
+  if (invoice.ksefNumber || invoice.ksef?.number || (invoice.isOffline && invoice.qrCodeI)) {
+    page.drawRectangle({
     x: qrBoxX,
     y: y - 75,
     width: qrBoxWidth,
@@ -481,14 +483,10 @@ export async function generateInvoicePdfBuffer(
     borderWidth: 1,
   });
 
-  try {
     const qrUrl = invoice.qrCodeI || (invoice.ksefXml ? buildKsefVerificationUrl({
-      sellerNip: sellerNip,
-      issueDate: invoice.issueDate,
-      environment: invoice.ksef?.environment || "test",
-      xmlContent: invoice.ksefXml,
+      sellerNip, issueDate: invoice.issueDate, environment: invoice.ksef?.environment || "test", xmlContent: invoice.ksefXml,
     }) : null);
-    if (!qrUrl) throw new Error("Brak XML faktury potrzebnego do kodu I.");
+    if (!qrUrl) throw new Error("Brak danych kodu weryfikacyjnego KSeF.");
     const qrLabel = getKsefQrLabel(invoice.ksefNumber || invoice.ksef?.number, invoice.isOffline);
     const qrPng = await generateQrPngBuffer(qrUrl, 160);
     const qrImage = await pdfDoc.embedPng(qrPng);
@@ -503,12 +501,11 @@ export async function generateInvoicePdfBuffer(
     });
 
     const isAcceptedKsef = Boolean(invoice.ksefNumber || invoice.ksef?.number);
-    page.drawText(cleanText(qrLabel), {
-      x: qrBoxX + 4,
-      y: y - 66,
-      size: 6,
-      font: fontBold,
-      color: isAcceptedKsef ? successColor : warningColor,
+    wrap(qrLabel, qrBoxWidth - 8, 5.5, true).slice(0, 2).forEach((label, index) => {
+      page.drawText(label, {
+        x: qrBoxX + 4, y: y - 65 - index * 7, size: 5.5, font: fontBold,
+        color: isAcceptedKsef ? successColor : warningColor,
+      });
     });
 
     if (invoice.isOffline && invoice.offlineDeadline) {
@@ -520,9 +517,6 @@ export async function generateInvoicePdfBuffer(
         color: rgb(0.85, 0.2, 0.2),
       });
     }
-  } catch (err) {
-    console.warn("[PDF] Kod QR KSeF niedostępny:", err);
-    page.drawText(cleanText("Kod QR niedostępny"), { x: qrBoxX + 4, y: y - 42, size: 7, font: fontRegular, color: grayColor });
   }
 
   y -= 95;

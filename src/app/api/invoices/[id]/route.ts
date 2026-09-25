@@ -206,6 +206,9 @@ export async function PUT(req: Request, { params }: Ctx) {
       { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
       { companyId: data.sellerCompanyId, issueDate: data.issueDate },
     ]);
+    if (data.number !== existing.number) {
+      await tx.invoiceNumberClaim.create({ data: { id: `${existing.sellerCompanyId || user.id}:${data.number}` } });
+    }
     const issuedAt = data.type === "sale" && !data.isProforma && !existing.issuedAt && (existing.status === "draft" || existing.isProforma) && data.status !== "draft"
       ? await claimInvoiceQuota(tx, user.id, existing.sellerCompanyId) : existing.issuedAt;
     await captureInvoicePrint(tx, existing, "before-edit");

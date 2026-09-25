@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, CheckCircle2, FlaskConical, Loader2, Search, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2, Search, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { formatNip, isValidNipFormat, normalizeNip } from "@/lib/validation";
 import { useToast } from "@/components/toast";
@@ -33,8 +32,7 @@ export function NipLookup({
       setState({
         loading: false,
         result: {
-          source: "demo",
-          demo: true,
+          source: "mf-whitelist",
           error: "INVALID_NIP",
           message: "NIP musi mieć 10 cyfr i poprawną sumę kontrolną.",
         },
@@ -47,13 +45,13 @@ export function NipLookup({
       const data = (await res.json()) as NipLookupResult;
       setState({ loading: false, result: data });
       if (res.ok && data.company) {
-        toast("success", "Znaleziono w GUS (demo)", data.company.name);
+        toast("success", "Znaleziono w rejestrze", data.company.name);
         onFound(data.company);
       } else {
-        toast("error", data.message ?? "Nie znaleziono podmiotu.", "Tryb demo — tylko wybrane numery NIP.");
+        toast("error", data.message ?? "Nie znaleziono podmiotu.");
       }
     } catch {
-      setState({ loading: false, result: { source: "demo", demo: true, error: "UNREACHABLE", message: "Nie udało się połączyć z API lookup NIP." } });
+      setState({ loading: false, result: { source: "mf-whitelist", error: "UNREACHABLE", message: "Nie udało się połączyć z rejestrem NIP." } });
       toast("error", "Błąd sieci", "Nie udało się połączyć z API lookup NIP.");
     }
   };
@@ -87,9 +85,6 @@ export function NipLookup({
             <Search className="h-4 w-4 text-muted-foreground" />
           )}
           <span>Sprawdź w GUS</span>
-          <span className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            demo
-          </span>
         </Button>
       </div>
 
@@ -124,7 +119,7 @@ export function NipLookup({
                       {state.result.company.isVatPayer ? " · płatnik VAT" : " · zwolniony z VAT"}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      Źródło: adapter demo (GUS BIR wymaga klucza API — patrz README).
+                      Źródło: {state.result.source === "gus" ? "GUS BIR" : "Biała Lista VAT MF"}.
                     </p>
                   </div>
                 </div>

@@ -28,7 +28,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
-import { useAppStore, nextInvoiceNumber } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
+import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber } from "@/lib/invoice-numbering";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
@@ -80,6 +81,7 @@ const emptyNewContractor: NewContractorDraft = {
 };
 
 interface FormState {
+  number: string;
   type: InvoiceType;
   isProforma?: boolean;
   sellerCompanyId: string;
@@ -115,6 +117,7 @@ interface FormState {
 
 function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState {
   return {
+    number: inv.number,
     type: inv.type,
     isProforma: inv.isProforma ?? false,
     sellerCompanyId: inv.sellerCompanyId || defaultCompanyId,
@@ -150,6 +153,7 @@ function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState
 function freshForm(defaultCompanyId: string = ""): FormState {
   const today = todayISO();
   return {
+    number: "",
     type: "sale",
     isProforma: false,
     sellerCompanyId: defaultCompanyId,
@@ -183,7 +187,7 @@ function freshForm(defaultCompanyId: string = ""): FormState {
 }
 
 /** Dane faktury bez id/createdAt — id nadaje backend (źródło prawdy). */
-type InvoicePayload = Omit<Invoice, "id" | "createdAt">;
+type InvoicePayload = Omit<Invoice, "id" | "createdAt"> & { autoNumber?: boolean };
 
 export function InvoiceCreator() {
   const router = useRouter();
@@ -200,7 +204,7 @@ export function InvoiceCreator() {
     EMPTY_COMPANY;
 
   const [form, setForm] = React.useState<FormState>(() =>
-    draftInvoice ? formFromInvoice(draftInvoice, defaultCompany.id) : freshForm(defaultCompany.id)
+    draftInvoice ? { ...formFromInvoice(draftInvoice, defaultCompany.id), number: draftInvoiceIsNew ? "" : draftInvoice.number } : freshForm(defaultCompany.id)
   );
 
   const contractors = allContractors.filter(c => !c.companyId || c.companyId === form.sellerCompanyId);
@@ -247,6 +251,8 @@ export function InvoiceCreator() {
       if (src) {
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
+          sellerCompanyId: defaultCompany.id,
+          number: "",
           isCorrection: false,
           correctionReason: "",
           originalInvoiceId: "",
@@ -293,7 +299,7 @@ export function InvoiceCreator() {
   }, [form.currency, form.issueDate, form.saleDate, fetchNbpRate]);
 
   // ── Autosave stanu roboczego w localStorage ──
-  const DRAFT_KEY = "fakturo_local_draft_v2";
+  const DRAFT_KEY = `fakturo_local_draft_v3_${defaultCompany.id}`;
   const [autosaveStatus, setAutosaveStatus] = React.useState<"idle" | "saving" | "saved">("idle");
   const [hasRecoverableDraft, setHasRecoverableDraft] = React.useState<boolean>(false);
   const [recoverableDate, setRecoverableDate] = React.useState<string>("");
@@ -332,7 +338,7 @@ export function InvoiceCreator() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.form) {
-          setForm(parsed.form);
+          if (parsed.form.sellerCompanyId === defaultCompany.id) setForm(parsed.form);
           toast("success", "Przywrócono wersję roboczą", `Zapisana o: ${recoverableDate}`);
         }
       }
@@ -386,15 +392,16 @@ export function InvoiceCreator() {
     }
   }, [store.selectedCompanyId, draftInvoice, draftInvoiceIsNew]);
 
-  const effectiveSellerCompany: CompanyProfile =
-    companies.find((c) => c.id === form.sellerCompanyId) ?? defaultCompany ?? EMPTY_COMPANY;
+  const effectiveSellerCompany: CompanyProfile = defaultCompany ?? EMPTY_COMPANY;
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
-  const invoiceNumber =
-    draftInvoice?.number ??
-    (form.isProforma
-      ? `PRO/${nextInvoiceNumber(invoices, form.type, false)}`
-      : nextInvoiceNumber(invoices, form.type, form.isCorrection));
+  const suggestedNumber = nextFormattedInvoiceNumber(
+    effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
+    invoices.filter(inv => inv.sellerCompanyId === effectiveSellerCompany.id).map(inv => inv.number),
+    form.issueDate || todayISO(),
+    invoicePrefix(form.type, form.isCorrection, form.isProforma),
+  );
+  const invoiceNumber = form.number || suggestedNumber;
   const isPurchase = form.type === "purchase";
   const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
@@ -426,7 +433,7 @@ export function InvoiceCreator() {
     type: form.type,
     status: "draft",
     isProforma: form.isProforma,
-    sellerCompanyId: form.sellerCompanyId || undefined,
+    sellerCompanyId: effectiveSellerCompany.id || undefined,
     sellerCompany: effectiveSellerCompany,
     contractorId: form.contractorId,
     issueDate: form.issueDate,
@@ -548,7 +555,8 @@ export function InvoiceCreator() {
       number: invoiceNumber,
       type: form.type,
       status,
-      sellerCompanyId: form.sellerCompanyId || undefined,
+      sellerCompanyId: effectiveSellerCompany.id || undefined,
+      autoNumber: !form.number && (!draftInvoice || draftInvoiceIsNew),
       contractorId,
       issueDate: form.issueDate || todayISO(),
       saleDate: form.saleDate || form.issueDate || todayISO(),
@@ -922,10 +930,10 @@ export function InvoiceCreator() {
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
                 <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca) & Typ
-                <HelpTooltip text="Wybierz spółkę / NIP wystawcy oraz rodzaj dokumentu (Sprzedaż / Zakup / Proforma)." />
+                <HelpTooltip text="Wystawcą faktury jest firma z aktywnego konta. Wybierz rodzaj dokumentu." />
               </CardTitle>
               <CardDescription>
-                Wybierz profil spółki / NIP, z którego wystawiasz ten dokument
+                Firma wystawiająca jest przypisana do bieżącego konta
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -957,7 +965,7 @@ export function InvoiceCreator() {
                   Proforma
                 </button>
               </div>
-              <Button
+              {companies.length === 0 && <Button
                 type="button"
                 variant="outline"
                 size="sm"
@@ -965,28 +973,19 @@ export function InvoiceCreator() {
                 className="gap-1 font-medium text-[11px] h-7 px-2"
               >
                 <Plus className="h-3 w-3 text-primary" /> Nowa firma
-              </Button>
+              </Button>}
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Select
-              value={form.sellerCompanyId}
-              onChange={(e) => {
-                if (e.target.value === "__new_company__") {
-                  setCompanyModalOpen(true);
-                } else {
-                  set({ sellerCompanyId: e.target.value });
-                }
-              }}
-            >
-              <option value="">— wybierz spółkę / NIP wystawcy —</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.companyName} · NIP: {formatNip(c.nip)} {c.isDefault ? "★ [Domyślna]" : ""}
-                </option>
-              ))}
-              <option value="__new_company__">➕ Dodaj nowy profil firmy / NIP…</option>
-            </Select>
+            <p className="text-sm font-medium">{effectiveSellerCompany.companyName || "Dodaj firmę"} · NIP: {formatNip(effectiveSellerCompany.nip)}</p>
+            {editing && draftInvoice?.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-red-600">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
+            <div className="space-y-1">
+              <label htmlFor="invoice-number" className="block text-xs font-semibold">Numer faktury</label>
+              <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
+                disabled={isKsefRegistered || (Boolean(draftInvoice) && draftInvoice?.status !== "draft" && !draftInvoiceIsNew)}
+                onChange={(event) => set({ number: event.target.value })} />
+              <p className="text-xs text-muted-foreground">Propozycja: {suggestedNumber}. Numer możesz poprawić przed wystawieniem. <a href="/settings/companies" className="text-primary underline">Ustaw format numeracji</a>.</p>
+            </div>
 
             {effectiveSellerCompany && (effectiveSellerCompany.companyName || effectiveSellerCompany.nip) && (
               <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-[12px] grid gap-2 sm:grid-cols-2">

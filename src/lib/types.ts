@@ -152,6 +152,7 @@ export interface CompanyProfile {
   userId: string;
   nip: string;
   companyName: string;
+  invoiceNumberPattern?: string | null;
   street?: string | null;
   buildingNumber?: string | null;
   flatNumber?: string | null;
@@ -569,8 +570,8 @@ export interface KsefSettings {
 }
 
 export interface NipLookupResult {
-  source: "demo" | "gus";
-  demo: boolean;
+  source: "mf-whitelist" | "gus" | "demo";
+  demo?: boolean;
   company?: {
     name: string;
     nip: string;
@@ -680,5 +681,3 @@ export const EMPTY_COMPANY: CompanyProfile = {
   email: "",
   phone: "",
 };
-
-
