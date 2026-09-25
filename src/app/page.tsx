@@ -126,12 +126,12 @@ export default function LandingPage() {
           {/* ── WIZUALIZACJA INTERFEJSU (PRAWDZIWY PODGLĄD FAKTURO) ── */}
           <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl sm:backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4 mb-6">
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base font-bold text-foreground">FV/2026/09/0001</span>
                     <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400">
                       KSeF: Przyjęta (200 OK)
@@ -141,7 +141,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground rounded-lg border border-border px-2.5 py-1">
                   <QrCode className="h-3.5 w-3.5 text-foreground" />
                   <span>KOD I (KSeF)</span>
@@ -171,8 +171,9 @@ export default function LandingPage() {
             </div>
 
             {/* Pozycje */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <p className="mb-1 text-[11px] text-muted-foreground sm:hidden">Przesuń tabelę w bok, aby zobaczyć wszystkie kolumny.</p>
+            <div className="overflow-x-auto" role="region" aria-label="Pozycje przykładowej faktury" tabIndex={0}>
+              <table className="w-full min-w-[640px] text-left text-xs">
                 <thead>
                   <tr className="border-b border-border text-muted-foreground">
                     <th className="py-2 px-3">Lp.</th>
@@ -226,7 +227,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── KLUCZOWE FUNKCJE ── */}
-      <section id="funkcje" className="border-t border-border/60 py-20 bg-muted/10">
+      <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -239,7 +240,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+            <div id="ksef" className="scroll-mt-28 rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4">
                 <ShieldCheck className="h-5 w-5" />
               </div>
@@ -314,7 +315,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── JAK TO DZIAŁA W 3 KROKACH ── */}
-      <section id="jak-dziala" className="border-t border-border/60 py-20">
+      <section id="jak-dziala" className="scroll-mt-24 border-t border-border/60 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
