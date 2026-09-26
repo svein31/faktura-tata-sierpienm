@@ -74,23 +74,17 @@ Jeśli podczas wysyłki faktury do KSeF nastąpiło zerwanie połączenia siecio
 4. Znajdź na liście ostatnie w 100% stabilne wdrożenie (oznaczone kolorem zielonym, poprzedzające awarię).
 5. Kliknij na to wdrożenie, aby wejść w jego szczegóły.
 6. Kliknij przycisk **"Publish deploy"**.
-7. Zmiana wchodzi w życie natychmiast na poziomie globalnej sieci CDN w czasie poniżej 5 sekund (1-click rollback bez konieczności ponownej kompilacji kodu).
+7. Po publikacji sprawdź aktywny commit, /api/health i krytyczne ścieżki. Czas propagacji może się różnić; stary kod musi być zgodny z aktualnym schematem danych.
 
-### Rollback Bazy Danych
-W przypadku, gdy awaria wynika z nieprawidłowej migracji schematu bazy danych:
-1. Sprawdź aktualny stan migracji:
+### Odzyskiwanie bazy danych
+Migracje w `scripts/migrations` nie mają uniwersalnej komendy `down`. Nie cofaj schematu przez nieistniejący skrypt i nie podmieniaj `DATABASE_URL` na ślepo.
+1. Wstrzymaj operacje zapisu i pracowników kolejki, zachowaj logi oraz aktualny stan bazy.
+2. Ustal, która migracja i które dokumenty zostały zmienione; opracuj plan naprawy dla konkretnej migracji.
+3. W razie uszkodzenia danych odtwórz zweryfikowaną, zaszyfrowaną kopię do **nowej pustej** bazy:
    ```bash
-   node scripts/db/migrate.mjs status
+   RESTORE_DATABASE_URL="mongodb://host/isolated_db_name" BACKUP_KEY="<klucz z menedżera sekretów>" node scripts/backup/run.mjs restore /secure/path/backup.enc isolated_db_name
    ```
-2. Cofnij ostatnią migrację przy użyciu dedykowanego skryptu wycofania:
-   ```bash
-   node scripts/db/migrate.mjs down
-   ```
-3. W sytuacji krytycznej (uszkodzenie integralności danych produkcyjnych), odtwórz bazę z najnowszej zaszyfrowanej kopii zapasowej do odizolowanej bazy docelowej:
-   ```bash
-   RESTORE_DATABASE_URL="mongodb://..." node scripts/backup/run.mjs restore /secure/path/backup.enc isolated_db_name
-   ```
-   *Uwaga: Zawsze weryfikuj odtworzone dane w środowisku izolowanym przed przełączeniem ruchu produkcyjnego.*
+4. Sprawdź w odizolowanym środowisku liczbę firm, faktur, załączniki, indeksy i spójność kolejek. Dopiero potem zaplanuj przełączenie aplikacji i bezpieczne wznowienie pracowników. Uwzględnij zmiany powstałe po dacie kopii.
 
 ---
 
@@ -103,8 +97,8 @@ W przypadku, gdy awaria wynika z nieprawidłowej migracji schematu bazy danych:
      * Świeżość kopii zapasowych (alarm przy wieku > 36h),
      * Dostępność tabeli kursów NBP,
      * Osiągalność bramki KSeF.
-2. **Kolejka KSeF (`scripts/ops/check-queue.mjs`)**:
-   - Monitoruje zadania w stanie `failed`, `verify_needed` oraz zadania wiszące dłużej niż 15 minut.
+2. **Kolejka KSeF**:
+   - Właściciel firmy sprawdza `/settings/health` i zadania w stanach `failed`, `verify_needed` oraz długo oczekujące. Ta kontrola nie zastępuje niezależnego alertu operatora; repo nie zawiera skryptu `check-queue.mjs`.
 
 ---
 
