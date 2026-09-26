@@ -71,6 +71,8 @@ test('Monitoring & Incident Response (Checklist Item 7)', async (t) => {
     // Rollback procedure
     assert.ok(content.includes('Netlify'), 'Must document Netlify rollback');
     assert.ok(content.includes('Publish deploy') || content.includes('rollback'), 'Must mention Netlify 1-click rollback');
-    assert.ok(content.includes('migrate'), 'Must document database migration rollback');
+    assert.ok(content.includes('RESTORE_DATABASE_URL') && content.includes('scripts/backup/run.mjs restore'), 'Must document isolated database recovery using the existing restore script');
+    assert.ok(fs.existsSync(path.resolve(__dirname, '../backup/run.mjs')), 'Documented restore script must exist');
+    assert.ok(!content.includes('node scripts/db/migrate.mjs'), 'Runbook must not direct operators to a nonexistent migration rollback script');
   });
 });
