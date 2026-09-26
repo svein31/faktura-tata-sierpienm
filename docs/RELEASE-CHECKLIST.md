@@ -1,12 +1,12 @@
-# Warunki konieczne przed otwarciem rejestracji na większą skalę (Checklist 1–8)
+# Kontrola wydania: testy kodu i dowody z produkcji
 
-Niniejszy dokument potwierdza wdrożenie, zabezpieczenie i przetestowanie 8 kluczowych warunków techniczno-prawnych przed udostępnieniem serwisu FakturaProsto (https://fakturaprosto.pl) dla szerszej publiczności.
+Ten dokument rozdziela testy kodu od sprawdzenia działającego środowiska produkcyjnego. Testy automatyczne używają danych syntetycznych i nie dowodzą, że kopie, alerty ani integracje są uruchomione na produkcji.
 
 ---
 
-## Podsumowanie stanu realizacji (Status: 8/8 ZREALIZOWANE I PRZETESTOWANE)
+## Podsumowanie testów kodu (8/8 obszarów ma testy; produkcyjne dowody osobno)
 
-| Nr | Obszar | Kluczowe wymagania | Status testów | Plik testowy |
+| Nr | Obszar | Kluczowe wymagania | Test kodu | Plik testowy |
 |---|---|---|:---:|---|
 | **1** | **Baza i kopie** | Migracja `015-auth-rate-limit`, regularny backup, alert o braku/starej kopii ze wskazanym odbiorcą, szyfrowane odtworzenie do izolowanej bazy z weryfikacją firm, faktur, załączników i indeksów. | **PASSED** | `scripts/tests/backup-and-restore.test.cjs` |
 | **2** | **KSeF od początku do końca** | Walidacja FA(3), challenge/auth, szyfrowana wysyłka, obsługa odrzucenia, zerwania połączenia (`verify_needed`), blokada podwójnego wysłania (`claimKsefTransmission` 409), pobranie nr KSeF i UPO, twardy rozdział Demo od środowiska MF. | **PASSED** | `scripts/tests/ksef-lifecycle.test.cjs` |
@@ -18,6 +18,20 @@ Niniejszy dokument potwierdza wdrożenie, zabezpieczenie i przetestowanie 8 kluc
 | **8** | **Ostatnia kontrola rozliczeń** | Przetestowany cykl życia subskrypcji: aktywacja po `checkout.session.completed`, odnowienie, status `past_due` po nieudanej płatności, anulowanie, zgodność cen w kodzie i regulaminie (7 zł / 59 zł brutto). | **PASSED** | `scripts/tests/billing-lifecycle.test.cjs` |
 
 ---
+
+## Dowody operacyjne przed przyjęciem klientów
+
+Właściciel usługi zapisuje datę i wynik każdego punktu; brak dowodu oznacza status **niezweryfikowany**, nawet jeśli test jednostkowy przeszedł. Nie zapisuj w tym dokumencie haseł, kluczy, tokenów ani treści faktur klientów.
+
+| Punkt | Dowód wymagany na produkcji | Stan z poziomu repo |
+| --- | --- | --- |
+| Kopia i odtworzenie | Data ostatniej zaszyfrowanej kopii zewnętrznej, miejsce jej przechowywania, wynik odtworzenia wybranej kopii do izolowanej bazy, dostępność klucza poza bazą. | Niezweryfikowane. Skrypty i syntetyczny drill istnieją, lecz nie potwierdzają harmonogramu na MongoDB Atlas/Netlify. |
+| Alerty | Test alarmu trafiającego do osoby dyżurującej; osobno alert o kopii i kolejce. | Zewnętrzna sonda `.github/workflows/production-health.yml` sprawdza WWW i bazę co 10 minut oraz otwiera pojedyncze zgłoszenie GitHub. Kopie i kolejki nadal wymagają niezależnego operatora. |
+| KSeF | Potwierdzony przez operatora test rzeczywistego wystawienia, statusu, numeru i UPO, a także odmowy oraz niepewnego wyniku. | Potwierdzenie użytkownika; nie jest wynikiem CI. |
+| Logowanie mobilne i płatności | Właściciel sprawdza iPhone Safari oraz pełny cykl Stripe w aktywnej konfiguracji. | Potwierdzenie użytkownika; CI bada mobilny Chromium i odizolowaną bazę. |
+| Dane firm | Test dwoma niezależnymi kontami i firmami: bezpośredni URL/ID, eksport, PDF i załączniki. | Część kontroli HTTP jest w integracji; test `multi-tenant-rbac.test.cjs` sprawdza także symulowaną matrycę, więc sam nie stanowi dowodu pełnej izolacji produkcyjnej. |
+
+Sonda dostępności wymaga włączenia GitHub Actions i uprawnienia `issues: write`. Sprawdź jeden uruchomiony przebieg `Production health monitor` oraz powiadomienia o nowych zgłoszeniach repozytorium. Harmonogram GitHub Actions może się opóźniać; nie zastępuje alertów krytycznych w hostingu. Dopiero po zebraniu dowodów z tabeli można oznaczyć wydanie jako gotowe do szerokiego otwarcia.
 
 ## Szczegóły techniczne wdrożeń
 
