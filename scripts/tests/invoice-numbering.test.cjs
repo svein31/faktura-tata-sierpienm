@@ -2,6 +2,7 @@ require('../register-ts.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { nextFormattedInvoiceNumber, parseInvoicePattern, DEFAULT_INVOICE_PATTERN } = require('../../src/lib/invoice-numbering.ts');
+const { accountConflictsWithAnotherCompany } = require('../../src/lib/company-bank-account-scope.ts');
 
 test('monthly numbering resets only for a different month within the same company', () => {
   const numbers = ['FV 01/07/2026', 'FV 02/07/2026'];
@@ -16,4 +17,14 @@ test('yearly and custom formats continue from persisted numbers', () => {
   assert.equal(nextFormattedInvoiceNumber('FA-{NNNN}-{YYYY}', ['FA-0002-2026'], '2026-09-25', 'FV'), 'FA-0003-2026');
   assert.throws(() => parseInvoicePattern('FV/{YYYY}'), /licznik/);
   assert.throws(() => parseInvoicePattern('FV/{UNKNOWN}/{NN}'), /Nieznany/);
+});
+
+test('bank accounts are isolated by company, including legacy duplicate entries', () => {
+  const profiles = [
+    { id: 'enervio', companyName: 'ENERVIO SP. Z O.O.', bankAccount: 'PL91 1090 1753 0000 0000 1619 9007' },
+    { id: 'geomatic', companyName: 'GEOMATIC', bankAccount: '35 1090 1753 0000 0000 1619 9004' },
+  ];
+  assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL35109017530000000016199004', profiles), true);
+  assert.equal(accountConflictsWithAnotherCompany('enervio', '91 1090 1753 0000 0000 1619 9007', profiles), false);
+  assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL00 0000 0000 0000 0000 0000 0000', profiles, 'GEOMATIC'), true);
 });

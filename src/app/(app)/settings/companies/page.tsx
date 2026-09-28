@@ -120,12 +120,12 @@ export default function CompaniesSettingsPage() {
         }
       />
 
-      {companies.length > 0 && <Card className="p-5 space-y-4">
+      {companies.length > 0 && <Card id="invoice-numbering" className="scroll-mt-24 p-5 space-y-4">
         <div>
           <h2 className="font-semibold">Numeracja faktur</h2>
           <p className="text-sm text-muted-foreground">Ustaw format osobno dla każdej firmy. NN oznacza kolejny numer, MM miesiąc, a RRRR rok. Licznik zaczyna się od 01 w nowym miesiącu, jeśli format zawiera MM.</p>
         </div>
-        {companies.filter(c => c.currentUserRole === "owner" || c.userId === useAppStore.getState().company?.userId).map(c => {
+        {companies.filter(c => c.currentUserRole === "owner").map(c => {
           const pattern = patterns[c.id] ?? c.invoiceNumberPattern ?? DEFAULT_INVOICE_PATTERN;
           let example = "Sprawdź format";
           try { example = nextFormattedInvoiceNumber(pattern, [], "2026-07-01", "FV"); } catch { /* Show validation on save. */ }

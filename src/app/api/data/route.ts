@@ -1,4 +1,5 @@
 import { catalogWhere } from "@/lib/company-scope";
+import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { handleApiError, json } from "@/lib/api";
@@ -94,12 +95,17 @@ export async function GET(req: Request) {
 
     // Scal wszystkie firmy (własne + z zaproszenia/członkostwa), usuwając duplikaty
     const companyMap = new Map<string, any>();
+    const profiles = [...ownedCompanies, ...memberships.map(m => m.company).filter(Boolean)];
+    const scopedAccounts = (company: typeof ownedCompanies[number]) =>
+      (company.bankAccounts || [])
+        .filter(account => !accountConflictsWithAnotherCompany(company.id, account.accountNumber, profiles, account.beneficiaryName))
+        .map(companyBankAccountToDto);
 
     for (const oc of ownedCompanies) {
       const dto = companyProfileToDto(oc);
       dto.currentUserRole = "owner";
       dto.currentUserPermissions = { ...DEFAULT_ROLE_PERMISSIONS.owner };
-      dto.bankAccounts = (oc.bankAccounts || []).map(companyBankAccountToDto);
+      dto.bankAccounts = scopedAccounts(oc);
       companyMap.set(oc.id, dto);
     }
 
@@ -119,7 +125,7 @@ export async function GET(req: Request) {
           canManageBankAccounts: m.canManageBankAccounts ?? defaults.canManageBankAccounts,
           canManageTeam: m.canManageTeam ?? defaults.canManageTeam,
         };
-        dto.bankAccounts = (m.company.bankAccounts || []).map(companyBankAccountToDto);
+        dto.bankAccounts = scopedAccounts(m.company);
         companyMap.set(m.company.id, dto);
       } else if (m.company && companyMap.has(m.company.id)) {
         // Uzupełnij rolę jeśli istnieje

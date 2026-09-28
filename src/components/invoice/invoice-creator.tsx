@@ -29,7 +29,8 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
-import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber } from "@/lib/invoice-numbering";
+import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
+import { normalizedBankAccount } from "@/lib/company-bank-account-scope";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
@@ -359,6 +360,9 @@ export function InvoiceCreator() {
   const [errors, setErrors] = React.useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string,string>>({});
   const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
+  const [numberPatternInput, setNumberPatternInput] = React.useState("");
+  const [numberPatternOpen, setNumberPatternOpen] = React.useState(false);
+  const [savingNumberPattern, setSavingNumberPattern] = React.useState(false);
 
   const set = (patch: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -396,6 +400,44 @@ export function InvoiceCreator() {
   }, [store.selectedCompanyId, draftInvoice, draftInvoiceIsNew]);
 
   const effectiveSellerCompany: CompanyProfile = defaultCompany ?? EMPTY_COMPANY;
+  const companyAccounts = (effectiveSellerCompany.bankAccounts || []).filter(
+    account => account.companyId === effectiveSellerCompany.id &&
+      normalizedBankAccount(account.accountNumber) !== normalizedBankAccount(effectiveSellerCompany.bankAccount),
+  );
+
+  React.useEffect(() => {
+    setNumberPatternInput(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN);
+    setNumberPatternOpen(false);
+  }, [effectiveSellerCompany.id, effectiveSellerCompany.invoiceNumberPattern]);
+
+  React.useEffect(() => {
+    if (selectedBankAccountId && !companyAccounts.some(account => account.id === selectedBankAccountId)) {
+      setSelectedBankAccountId("");
+    }
+  }, [selectedBankAccountId, companyAccounts]);
+
+  const saveNumberPattern = async () => {
+    try {
+      if (!effectiveSellerCompany.id) throw new Error("Najpierw wybierz firmę.");
+      const pattern = numberPatternInput.trim();
+      parseInvoicePattern(pattern);
+      setSavingNumberPattern(true);
+      const res = await fetch(`/api/companies/${effectiveSellerCompany.id}/numbering`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pattern }),
+      });
+      if (!res.ok) {
+        const response = await res.json();
+        throw new Error(response.error || "Nie udało się zapisać numeracji.");
+      }
+      await store.fetchCompanies();
+      setNumberPatternOpen(false);
+      toast("success", "Zapisano numerację firmy", pattern);
+    } catch (error) {
+      toast("error", "Nie można zapisać numeracji", error instanceof Error ? error.message : "Nieprawidłowy format.");
+    } finally {
+      setSavingNumberPattern(false);
+    }
+  };
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
   const suggestedNumber = nextFormattedInvoiceNumber(
@@ -553,7 +595,7 @@ export function InvoiceCreator() {
     const vatPln = effectiveRate ? round2(totalsCalc.vat * effectiveRate) : null;
     const grossPln = effectiveRate ? round2(totalsCalc.gross * effectiveRate) : null;
 
-    const chosenBankAccount = effectiveSellerCompany?.bankAccounts?.find((b: any) => b.id === selectedBankAccountId);
+    const chosenBankAccount = companyAccounts.find(b => b.id === selectedBankAccountId);
 
     const base: InvoicePayload = {
       number: invoiceNumber,
@@ -762,7 +804,7 @@ export function InvoiceCreator() {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         {/* Inline walidacja błędów z wejściem fade+slide-down */}
         <AnimatePresence>
           {errors.length > 0 && (
@@ -988,7 +1030,20 @@ export function InvoiceCreator() {
               <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
                 disabled={isKsefRegistered || (Boolean(draftInvoice) && draftInvoice?.status !== "draft" && !draftInvoiceIsNew)}
                 onChange={(event) => set({ number: event.target.value })} />
-              <p className="text-xs text-muted-foreground">Propozycja: {suggestedNumber}. Numer możesz poprawić przed wystawieniem. <a href="/settings/companies" className="text-primary underline">Ustaw format numeracji</a>.</p>
+              <p className="text-xs text-muted-foreground">Propozycja dla {effectiveSellerCompany.companyName}: {suggestedNumber}. Numer możesz poprawić przed wystawieniem.</p>
+              {effectiveSellerCompany.currentUserRole === "owner" && (
+                <div className="pt-1">
+                  <button type="button" className="text-xs font-semibold text-primary underline underline-offset-2" onClick={() => setNumberPatternOpen(open => !open)}>
+                    {numberPatternOpen ? "Zamknij ustawienia numeracji" : "Ustaw numerację tej firmy"}
+                  </button>
+                  {numberPatternOpen && <div className="mt-2 max-w-md space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                    <Label htmlFor="invoice-number-pattern">Format numeru dla {effectiveSellerCompany.companyName}</Label>
+                    <Input id="invoice-number-pattern" value={numberPatternInput} maxLength={80} className="font-mono" onChange={event => setNumberPatternInput(event.target.value)} placeholder="FV NN/MM/RRRR" />
+                    <p className="text-xs text-muted-foreground">NN = kolejny numer, MM = miesiąc, RRRR = rok. Np. FV NN/MM/RRRR zaczyna numerację od 01 co miesiąc.</p>
+                    <Button type="button" size="sm" disabled={savingNumberPattern} onClick={() => void saveNumberPattern()}>Zapisz format</Button>
+                  </div>}
+                </div>
+              )}
             </div>
 
             {effectiveSellerCompany && (effectiveSellerCompany.companyName || effectiveSellerCompany.nip) && (
@@ -1322,7 +1377,7 @@ export function InvoiceCreator() {
               </div>
 
               {/* Wybór rachunku bankowego firmy */}
-              {effectiveSellerCompany?.bankAccounts && effectiveSellerCompany.bankAccounts.length > 0 && (
+              {(effectiveSellerCompany.bankAccount || companyAccounts.length > 0) && (
                 <div className="space-y-1.5 sm:col-span-3">
                   <Label>Rachunek bankowy firmy dla tej faktury</Label>
                   <Select
@@ -1330,13 +1385,13 @@ export function InvoiceCreator() {
                     onChange={(e) => setSelectedBankAccountId(e.target.value)}
                   >
                     <option value="">— Domyślny rachunek profilu ({effectiveSellerCompany.bankAccount || "Brak"}) —</option>
-                    {effectiveSellerCompany.bankAccounts.map((b: any) => (
+                    {companyAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.currency} · {b.bankName || "Bank"} · {b.accountNumber} {b.isDefault ? "(domyślny)" : ""}
                       </option>
                     ))}
                   </Select>
-                  {form.currency !== "PLN" && !effectiveSellerCompany.bankAccounts.some((b: any) => b.currency === form.currency || b.currency === "MULTI") && (
+                  {form.currency !== "PLN" && !companyAccounts.some((b) => b.currency === form.currency || b.currency === "MULTI") && (
                     <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       Uwaga: firma nie posiada dedykowanego konta w walucie {form.currency}. Środki wpłyną na konto PLN z możliwym przewalutowaniem banku.
@@ -1562,7 +1617,7 @@ export function InvoiceCreator() {
       </div>
 
       {/* ── Podgląd na żywo ── */}
-      <div className="xl:sticky xl:top-24 xl:h-fit">
+      <div className="min-w-0 xl:sticky xl:top-24 xl:h-fit">
         <div className="no-print mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-[13px] font-medium">
             <Eye className="h-4 w-4 text-muted-foreground" /> Podgląd na żywo
