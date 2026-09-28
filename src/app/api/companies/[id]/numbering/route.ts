@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { parseInvoicePattern } from "@/lib/invoice-numbering";
+import { requireCompanyAccess } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 
@@ -11,8 +12,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const { id } = await params;
     if (!/^[a-f0-9]{24}$/i.test(id)) throw new ApiError(404, "Nie znaleziono firmy.");
-    const company = await prisma.companyProfile.findFirst({ where: { id, userId: user.id } });
-    if (!company) throw new ApiError(403, "Format numeracji może ustawić właściciel firmy.");
+    const access = await requireCompanyAccess(user.id, id);
+    if (!access.ok || access.membership.role !== "owner") throw new ApiError(403, "Format numeracji może ustawić właściciel firmy.");
     const body = await readJson(req);
     if (typeof body.pattern !== "string") throw new ApiError(400, "Podaj format numeru.");
     const pattern = body.pattern.trim();
