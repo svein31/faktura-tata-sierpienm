@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { companyProfileToDto } from "@/lib/dto";
 import { parseCompanyProfileBody } from "@/lib/parsers";
+import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
 
 export const runtime = "nodejs";
 
@@ -62,6 +63,14 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     const body = await readJson(req);
     const data = parseCompanyProfileBody(body);
+    if (data.bankAccount && normalizedBankAccount(data.bankAccount) !== normalizedBankAccount(existing.bankAccount)) {
+      const profiles = await prisma.companyProfile.findMany({
+        where: { userId: user.id }, select: { id: true, bankAccount: true, companyName: true },
+      });
+      if (accountConflictsWithAnotherCompany(existing.id, data.bankAccount, profiles)) {
+        throw new ApiError(409, "Ten rachunek jest już głównym kontem innej firmy.");
+      }
+    }
 
     // Sprawdzenie czy NIP nie koliduje z inną firmą tego użytkownika
     if (data.nip !== existing.nip) {
@@ -152,4 +161,3 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     return handleApiError(e);
   }
 }
-

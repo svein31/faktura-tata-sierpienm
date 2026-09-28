@@ -1,11 +1,12 @@
 import { recordAuditLog } from "@/lib/audit";
 import { accessibleCompanyIds } from "@/lib/company-scope";
-import { getCompanyMembership } from "@/lib/permissions";
+import { DEFAULT_ROLE_PERMISSIONS, getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { companyProfileToDto } from "@/lib/dto";
 import { parseCompanyProfileBody } from "@/lib/parsers";
+import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 
 export const runtime = "nodejs";
 
@@ -47,6 +48,14 @@ export async function POST(req: Request) {
 
     const body = await readJson(req);
     const data = parseCompanyProfileBody(body);
+    if (data.bankAccount) {
+      const profiles = await prisma.companyProfile.findMany({
+        where: { userId: user.id }, select: { id: true, bankAccount: true, companyName: true },
+      });
+      if (accountConflictsWithAnotherCompany("new", data.bankAccount, profiles)) {
+        throw new ApiError(409, "Ten rachunek jest już głównym kontem innej firmy.");
+      }
+    }
 
     // Sprawdzenie czy użytkownik nie ma już spółki o takim samym NIP
     const existingNip = await prisma.companyProfile.findFirst({
@@ -68,9 +77,13 @@ export async function POST(req: Request) {
       return created;
     });
 
-    return json({ company: companyProfileToDto(company) }, { status: 201 });
+    return json({ company: {
+      ...companyProfileToDto(company),
+      currentUserRole: "owner",
+      currentUserPermissions: { ...DEFAULT_ROLE_PERMISSIONS.owner },
+      bankAccounts: [],
+    } }, { status: 201 });
   } catch (e) {
     return handleApiError(e);
   }
 }
-
