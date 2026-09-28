@@ -413,8 +413,10 @@ export function InvoiceCreator() {
   React.useEffect(() => {
     if (selectedBankAccountId && !companyAccounts.some(account => account.id === selectedBankAccountId)) {
       setSelectedBankAccountId("");
+    } else if (!selectedBankAccountId && !effectiveSellerCompany.bankAccount && companyAccounts.length > 0) {
+      setSelectedBankAccountId((companyAccounts.find(account => account.isDefault) || companyAccounts[0]).id);
     }
-  }, [selectedBankAccountId, companyAccounts]);
+  }, [selectedBankAccountId, companyAccounts, effectiveSellerCompany.bankAccount]);
 
   const saveNumberPattern = async () => {
     try {
@@ -1384,7 +1386,7 @@ export function InvoiceCreator() {
                     value={selectedBankAccountId}
                     onChange={(e) => setSelectedBankAccountId(e.target.value)}
                   >
-                    <option value="">— Domyślny rachunek profilu ({effectiveSellerCompany.bankAccount || "Brak"}) —</option>
+                    {effectiveSellerCompany.bankAccount && <option value="">— Główny rachunek firmy ({effectiveSellerCompany.bankAccount}) —</option>}
                     {companyAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.currency} · {b.bankName || "Bank"} · {b.accountNumber} {b.isDefault ? "(domyślny)" : ""}
