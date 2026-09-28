@@ -404,6 +404,7 @@ export function InvoiceCreator() {
     account => account.companyId === effectiveSellerCompany.id &&
       normalizedBankAccount(account.accountNumber) !== normalizedBankAccount(effectiveSellerCompany.bankAccount),
   );
+  const chosenBankAccount = companyAccounts.find(account => account.id === selectedBankAccountId);
 
   React.useEffect(() => {
     setNumberPatternInput(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN);
@@ -489,6 +490,8 @@ export function InvoiceCreator() {
     currency: form.currency,
     language: form.language,
     paymentMethod: form.paymentMethod,
+    bankAccountId: chosenBankAccount?.id || null,
+    bankAccountSnapshot: chosenBankAccount || null,
     paymentTermDays: form.paymentTermDays,
     notes: form.notes,
     lines: form.lines,
@@ -596,8 +599,6 @@ export function InvoiceCreator() {
     const netPln = effectiveRate ? round2(totalsCalc.net * effectiveRate) : null;
     const vatPln = effectiveRate ? round2(totalsCalc.vat * effectiveRate) : null;
     const grossPln = effectiveRate ? round2(totalsCalc.gross * effectiveRate) : null;
-
-    const chosenBankAccount = companyAccounts.find(b => b.id === selectedBankAccountId);
 
     const base: InvoicePayload = {
       number: invoiceNumber,

@@ -16,6 +16,6 @@ export function accountConflictsWithAnotherCompany(
   const currentName = profiles.find(profile => profile.id === companyId)?.companyName?.trim().replace(/\s+/g, " ").toLocaleUpperCase("pl-PL");
   return profiles.some(profile => profile.id !== companyId && (
     (Boolean(account) && normalizedBankAccount(profile.bankAccount) === account) ||
-    (Boolean(beneficiary) && beneficiary !== currentName && Boolean(profile.companyName) && profile.companyName!.trim().replace(/\s+/g, " ").toLocaleUpperCase("pl-PL") === beneficiary)
+    (Boolean(beneficiary) && beneficiary !== currentName && Boolean(profile.companyName) && (profile.companyName || "").trim().replace(/\s+/g, " ").toLocaleUpperCase("pl-PL") === beneficiary)
   ));
 }
