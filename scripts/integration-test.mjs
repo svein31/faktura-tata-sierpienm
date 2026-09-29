@@ -245,6 +245,14 @@ try {
   for (const created of [automaticBank, primaryBank]) assert.equal((await api('DELETE', `/api/invoices/${created.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...preservedBank.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
   assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  // Only unused draft numbers are released; renaming and deleting a draft must not leave ghost reservations.
+  const reusedDraft = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
+  assert.equal(reusedDraft.res.status, 201, JSON.stringify(reusedDraft.data));
+  const renamedDraft = await api('PUT', `/api/invoices/${reusedDraft.data.invoice.id}`, { ...reusedDraft.data.invoice, number: 'BANK/RENAMED/1' }, a.cookie);
+  assert.equal(renamedDraft.res.status, 200, JSON.stringify(renamedDraft.data));
+  const previousDraftNumber = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
+  assert.equal(previousDraftNumber.res.status, 201, JSON.stringify(previousDraftNumber.data));
+  for (const draft of [renamedDraft, previousDraftNumber]) assert.equal((await api('DELETE', `/api/invoices/${draft.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
   assert.equal(privateContact.res.status, 201);
   const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);

@@ -231,6 +231,9 @@ export async function PUT(req: Request, { params }: Ctx) {
       },
     });
 
+    if (data.number !== existing.number && !existing.issuedAt && existing.status === "draft" && existing.documentStatus === "draft") {
+      await tx.invoiceNumberClaim.deleteMany({ where: { id: `${existing.sellerCompanyId || existing.userId}:${existing.number}` } });
+    }
     await captureInvoicePrint(tx, invoice, "edited");
     // 6. Trwały zapis audytu z wyliczonym diffem
     const diffResult = buildFieldDiff(existing, invoice, {
@@ -315,6 +318,9 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     });
     if (!claimed.count) throw new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane.");
     await tx.invoice.delete({ where: { id: existing.id } });
+    if (isDraft) {
+      await tx.invoiceNumberClaim.deleteMany({ where: { id: `${existing.sellerCompanyId || existing.userId}:${existing.number}` } });
+    }
 
     // Zapis w audycie
     await recordAuditLog({
