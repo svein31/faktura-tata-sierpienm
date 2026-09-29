@@ -312,6 +312,7 @@ export function InvoiceCreator() {
   const [autosaveStatus, setAutosaveStatus] = React.useState<"idle" | "saving" | "saved">("idle");
   const [hasRecoverableDraft, setHasRecoverableDraft] = React.useState<boolean>(false);
   const [recoverableDate, setRecoverableDate] = React.useState<string>("");
+  const [numberMode, setNumberMode] = React.useState<"auto" | "manual" | null>(() => draftInvoice && !draftInvoiceIsNew ? "manual" : null);
 
   React.useEffect(() => {
     if (!draftInvoice || draftInvoiceIsNew) {
@@ -330,16 +331,16 @@ export function InvoiceCreator() {
 
   React.useEffect(() => {
     const isKsef = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
-    if (isKsef) return;
+    if (isKsef || hasRecoverableDraft) return;
     setAutosaveStatus("saving");
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, selectedBankAccountId, savedAt: new Date().toISOString() }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, numberMode, selectedBankAccountId, savedAt: new Date().toISOString() }));
         setAutosaveStatus("saved");
       } catch {}
     }, 800);
     return () => clearTimeout(t);
-  }, [form, draftInvoice, selectedBankAccountId, DRAFT_KEY]);
+  }, [form, numberMode, draftInvoice, selectedBankAccountId, hasRecoverableDraft, DRAFT_KEY]);
 
   const handleRecoverDraft = () => {
     try {
@@ -349,6 +350,7 @@ export function InvoiceCreator() {
         if (parsed?.form) {
           if (parsed.form.sellerCompanyId === defaultCompany.id) {
             setForm(parsed.form);
+            setNumberMode(parsed.numberMode === "auto" || parsed.numberMode === "manual" ? parsed.numberMode : parsed.form.number ? "manual" : null);
             setSelectedBankAccountId(parsed.selectedBankAccountId && parsed.selectedBankAccountId !== "saved" ? parsed.selectedBankAccountId : "auto");
           }
           toast("success", "Przywrócono wersję roboczą", `Zapisana o: ${recoverableDate}`);
@@ -371,8 +373,9 @@ export function InvoiceCreator() {
   const [numberPatternInput, setNumberPatternInput] = React.useState("");
   const [numberPatternOpen, setNumberPatternOpen] = React.useState(false);
   const [savingNumberPattern, setSavingNumberPattern] = React.useState(false);
-  const [numberMode, setNumberMode] = React.useState<"auto" | "manual" | null>(() => draftInvoice && !draftInvoiceIsNew ? "manual" : null);
   const [counterFragment, setCounterFragment] = React.useState(0);
+  const numberFragments = [...form.number.matchAll(/\d+/g)];
+  const effectiveCounterFragment = Math.max(0, Math.min(counterFragment, numberFragments.length - 1));
 
   const set = (patch: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -1082,11 +1085,11 @@ export function InvoiceCreator() {
                     <p className="text-xs text-muted-foreground">Bez roku licznik zachowuje ciągłość w kolejnych latach. Sama data nie zapewnia unikalności — wzór automatyczny musi mieć licznik.</p>
                     {numberMode === "manual" && /\d/.test(form.number) && <div className="space-y-2 border-t border-border pt-2">
                       <Label htmlFor="invoice-counter-fragment">Który fragment ręcznego numeru ma rosnąć?</Label>
-                      <Select id="invoice-counter-fragment" display="dropdown" value={counterFragment} onChange={event => setCounterFragment(Number(event.target.value))}>
-                        {[...form.number.matchAll(/\d+/g)].map((match, index) => <option key={index} value={index}>{match[0]} · fragment {index + 1}</option>)}
+                      <Select id="invoice-counter-fragment" display="dropdown" value={effectiveCounterFragment} onChange={event => setCounterFragment(Number(event.target.value))}>
+                        {numberFragments.map((match, index) => <option key={index} value={index}>{match[0]} · fragment {index + 1}</option>)}
                       </Select>
                       <Button type="button" variant="outline" size="sm" onClick={() => {
-                        try { setNumberPatternInput(invoicePatternFromExample(form.number, counterFragment)); }
+                        try { setNumberPatternInput(invoicePatternFromExample(form.number, effectiveCounterFragment)); }
                         catch (error) { toast("error", "Sprawdź numer", error instanceof Error ? error.message : "Nieprawidłowy numer."); }
                       }}>Utwórz wzór z wpisanego numeru</Button>
                       <p className="text-xs text-muted-foreground">Pozostałe fragmenty zostają stałe. Zastąp datę znacznikami powyżej, jeśli ma zmieniać się automatycznie. Zapisz format, aby zapamiętać go na koncie firmy.</p>

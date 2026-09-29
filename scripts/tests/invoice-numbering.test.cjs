@@ -78,4 +78,9 @@ test('KSeF XML and JSON export the frozen invoice account instead of the current
   assert.match(xml, /<NazwaBanku>Invoice Bank<\/NazwaBanku>/);
   assert.doesNotMatch(xml, /11111111111111111111111111/);
   assert.equal(JSON.parse(invoiceToJson(invoice, company)).invoice.seller.iban, '22222222222222222222222222');
+  // An optional blank name in a frozen snapshot must not pick up a later, unrelated profile bank name.
+  const blankNameInvoice = { ...invoice, bankAccountSnapshot: { ...invoice.bankAccountSnapshot, bankName: '' } };
+  const changedProfile = { ...company, bankName: 'Another Bank' };
+  assert.doesNotMatch(buildFa3Xml({ invoice: blankNameInvoice, seller: changedProfile }), /Another Bank|<NazwaBanku>/);
+  assert.equal(JSON.parse(invoiceToJson(blankNameInvoice, changedProfile)).invoice.seller.bankName, '');
 });

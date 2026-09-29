@@ -207,6 +207,11 @@ export async function browserChecks(base) {
     await expect(page.getByRole('listbox')).toBeVisible();
     assert.ok(await page.getByRole('listbox').evaluate(el => { const r=el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; }), 'Mobile dropdown overflow');
     await presets.press('Escape'); await expect(page.getByRole('listbox')).toHaveCount(0);
+    await page.getByLabel('Który fragment ręcznego numeru ma rosnąć?').click();
+    await page.getByRole('option', { name: '2026 · fragment 2', exact: true }).click();
+    await page.getByLabel('Numer faktury', { exact: true }).fill('KLIENT-007');
+    await page.getByRole('button', { name: 'Utwórz wzór z wpisanego numeru', exact: true }).click();
+    await expect(page.locator('#invoice-number-pattern')).toHaveValue('KLIENT-{NNN}');
     await page.locator('#invoice-number-pattern').fill('KLIENT/{NNN}/{YYYY}');
     await page.getByRole('button', { name: 'Zapisz format', exact: true }).click();
     await expect(page.getByText('Zapisano numerację firmy', { exact: true })).toBeVisible();
@@ -217,6 +222,20 @@ export async function browserChecks(base) {
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue(/KLIENT\/001\/\d{4}/);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile invoice creator overflow');
     assert.equal(await page.locator('select').count(), 0, 'Invoice dropdowns use themed controls');
+    await page.waitForFunction(() => Object.keys(localStorage).some(key => key.startsWith('fakturo_local_draft_v3_') && JSON.parse(localStorage.getItem(key)).numberMode === 'auto'));
+    await page.evaluate(() => {
+      const key = Object.keys(localStorage).find(key => key.startsWith('fakturo_local_draft_v3_'));
+      const saved = JSON.parse(localStorage.getItem(key));
+      saved.form.number = 'RECOVER-009'; saved.numberMode = 'manual'; saved.form.lines[0].name = 'Odtworzona pozycja';
+      localStorage.setItem(key, JSON.stringify(saved));
+    });
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Przywróć', exact: true })).toBeVisible();
+    // Rendering the recovery prompt must not overwrite the saved payload before the user accepts it.
+    await page.waitForFunction(() => Object.keys(localStorage).some(key => key.startsWith('fakturo_local_draft_v3_') && JSON.parse(localStorage.getItem(key)).form.number === 'RECOVER-009'));
+    await page.getByRole('button', { name: 'Przywróć', exact: true }).click();
+    await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
+    await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }

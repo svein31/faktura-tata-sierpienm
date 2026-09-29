@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson, cleanStr } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson, cleanStr } from "@/lib/api";
+import type { Prisma } from "@prisma/client";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { companyBankAccountToDto } from "@/lib/dto";
 import { validateAccountNumber, isValidSwiftBic } from "@/lib/banking/validation";
@@ -10,6 +11,22 @@ import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-s
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
+
+/** Serialize even the first defaults through an existing company document, with bounded conflict retries. */
+async function bankAccountTransaction<T>(companyId: string, operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      return await prisma.$transaction(async tx => {
+        const company = await tx.companyProfile.findUniqueOrThrow({ where: { id: companyId }, select: { updatedAt: true } });
+        await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date(Math.max(Date.now(), company.updatedAt.getTime() + 1)) } });
+        return operation(tx);
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code !== "P2034") throw error;
+    }
+  }
+  throw new ApiError(409, "Rachunki firmy są równocześnie zmieniane. Spróbuj ponownie.");
+}
 
 /**
  * GET /api/companies/[id]/bank-accounts — Pobieranie listy rachunków bankowych firmy
@@ -88,7 +105,7 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ error: "Kod SWIFT/BIC musi składać się z 8 lub 11 znaków alfanumerycznych." }, { status: 400 });
     }
 
-    const created = await prisma.$transaction(async tx => {
+    const created = await bankAccountTransaction(companyId, async tx => {
     if (isDefault) {
       await tx.companyBankAccount.updateMany({
         where: { companyId, currency },
@@ -147,7 +164,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!account) return json({ error: "Nie znaleziono rachunku tej firmy." }, { status: 404 });
     const profiles = await prisma.companyProfile.findMany({ where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true } });
     if (accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName)) return json({ error: "Rachunek jest przypisany do innej firmy." }, { status: 409 });
-    const updated = await prisma.$transaction(async tx => {
+    const updated = await bankAccountTransaction(companyId, async tx => {
       await tx.companyBankAccount.updateMany({ where: { companyId, currency: account.currency }, data: { isDefault: false } });
       return tx.companyBankAccount.update({ where: { id: account.id }, data: { isDefault: true } });
     });

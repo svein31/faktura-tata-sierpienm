@@ -219,6 +219,14 @@ try {
   // One login may own both firms, but their bank accounts cannot cross invoices.
   const firstBank = await db.companyBankAccount.create({ data: { companyId, accountNumber: '91100000000000000000000001' } });
   const secondBank = await db.companyBankAccount.create({ data: { companyId: company2.data.company.id, accountNumber: '92100000000000000000000002' } });
+  const concurrentDefaults = await Promise.all([1001, 1002].map(async value => {
+    const bban = String(value).padStart(24, '0');
+    const checksum = String(98 - Number(BigInt(`${bban}252100`) % 97n)).padStart(2, '0');
+    return api('POST', `/api/companies/${company2.data.company.id}/bank-accounts`, { accountNumber: `PL${checksum}${bban}`, currency: 'EUR', isDefault: true }, a.cookie);
+  }));
+  for (const created of concurrentDefaults) assert.equal(created.res.status, 201, JSON.stringify(created.data));
+  assert.equal(await db.companyBankAccount.count({ where: { companyId: company2.data.company.id, currency: 'EUR', isDefault: true } }), 1);
+  for (const created of concurrentDefaults) assert.equal((await api('DELETE', `/api/companies/${company2.data.company.id}/bank-accounts?accountId=${created.data.account.id}`, undefined, a.cookie)).res.status, 200);
   assert.deepEqual((await api('GET', '/api/companies', undefined, a.cookie)).data.companies.map(c => c.id).sort(), [companyId, company2.data.company.id].sort());
   const bankInvoiceBody = { ...invoice.data.invoice, number: 'BANK/2026/1', bankAccountId: secondBank.id, bankAccountSnapshot: { accountNumber: 'wrong' } };
   assert.equal((await api('POST', '/api/invoices', bankInvoiceBody, a.cookie)).res.status, 400);
@@ -243,7 +251,9 @@ try {
   assert.equal(preservedBank.res.status, 200, JSON.stringify(preservedBank.data));
   assert.equal(preservedBank.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
   for (const created of [automaticBank, primaryBank]) assert.equal((await api('DELETE', `/api/invoices/${created.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
-  assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...preservedBank.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
+  const foreignBankUpdate = await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...preservedBank.data.invoice, bankAccountId: secondBank.id }, a.cookie);
+  assert.equal(foreignBankUpdate.res.status, 400);
+  assert.equal(foreignBankUpdate.data.error, 'Wybierz rachunek należący do firmy wystawiającej fakturę.');
   assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   // Only unused draft numbers are released; renaming and deleting a draft must not leave ghost reservations.
   const reusedDraft = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
