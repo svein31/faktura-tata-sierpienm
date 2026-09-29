@@ -11,7 +11,7 @@ export const INVOICE_NUMBER_PRESETS = [
   { label: "Nazwa / rok / numer", pattern: "FA/{YYYY}/{NNNN}" },
 ];
 
-const TOKEN = /\{(PREFIX|N{1,8}|DD|MM|WW|YYYY|RRRR|GGGG)\}|(?<![\p{L}\p{N}_])(?:N{2,8}|DD|MM|WW|YYYY|RRRR|GGGG)(?![\p{L}\p{N}_])/gu;
+const TOKEN = new RegExp(String.raw`\{(PREFIX|N{1,8}|DD|MM|WW|YYYY|RRRR|GGGG)\}|(?<![\p{L}\p{N}_])(?:N{2,8}|DD|MM|WW|YYYY|RRRR|GGGG)(?![\p{L}\p{N}_])`, "gu");
 type Part = { token?: string; literal?: string };
 
 export function parseInvoicePattern(pattern: string): Part[] {

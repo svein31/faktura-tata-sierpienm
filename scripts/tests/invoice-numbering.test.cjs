@@ -44,6 +44,7 @@ test('default bank selection respects company and invoice currency', () => {
   assert.equal(defaultCompanyBankAccount('enervio', accounts, 'EUR').id, 'eur');
   assert.equal(defaultCompanyBankAccount('enervio', accounts, 'USD').id, 'current-default');
   assert.equal(defaultCompanyBankAccount('missing', accounts, 'PLN'), undefined);
+  assert.equal(defaultCompanyBankAccount('enervio', [accounts[0]], 'PLN', true), undefined);
   accounts.push({ id: 'multi', companyId: 'enervio', currency: 'MULTI', isDefault: true });
   assert.equal(defaultCompanyBankAccount('enervio', accounts, 'USD').id, 'multi');
 });
@@ -63,4 +64,18 @@ test('bank accounts are isolated by company, including legacy duplicate entries'
   assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL35109017530000000016199004', profiles), true);
   assert.equal(accountConflictsWithAnotherCompany('enervio', '91 1090 1753 0000 0000 1619 9007', profiles), false);
   assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL00 0000 0000 0000 0000 0000 0000', profiles, 'GEOMATIC'), true);
+});
+
+test('KSeF XML and JSON export the frozen invoice account instead of the current profile account', () => {
+  const { buildFa3Xml } = require('../../src/lib/ksef/xmlBuilder.ts');
+  const { invoiceToJson } = require('../../src/lib/xml.ts');
+  const company = { id: 'enervio', companyName: 'ENERVIO', name: 'ENERVIO', nip: '5260301706', bankAccount: '11111111111111111111111111', iban: '11111111111111111111111111' };
+  const invoice = { number: 'FV 01/09/2026', type: 'sale', status: 'draft', currency: 'PLN', language: 'PL', issueDate: '2026-09-25', saleDate: '2026-09-25', dueDate: '2026-10-09', paymentMethod: 'transfer', paymentTermDays: 14,
+    bankAccountSnapshot: { accountNumber: '22222222222222222222222222', bankName: 'Invoice Bank' },
+    lines: [{ name: 'Usługa', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23' }] };
+  const xml = buildFa3Xml({ invoice, seller: company });
+  assert.match(xml, /<NrRB>22222222222222222222222222<\/NrRB>/);
+  assert.match(xml, /<NazwaBanku>Invoice Bank<\/NazwaBanku>/);
+  assert.doesNotMatch(xml, /11111111111111111111111111/);
+  assert.equal(JSON.parse(invoiceToJson(invoice, company)).invoice.seller.iban, '22222222222222222222222222');
 });

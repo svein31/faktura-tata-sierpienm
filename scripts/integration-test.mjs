@@ -243,7 +243,7 @@ try {
   assert.equal(preservedBank.res.status, 200, JSON.stringify(preservedBank.data));
   assert.equal(preservedBank.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
   for (const created of [automaticBank, primaryBank]) assert.equal((await api('DELETE', `/api/invoices/${created.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
-  assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
+  assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...preservedBank.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
   assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
   assert.equal(privateContact.res.status, 201);

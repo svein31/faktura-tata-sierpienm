@@ -16,7 +16,7 @@ export async function invoiceBankAccountForCompany(companyId: string | null, ban
   });
   const ownAccounts = company.bankAccounts.filter(account => !accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName));
   const account = bankAccountId ? company.bankAccounts.find(item => item.id === bankAccountId)
-    : usePrimary ? undefined : defaultCompanyBankAccount(companyId, ownAccounts, currency) ?? (!company.bankAccount ? ownAccounts[0] : undefined);
+    : usePrimary ? undefined : defaultCompanyBankAccount(companyId, ownAccounts, currency, Boolean(company.bankAccount));
   if (bankAccountId && !account) throw new ApiError(400, "Wybierz rachunek należący do firmy wystawiającej fakturę.");
   if (!account) {
     if (company.bankAccount && accountConflictsWithAnotherCompany(companyId, company.bankAccount, profiles)) throw new ApiError(400, "Główny rachunek jest przypisany do innej firmy.");

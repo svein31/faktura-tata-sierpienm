@@ -249,14 +249,18 @@ export function InvoiceCreator() {
   }, []);
 
   // Clone from existing invoice (?cloneFrom=<id>)
+  const clonedFrom = React.useRef("");
   React.useEffect(() => {
     const cloneId = searchParams.get("cloneFrom");
     if (cloneId && invoices.length > 0) {
       const src = invoices.find((i) => i.id === cloneId);
-      if (src) {
+      const cloneKey = `${defaultCompany.id}:${cloneId}`;
+      if (src && clonedFrom.current !== cloneKey) {
+        clonedFrom.current = cloneKey;
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
           sellerCompanyId: defaultCompany.id,
+          contractorId: src.sellerCompanyId === defaultCompany.id ? src.contractorId : "",
           number: "",
           isCorrection: false,
           correctionReason: "",
@@ -412,8 +416,7 @@ export function InvoiceCreator() {
   const companyAccounts = React.useMemo(() => (effectiveSellerCompany.bankAccounts || []).filter(
     account => account.companyId === effectiveSellerCompany.id,
   ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.id]);
-  const defaultBankAccount = defaultCompanyBankAccount(effectiveSellerCompany.id, companyAccounts, form.currency)
-    ?? (!effectiveSellerCompany.bankAccount ? companyAccounts[0] : undefined);
+  const defaultBankAccount = defaultCompanyBankAccount(effectiveSellerCompany.id, companyAccounts, form.currency, Boolean(effectiveSellerCompany.bankAccount));
   const savedBankAccount = draftInvoice?.sellerCompanyId === effectiveSellerCompany.id ? draftInvoice.bankAccountSnapshot : null;
   const chosenBankAccount = selectedBankAccountId === "saved" ? savedBankAccount
     : selectedBankAccountId === "auto" ? defaultBankAccount : companyAccounts.find(account => account.id === selectedBankAccountId);
