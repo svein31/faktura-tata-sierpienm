@@ -189,6 +189,32 @@ export async function browserChecks(base) {
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Mobile overflow: ${route}`);
     }
+    // Numbering preference survives reload, and each new invoice asks auto vs manual on a phone.
+    await page.goto('/invoices/new');
+    await expect(page.getByText('Jak ponumerować tę fakturę?')).toBeVisible();
+    await page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true }).click();
+    await page.getByLabel('Numer faktury', { exact: true }).fill('KLIENT-007/2026');
+    await page.getByRole('button', { name: 'Ustaw numerację tej firmy', exact: true }).click();
+    const presets = page.getByLabel('Gotowy wariant numeracji');
+    await presets.click();
+    await expect(page.getByRole('option', { name: 'Tydzień / numer', exact: true })).toBeVisible();
+    await page.getByRole('option', { name: 'Tydzień / numer', exact: true }).click();
+    await expect(page.locator('#invoice-number-pattern')).toHaveValue('{WW}/{NN}');
+    // Keyboard opening, Escape and complete mobile containment of the custom list.
+    await presets.focus(); await presets.press('ArrowDown');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    assert.ok(await page.getByRole('listbox').evaluate(el => { const r=el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; }), 'Mobile dropdown overflow');
+    await presets.press('Escape'); await expect(page.getByRole('listbox')).toHaveCount(0);
+    await page.locator('#invoice-number-pattern').fill('KLIENT/{NNN}/{YYYY}');
+    await page.getByRole('button', { name: 'Zapisz format', exact: true }).click();
+    await expect(page.getByText('Zapisano numerację firmy', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText('Jak ponumerować tę fakturę?')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Kontynuuj automatycznie', exact: true })).toHaveAttribute('aria-pressed', 'false');
+    await page.getByRole('button', { name: 'Kontynuuj automatycznie', exact: true }).click();
+    await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue(/KLIENT\/001\/\d{4}/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile invoice creator overflow');
+    assert.equal(await page.locator('select').count(), 0, 'Invoice dropdowns use themed controls');
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }

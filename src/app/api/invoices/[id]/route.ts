@@ -173,7 +173,10 @@ export async function PUT(req: Request, { params }: Ctx) {
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
     });
-    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId) };
+    const bankDetails = body.bankAccountMode === "preserve" && existing.sellerCompanyId === parsed.sellerCompanyId && existing.bankAccountSnapshot
+      ? { bankAccountId: existing.bankAccountId, bankAccountSnapshot: existing.bankAccountSnapshot }
+      : await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId, parsed.currency, body.bankAccountMode === "primary");
+    const data = { ...parsed, ...bankDetails };
 
     // Wystawienie jest nieodwracalne: cofnięcie do szkicu/proformy pozwoliłoby usunąć dokument i ominąć licznik.
     if ((existing.issuedAt || (existing.type === "sale" && !existing.isProforma && existing.status !== "draft")) &&

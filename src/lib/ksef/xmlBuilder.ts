@@ -254,7 +254,8 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
 
   // Sekcja Płatności (Platnosc)
   const paymentMethodCode = PAYMENT_METHOD_CODES[invoice.paymentMethod] || "6";
-  const ibanClean = cleanIban(seller.iban);
+  const ibanClean = cleanIban(invoice.bankAccountSnapshot?.accountNumber ?? seller.bankAccount ?? seller.iban);
+  const invoiceBankName = invoice.bankAccountSnapshot?.bankName ?? seller.bankName;
   const isPaid = invoice.status === "paid" || invoice.paymentStatus === "paid";
   const actualDates = (invoice.payments || []).filter(payment => payment.amount > 0)
     .map(payment => new Date(payment.paidAt)).filter(date => !Number.isNaN(date.getTime()));
@@ -268,7 +269,7 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
   const bankAccountXml = ibanClean
     ? `      <RachunekBankowy>
         <NrRB>${ibanClean}</NrRB>
-        ${seller.bankName ? `<NazwaBanku>${esc(seller.bankName)}</NazwaBanku>` : ""}
+        ${invoiceBankName ? `<NazwaBanku>${esc(invoiceBankName)}</NazwaBanku>` : ""}
       </RachunekBankowy>\n`
     : "";
 
@@ -534,5 +535,4 @@ export const FA3_TEMPLATE = `<?xml version="1.0" encoding="UTF-8"?>
     </Platnosc>
   </Fa>
 </Faktura>`;
-
 

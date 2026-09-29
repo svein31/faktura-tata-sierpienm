@@ -225,6 +225,24 @@ try {
   const bankInvoice = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: firstBank.id }, a.cookie);
   assert.equal(bankInvoice.res.status, 201, JSON.stringify(bankInvoice.data));
   assert.equal(bankInvoice.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
+  // A marked default overrides a stale primary and cannot change another firm's default.
+  await db.companyProfile.update({ where: { id: companyId }, data: { bankAccount: '93100000000000000000000003' } });
+  const thirdBank = await db.companyBankAccount.create({ data: { companyId, accountNumber: '94100000000000000000000004', currency: 'PLN' } });
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: firstBank.id }, a.cookie)).res.status, 200);
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: secondBank.id }, a.cookie)).res.status, 404);
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: thirdBank.id }, a.cookie)).res.status, 200);
+  assert.equal(await db.companyBankAccount.count({ where: { companyId, currency: 'PLN', isDefault: true } }), 1);
+  const automaticBank = await api('POST', '/api/invoices', { ...bankInvoiceBody, number: 'BANK/AUTO/2', bankAccountId: null }, a.cookie);
+  assert.equal(automaticBank.res.status, 201, JSON.stringify(automaticBank.data));
+  assert.equal(automaticBank.data.invoice.bankAccountSnapshot.accountNumber, thirdBank.accountNumber);
+  const primaryBank = await api('POST', '/api/invoices', { ...bankInvoiceBody, number: 'BANK/PRIMARY/3', bankAccountId: null, bankAccountMode: 'primary' }, a.cookie);
+  assert.equal(primaryBank.res.status, 201, JSON.stringify(primaryBank.data));
+  assert.equal(primaryBank.data.invoice.bankAccountSnapshot.accountNumber, '93100000000000000000000003');
+  await db.companyBankAccount.update({ where: { id: firstBank.id }, data: { accountNumber: '95100000000000000000000005' } });
+  const preservedBank = await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountMode: 'preserve', bankAccountSnapshot: { accountNumber: 'untrusted' } }, a.cookie);
+  assert.equal(preservedBank.res.status, 200, JSON.stringify(preservedBank.data));
+  assert.equal(preservedBank.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
+  for (const created of [automaticBank, primaryBank]) assert.equal((await api('DELETE', `/api/invoices/${created.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
   assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);

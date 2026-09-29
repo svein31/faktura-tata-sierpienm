@@ -50,7 +50,7 @@ const emptyForm: FormState = {
 
 export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyModalProps) {
   const toast = useToast();
-  const { addCompany, updateCompanyProfile, companies } = useAppStore();
+  const { addCompany, updateCompanyProfile, companies, fetchCompanies } = useAppStore();
 
   const isEditing = Boolean(initialData?.id);
   const [form, setForm] = React.useState<FormState>(emptyForm);
@@ -63,6 +63,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
   const [loadingAccounts, setLoadingAccounts] = React.useState(false);
   const [showAddAccount, setShowAddAccount] = React.useState(false);
   const [addingAccount, setAddingAccount] = React.useState(false);
+  const [defaultAccountPending, setDefaultAccountPending] = React.useState<string | null>(null);
   const [newAccount, setNewAccount] = React.useState({
     accountName: "Konto walutowe",
     currency: "EUR",
@@ -113,11 +114,28 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         isDefault: false,
       });
       await fetchBankAccounts(initialData.id);
+      await fetchCompanies();
     } catch (e: any) {
       toast("error", "Błąd", e.message);
     } finally {
       setAddingAccount(false);
     }
+  };
+
+  const handleDefaultBankAccount = async (accountId: string) => {
+    if (!initialData?.id || defaultAccountPending) return;
+    setDefaultAccountPending(accountId);
+    try {
+      const res = await fetch(`/api/companies/${initialData.id}/bank-accounts`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accountId }),
+      });
+      const response = await res.json();
+      if (!res.ok) throw new Error(response.error || "Nie udało się ustawić rachunku.");
+      await fetchBankAccounts(initialData.id);
+      await fetchCompanies();
+      toast("success", "Zmieniono domyślny rachunek", "Nowe faktury użyją tego rachunku dla jego waluty.");
+    } catch (error) { toast("error", "Błąd rachunku", error instanceof Error ? error.message : "Spróbuj ponownie."); }
+    finally { setDefaultAccountPending(null); }
   };
 
   const handleDeleteBankAccount = async (accId: string) => {
@@ -130,6 +148,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
       if (!res.ok) throw new Error(data.error || "Błąd usuwania rachunku");
       toast("info", "Usunięto rachunek bankowy");
       await fetchBankAccounts(initialData.id);
+      await fetchCompanies();
     } catch (e: any) {
       toast("error", "Błąd", e.message);
     }
@@ -555,7 +574,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                 bankAccounts.map((acc) => (
                   <div
                     key={acc.id}
-                    className="p-2.5 bg-card rounded-xl border border-border flex items-center justify-between gap-2"
+                    className="p-2.5 bg-card rounded-xl border border-border flex flex-wrap items-center justify-between gap-2"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
@@ -577,6 +596,8 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                         {acc.bankName && ` (${acc.bankName})`}
                       </p>
                     </div>
+                    {!acc.isDefault && <Button type="button" variant="outline" size="sm" disabled={!!defaultAccountPending}
+                      onClick={() => void handleDefaultBankAccount(acc.id)} className="h-8 text-xs">Ustaw domyślny</Button>}
                     <Button
                       type="button"
                       variant="ghost"

@@ -88,15 +88,15 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ error: "Kod SWIFT/BIC musi składać się z 8 lub 11 znaków alfanumerycznych." }, { status: 400 });
     }
 
-    // Jeśli rachunek ma być domyślny dla danej waluty, odznacz poprzednie domyślne
+    const created = await prisma.$transaction(async tx => {
     if (isDefault) {
-      await prisma.companyBankAccount.updateMany({
+      await tx.companyBankAccount.updateMany({
         where: { companyId, currency },
         data: { isDefault: false },
       });
     }
 
-    const created = await prisma.companyBankAccount.create({
+    return tx.companyBankAccount.create({
       data: {
         companyId,
         accountName,
@@ -110,6 +110,7 @@ export async function POST(req: Request, { params }: Ctx) {
         transferInstructions,
         isDefault,
       },
+    });
     });
 
     // Zapis w historii audytowej
@@ -129,6 +130,32 @@ export async function POST(req: Request, { params }: Ctx) {
   } catch (e) {
     return handleApiError(e);
   }
+}
+
+/** Set an existing account as the default, scoped to one company and currency. */
+export async function PATCH(req: Request, { params }: Ctx) {
+  try {
+    const user = await getSessionUser();
+    if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
+    const companyId = (await params).id;
+    const access = await requireCompanyAccess(user.id, companyId, "canManageBankAccounts");
+    if (!access.ok) return json({ error: access.error }, { status: access.status });
+    const body = await readJson(req);
+    const accountId = cleanStr(body.accountId, 24, "accountId");
+    if (!/^[a-f\d]{24}$/i.test(accountId)) return json({ error: "Wybierz rachunek firmy." }, { status: 400 });
+    const account = await prisma.companyBankAccount.findFirst({ where: { id: accountId, companyId } });
+    if (!account) return json({ error: "Nie znaleziono rachunku tej firmy." }, { status: 404 });
+    const profiles = await prisma.companyProfile.findMany({ where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true } });
+    if (accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName)) return json({ error: "Rachunek jest przypisany do innej firmy." }, { status: 409 });
+    const updated = await prisma.$transaction(async tx => {
+      await tx.companyBankAccount.updateMany({ where: { companyId, currency: account.currency }, data: { isDefault: false } });
+      return tx.companyBankAccount.update({ where: { id: account.id }, data: { isDefault: true } });
+    });
+    await recordAuditLog({ companyId, userId: user.id, userName: user.name || user.email, userEmail: user.email,
+      action: "bank_account_default", entityType: "bank_account", entityId: account.id,
+      description: `Ustawiono domyślny rachunek ${account.accountName} (${account.currency})` });
+    return json({ account: companyBankAccountToDto(updated) });
+  } catch (error) { return handleApiError(error); }
 }
 
 /**

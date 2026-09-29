@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
     }
     const parsed = await buildData(number);
-    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId) };
+    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId, parsed.currency, body.bankAccountMode === "primary") };
 
     // Weryfikacja granularnego uprawnienia do wystawiania faktur
     if (data.sellerCompanyId) {
