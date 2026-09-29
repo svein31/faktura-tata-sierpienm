@@ -3,6 +3,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { nextFormattedInvoiceNumber, parseInvoicePattern, DEFAULT_INVOICE_PATTERN } = require('../../src/lib/invoice-numbering.ts');
 const { accountConflictsWithAnotherCompany } = require('../../src/lib/company-bank-account-scope.ts');
+const { defaultCompanyBankAccount } = require('../../src/lib/company-default-bank-account.ts');
+const { invoicePatternFromExample, INVOICE_NUMBER_PRESETS } = require('../../src/lib/invoice-numbering.ts');
 
 test('monthly numbering resets only for a different month within the same company', () => {
   const numbers = ['FV 01/07/2026', 'FV 02/07/2026'];
@@ -10,6 +12,41 @@ test('monthly numbering resets only for a different month within the same compan
   assert.equal(nextFormattedInvoiceNumber(DEFAULT_INVOICE_PATTERN, numbers, '2026-08-01', 'FV'), 'FV 01/08/2026');
   assert.equal(nextFormattedInvoiceNumber(DEFAULT_INVOICE_PATTERN, numbers, '2027-07-01', 'FV'), 'FV 01/07/2027');
   assert.equal(nextFormattedInvoiceNumber(DEFAULT_INVOICE_PATTERN, numbers, '2026-07-31', 'KOR'), 'KOR 01/07/2026');
+});
+
+test('daily, ISO weekly and patterns without a year retain unique counters', () => {
+  assert.equal(nextFormattedInvoiceNumber('{DD}/{MM}/{YYYY}/{NN}', ['25/09/2026/02'], '2026-09-25', 'FV'), '25/09/2026/03');
+  assert.equal(nextFormattedInvoiceNumber('{DD}/{MM}/{YYYY}/{NN}', ['25/09/2026/02'], '2026-09-26', 'FV'), '26/09/2026/01');
+  assert.equal(nextFormattedInvoiceNumber('{MM}/{NN}', ['09/07'], '2027-09-01', 'FV'), '09/08');
+  assert.equal(nextFormattedInvoiceNumber('{GGGG}/{WW}/{NN}', ['2026/53/02'], '2027-01-01', 'FV'), '2026/53/03');
+  assert.equal(nextFormattedInvoiceNumber('{WW}/{NN}', ['39/04'], '2026-09-25', 'FV'), '39/05');
+  for (const preset of INVOICE_NUMBER_PRESETS) assert.ok(nextFormattedInvoiceNumber(preset.pattern, [], '2026-09-25', 'FV'));
+  assert.throws(() => nextFormattedInvoiceNumber(DEFAULT_INVOICE_PATTERN, [], '2026-02-31', 'FV'), /data/);
+  assert.throws(() => nextFormattedInvoiceNumber('{NN}', ['9007199254740992'], '2026-09-25', 'FV'), /zakres/);
+  assert.throws(() => parseInvoicePattern('A'.repeat(50) + '{N}'), /50 znaków/);
+});
+
+test('custom company names stay literal and only the selected fragment becomes a counter', () => {
+  const pattern = invoicePatternFromExample('ANNA-SUMMER 007/2026', 0);
+  assert.equal(pattern, 'ANNA-SUMMER {NNN}/2026');
+  assert.equal(nextFormattedInvoiceNumber(pattern, ['ANNA-SUMMER 007/2026'], '2026-09-25', 'FV'), 'ANNA-SUMMER 008/2026');
+  assert.throws(() => invoicePatternFromExample('ABC', 0), /fragment/);
+});
+
+test('default bank selection respects company and invoice currency', () => {
+  const accounts = [
+    { id: 'legacy-extra', companyId: 'enervio', currency: 'PLN', isDefault: false },
+    { id: 'current-default', companyId: 'enervio', currency: 'PLN', isDefault: true },
+    { id: 'eur', companyId: 'enervio', currency: 'EUR', isDefault: true },
+    { id: 'other-company', companyId: 'geomatic', currency: 'PLN', isDefault: true },
+  ];
+  assert.equal(defaultCompanyBankAccount('enervio', accounts, 'PLN').id, 'current-default');
+  assert.equal(defaultCompanyBankAccount('enervio', accounts, 'EUR').id, 'eur');
+  assert.equal(defaultCompanyBankAccount('enervio', accounts, 'USD').id, 'current-default');
+  assert.equal(defaultCompanyBankAccount('missing', accounts, 'PLN'), undefined);
+  assert.equal(defaultCompanyBankAccount('enervio', [accounts[0]], 'PLN', true), undefined);
+  accounts.push({ id: 'multi', companyId: 'enervio', currency: 'MULTI', isDefault: true });
+  assert.equal(defaultCompanyBankAccount('enervio', accounts, 'USD').id, 'multi');
 });
 
 test('yearly and custom formats continue from persisted numbers', () => {
@@ -27,4 +64,23 @@ test('bank accounts are isolated by company, including legacy duplicate entries'
   assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL35109017530000000016199004', profiles), true);
   assert.equal(accountConflictsWithAnotherCompany('enervio', '91 1090 1753 0000 0000 1619 9007', profiles), false);
   assert.equal(accountConflictsWithAnotherCompany('enervio', 'PL00 0000 0000 0000 0000 0000 0000', profiles, 'GEOMATIC'), true);
+});
+
+test('KSeF XML and JSON export the frozen invoice account instead of the current profile account', () => {
+  const { buildFa3Xml } = require('../../src/lib/ksef/xmlBuilder.ts');
+  const { invoiceToJson } = require('../../src/lib/xml.ts');
+  const company = { id: 'enervio', companyName: 'ENERVIO', name: 'ENERVIO', nip: '5260301706', bankAccount: '11111111111111111111111111', iban: '11111111111111111111111111' };
+  const invoice = { number: 'FV 01/09/2026', type: 'sale', status: 'draft', currency: 'PLN', language: 'PL', issueDate: '2026-09-25', saleDate: '2026-09-25', dueDate: '2026-10-09', paymentMethod: 'transfer', paymentTermDays: 14,
+    bankAccountSnapshot: { accountNumber: '22222222222222222222222222', bankName: 'Invoice Bank' },
+    lines: [{ name: 'Usługa', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23' }] };
+  const xml = buildFa3Xml({ invoice, seller: company });
+  assert.match(xml, /<NrRB>22222222222222222222222222<\/NrRB>/);
+  assert.match(xml, /<NazwaBanku>Invoice Bank<\/NazwaBanku>/);
+  assert.doesNotMatch(xml, /11111111111111111111111111/);
+  assert.equal(JSON.parse(invoiceToJson(invoice, company)).invoice.seller.iban, '22222222222222222222222222');
+  // An optional blank name in a frozen snapshot must not pick up a later, unrelated profile bank name.
+  const blankNameInvoice = { ...invoice, bankAccountSnapshot: { ...invoice.bankAccountSnapshot, bankName: '' } };
+  const changedProfile = { ...company, bankName: 'Another Bank' };
+  assert.doesNotMatch(buildFa3Xml({ invoice: blankNameInvoice, seller: changedProfile }), /Another Bank|<NazwaBanku>/);
+  assert.equal(JSON.parse(invoiceToJson(blankNameInvoice, changedProfile)).invoice.seller.bankName, '');
 });

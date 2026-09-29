@@ -26,7 +26,8 @@ import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { formatNip } from "@/lib/validation";
 import type { CompanyProfile } from "@/lib/types";
-import { DEFAULT_INVOICE_PATTERN, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
+import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
+import { Select } from "@/components/ui/input";
 
 export default function CompaniesSettingsPage() {
   const toast = useToast();
@@ -123,7 +124,7 @@ export default function CompaniesSettingsPage() {
       {companies.length > 0 && <Card id="invoice-numbering" className="scroll-mt-24 p-5 space-y-4">
         <div>
           <h2 className="font-semibold">Numeracja faktur</h2>
-          <p className="text-sm text-muted-foreground">Ustaw format osobno dla każdej firmy. NN oznacza kolejny numer, MM miesiąc, a RRRR rok. Licznik zaczyna się od 01 w nowym miesiącu, jeśli format zawiera MM.</p>
+          <p className="text-sm text-muted-foreground">Wzór jest zapamiętywany osobno dla każdej firmy. Dowolna nazwa i separatory, licznik {'{NN}'}, dzień {'{DD}'}, miesiąc {'{MM}'}, tydzień ISO {'{WW}'}, rok {'{YYYY}'} lub rok ISO {'{GGGG}'}. Bez roku licznik zachowuje ciągłość w kolejnych latach.</p>
         </div>
         {companies.filter(c => c.currentUserRole === "owner").map(c => {
           const pattern = patterns[c.id] ?? c.invoiceNumberPattern ?? DEFAULT_INVOICE_PATTERN;
@@ -132,9 +133,15 @@ export default function CompaniesSettingsPage() {
           return <div key={c.id} className="grid gap-2 border-t pt-3 sm:grid-cols-[180px_1fr_auto] sm:items-center">
             <label htmlFor={`pattern-${c.id}`} className="text-sm font-medium">{c.companyName}</label>
             <div>
+              <Select className="mb-2" display="dropdown" aria-label={`Wariant numeracji: ${c.companyName}`}
+                value={INVOICE_NUMBER_PRESETS.some(p => p.pattern === pattern) ? pattern : "custom"}
+                onChange={event => { if (event.target.value !== "custom") setPatterns(prev => ({ ...prev, [c.id]: event.target.value })); }}>
+                <option value="custom">Własny wzór i nazwa</option>
+                {INVOICE_NUMBER_PRESETS.map(preset => <option key={preset.pattern} value={preset.pattern}>{preset.label}</option>)}
+              </Select>
               <input id={`pattern-${c.id}`} value={pattern} onChange={event => setPatterns(prev => ({ ...prev, [c.id]: event.target.value }))}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm" placeholder="FV NN/MM/RRRR" maxLength={80} />
-              <p className="mt-1 text-xs text-muted-foreground">Przykład: {example}. Możesz wpisać też NN/RRRR albo FV/NNNN/RRRR.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Przykład: {example}. Liczba N określa zera wiodące. W nowym dokumencie wybierzesz numer automatyczny lub ręczny.</p>
             </div>
             <Button type="button" size="sm" disabled={savingPatternId === c.id} onClick={() => void savePattern(c)}>Zapisz format</Button>
           </div>;

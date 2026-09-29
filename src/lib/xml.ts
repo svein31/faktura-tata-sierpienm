@@ -50,8 +50,8 @@ export function invoiceToJson(invoice: Invoice, company: CompanyProfile): string
           postal: company.postalCode || company.postal || "",
           country: company.country || "PL",
         },
-        iban: company.bankAccount || company.iban || "",
-        bankName: company.bankName || "",
+        iban: invoice.bankAccountSnapshot?.accountNumber ?? company.bankAccount ?? company.iban ?? "",
+        bankName: invoice.bankAccountSnapshot?.bankName ?? company.bankName ?? "",
       },
       contractorId: invoice.contractorId,
       lines: invoice.lines.map((l) => ({

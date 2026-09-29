@@ -29,8 +29,9 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
-import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
+import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
 import { normalizedBankAccount } from "@/lib/company-bank-account-scope";
+import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
@@ -188,7 +189,7 @@ function freshForm(defaultCompanyId: string = ""): FormState {
 }
 
 /** Dane faktury bez id/createdAt — id nadaje backend (źródło prawdy). */
-type InvoicePayload = Omit<Invoice, "id" | "createdAt"> & { autoNumber?: boolean };
+type InvoicePayload = Omit<Invoice, "id" | "createdAt"> & { autoNumber?: boolean; bankAccountMode?: string };
 
 export function InvoiceCreator() {
   const router = useRouter();
@@ -219,7 +220,7 @@ export function InvoiceCreator() {
   const [manualJustification, setManualJustification] = React.useState("");
   const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>(() =>
     draftInvoice && !draftInvoiceIsNew && draftInvoice.sellerCompanyId === defaultCompany.id
-      ? draftInvoice.bankAccountId || "" : ""
+      ? draftInvoice.bankAccountSnapshot ? "saved" : draftInvoice.bankAccountId || "primary" : "auto"
   );
   const [newContractorTaxIdType, setNewContractorTaxIdType] = React.useState<"nip" | "vat_eu" | "tin" | "none">("nip");
   const [shortcutsModalOpen, setShortcutsModalOpen] = React.useState(false);
@@ -248,14 +249,18 @@ export function InvoiceCreator() {
   }, []);
 
   // Clone from existing invoice (?cloneFrom=<id>)
+  const clonedFrom = React.useRef("");
   React.useEffect(() => {
     const cloneId = searchParams.get("cloneFrom");
     if (cloneId && invoices.length > 0) {
       const src = invoices.find((i) => i.id === cloneId);
-      if (src) {
+      const cloneKey = `${defaultCompany.id}:${cloneId}`;
+      if (src && clonedFrom.current !== cloneKey) {
+        clonedFrom.current = cloneKey;
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
           sellerCompanyId: defaultCompany.id,
+          contractorId: src.sellerCompanyId === defaultCompany.id ? src.contractorId : "",
           number: "",
           isCorrection: false,
           correctionReason: "",
@@ -307,6 +312,7 @@ export function InvoiceCreator() {
   const [autosaveStatus, setAutosaveStatus] = React.useState<"idle" | "saving" | "saved">("idle");
   const [hasRecoverableDraft, setHasRecoverableDraft] = React.useState<boolean>(false);
   const [recoverableDate, setRecoverableDate] = React.useState<string>("");
+  const [numberMode, setNumberMode] = React.useState<"auto" | "manual" | null>(() => draftInvoice && !draftInvoiceIsNew ? "manual" : null);
 
   React.useEffect(() => {
     if (!draftInvoice || draftInvoiceIsNew) {
@@ -321,20 +327,20 @@ export function InvoiceCreator() {
         }
       } catch {}
     }
-  }, [draftInvoice, draftInvoiceIsNew]);
+  }, [draftInvoice, draftInvoiceIsNew, DRAFT_KEY]);
 
   React.useEffect(() => {
     const isKsef = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
-    if (isKsef) return;
+    if (isKsef || hasRecoverableDraft) return;
     setAutosaveStatus("saving");
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, savedAt: new Date().toISOString() }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, numberMode, selectedBankAccountId, savedAt: new Date().toISOString() }));
         setAutosaveStatus("saved");
       } catch {}
     }, 800);
     return () => clearTimeout(t);
-  }, [form, draftInvoice]);
+  }, [form, numberMode, draftInvoice, selectedBankAccountId, hasRecoverableDraft, DRAFT_KEY]);
 
   const handleRecoverDraft = () => {
     try {
@@ -342,7 +348,11 @@ export function InvoiceCreator() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.form) {
-          if (parsed.form.sellerCompanyId === defaultCompany.id) setForm(parsed.form);
+          if (parsed.form.sellerCompanyId === defaultCompany.id) {
+            setForm(parsed.form);
+            setNumberMode(parsed.numberMode === "auto" || parsed.numberMode === "manual" ? parsed.numberMode : parsed.form.number ? "manual" : null);
+            setSelectedBankAccountId(parsed.selectedBankAccountId && parsed.selectedBankAccountId !== "saved" ? parsed.selectedBankAccountId : "auto");
+          }
           toast("success", "Przywrócono wersję roboczą", `Zapisana o: ${recoverableDate}`);
         }
       }
@@ -363,6 +373,9 @@ export function InvoiceCreator() {
   const [numberPatternInput, setNumberPatternInput] = React.useState("");
   const [numberPatternOpen, setNumberPatternOpen] = React.useState(false);
   const [savingNumberPattern, setSavingNumberPattern] = React.useState(false);
+  const [counterFragment, setCounterFragment] = React.useState(0);
+  const numberFragments = [...form.number.matchAll(/\d+/g)];
+  const effectiveCounterFragment = Math.max(0, Math.min(counterFragment, numberFragments.length - 1));
 
   const set = (patch: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -394,17 +407,23 @@ export function InvoiceCreator() {
 
   React.useEffect(() => {
     if ((!draftInvoice || draftInvoiceIsNew) && store.selectedCompanyId) {
-      setForm((f) => ({ ...f, sellerCompanyId: store.selectedCompanyId! }));
-      setSelectedBankAccountId("");
+      setForm((f) => f.sellerCompanyId && f.sellerCompanyId !== store.selectedCompanyId
+        ? freshForm(store.selectedCompanyId!) : { ...f, sellerCompanyId: store.selectedCompanyId! });
+      setSelectedBankAccountId("auto");
+      setNumberMode(null);
+      setForm(f => ({ ...f, number: "" }));
     }
   }, [store.selectedCompanyId, draftInvoice, draftInvoiceIsNew]);
 
   const effectiveSellerCompany: CompanyProfile = defaultCompany ?? EMPTY_COMPANY;
-  const companyAccounts = (effectiveSellerCompany.bankAccounts || []).filter(
-    account => account.companyId === effectiveSellerCompany.id &&
-      normalizedBankAccount(account.accountNumber) !== normalizedBankAccount(effectiveSellerCompany.bankAccount),
-  );
-  const chosenBankAccount = companyAccounts.find(account => account.id === selectedBankAccountId);
+  const companyAccounts = React.useMemo(() => (effectiveSellerCompany.bankAccounts || []).filter(
+    account => account.companyId === effectiveSellerCompany.id,
+  ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.id]);
+  const defaultBankAccount = defaultCompanyBankAccount(effectiveSellerCompany.id, companyAccounts, form.currency, Boolean(effectiveSellerCompany.bankAccount));
+  const savedBankAccount = draftInvoice?.sellerCompanyId === effectiveSellerCompany.id ? draftInvoice.bankAccountSnapshot : null;
+  const chosenBankAccount = selectedBankAccountId === "saved" ? savedBankAccount
+    : selectedBankAccountId === "auto" ? defaultBankAccount : companyAccounts.find(account => account.id === selectedBankAccountId);
+  const effectiveBankAccountId = selectedBankAccountId === "saved" ? draftInvoice?.bankAccountId || null : chosenBankAccount?.id || null;
 
   React.useEffect(() => {
     setNumberPatternInput(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN);
@@ -412,12 +431,8 @@ export function InvoiceCreator() {
   }, [effectiveSellerCompany.id, effectiveSellerCompany.invoiceNumberPattern]);
 
   React.useEffect(() => {
-    if (selectedBankAccountId && !companyAccounts.some(account => account.id === selectedBankAccountId)) {
-      setSelectedBankAccountId("");
-    } else if (!selectedBankAccountId && !effectiveSellerCompany.bankAccount && companyAccounts.length > 0) {
-      setSelectedBankAccountId((companyAccounts.find(account => account.isDefault) || companyAccounts[0]).id);
-    }
-  }, [selectedBankAccountId, companyAccounts, effectiveSellerCompany.bankAccount]);
+    if (!["auto", "primary", "saved"].includes(selectedBankAccountId) && !companyAccounts.some(account => account.id === selectedBankAccountId)) setSelectedBankAccountId("auto");
+  }, [selectedBankAccountId, companyAccounts]);
 
   const saveNumberPattern = async () => {
     try {
@@ -443,13 +458,15 @@ export function InvoiceCreator() {
   };
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
-  const suggestedNumber = nextFormattedInvoiceNumber(
-    effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
-    invoices.filter(inv => inv.sellerCompanyId === effectiveSellerCompany.id).map(inv => inv.number),
-    form.issueDate || todayISO(),
-    invoicePrefix(form.type, form.isCorrection, form.isProforma),
-  );
-  const invoiceNumber = form.number || suggestedNumber;
+  const companyInvoices = invoices.filter(inv => inv.sellerCompanyId === effectiveSellerCompany.id);
+  let suggestedNumber = "";
+  let numberingError = "";
+  try {
+    suggestedNumber = nextFormattedInvoiceNumber(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
+      companyInvoices.map(inv => inv.number), form.issueDate || todayISO(), invoicePrefix(form.type, form.isCorrection, form.isProforma));
+  } catch (error) { numberingError = error instanceof Error ? error.message : "Sprawdź wzór numeracji."; }
+  const lastNumber = [...companyInvoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.number;
+  const invoiceNumber = numberMode === "manual" ? form.number : form.number || suggestedNumber;
   const isPurchase = form.type === "purchase";
   const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
@@ -490,7 +507,7 @@ export function InvoiceCreator() {
     currency: form.currency,
     language: form.language,
     paymentMethod: form.paymentMethod,
-    bankAccountId: chosenBankAccount?.id || null,
+    bankAccountId: effectiveBankAccountId,
     bankAccountSnapshot: chosenBankAccount || null,
     paymentTermDays: form.paymentTermDays,
     notes: form.notes,
@@ -520,6 +537,9 @@ export function InvoiceCreator() {
 
   const validate = (): string[] => {
     const errs: string[] = [];
+    if (!editing && !numberMode) errs.push("Wybierz, czy kontynuować numerację automatycznie, czy wpisać numer ręcznie.");
+    if (numberMode === "auto" && numberingError) errs.push(numberingError);
+    if (!invoiceNumber.trim()) errs.push("Wpisz numer faktury.");
     if (editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id) errs.push("Ta faktura należy do innej firmy. Otwórz ją we właściwym kontekście.");
     if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
     if (form.isOffline && (!form.offlineReason || !form.offlineDeadline)) errs.push("Tryb offline wymaga wskazania przyczyny i terminu przesłania.");
@@ -605,7 +625,7 @@ export function InvoiceCreator() {
       type: form.type,
       status,
       sellerCompanyId: effectiveSellerCompany.id || undefined,
-      autoNumber: !form.number && (!draftInvoice || draftInvoiceIsNew),
+      autoNumber: numberMode === "auto" && (!draftInvoice || draftInvoiceIsNew),
       contractorId,
       issueDate: form.issueDate || todayISO(),
       saleDate: form.saleDate || form.issueDate || todayISO(),
@@ -642,7 +662,8 @@ export function InvoiceCreator() {
       totalNetPln: netPln,
       totalVatPln: vatPln,
       totalGrossPln: grossPln,
-      bankAccountId: selectedBankAccountId || null,
+      bankAccountId: effectiveBankAccountId,
+      bankAccountMode: selectedBankAccountId === "saved" ? "preserve" : selectedBankAccountId === "primary" ? "primary" : "auto",
       bankAccountSnapshot: chosenBankAccount ? (chosenBankAccount as any) : undefined,
       buyerTaxIdType: form.useNewContractor ? newContractorTaxIdType : (selectedContractor?.taxIdType || "nip"),
       buyerCountry: form.useNewContractor ? form.newContractor.country : (selectedContractor?.country || "PL"),
@@ -1029,20 +1050,50 @@ export function InvoiceCreator() {
             <p className="text-sm font-medium">{effectiveSellerCompany.companyName || "Dodaj firmę"} · NIP: {formatNip(effectiveSellerCompany.nip)}</p>
             {editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-red-600">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
             <div className="space-y-1">
+              {!editing && <div className="mb-3 rounded-xl border border-primary/25 bg-primary/5 p-3 space-y-2">
+                <p className="text-sm font-semibold">Jak ponumerować tę fakturę?</p>
+                <p className="text-xs text-muted-foreground">Zapamiętany wzór firmy: <span className="font-mono">{effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN}</span></p>
+                <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Sposób numeracji">
+                  <Button type="button" variant={numberMode === "auto" ? "primary" : "outline"} aria-pressed={numberMode === "auto"}
+                    onClick={() => { setNumberMode("auto"); set({ number: "" }); }}>Kontynuuj automatycznie</Button>
+                  <Button type="button" variant={numberMode === "manual" ? "primary" : "outline"} aria-pressed={numberMode === "manual"}
+                    onClick={() => { setNumberMode("manual"); set({ number: "" }); requestAnimationFrame(() => document.getElementById("invoice-number")?.focus()); }}>Wpisz numer ręcznie</Button>
+                </div>
+                {!numberMode && <p className="text-xs text-primary">Wybierz sposób numeracji przed zapisaniem dokumentu.</p>}
+              </div>}
               <label htmlFor="invoice-number" className="block text-xs font-semibold">Numer faktury</label>
               <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
                 disabled={isKsefRegistered || (Boolean(draftInvoice) && draftInvoice?.status !== "draft" && !draftInvoiceIsNew)}
-                onChange={(event) => set({ number: event.target.value })} />
-              <p className="text-xs text-muted-foreground">Propozycja dla {effectiveSellerCompany.companyName}: {suggestedNumber}. Numer możesz poprawić przed wystawieniem.</p>
+                onChange={(event) => { setNumberMode("manual"); set({ number: event.target.value }); }} />
+              <p className="text-xs text-muted-foreground">{numberingError || `Propozycja: ${suggestedNumber}. Numer możesz zmienić przed wystawieniem.`}</p>
+              {lastNumber && <p className="text-xs text-muted-foreground">Ostatnio zapisany numer tej firmy: <span className="font-mono">{lastNumber}</span></p>}
               {effectiveSellerCompany.currentUserRole === "owner" && (
                 <div className="pt-1">
                   <button type="button" className="text-xs font-semibold text-primary underline underline-offset-2" onClick={() => setNumberPatternOpen(open => !open)}>
                     {numberPatternOpen ? "Zamknij ustawienia numeracji" : "Ustaw numerację tej firmy"}
                   </button>
                   {numberPatternOpen && <div className="mt-2 max-w-md space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                    <Label htmlFor="invoice-number-preset">Gotowy wariant numeracji</Label>
+                    <Select id="invoice-number-preset" display="dropdown" value={INVOICE_NUMBER_PRESETS.some(p => p.pattern === numberPatternInput) ? numberPatternInput : "custom"}
+                      onChange={event => { if (event.target.value !== "custom") setNumberPatternInput(event.target.value); }}>
+                      <option value="custom">Własny wzór i nazwa</option>
+                      {INVOICE_NUMBER_PRESETS.map(preset => <option key={preset.pattern} value={preset.pattern}>{preset.label}</option>)}
+                    </Select>
                     <Label htmlFor="invoice-number-pattern">Format numeru dla {effectiveSellerCompany.companyName}</Label>
                     <Input id="invoice-number-pattern" value={numberPatternInput} maxLength={80} className="font-mono" onChange={event => setNumberPatternInput(event.target.value)} placeholder="FV NN/MM/RRRR" />
-                    <p className="text-xs text-muted-foreground">NN = kolejny numer, MM = miesiąc, RRRR = rok. Np. FV NN/MM/RRRR zaczyna numerację od 01 co miesiąc.</p>
+                    <p className="text-xs text-muted-foreground">Dowolny tekst i separator, np. ENERVIO-{'{NN}'}/{'{MM}'}/{'{YYYY}'}. {'{N}'}–{'{NNNNNNNN}'} = licznik, {'{DD}'} = dzień, {'{MM}'} = miesiąc, {'{WW}'} = tydzień ISO, {'{YYYY}'} = rok, {'{GGGG}'} = rok ISO. {'{PREFIX}'} dobiera FV/FZ/PRO/KOR.</p>
+                    <p className="text-xs text-muted-foreground">Bez roku licznik zachowuje ciągłość w kolejnych latach. Sama data nie zapewnia unikalności — wzór automatyczny musi mieć licznik.</p>
+                    {numberMode === "manual" && /\d/.test(form.number) && <div className="space-y-2 border-t border-border pt-2">
+                      <Label htmlFor="invoice-counter-fragment">Który fragment ręcznego numeru ma rosnąć?</Label>
+                      <Select id="invoice-counter-fragment" display="dropdown" value={effectiveCounterFragment} onChange={event => setCounterFragment(Number(event.target.value))}>
+                        {numberFragments.map((match, index) => <option key={index} value={index}>{match[0]} · fragment {index + 1}</option>)}
+                      </Select>
+                      <Button type="button" variant="outline" size="sm" onClick={() => {
+                        try { setNumberPatternInput(invoicePatternFromExample(form.number, effectiveCounterFragment)); }
+                        catch (error) { toast("error", "Sprawdź numer", error instanceof Error ? error.message : "Nieprawidłowy numer."); }
+                      }}>Utwórz wzór z wpisanego numeru</Button>
+                      <p className="text-xs text-muted-foreground">Pozostałe fragmenty zostają stałe. Zastąp datę znacznikami powyżej, jeśli ma zmieniać się automatycznie. Zapisz format, aby zapamiętać go na koncie firmy.</p>
+                    </div>}
                     <Button type="button" size="sm" disabled={savingNumberPattern} onClick={() => void saveNumberPattern()}>Zapisz format</Button>
                   </div>}
                 </div>
@@ -1382,15 +1433,19 @@ export function InvoiceCreator() {
               {/* Wybór rachunku bankowego firmy */}
               {(effectiveSellerCompany.bankAccount || companyAccounts.length > 0) && (
                 <div className="space-y-1.5 sm:col-span-3">
-                  <Label>Rachunek bankowy firmy dla tej faktury</Label>
+                  <Label htmlFor="invoice-bank-account">Rachunek bankowy firmy dla tej faktury</Label>
                   <Select
+                    id="invoice-bank-account"
                     value={selectedBankAccountId}
                     onChange={(e) => setSelectedBankAccountId(e.target.value)}
                   >
-                    {effectiveSellerCompany.bankAccount && <option value="">— Główny rachunek firmy ({effectiveSellerCompany.bankAccount}) —</option>}
+                    <option value="auto">Domyślny dla {form.currency}: {defaultBankAccount?.accountNumber || effectiveSellerCompany.bankAccount || "Brak rachunku"}</option>
+                    {savedBankAccount && <option value="saved">Zapisany na fakturze: {savedBankAccount.accountNumber}</option>}
+                    {effectiveSellerCompany.bankAccount && !companyAccounts.some(account => normalizedBankAccount(account.accountNumber) === normalizedBankAccount(effectiveSellerCompany.bankAccount)) &&
+                      <option value="primary">Główny rachunek profilu: {effectiveSellerCompany.bankAccount}</option>}
                     {companyAccounts.map((b) => (
                       <option key={b.id} value={b.id}>
-                        {b.currency} · {b.bankName || "Bank"} · {b.accountNumber} {b.isDefault ? "(domyślny)" : ""}
+                        {b.currency} · {b.accountName || b.bankName || "Rachunek"} · {b.accountNumber} {b.isDefault ? "(domyślny)" : ""}
                       </option>
                     ))}
                   </Select>

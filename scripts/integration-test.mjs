@@ -219,14 +219,60 @@ try {
   // One login may own both firms, but their bank accounts cannot cross invoices.
   const firstBank = await db.companyBankAccount.create({ data: { companyId, accountNumber: '91100000000000000000000001' } });
   const secondBank = await db.companyBankAccount.create({ data: { companyId: company2.data.company.id, accountNumber: '92100000000000000000000002' } });
+  const concurrentDefaults = await Promise.all([1001, 1002].map(async value => {
+    const bban = String(value).padStart(24, '0');
+    const checksum = String(98 - Number(BigInt(`${bban}252100`) % 97n)).padStart(2, '0');
+    return api('POST', `/api/companies/${company2.data.company.id}/bank-accounts`, { accountNumber: `PL${checksum}${bban}`, currency: 'EUR', isDefault: true }, a.cookie);
+  }));
+  for (const created of concurrentDefaults) assert.equal(created.res.status, 201, JSON.stringify(created.data));
+  assert.equal(await db.companyBankAccount.count({ where: { companyId: company2.data.company.id, currency: 'EUR', isDefault: true } }), 1);
+  for (const created of concurrentDefaults) assert.equal((await api('DELETE', `/api/companies/${company2.data.company.id}/bank-accounts?accountId=${created.data.account.id}`, undefined, a.cookie)).res.status, 200);
   assert.deepEqual((await api('GET', '/api/companies', undefined, a.cookie)).data.companies.map(c => c.id).sort(), [companyId, company2.data.company.id].sort());
   const bankInvoiceBody = { ...invoice.data.invoice, number: 'BANK/2026/1', bankAccountId: secondBank.id, bankAccountSnapshot: { accountNumber: 'wrong' } };
   assert.equal((await api('POST', '/api/invoices', bankInvoiceBody, a.cookie)).res.status, 400);
   const bankInvoice = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: firstBank.id }, a.cookie);
   assert.equal(bankInvoice.res.status, 201, JSON.stringify(bankInvoice.data));
   assert.equal(bankInvoice.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
-  assert.equal((await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountId: secondBank.id }, a.cookie)).res.status, 400);
+  // A marked default overrides a stale primary and cannot change another firm's default.
+  await db.companyProfile.update({ where: { id: companyId }, data: { bankAccount: '93100000000000000000000003' } });
+  const thirdBank = await db.companyBankAccount.create({ data: { companyId, accountNumber: '94100000000000000000000004', currency: 'PLN' } });
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: firstBank.id }, a.cookie)).res.status, 200);
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: secondBank.id }, a.cookie)).res.status, 404);
+  assert.equal((await api('PATCH', `/api/companies/${companyId}/bank-accounts`, { accountId: thirdBank.id }, a.cookie)).res.status, 200);
+  assert.equal(await db.companyBankAccount.count({ where: { companyId, currency: 'PLN', isDefault: true } }), 1);
+  const automaticBank = await api('POST', '/api/invoices', { ...bankInvoiceBody, number: 'BANK/AUTO/2', bankAccountId: null }, a.cookie);
+  assert.equal(automaticBank.res.status, 201, JSON.stringify(automaticBank.data));
+  assert.equal(automaticBank.data.invoice.bankAccountSnapshot.accountNumber, thirdBank.accountNumber);
+  const primaryBank = await api('POST', '/api/invoices', { ...bankInvoiceBody, number: 'BANK/PRIMARY/3', bankAccountId: null, bankAccountMode: 'primary' }, a.cookie);
+  assert.equal(primaryBank.res.status, 201, JSON.stringify(primaryBank.data));
+  assert.equal(primaryBank.data.invoice.bankAccountSnapshot.accountNumber, '93100000000000000000000003');
+  await db.companyBankAccount.update({ where: { id: firstBank.id }, data: { accountNumber: '95100000000000000000000005' } });
+  const preservedBank = await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...bankInvoice.data.invoice, bankAccountMode: 'preserve', bankAccountSnapshot: { accountNumber: 'untrusted' } }, a.cookie);
+  assert.equal(preservedBank.res.status, 200, JSON.stringify(preservedBank.data));
+  assert.equal(preservedBank.data.invoice.bankAccountSnapshot.accountNumber, firstBank.accountNumber);
+  for (const created of [automaticBank, primaryBank]) assert.equal((await api('DELETE', `/api/invoices/${created.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  const foreignBankUpdate = await api('PUT', `/api/invoices/${bankInvoice.data.invoice.id}`, { ...preservedBank.data.invoice, bankAccountId: secondBank.id }, a.cookie);
+  assert.equal(foreignBankUpdate.res.status, 400);
+  assert.equal(foreignBankUpdate.data.error, 'Wybierz rachunek należący do firmy wystawiającej fakturę.');
   assert.equal((await api('DELETE', `/api/invoices/${bankInvoice.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  // Only unused draft numbers are released; renaming and deleting a draft must not leave ghost reservations.
+  const reusedDraft = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
+  assert.equal(reusedDraft.res.status, 201, JSON.stringify(reusedDraft.data));
+  const renamedDraft = await api('PUT', `/api/invoices/${reusedDraft.data.invoice.id}`, { ...reusedDraft.data.invoice, number: 'BANK/RENAMED/1' }, a.cookie);
+  assert.equal(renamedDraft.res.status, 200, JSON.stringify(renamedDraft.data));
+  const previousDraftNumber = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
+  assert.equal(previousDraftNumber.res.status, 201, JSON.stringify(previousDraftNumber.data));
+  for (const draft of [renamedDraft, previousDraftNumber]) assert.equal((await api('DELETE', `/api/invoices/${draft.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  // Historical reservations from older releases must advance automatic numbering rather than cause retry loops.
+  const oldNumbering = await db.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
+  await db.companyProfile.update({ where: { id: companyId }, data: { invoiceNumberPattern: 'RESERVED/{NN}' } });
+  await db.invoiceNumberClaim.create({ data: { id: `${companyId}:RESERVED/01` } });
+  const afterReservation = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null, autoNumber: true }, a.cookie);
+  assert.equal(afterReservation.res.status, 201, JSON.stringify(afterReservation.data));
+  assert.equal(afterReservation.data.invoice.number, 'RESERVED/02');
+  assert.equal((await api('DELETE', `/api/invoices/${afterReservation.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  await db.invoiceNumberClaim.deleteMany({ where: { id: `${companyId}:RESERVED/01` } });
+  await db.companyProfile.update({ where: { id: companyId }, data: { invoiceNumberPattern: oldNumbering.invoiceNumberPattern } });
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
   assert.equal(privateContact.res.status, 201);
   const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);
