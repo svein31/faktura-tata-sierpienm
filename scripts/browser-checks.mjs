@@ -140,7 +140,9 @@ export async function browserChecks(base) {
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();
     await page.goto('/analytics');
     await expect(page.getByRole('main').getByRole('heading', { name: 'Analityka' })).toBeVisible();
-    await page.getByRole('group', { name: 'Okres wykresu' }).getByRole('button', { name: '12 miesięcy' }).click();
+    await page.getByRole('combobox', { name: 'Okres wykresu' }).click();
+    await page.getByRole('option', { name: '12 miesięcy', exact: true }).click();
+    await expect(page.getByRole('combobox', { name: 'Okres wykresu' })).toHaveText('12 miesięcy');
     await page.goto('/ksef');
     await expect(page.getByRole('main').getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
