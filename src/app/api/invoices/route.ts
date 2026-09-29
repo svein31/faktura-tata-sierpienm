@@ -49,9 +49,13 @@ export async function POST(req: Request) {
     if (autoNumber) {
       if (!companyId || !/^[a-f0-9]{24}$/i.test(companyId)) throw new ApiError(400, "Wybierz firmę wystawiającą fakturę.");
       const seller = await prisma.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
-      const existing = await prisma.invoice.findMany({ where: { sellerCompanyId: companyId }, select: { number: true } });
+      const reservationPrefix = `${companyId}:`;
+      const [existing, reservations] = await Promise.all([
+        prisma.invoice.findMany({ where: { sellerCompanyId: companyId }, select: { number: true } }),
+        prisma.invoiceNumberClaim.findMany({ where: { id: { startsWith: reservationPrefix } }, select: { id: true } }),
+      ]);
       number = nextFormattedInvoiceNumber(seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
-        existing.map(inv => inv.number), String(body.issueDate || ""),
+        [...existing.map(inv => inv.number), ...reservations.map(claim => claim.id.slice(reservationPrefix.length))], String(body.issueDate || ""),
         invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
     }
     const parsed = await buildData(number);

@@ -253,6 +253,16 @@ try {
   const previousDraftNumber = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null }, a.cookie);
   assert.equal(previousDraftNumber.res.status, 201, JSON.stringify(previousDraftNumber.data));
   for (const draft of [renamedDraft, previousDraftNumber]) assert.equal((await api('DELETE', `/api/invoices/${draft.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  // Historical reservations from older releases must advance automatic numbering rather than cause retry loops.
+  const oldNumbering = await db.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
+  await db.companyProfile.update({ where: { id: companyId }, data: { invoiceNumberPattern: 'RESERVED/{NN}' } });
+  await db.invoiceNumberClaim.create({ data: { id: `${companyId}:RESERVED/01` } });
+  const afterReservation = await api('POST', '/api/invoices', { ...bankInvoiceBody, bankAccountId: null, autoNumber: true }, a.cookie);
+  assert.equal(afterReservation.res.status, 201, JSON.stringify(afterReservation.data));
+  assert.equal(afterReservation.data.invoice.number, 'RESERVED/02');
+  assert.equal((await api('DELETE', `/api/invoices/${afterReservation.data.invoice.id}`, undefined, a.cookie)).res.status, 200);
+  await db.invoiceNumberClaim.deleteMany({ where: { id: `${companyId}:RESERVED/01` } });
+  await db.companyProfile.update({ where: { id: companyId }, data: { invoiceNumberPattern: oldNumbering.invoiceNumberPattern } });
   const privateContact = await api('POST', '/api/contractors', { name: 'Prywatny', nip: '5250001003', companyId: company2.data.company.id }, a.cookie);
   assert.equal(privateContact.res.status, 201);
   const sharedContact = await api('POST', '/api/contractors', { name: 'Firmowy', nip: '5250001003', companyId }, a.cookie);
