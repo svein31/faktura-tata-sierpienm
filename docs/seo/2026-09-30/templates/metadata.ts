@@ -9,7 +9,7 @@ export function publicMetadata(
     title: { absolute: title },
     description,
     alternates: { canonical: path },
-    robots: { index: true, follow: true, maxImagePreview: "large" },
+    robots: { index: true, follow: true, "max-image-preview": "large" },
     openGraph: {
       title, description, url: path, type: "website",
       siteName: "FakturaProsto", locale: "pl_PL",
