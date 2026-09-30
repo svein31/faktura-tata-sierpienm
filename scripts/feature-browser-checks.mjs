@@ -11,6 +11,16 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.ok(response.ok(),endpoint+': '+await response.text());return response.json();
   }
   try {
+    await page.setViewportSize({width:390,height:844});
+    // The preceding recovery test leaves a populated draft in the creator.
+    await page.locator('#invoice-contractorId').click();
+    await page.getByRole('option',{name:/Searchable Buyer/}).click();
+    await page.getByRole('textbox',{name:'Nazwa pozycji 1',exact:true}).fill('UI fractional quantity');
+    await page.getByRole('spinbutton',{name:'Ilość pozycji 1',exact:true}).fill('0.004');
+    await page.getByRole('spinbutton',{name:'Cena netto pozycji 1',exact:true}).fill('1000');
+    const fractional=await submit(page.getByRole('button',{name:'Szkic',exact:true}),'/api/invoices');
+    assert.equal(fractional.invoice.lines[0].quantity,0.004);assert.equal(fractional.invoice.totalNet,4);
+    await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity');
     await page.setViewportSize({width:1280,height:900});
     await page.goto('/narzedzia/kalkulator-vat');
     await page.getByLabel('Kwota w PLN').fill('100');

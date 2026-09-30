@@ -35,6 +35,7 @@ import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
+import { roundHalfUp } from "@/lib/tax/money";
 import { currencyNames } from "@/lib/i18n";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
 import { EMPTY_COMPANY } from "@/lib/types";
@@ -579,6 +580,7 @@ export function InvoiceCreator() {
     const validLines = form.lines.filter((l) => l.name.trim() && l.quantity > 0);
     if (validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
     if (form.lines.some((l) => l.quantity < 0 || l.netPrice < 0)) errs.push("Ilość i cena nie mogą być ujemne.");
+    if (form.lines.some((l) => l.name.trim() && l.quantity > 0 && roundHalfUp(l.quantity, 6) === 0)) errs.push("Ilość wymaga najwyżej sześciu miejsc po przecinku.");
 
     // Walidacja kursu walutowego dla walut obcych (art. 31a ustawy o VAT)
     if (form.currency !== "PLN") {
@@ -657,7 +659,7 @@ export function InvoiceCreator() {
       offlineDeadline: form.isOffline && form.offlineDeadline ? new Date(form.offlineDeadline).toISOString() : undefined,
       lines: form.lines
         .filter((l) => l.name.trim() && l.quantity > 0)
-        .map((l) => ({ ...l, netPrice: round2(Number(l.netPrice) || 0), quantity: round2(Number(l.quantity) || 0) })),
+        .map((l) => ({ ...l, netPrice: round2(Number(l.netPrice) || 0), quantity: roundHalfUp(Number(l.quantity) || 0, 6) })),
       isCorrection: form.isCorrection,
       correctionReason: form.correctionReason?.trim() || undefined,
       originalInvoiceId: form.originalInvoiceId || undefined,

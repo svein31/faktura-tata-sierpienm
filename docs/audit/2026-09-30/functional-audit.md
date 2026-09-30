@@ -28,7 +28,7 @@ Najnowsza korekta zaokrąglania cen i dodatkowe testy wymagają ponownego pełne
 | Historia e-mail | księgowa nie widziała historii współdzielonej faktury; surowe błędy bazy | dostęp członków firmy, odcięcie po odebraniu roli, bez szczegółów bazy |
 | E-mail | nieescapowane dane użytkownika w HTML | escapowanie pól i zachowanie łamania wierszy |
 | Webhook Stripe | żądanie bez podpisu zwracało 500 przy braku konfiguracji | 400 dla braku podpisu, 503 dla braku konfiguracji |
-| Kwoty faktur | małe ilości zaokrąglane do zera, 1,005 do 1,00; brak limitów | sześć miejsc ilości, half-up ceny, limity pozycji i wartości |
+| Kwoty faktur | małe ilości zaokrąglane do zera, 1,005 do 1,00; brak limitów | sześć miejsc ilości w API i kreatorze, half-up ceny, limity pozycji i wartości |
 
 ## Macierz funkcjonalna
 
@@ -52,7 +52,7 @@ Kontrola wszystkich metod bez zalogowania i wszystkich GET po zalogowaniu jest k
 | UI/RWD | nawigacja, drawer, wyszukiwanie, zmiana firmy, bank, formularz faktury; Chromium/WebKit, 454 kontrole układu |
 | Publiczne strony | wszystkie URL z sitemap, strona główna, demo, pricing, pomoc, poradniki i narzędzia |
 
-Nowe testy przeglądarkowe dodatkowo wykonują zapis i edycję produktu, zapis kosztu / zmianę płatności / CSV, zapis zlecenia / czas / konflikt zapisu / konwersję oraz zapis oferty.
+Nowe testy przeglądarkowe dodatkowo wykonują zapis ułamkowej ilości z formularza faktury, zapis i edycję produktu, zapis kosztu / zmianę płatności / CSV, zapis zlecenia / czas / konflikt zapisu / konwersję oraz zapis oferty.
 
 ## Odtworzenie
 

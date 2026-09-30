@@ -1,10 +1,8 @@
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 
-// Run the fallback only on this audit PR and one preview site.
-const isAudit = process.env.CONTEXT === 'deploy-preview' &&
-  process.env.BRANCH === 'codex/full-functional-audit-20260930' &&
-  (process.env.SITE_NAME === 'faktura-tata' || (process.env.DEPLOY_PRIME_URL || '').includes('--faktura-tata.netlify.app'));
+// Run the fallback only on this audit PR on the configured preview sites.
+const isAudit = process.env.CONTEXT === 'deploy-preview' && process.env.REVIEW_ID === '24';
 if (isAudit) {
   // Do not pass production database/provider credentials to test processes.
   const env = {};
@@ -26,5 +24,5 @@ if (isAudit) {
   assert.equal(env.DATABASE_URL,undefined);
   console.log('[audit-preview] PASS all isolated verification checks');
 } else {
-  console.log('[audit-preview] Standard preview build; audit fallback not selected');
+  console.log('[audit-preview] Standard preview build; audit fallback not selected', {context:process.env.CONTEXT,reviewId:process.env.REVIEW_ID});
 }
