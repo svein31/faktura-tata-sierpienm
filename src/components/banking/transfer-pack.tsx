@@ -1,0 +1,23 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useAppStore } from "@/lib/store";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input, Select } from "@/components/ui/input";
+import { formatMoney } from "@/lib/format";
+type Row = { id: string; kind: string; number: string; recipient: string; iban: string; currency: string; amount: number };
+type Data = { rows: Row[]; accounts: { id: string; accountName: string; accountNumber: string }[]; truncated: boolean };
+export function TransferPack() {
+  const companyId = useAppStore(s => s.selectedCompanyId), [data, setData] = useState<Data | null>(null), [selected, setSelected] = useState<string[]>([]), [accountId, setAccountId] = useState(""), [format, setFormat] = useState("pain001"), [executionDate, setExecutionDate] = useState(new Date().toISOString().slice(0, 10)), [error, setError] = useState(""), [busy, setBusy] = useState(false);
+  useEffect(() => { const controller = new AbortController(); setData(null); setSelected([]); setAccountId(""); setError(""); if (companyId) fetch("/api/banking/transfers?companyId=" + companyId, { signal: controller.signal }).then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error); return d; }).then((d: Data) => { setData(d); setAccountId(d.accounts[0]?.id || ""); }).catch(e => { if (!controller.signal.aborted) setError(e.message); }); return () => controller.abort(); }, [companyId]);
+  async function download() {
+    const snapshot = companyId; setBusy(true); setError("");
+    try {
+      const response = await fetch("/api/banking/transfers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: snapshot, bankAccountId: accountId, format, executionDate, items: data?.rows.filter(r => selected.includes(r.kind + r.id)).map(r => ({ id: r.id, kind: r.kind, iban: r.iban })) }) });
+      if (!response.ok) throw new Error((await response.json()).error);
+      const blob = await response.blob(); if (useAppStore.getState().selectedCompanyId !== snapshot) return;
+      const url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = "przelewy-" + executionDate + (format === "pain001" ? ".xml" : format === "csv" ? ".csv" : ".txt"); a.click(); URL.revokeObjectURL(url);
+    } catch (e) { if (useAppStore.getState().selectedCompanyId === snapshot) setError(e instanceof Error ? e.message : "Błąd eksportu."); } finally { setBusy(false); }
+  }
+  return <Card className="space-y-4 p-5"><h2 className="font-semibold">Paczka przelewów kosztowych</h2><p className="text-sm text-muted-foreground">Wybierz koszty i sprawdź rachunki odbiorców. Pobranie pliku nie zmienia statusu płatności. Bank może wymagać własnego profilu importu; przelewy podatkowe i MPP przygotuj w bankowości.</p>{error && <p role="alert" className="text-destructive">{error}</p>}<div className="grid gap-3 sm:grid-cols-3"><label className="text-sm">Rachunek firmy<Select value={accountId} onChange={e => setAccountId(e.target.value)}><option value="">Wybierz rachunek</option>{data?.accounts.map(a => <option key={a.id} value={a.id}>{a.accountName}</option>)}</Select></label><label className="text-sm">Format<Select value={format} onChange={e => setFormat(e.target.value)}><option value="pain001">ISO 20022 pain.001 XML</option><option value="csv">CSV</option><option value="elixir">Elixir-O · PLN</option></Select></label><label className="text-sm">Data wykonania<Input type="date" value={executionDate} onChange={e => setExecutionDate(e.target.value)} /></label></div><div className="max-h-96 space-y-3 overflow-y-auto">{data?.rows.map(row => { const key = row.kind + row.id; return <div key={key} className="grid gap-2 rounded-xl border p-3 sm:grid-cols-2"><label className="flex min-w-0 items-start gap-2 text-sm"><input className="mt-1 h-4 w-4 shrink-0" type="checkbox" checked={selected.includes(key)} onChange={e => setSelected(s => e.target.checked ? [...s, key] : s.filter(k => k !== key))} /><span className="break-words">{row.number} · {row.recipient}<br />{formatMoney(row.amount, row.currency)}</span></label><Input aria-label={"IBAN odbiorcy " + row.number} placeholder="IBAN odbiorcy" value={row.iban} onChange={e => setData(d => d && ({ ...d, rows: d.rows.map(r => r.kind + r.id === key ? { ...r, iban: e.target.value } : r) }))} /></div>; })}</div>{data && !data.rows.length && <p className="text-sm">Brak nieopłaconych kosztów.</p>}{data?.truncated && <p className="text-sm">Wyświetlono najbliższe 100 faktur i 100 wydatków.</p>}<Button loading={busy} disabled={!accountId || !selected.length || selected.length > 100} onClick={download}>Pobierz paczkę ({selected.length})</Button></Card>;
+}
