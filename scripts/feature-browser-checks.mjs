@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
 export async function auditFeatureControls(page, context, db, fixture) {
+  page.setDefaultTimeout(15000);
+  page.setDefaultNavigationTimeout(30000);
   const originalViewport=page.viewportSize(),errors=[],checks=[];
   const listener=error=>errors.push(error.message);
   page.on('pageerror',listener);
@@ -11,7 +13,6 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.ok(response.ok(),endpoint+': '+await response.text());return response.json();
   }
   try {
-    const limit=Number(process.env.AUDIT_UI_LIMIT ?? Infinity);
     await page.setViewportSize({width:390,height:844});
     // The preceding recovery test leaves a populated draft in the creator.
     await page.locator('#invoice-contractorId').click();
@@ -21,7 +22,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await page.getByRole('spinbutton',{name:'Cena netto pozycji 1',exact:true}).fill('1000');
     const fractional=await submit(page.getByRole('button',{name:'Szkic',exact:true}),'/api/invoices');
     assert.equal(fractional.invoice.lines[0].quantity,0.004);assert.equal(fractional.invoice.totalNet,4);
-    await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity'); if(checks.length>=limit) return;
+    await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity');
     await page.setViewportSize({width:1280,height:900});
     await page.goto('/narzedzia/kalkulator-vat');
     await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
@@ -33,7 +34,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const direction=vatCalculator.locator('label').filter({hasText:'Rodzaj kwoty'}).getByRole('combobox');
     await direction.click();await page.getByRole('option',{name:'Brutto',exact:true}).click();
     await expect(direction).toHaveText('Brutto');
-    await expect(vatCalculator.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input'); if(checks.length>=limit) return;
+    await expect(vatCalculator.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input');
     await page.goto('/narzedzia/limit-ksef');
     await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
     await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('8000');
@@ -45,7 +46,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await page.getByRole('combobox').click();await page.getByRole('option',{name:'Tak, w tym lub wcześniejszym miesiącu',exact:true}).click();
     await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('0');
     await page.getByLabel('Nowa faktura brutto').fill('1');
-    await expect(page.getByRole('status')).toContainText('nie przywraca wyjątku');checks.push('KSeF exact threshold, crossing and earlier crossing'); if(checks.length>=limit) return;
+    await expect(page.getByRole('status')).toContainText('nie przywraca wyjątku');checks.push('KSeF exact threshold, crossing and earlier crossing');
     await page.goto('/products');
     await page.getByRole('button',{name:'Dodaj pozycję',exact:true}).first().click();
     let dialog=page.getByRole('dialog');
@@ -63,19 +64,24 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await field(dialog,'Cena netto (PLN)').fill('125');
     await submit(dialog.getByRole('button',{name:'Zapisz zmiany',exact:true}),'/api/products/'+product.product.id);
     assert.equal((await db.product.findUniqueOrThrow({where:{id:product.product.id}})).netPrice,125);
-    checks.push('Product create and edit through UI'); if(checks.length>=limit) return;
+    checks.push('Product create and edit through UI');
     await page.goto('/expenses');await page.getByRole('button',{name:'Dodaj koszt',exact:true}).click();dialog=page.getByRole('dialog');
     await dialog.getByPlaceholder('np. Adobe Systems, PKN Orlen').fill('UI audited supplier');
     await dialog.getByPlaceholder('np. FV/2026/03/4821').fill('UI/AUDIT/COST');
     await dialog.getByPlaceholder('0.00').fill('123');
     const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
+    if(process.env.AUDIT_UI_STOP==='expense-response') return;
     assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
     await expect(page.getByText('UI/AUDIT/COST',{exact:true}).first()).toBeVisible();
     await submit(page.getByTitle('Kliknij, aby przełączyć status płatności').first(),'/api/expenses/'+expense.expense.id);
     assert.equal((await db.expense.findUniqueOrThrow({where:{id:expense.expense.id}})).paymentStatus,'paid');
-    const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Eksportuj CSV',exact:true}).click();
+    if(process.env.AUDIT_UI_STOP==='expense-paid') return;
+    const expenseRow=page.locator('tr').filter({hasText:'UI/AUDIT/COST'});
+    await expect(expenseRow.getByTitle('Kliknij, aby przełączyć status płatności')).toHaveText('Opłacone');
+    const downloadPromise=page.waitForEvent('download',{timeout:15000});await page.getByRole('button',{name:'Eksportuj CSV',exact:true}).click();
     const download=await downloadPromise;assert.match(download.suggestedFilename(),/\.csv$/);
-    checks.push('Expense save, payment toggle and CSV download'); if(checks.length>=limit) return;
+    checks.push('Expense save, payment toggle and CSV download');
+    if(process.env.AUDIT_UI_STOP==='expense-csv') return;
     await page.goto('/orders');await page.getByRole('button',{name:'Nowe zlecenie',exact:true}).click();dialog=page.getByRole('dialog');
     await field(dialog,'Tytuł zlecenia').fill('UI audited order');
     await field(dialog,'Numer zlecenia').fill('UI/AUDIT/ORDER');
@@ -98,7 +104,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const invoice=await submit(page.getByTitle('Wystaw fakturę ze zlecenia',{exact:true}).first(),'/api/orders/'+order.order.id+'/convert');
     await expect(page).toHaveURL(new RegExp('/invoices/'+invoice.invoice.id+'$'));
     assert.equal((await db.order.findUniqueOrThrow({where:{id:order.order.id}})).status,'billed');
-    checks.push('Order create, fractional time, failed save recovery and invoice conversion'); if(checks.length>=limit) return;
+    checks.push('Order create, fractional time, failed save recovery and invoice conversion');
     await page.goto('/offers');await page.getByRole('button',{name:'Nowa oferta',exact:true}).click();dialog=page.getByRole('dialog');
     await field(dialog,'Numer oferty').fill('UI/AUDIT/OFFER');
     await dialog.getByPlaceholder('np. Wdrożenie sklepu internetowego i integracja z ERP').fill('UI audited offer');
@@ -106,7 +112,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('Cena netto').first().fill('100');
     const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
     assert.equal(offer.offer.totalGross,123);await expect(page.getByRole('table').getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
-    checks.push('Offer creation through UI'); if(checks.length>=limit) return;
+    checks.push('Offer creation through UI');
     assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
     console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
   } finally {
