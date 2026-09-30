@@ -54,7 +54,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
         for(const route of publicSet) {
           activeTarget=publicPage; await publicPage.goto(route);
           await expect(publicPage.locator('h1').first()).toBeVisible();
-          await publicPage.waitForFunction(()=>document.documentElement.style.getPropertyValue('--primary').length>0);
+          await publicPage.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
           if(!await publicPage.evaluate(()=>document.cookie.includes('fakturo_consent='))) await expect(publicPage.getByRole('button',{name:'Odrzuć opcjonalne',exact:true})).toBeVisible();
           const reject=publicPage.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
           if(await reject.isVisible()) await reject.tap();
@@ -248,7 +248,7 @@ export async function auditPublicMobileSite(origin) {
           const response=await page.goto(route,{timeout:60000});
           assert.ok(response?.ok(),engine.name+' '+route+' HTTP '+response?.status());
           await expect(page.locator('h1').first()).toBeVisible({timeout:30000});
-          await page.waitForFunction(()=>document.documentElement.style.getPropertyValue('--primary').length>0);
+          await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
           if(!await page.evaluate(()=>document.cookie.includes('fakturo_consent='))) await expect(page.getByRole('button',{name:'Odrzuć opcjonalne',exact:true})).toBeVisible();
           await page.evaluate(()=>document.fonts.ready);
           const reject=page.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
