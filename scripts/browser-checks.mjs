@@ -183,7 +183,7 @@ export async function browserChecks(base) {
       '/invoices/new', '/invoices/recurring', '/advances', '/recurring', '/offers', '/orders', '/expenses',
       '/finances', '/calendar', '/jpk', '/audit', '/contractors', '/products', '/accountant', '/cost-reviews',
       '/reminders', '/settings/account', '/settings/companies', '/settings/currencies', '/settings/integrations',
-      '/settings/ksef', '/settings/team', '/help',
+      '/settings/ksef', '/settings/team', '/help', '/accountant/portal', '/tax-estimate', '/settings/appearance',
     );
     for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
