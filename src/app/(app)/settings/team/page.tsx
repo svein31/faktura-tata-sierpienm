@@ -95,6 +95,8 @@ export default function TeamSettingsPage() {
   const [showPermissionCustomizer, setShowPermissionCustomizer] = React.useState(false);
   const [inviting, setInviting] = React.useState(false);
 
+  const [invitationLinks,setInvitationLinks] = React.useState<Record<string,string>>({});
+  React.useEffect(()=>setInvitationLinks({}),[activeCompany?.id]);
   // Skopiowany link
   const [copiedToken, setCopiedToken] = React.useState<string | null>(null);
 
@@ -158,6 +160,7 @@ export default function TeamSettingsPage() {
       if (!res.ok) throw new Error(data.error || "Błąd wysyłania zaproszenia");
 
       toast("success", "Zaproszenie utworzone", data.emailDelivery === "sent" ? `Wysłano e-mail do ${inviteEmail}.` : "E-mail nie został dostarczony. Skopiuj link zaproszenia i sprawdź konfigurację poczty.");
+      if (data.invitation?.id && typeof data.inviteUrl === "string") setInvitationLinks(links=>({...links,[data.invitation.id]:data.inviteUrl}));
       setInviteEmail("");
       setShowPermissionCustomizer(false);
       fetchTeamData();
@@ -169,11 +172,12 @@ export default function TeamSettingsPage() {
   };
 
   // Kopiowanie linku zaproszenia
-  const copyInviteLink = (token: string) => {
+  const copyInviteLink = (id: string) => {
+    const path = invitationLinks[id]; if (!path) return;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/invite/${token}`;
+    const url = origin + path;
     navigator.clipboard.writeText(url);
-    setCopiedToken(token);
+    setCopiedToken(id);
     toast("success", "Skopiowano link", "Link zaproszenia został skopiowany do schowka.");
     setTimeout(() => setCopiedToken(null), 3000);
   };
@@ -517,7 +521,7 @@ export default function TeamSettingsPage() {
               <div className="divide-y divide-border/60">
                 {invitations.map((inv) => {
                   const roleCfg = ROLE_INFO[inv.role as CompanyRole] || ROLE_INFO.employee;
-                  const isCopied = copiedToken === inv.token;
+                  const isCopied = copiedToken === inv.id;
                   return (
                     <div key={inv.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
@@ -537,7 +541,9 @@ export default function TeamSettingsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => copyInviteLink(inv.token)}
+                          disabled={!invitationLinks[inv.id]}
+                          title="Link jest dostępny po utworzeniu zaproszenia. Aby wysłać nowy, ponów zaproszenie."
+                          onClick={() => copyInviteLink(inv.id)}
                           className="h-8 text-xs gap-1.5"
                         >
                           {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
