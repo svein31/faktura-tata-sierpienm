@@ -51,8 +51,10 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('np. Usługa programistyczna (osobodzień)').fill('UI audited product');
     await field(dialog,'Cena netto (PLN)').fill('100');
     const product=await submit(dialog.getByRole('button',{name:'Dodaj',exact:true}),'/api/products');
-    if(process.env.AUDIT_UI_STOP==='product-response') return;
-    assert.equal(product.product.companyId,fixture.companyId);await expect(page.getByRole('table').getByText('UI audited product',{exact:true})).toBeVisible();
+    assert.equal(product.product.companyId,fixture.companyId);
+    if(process.env.AUDIT_UI_STOP==='product-company') return;
+    if(process.env.AUDIT_UI_STOP==='product-database') { const stored=await db.product.findUniqueOrThrow({where:{id:product.product.id}});assert.equal(stored.companyId,fixture.companyId);assert.equal(stored.name,'UI audited product');assert.equal(stored.netPrice,100);return; }
+    await expect(page.getByRole('table').getByText('UI audited product',{exact:true})).toBeVisible();
     if(process.env.AUDIT_UI_STOP==='product-visible') return;
     const row=page.locator('tr').filter({hasText:'UI audited product'});
     await row.getByTitle('Edytuj',{exact:true}).click();dialog=page.getByRole('dialog');
@@ -60,7 +62,6 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await submit(dialog.getByRole('button',{name:'Zapisz zmiany',exact:true}),'/api/products/'+product.product.id);
     assert.equal((await db.product.findUniqueOrThrow({where:{id:product.product.id}})).netPrice,125);
     checks.push('Product create and edit through UI');
-    if(process.env.AUDIT_UI_STOP==='product-edited') return;
     await page.goto('/expenses');await page.getByRole('button',{name:'Dodaj koszt',exact:true}).click();dialog=page.getByRole('dialog');
     await dialog.getByPlaceholder('np. Adobe Systems, PKN Orlen').fill('UI audited supplier');
     await dialog.getByPlaceholder('np. FV/2026/03/4821').fill('UI/AUDIT/COST');

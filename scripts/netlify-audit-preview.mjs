@@ -5,7 +5,7 @@ if (isAudit) {
   const env = {};
   for (const key of ['PATH','HOME','TMPDIR','TEMP','TMP','LANG','LC_ALL','NODE_EXTRA_CA_CERTS','LD_LIBRARY_PATH']) if (process.env[key]) env[key] = process.env[key];
   Object.assign(env, {CI:'true',NEXT_TELEMETRY_DISABLED:'1',RUN_ALL_MOBILE_CHECKS:'0',MONGOMS_DOWNLOAD_IGNORE_MISSING_HEADER:'true',MONGOMS_DISTRO:'ubuntu-22.04'});
-  const phases={'faktura-tata':'product-response','tata-fax':'product-visible','prostafv':'product-edited'};
+  const phases={'faktura-tata':'product-company','tata-fax':'product-visible','prostafv':'product-database'};
   if(!(process.env.SITE_NAME in phases)) throw new Error('Unknown diagnostic preview site');
   env.AUDIT_UI_STOP=phases[process.env.SITE_NAME];
   const report={sourceSha:process.env.COMMIT_REF,createdAt:new Date().toISOString(),stages:[],ok:false};
