@@ -16,6 +16,7 @@ export async function POST(req: Request) {
     const result = await prisma.$transaction(async tx => {
       const invoices = await tx.invoice.findMany({ where: { id: { in: ids } } });
       if (invoices.length !== ids.length) throw new ApiError(404, "Nie znaleziono faktury.");
+      if (invoices.some(i => i.type !== "purchase")) throw new ApiError(400, "Akceptacja dotyczy tylko faktur kosztowych.");
       for (const companyId of new Set(invoices.map(i => i.sellerCompanyId).filter(Boolean))) {
         const access = await companyAccess(tx, user.id, companyId!);
         if (!["owner", "admin", "accountant"].includes(access.role)) throw new ApiError(403, "Brak uprawnień do akceptacji faktury.");
