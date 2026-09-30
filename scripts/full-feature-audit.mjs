@@ -16,7 +16,7 @@ export async function fullFeatureAudit(base, db, fixture) {
       results.push(result);
       if(!ok){result.detail=text.slice(0,350);failures.push(result);console.log('[feature-audit-failure] '+JSON.stringify(result));}
       let data;try{data=JSON.parse(text);}catch{data=null;}
-      return {response,data};
+      return {response,data,text};
     }catch(error){const result={label,method,path,ok:false,error:error.message};results.push(result);failures.push(result);console.log('[feature-audit-failure] '+JSON.stringify(result));return {data:null};}
   }
   const missing='000000000000000000000001';
@@ -56,6 +56,13 @@ export async function fullFeatureAudit(base, db, fixture) {
     const contractor=await check('create audit contact','POST','/api/contractors',{companyId,name:'Audit customer',nip:'5250001003'},fixture.ownerCookie,[201]);
     const contractorId=contractor.data?.contractor?.id;
     if(contractorId) {
+      const invoiceBody={number:'AUDIT/FRACTION',type:'sale',status:'draft',contractorId,sellerCompanyId:companyId,currency:'PLN',language:'PL',paymentMethod:'transfer',issueDate:'2026-09-30',saleDate:'2026-09-30',dueDate:'2026-10-14',lines:[{id:'line',name:'Fractional quantity',quantity:0.004,unit:'kg',netPrice:1000,vatRate:'23'}]};
+      const fractional=await check('save fractional invoice quantity','POST','/api/invoices',invoiceBody,fixture.ownerCookie,[201]);
+      if(fractional.data?.invoice?.totalNet!==4)failures.push({label:'Fractional invoice quantity must not round to zero',ok:false});
+      const rounded=await check('half-up invoice price','POST','/api/invoices',{...invoiceBody,number:'AUDIT/ROUNDING',lines:[{...invoiceBody.lines[0],quantity:1,netPrice:1.005}]},fixture.ownerCookie,[201]);
+      if(rounded.data?.invoice?.totalGross!==1.24)failures.push({label:'1.005 unit price must round half-up to 1.01',ok:false});
+      await check('reject invoice quantity overflow','POST','/api/invoices',{...invoiceBody,number:'AUDIT/OVERFLOW',lines:[{...invoiceBody.lines[0],quantity:1e100}]},fixture.ownerCookie,[400]);
+      await check('reject excessive invoice rows','POST','/api/invoices',{...invoiceBody,number:'AUDIT/ROWS',lines:Array.from({length:201},()=>invoiceBody.lines[0])},fixture.ownerCookie,[400]);
       const orderBody={companyId,contractorId,title:'Audit order',number:'AUDIT/ORDER',currency:'PLN',totalGross:123,totalNet:100,hourlyRate:50,trackedMinutes:0};
       const before=await db.order.count({where:{companyId}});
       for(const patch of [{status:'invalid'},{totalGross:-1},{totalNet:-1},{hourlyRate:-1},{trackedMinutes:-60},{trackedMinutes:1.5},{currency:'INVALID'},{stages:[{id:'bad',name:'Stage',amount:-1,status:'pending'}]}])
@@ -107,12 +114,29 @@ export async function fullFeatureAudit(base, db, fixture) {
               if(after.declaredPaymentDate!=='2026-10-15'||after.paymentStatus==='paid')failures.push({label:'Payment promise must persist without marking invoice paid',ok:false});
               if(await db.documentComment.count({where:{invoiceId:invoice.id}})!==1)failures.push({label:'Payment promise must have exactly one comment',ok:false});
             }
+            const downloadPath='/api/ksef/invoices/download/'+invoice.id;
+            await check('KSeF download requires login','GET',downloadPath,undefined,undefined,[401]);
+            await check('KSeF missing UPO is not fabricated','GET',downloadPath+'?format=upo',undefined,fixture.ownerCookie,[409]);
+            await check('KSeF missing XML is not fabricated','GET',downloadPath+'?format=xml',undefined,fixture.ownerCookie,[409]);
+            await check('KSeF invalid export format','GET',downloadPath+'?format=invalid',undefined,fixture.ownerCookie,[400]);
+            const sourceXml='<?xml version="1.0"?><Faktura><Numer>AUDIT</Numer></Faktura>',sourceUpo='<?xml version="1.0"?><UPO><Numer>AUDIT</Numer></UPO>';
+            await db.invoice.update({where:{id:invoice.id},data:{ksefXml:sourceXml,upoXml:sourceUpo}});
+            const xmlDownload=await check('download original KSeF XML','GET',downloadPath+'?format=xml',undefined,fixture.ownerCookie,[200]);
+            const upoDownload=await check('download original KSeF UPO','GET',downloadPath+'?format=upo',undefined,fixture.ownerCookie,[200]);
+            if(xmlDownload.text!==sourceXml||upoDownload.text!==sourceUpo)failures.push({label:'KSeF downloads preserve original document bytes',ok:false});
+            const jsonDownload=await check('download KSeF JSON','GET',downloadPath,undefined,fixture.ownerCookie,[200]);
+            if(jsonDownload.data?.xml!==sourceXml||jsonDownload.data?.upoXml!==sourceUpo)failures.push({label:'KSeF JSON must contain real archived XML and UPO',ok:false});
             await check('owner email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.ownerCookie,[200]);
             if(fixture.otherCookie&&fixture.otherUserId) {
               await check('deny outsider email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
+              await check('deny outsider KSeF XML','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[404]);
               await db.companyMember.create({data:{companyId,userId:fixture.otherUserId,role:'accountant'}});
+              await check('accountant KSeF XML export','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[200]);
+              await db.companyMember.update({where:{companyId_userId:{companyId,userId:fixture.otherUserId}},data:{canExport:false}});
+              await check('KSeF export permission enforced','GET',downloadPath+'?format=upo',undefined,fixture.otherCookie,[403]);
               await check('shared team email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[200]);
               await db.companyMember.delete({where:{companyId_userId:{companyId,userId:fixture.otherUserId}}});
+              await check('revoked KSeF XML access','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[404]);
               await check('revoked email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
             }
           }

@@ -1,3 +1,4 @@
+import { auditFeatureControls } from "./feature-browser-checks.mjs";
 import assert from 'node:assert/strict';
 import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
@@ -241,6 +242,7 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Przywróć', exact: true }).click();
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
     await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await auditFeatureControls(page, context, db, {companyId:company.id,contractorId:contractor.id});
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;

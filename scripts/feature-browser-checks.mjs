@@ -1,0 +1,95 @@
+import assert from 'node:assert/strict';
+import { expect } from '@playwright/test';
+export async function auditFeatureControls(page, context, db, fixture) {
+  const originalViewport=page.viewportSize(),errors=[],checks=[];
+  const listener=error=>errors.push(error.message);
+  page.on('pageerror',listener);
+  const field=(root,label)=>root.locator('label').filter({hasText:label}).first().locator('..').locator('input').first();
+  async function submit(button,endpoint) {
+    const responsePromise=page.waitForResponse(response=>new URL(response.url()).pathname===endpoint&&['POST','PUT','PATCH'].includes(response.request().method()));
+    await button.click();const response=await responsePromise;
+    assert.ok(response.ok(),endpoint+': '+await response.text());return response.json();
+  }
+  try {
+    await page.setViewportSize({width:1280,height:900});
+    await page.goto('/narzedzia/kalkulator-vat');
+    await page.getByLabel('Kwota w PLN').fill('100');
+    await expect(page.getByRole('status')).toContainText('123,00');
+    await page.getByLabel('Kwota w PLN').fill('abc');await expect(page.getByRole('alert')).toContainText('Popraw format');
+    await page.getByLabel('Kwota w PLN').fill('100,01');
+    await page.getByRole('combobox',{name:'Rodzaj kwoty'}).click();await page.getByRole('option',{name:'Brutto',exact:true}).click();
+    await expect(page.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input');
+    await page.goto('/narzedzia/limit-ksef');
+    await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('8000');
+    await page.getByLabel('Nowa faktura brutto').fill('2000');
+    await page.getByRole('combobox').click();await page.getByRole('option',{name:'Nie',exact:true}).click();
+    await expect(page.getByRole('status')).toContainText('nie przekracza jeszcze');
+    await page.getByLabel('Nowa faktura brutto').fill('2000,01');
+    await expect(page.getByRole('status')).toContainText('wymaga KSeF');
+    await page.getByRole('combobox').click();await page.getByRole('option',{name:'Tak, w tym lub wcześniejszym miesiącu',exact:true}).click();
+    await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('0');
+    await page.getByLabel('Nowa faktura brutto').fill('1');
+    await expect(page.getByRole('status')).toContainText('nie przywraca wyjątku');checks.push('KSeF exact threshold, crossing and earlier crossing');
+    await page.goto('/products');
+    await page.getByRole('button',{name:'Dodaj pozycję',exact:true}).first().click();
+    let dialog=page.getByRole('dialog');
+    await dialog.getByPlaceholder('np. Usługa programistyczna (osobodzień)').fill('UI audited product');
+    await field(dialog,'Cena netto (PLN)').fill('100');
+    const product=await submit(dialog.getByRole('button',{name:'Dodaj',exact:true}),'/api/products');
+    assert.equal(product.product.companyId,fixture.companyId);await expect(page.getByText('UI audited product',{exact:true})).toBeVisible();
+    const row=page.locator('tr').filter({hasText:'UI audited product'});
+    await row.getByTitle('Edytuj',{exact:true}).click();dialog=page.getByRole('dialog');
+    await field(dialog,'Cena netto (PLN)').fill('125');
+    await submit(dialog.getByRole('button',{name:'Zapisz zmiany',exact:true}),'/api/products/'+product.product.id);
+    assert.equal((await db.product.findUniqueOrThrow({where:{id:product.product.id}})).netPrice,125);
+    checks.push('Product create and edit through UI');
+    await page.goto('/expenses');await page.getByRole('button',{name:'Dodaj koszt',exact:true}).click();dialog=page.getByRole('dialog');
+    await dialog.getByPlaceholder('np. Adobe Systems, PKN Orlen').fill('UI audited supplier');
+    await dialog.getByPlaceholder('np. FV/2026/03/4821').fill('UI/AUDIT/COST');
+    await dialog.getByPlaceholder('0.00').fill('123');
+    const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
+    assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
+    await expect(page.getByText('UI/AUDIT/COST',{exact:true}).first()).toBeVisible();
+    await submit(page.getByTitle('Kliknij, aby przełączyć status płatności').first(),'/api/expenses/'+expense.expense.id);
+    assert.equal((await db.expense.findUniqueOrThrow({where:{id:expense.expense.id}})).paymentStatus,'paid');
+    const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Eksportuj CSV',exact:true}).click();
+    const download=await downloadPromise;assert.match(download.suggestedFilename(),/\.csv$/);
+    checks.push('Expense save, payment toggle and CSV download');
+    await page.goto('/orders');await page.getByRole('button',{name:'Nowe zlecenie',exact:true}).click();dialog=page.getByRole('dialog');
+    await field(dialog,'Tytuł zlecenia').fill('UI audited order');
+    await field(dialog,'Numer zlecenia').fill('UI/AUDIT/ORDER');
+    await field(dialog,'Wycena brutto').fill('123');
+    const order=await submit(dialog.getByRole('button',{name:'Utwórz zlecenie',exact:true}),'/api/orders');
+    assert.equal(order.order.companyId,fixture.companyId);
+    await expect(page.getByText('UI audited order',{exact:true})).toBeVisible();
+    await page.getByTitle('Zaloguj czas pracy',{exact:true}).first().click();dialog=page.getByRole('dialog');
+    await field(dialog,'Liczba godzin do dodania').fill('0.5');
+    await submit(dialog.getByRole('button',{name:'Zapisz czas',exact:true}),'/api/orders/'+order.order.id);
+    assert.equal((await db.order.findUniqueOrThrow({where:{id:order.order.id}})).trackedMinutes,30);
+    // Failed requests must show their message and keep the user's time-entry dialog.
+    await page.getByTitle('Zaloguj czas pracy',{exact:true}).first().click();
+    const intercept='**/api/orders/'+order.order.id;
+    await context.route(intercept,route=>route.request().method()==='PATCH'?route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({error:'Audit conflict: refresh data'})}):route.continue());
+    await page.getByRole('dialog').getByRole('button',{name:'Zapisz czas',exact:true}).click();
+    await expect(page.getByText('Audit conflict: refresh data',{exact:true})).toBeVisible();
+    await expect(page.getByRole('dialog')).toBeVisible();await context.unroute(intercept);
+    await page.getByRole('dialog').getByRole('button',{name:'Anuluj',exact:true}).click();
+    const invoice=await submit(page.getByTitle('Wystaw fakturę ze zlecenia',{exact:true}).first(),'/api/orders/'+order.order.id+'/convert');
+    await expect(page).toHaveURL(new RegExp('/invoices/'+invoice.invoice.id+'$'));
+    assert.equal((await db.order.findUniqueOrThrow({where:{id:order.order.id}})).status,'billed');
+    checks.push('Order create, fractional time, failed save recovery and invoice conversion');
+    await page.goto('/offers');await page.getByRole('button',{name:'Nowa oferta',exact:true}).click();dialog=page.getByRole('dialog');
+    await field(dialog,'Numer oferty').fill('UI/AUDIT/OFFER');
+    await dialog.getByPlaceholder('np. Wdrożenie sklepu internetowego i integracja z ERP').fill('UI audited offer');
+    await dialog.getByPlaceholder('Nazwa usługi / materiału').first().fill('UI offer service');
+    await dialog.getByPlaceholder('Cena netto').first().fill('100');
+    const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
+    assert.equal(offer.offer.totalGross,123);await expect(page.getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
+    checks.push('Offer creation through UI');
+    assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
+    console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
+  } finally {
+    page.off('pageerror',listener);
+    await page.setViewportSize(originalViewport);
+  }
+}
