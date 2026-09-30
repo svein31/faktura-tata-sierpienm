@@ -1784,6 +1784,8 @@ model WebhookDelivery {
 }
 
 model DueReminderSetting {
+  channels String[] @default(["email"])
+  smsRecipient String?
   id String @id @default(auto()) @map("_id") @db.ObjectId
   invoiceId String @unique @db.ObjectId
   companyId String @db.ObjectId
@@ -1793,6 +1795,7 @@ model DueReminderSetting {
   @@index([companyId])
 }
 model DueReminderDelivery {
+  channel String? @default("email")
   id String @id @default(auto()) @map("_id") @db.ObjectId
   settingId String @db.ObjectId
   companyId String @db.ObjectId
