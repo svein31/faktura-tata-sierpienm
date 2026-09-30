@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, readJson } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { objectId } from "@/lib/company-scope";
 import { isAccountingInvoice } from "@/lib/accountant-summary";
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (!Array.isArray(items) || !items.length || items.length > 100) throw new ApiError(400, "Wybierz od 1 do 100 dokumentów.");
     const company = await prisma.companyProfile.findUniqueOrThrow({ where: { id: body.companyId } });
     if (!objectId(body.bankAccountId)) throw new ApiError(400, "Wybierz rachunek firmy.");
-    const account = await prisma.companyBankAccount.findFirst({ where: { id: body.bankAccountId, companyId: company.id, isActive: true } });
+    const account = await prisma.companyBankAccount.findFirst({ where: { id: body.bankAccountId, companyId: company.id } });
     if (!account) throw new ApiError(400, "Rachunek nie należy do wybranej firmy.");
     const transfers: Transfer[] = [];
     for (const item of items) {
