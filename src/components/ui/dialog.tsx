@@ -41,12 +41,12 @@ export function Dialog({
   const titleId = React.useId(), descriptionId = React.useId();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
-  const [viewport, setViewport] = React.useState<{ top: number; height: number } | null>(null);
+  const [viewport, setViewport] = React.useState<{ top: number; left: number; width: number; height: number } | null>(null);
   React.useEffect(() => {
     if (!open || !mounted) return;
     const previous = document.activeElement as HTMLElement | null;
     const unlock = lockBodyScroll();
-    const updateViewport = () => setViewport({ top: window.visualViewport?.offsetTop || 0, height: window.visualViewport?.height || window.innerHeight });
+    const updateViewport = () => setViewport({ top: window.visualViewport?.offsetTop || 0, left: window.visualViewport?.offsetLeft || 0, width: window.visualViewport?.width || document.documentElement.clientWidth, height: window.visualViewport?.height || window.innerHeight });
     updateViewport();
     const focusables = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),[tabindex="0"]') || []).filter(element => element.getClientRects().length && element.getAttribute("type") !== "hidden");
     const frame = requestAnimationFrame(() => focusables()[0]?.focus({ preventScroll: true }));
@@ -81,7 +81,7 @@ export function Dialog({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-x-0 z-50 flex items-end justify-center p-2 sm:items-center sm:p-4" style={{ top: viewport?.top || 0, height: viewport?.height || "100dvh" }}>
+        <div className="fixed z-50 flex items-end justify-center p-2 sm:items-center sm:p-4" style={{ top: viewport?.top || 0, left: viewport?.left || 0, width: viewport?.width || "100%", maxWidth: "100vw", height: viewport?.height || "100dvh" }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -91,9 +91,9 @@ export function Dialog({
             onClick={dismissible ? onClose : undefined}
           />
           <motion.div
-            initial={{ opacity: 0, y: "100%" }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: "100%" }}
+            exit={{ opacity: 0, y: 16 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className={cn(
               "relative z-10 flex w-full min-w-0 max-h-full flex-col rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xl backdrop-blur-xl",

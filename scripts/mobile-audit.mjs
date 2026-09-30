@@ -5,8 +5,8 @@ import { mkdir } from 'node:fs/promises';
 const appRoutes = ['/dashboard','/analytics','/calendar','/invoices','/invoices/new','/invoices/recurring','/advances','/offers','/recurring','/reminders','/ksef','/expenses','/documents','/cost-reviews','/finances','/contractors','/products','/warehouse','/orders','/projects','/accountant/portal','/accountant','/jpk','/tax-estimate','/audit','/settings/team','/settings/companies','/settings/appearance','/settings/pdf-templates','/settings/currencies','/settings/integrations','/settings/health','/settings/account','/settings/ksef','/help'];
 const publicRoutes = ['/','/login','/register','/forgot-password','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat'];
 async function defects(page) {
-  return page.evaluate(() => {
-    const width = innerWidth, failures = [];
+  return page.evaluate(configuredWidth => {
+    const width = Math.min(configuredWidth, document.documentElement.clientWidth), failures = [];
     if (document.documentElement.scrollWidth > width + 2) failures.push({kind:'page-overflow',width:document.documentElement.scrollWidth,viewport:width});
     for (const element of document.querySelectorAll('main *,header *,[role="dialog"] *')) {
       if (!(element instanceof HTMLElement) || !element.getClientRects().length || element.closest('.sr-only,[aria-hidden="true"]')) continue;
@@ -23,7 +23,7 @@ async function defects(page) {
       if (element.matches('input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),textarea') && width<=430 && Number.parseFloat(style.fontSize)<16) failures.push({kind:'input-font',label,font:style.fontSize});
     }
     return failures.slice(0,16);
-  });
+  }, page.viewportSize().width);
 }
 
 export async function auditMobileExperience(base, storageState, fixture) {
@@ -194,10 +194,9 @@ export async function auditMobileExperience(base, storageState, fixture) {
       assert.deepEqual(errors,[],engine.name+' mobile JavaScript errors');
       console.log('[mobile-audit] PASS '+engine.name+' drawer, navigation, company switching, search, bank dialog and mobile invoice draft');
     } catch(error) {
-      await page.screenshot({path:'artifacts/mobile/'+engine.name+'-interaction-failure.png',fullPage:true}).catch(()=>{});
       const diagnostics=await page.evaluate(()=>({
         url:location.href,
-        viewport:{width:innerWidth,height:innerHeight,visualHeight:visualViewport?.height,visualTop:visualViewport?.offsetTop},
+        viewport:{width:innerWidth,height:innerHeight,visualHeight:visualViewport?.height,visualWidth:visualViewport?.width,visualScale:visualViewport?.scale,visualTop:visualViewport?.offsetTop,clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth},
         dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(dialog=>({
           title:dialog.textContent?.slice(0,120),
           rect:dialog.getBoundingClientRect().toJSON(),
@@ -208,6 +207,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
         })),
       })).catch(()=>({}));
       console.log('[mobile-interaction-failure] '+JSON.stringify(diagnostics));
+      await page.screenshot({path:'artifacts/mobile/'+engine.name+'-interaction-failure.png',fullPage:true}).catch(()=>{});
       throw error;
     } finally {await context.close();await publicContext.close();await browser.close();}
   }

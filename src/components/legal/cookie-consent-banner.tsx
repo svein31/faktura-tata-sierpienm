@@ -203,7 +203,7 @@ export function CookieConsentBanner() {
                       Opcjonalne
                     </span>
                   </div>
-                  <label className="relative inline-flex min-h-11 shrink-0 items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
                       aria-label="Cookies funkcjonalne"
@@ -211,7 +211,7 @@ export function CookieConsentBanner() {
                       onChange={(e) => setFunctionalConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -233,7 +233,7 @@ export function CookieConsentBanner() {
                       Aktualnie nieaktywne
                     </span>
                   </div>
-                  <label className="relative inline-flex min-h-11 shrink-0 items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
                       aria-label="Cookies analityczne"
@@ -241,7 +241,7 @@ export function CookieConsentBanner() {
                       onChange={(e) => setAnalyticsConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -260,7 +260,7 @@ export function CookieConsentBanner() {
                       Aktualnie nieaktywne
                     </span>
                   </div>
-                  <label className="relative inline-flex min-h-11 shrink-0 items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
                       aria-label="Cookies reklamowe"
@@ -268,7 +268,7 @@ export function CookieConsentBanner() {
                       onChange={(e) => setMarketingConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
