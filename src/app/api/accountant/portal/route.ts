@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     const message = String(body.message || "").trim();
     if (body.action === "comment" && (!message || message.length > 2000)) throw new ApiError(400, "Uwaga musi mieć od 1 do 2000 znaków.");
     await prisma.$transaction(async tx => {
-      await accountant(tx, user.id, companyId);
+      const actor = await accountant(tx, user.id, companyId);
       await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date() } });
       for (const item of items) {
         const invoice = item.kind === "invoice" ? await tx.invoice.findFirst({ where: { id: item.id, sellerCompanyId: companyId } }) : null;
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         const revision = invoice ? String(invoice.version || 1) : expense!.updatedAt.toISOString();
         if (item.revision !== revision) throw new ApiError(409, "Dokument zmienił się. Odśwież listę.");
         if (body.action === "comment") {
-          await tx.documentComment.create({ data: { userId: user.id, authorName: user.name || user.email, authorRole: user.role, docType: item.kind, docId: record.id, invoiceId: invoice?.id, expenseId: expense?.id, message } });
+          await tx.documentComment.create({ data: { userId: user.id, authorName: user.name || user.email, authorRole: actor.role, docType: item.kind, docId: record.id, invoiceId: invoice?.id, expenseId: expense?.id, message } });
         } else {
           await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate: record.issueDate }]);
           if (body.action === "approve" && record.costReviewId) throw new ApiError(409, "Dokument wymaga decyzji w obiegu kosztów.");
