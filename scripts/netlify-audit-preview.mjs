@@ -47,15 +47,19 @@ if (isAudit) {
   }
   let failure;
   try {
-    // First isolate code checks from Python, MongoDB and browser installations.
+    // Unit phase: XSD validation requires lxml; MongoDB and browsers remain separate.
     await run('npm',['run','typecheck']);
     await run('npm',['run','lint']);
     await run('node',['--test','scripts/tests/business-document-validation.test.cjs','scripts/tests/email-template.test.cjs','scripts/tests/invoice-input-boundaries.test.cjs']);
+    await run('python3',['-m','venv','/tmp/fakturaprosto-audit-python']);
+    await run('/tmp/fakturaprosto-audit-python/bin/pip',['install','lxml==6.0.2']);
+    env.PATH='/tmp/fakturaprosto-audit-python/bin:'+env.PATH;
+    await run('npm',['test']);
     report.ok=true;
   } catch(error) {failure=error;report.error=error.message;}
   await publishReport().catch(()=>console.log('[audit-preview] Checkout does not permit publishing a diagnostic result'));
   if(failure)throw failure;
-  console.log('[audit-preview] PASS typecheck, lint and new regression tests');
+  console.log('[audit-preview] PASS typecheck, lint and all unit tests');
 } else {
   console.log('[audit-preview] Standard preview build');
 }
