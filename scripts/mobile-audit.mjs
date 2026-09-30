@@ -4,7 +4,7 @@ import { mkdir } from 'node:fs/promises';
 
 const appRoutes = ['/dashboard','/analytics','/calendar','/invoices','/invoices/new','/invoices/recurring','/advances','/offers','/recurring','/reminders','/ksef','/expenses','/documents','/cost-reviews','/finances','/contractors','/products','/warehouse','/orders','/projects','/accountant/portal','/accountant','/jpk','/tax-estimate','/audit','/settings/team','/settings/companies','/settings/appearance','/settings/pdf-templates','/settings/currencies','/settings/integrations','/settings/health','/settings/account','/settings/ksef','/help'];
 const publicRoutes = ['/','/login','/register','/forgot-password','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat'];
-async function defects(page) {
+export async function mobileLayoutDefects(page) {
   return page.evaluate(configuredWidth => {
     const width = Math.min(configuredWidth, document.documentElement.clientWidth), failures = [];
     if (document.documentElement.scrollWidth > width + 2) failures.push({kind:'page-overflow',width:document.documentElement.scrollWidth,viewport:width});
@@ -38,7 +38,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
     const page=await context.newPage(), publicPage=await publicContext.newPage(), errors=[];
     for(const target of [page,publicPage]) target.on('pageerror',error=>{const record={engine:engine.name,url:target.url(),message:error.message,stack:error.stack};errors.push(record);console.log('[mobile-js-error] '+JSON.stringify(record));});
     async function audit(target,label) {
-      const found=await defects(target);checks++;
+      const found=await mobileLayoutDefects(target);checks++;
       if(found.length) {
         failures.push({engine:engine.name,viewport:target.viewportSize(),route:label,defects:found});
         console.log('[mobile-audit] '+JSON.stringify(failures.at(-1)));
@@ -52,13 +52,14 @@ export async function auditMobileExperience(base, storageState, fixture) {
         for(const route of publicSet) {
           await publicPage.goto(route);
           await expect(publicPage.locator('h1').first()).toBeVisible();
+          await publicPage.waitForLoadState('networkidle');
           const reject=publicPage.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
-          if(await reject.isVisible()) await reject.click();
+          if(await reject.isVisible()) await reject.tap();
           await publicPage.evaluate(()=>document.fonts.ready); await audit(publicPage,route);
           if(route==='/' && width<=375) {
-            await publicPage.getByRole('button',{name:'Ustawienia prywatności',exact:true}).click();
+            await publicPage.getByRole('button',{name:'Ustawienia prywatności',exact:true}).tap();
             await expect(publicPage.getByRole('dialog')).toBeVisible(); await audit(publicPage,'cookie preferences');
-            await publicPage.getByRole('dialog').getByRole('button',{name:'Zamknij',exact:true}).click();
+            await publicPage.getByRole('dialog').getByRole('button',{name:'Zamknij',exact:true}).tap();
           }
         }
         const routes=width===667?['/invoices/new','/finances','/accountant/portal','/settings/companies']:[...appRoutes,'/invoices/'+fixture.invoiceId];
@@ -80,32 +81,44 @@ export async function auditMobileExperience(base, storageState, fixture) {
           }
         }
       }
+      await page.setViewportSize({width:320,height:740});
+      let releaseBootstrap;
+      const bootstrapGate=new Promise(resolve=>{releaseBootstrap=resolve;});
+      const holdBootstrap=async route=>{await bootstrapGate;await route.continue();};
+      await page.route('**/api/data**',holdBootstrap);
+      try {
+        await page.goto('/dashboard',{waitUntil:'domcontentloaded'});
+        await expect(page.locator('main [aria-busy="true"]')).toBeVisible();
+        await audit(page,'data loading on slow connection');
+      } finally {releaseBootstrap();}
+      await expect(page.locator('main h1').first()).toBeVisible();
+      await page.unroute('**/api/data**',holdBootstrap);
       for (const [width,height] of [[320,740],[430,932]]) {
         await page.setViewportSize({width,height});
         for (const [route,button] of [['/contractors','Dodaj kontrahenta'],['/products','Dodaj pozycję'],['/offers','Nowa oferta'],['/orders','Nowe zlecenie'],['/expenses','Dodaj koszt'],['/settings/companies','Dodaj firmę']]) {
           await page.goto(route); await expect(page.locator('main h1').first()).toBeVisible();
-          await page.getByRole('button',{name:button,exact:true}).first().click();
+          await page.getByRole('button',{name:button,exact:true}).first().tap();
           const dialog=page.getByRole('dialog').first(); await expect(dialog).toBeVisible();
           await audit(page,route+' create dialog');
-          await dialog.getByRole('button',{name:'Zamknij',exact:true}).click();
+          await dialog.getByRole('button',{name:'Zamknij',exact:true}).tap();
           await expect(dialog).toHaveCount(0);
         }
       }
       await page.setViewportSize({width:320,height:740});
       await page.goto('/contractors');
-      await page.getByRole('button',{name:'CRM 360°',exact:true}).first().click();
+      await page.getByRole('button',{name:'CRM 360°',exact:true}).first().tap();
       const crm=page.getByRole('dialog'); await expect(crm).toBeVisible();
       await expect(crm.getByRole('status')).toHaveCount(0); await audit(page,'contractor CRM');
-      await crm.getByRole('button',{name:'Zamknij',exact:true}).click(); await expect(crm).toHaveCount(0);
+      await crm.getByRole('button',{name:'Zamknij',exact:true}).tap(); await expect(crm).toHaveCount(0);
       await page.goto('/invoices/'+fixture.invoiceId);
-      await page.getByRole('button',{name:'Wyślij e-mailem',exact:true}).click();
+      await page.getByRole('button',{name:'Wyślij e-mailem',exact:true}).tap();
       const email=page.getByRole('dialog'); await expect(email).toBeVisible(); await audit(page,'invoice email dialog');
-      await email.getByRole('button',{name:'Zamknij',exact:true}).first().click(); await expect(email).toHaveCount(0);
+      await email.getByRole('button',{name:'Zamknij',exact:true}).first().tap(); await expect(email).toHaveCount(0);
       await page.goto('/invoices/new');
-      await page.getByTitle('Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)',{exact:true}).click();
+      await page.getByTitle('Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)',{exact:true}).tap();
       const shortcuts=page.getByRole('dialog',{name:'Skróty klawiszowe',exact:true});
       await expect(shortcuts).toBeVisible(); await audit(page,'invoice shortcuts');
-      await shortcuts.getByRole('button',{name:'Zamknij',exact:true}).click(); await expect(shortcuts).toHaveCount(0);
+      await shortcuts.getByRole('button',{name:'Zamknij',exact:true}).tap(); await expect(shortcuts).toHaveCount(0);
       // Exercise actual touch-sized controls, not just static screenshots.
       await page.setViewportSize({width:320,height:740});
       await page.goto('/dashboard'); await expect(page.locator('main h1')).toBeVisible();
@@ -115,25 +128,25 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await page.setViewportSize({width:320,height:360});
       await expect.poll(()=>tour.evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight+1)).toBe(true);
       await audit(page,'onboarding short viewport');
-      await tour.getByRole('button',{name:'Dalej',exact:true}).click();
+      await tour.getByRole('button',{name:'Dalej',exact:true}).tap();
       await expect(tour.getByText('Krok 2 z 5',{exact:true})).toBeVisible();
-      await tour.getByRole('button',{name:'Pomiń',exact:true}).click();
+      await tour.getByRole('button',{name:'Pomiń',exact:true}).tap();
       await expect(tour).toHaveCount(0); await page.setViewportSize({width:320,height:740});
       const menuButton=page.getByRole('button',{name:'Otwórz menu',exact:true});
-      await menuButton.click(); const drawer=page.getByRole('dialog',{name:'Nawigacja',exact:true});
+      await menuButton.tap(); const drawer=page.getByRole('dialog',{name:'Nawigacja',exact:true});
       await expect(drawer).toBeVisible(); await audit(page,'drawer');
-      await drawer.getByRole('button',{name:'Ustawienia',exact:true}).click();
-      await drawer.getByRole('link',{name:'Wygląd',exact:true}).click();
+      await drawer.getByRole('button',{name:'Ustawienia',exact:true}).tap();
+      await drawer.getByRole('link',{name:'Wygląd',exact:true}).tap();
       await expect(page).toHaveURL(/settings\/appearance/); await expect(drawer).toHaveCount(0);
-      await menuButton.click(); await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
+      await menuButton.tap(); await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
       await expect(menuButton).toBeFocused();
       const switcher=page.getByRole('button',{name:'Wybierz firmę',exact:true});
-      await switcher.click(); await audit(page,'company switcher');
-      await page.getByRole('button',{name:new RegExp(fixture.alternateName)}).click();
+      await switcher.tap(); await audit(page,'company switcher');
+      await page.getByRole('button',{name:new RegExp(fixture.alternateName)}).tap();
       await expect(page.getByRole('button',{name:'Wybierz firmę',exact:true})).toContainText(fixture.alternateName);
-      await switcher.click(); await page.getByRole('button',{name:/Browser Company/}).click();
+      await switcher.tap(); await page.getByRole('button',{name:/Browser Company/}).tap();
       await expect(switcher).toContainText('Browser Company');
-      await page.getByRole('button',{name:/Szukaj faktur/}).click();
+      await page.getByRole('button',{name:/Szukaj faktur/}).tap();
       const search=page.getByRole('dialog',{name:'Wyszukiwanie i polecenia'});
       await expect(search).toBeVisible(); await audit(page,'command search');
       await page.setViewportSize({width:320,height:360});
@@ -142,32 +155,32 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await page.keyboard.press('Escape'); await expect(search).toHaveCount(0);
       await page.setViewportSize({width:320,height:740});
       await page.goto('/finances');
-      await page.getByRole('button',{name:/Import.*wyciąg/}).click();
+      await page.getByRole('button',{name:/Import.*wyciąg/}).tap();
       const importDialog=page.getByRole('dialog',{name:'Import wyciągu bankowego',exact:true});
       await expect(importDialog).toBeVisible(); await audit(page,'bank import dialog');
       await page.setViewportSize({width:320,height:400});
       await expect.poll(()=>importDialog.evaluate(element=>{const r=element.getBoundingClientRect();return r.top>=0 && r.bottom<=innerHeight+1;})).toBe(true);
       await audit(page,'bank import short viewport');
-      await importDialog.getByRole('combobox').click(); await expect(page.getByRole('listbox')).toBeVisible();
+      await importDialog.getByRole('combobox').tap(); await expect(page.getByRole('listbox')).toBeVisible();
       await audit(page,'bank format dropdown'); await page.keyboard.press('Escape');
       await expect(importDialog).toBeVisible(); await page.keyboard.press('Escape'); await expect(importDialog).toHaveCount(0);
       await page.setViewportSize({width:320,height:740});
       await page.goto('/invoices/new');
       const discard=page.getByRole('button',{name:'Odrzuć',exact:true});
-      if(await discard.isVisible()) await discard.click();
-      await page.getByRole('button',{name:'Wpisz numer ręcznie',exact:true}).click();
+      if(await discard.isVisible()) await discard.tap();
+      await page.getByRole('button',{name:'Wpisz numer ręcznie',exact:true}).tap();
       await page.getByLabel('Numer faktury',{exact:true}).fill('MOBILE-'+engine.name);
-      await page.locator('#invoice-contractorId').click();
-      await page.getByRole('option',{name:/Searchable Buyer/}).click();
+      await page.locator('#invoice-contractorId').tap();
+      await page.getByRole('option',{name:/Searchable Buyer/}).tap();
       await page.getByRole('textbox',{name:'Nazwa pozycji 1',exact:true}).fill('Mobilna usługa z długą nazwą — test edycji bez przesuwania tabeli');
       await page.getByRole('spinbutton',{name:'Ilość pozycji 1',exact:true}).fill('2');
       await page.getByRole('spinbutton',{name:'Cena netto pozycji 1',exact:true}).fill('100');
-      await page.getByRole('combobox',{name:'VAT pozycji 1',exact:true}).click();
-      await page.getByRole('option',{name:'8%',exact:true}).click();
+      await page.getByRole('combobox',{name:'VAT pozycji 1',exact:true}).tap();
+      await page.getByRole('option',{name:'8%',exact:true}).tap();
       await audit(page,'populated invoice creator');
       const [saved]=await Promise.all([
         page.waitForResponse(response=>response.url().endsWith('/api/invoices') && response.request().method()==='POST'),
-        page.getByRole('button',{name:'Szkic',exact:true}).click(),
+        page.getByRole('button',{name:'Szkic',exact:true}).tap(),
       ]);
       const body=await saved.json();assert.ok(saved.ok(),JSON.stringify(body));
       await expect(page).toHaveURL(/invoices$/);
@@ -187,7 +200,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await terms.getByRole('checkbox').check();
       const [accepted]=await Promise.all([
         page.waitForResponse(response=>response.url().endsWith('/api/user/accept-terms') && response.request().method()==='POST'),
-        acceptTerms.click(),
+        acceptTerms.tap(),
       ]);
       assert.ok(accepted.ok(),'Terms acceptance must succeed from a short phone viewport');
       await expect(terms).toHaveCount(0);
@@ -232,10 +245,11 @@ export async function auditPublicMobileSite(origin) {
           const response=await page.goto(route,{timeout:60000});
           assert.ok(response?.ok(),engine.name+' '+route+' HTTP '+response?.status());
           await expect(page.locator('h1').first()).toBeVisible({timeout:30000});
+          await page.waitForLoadState('networkidle');
           await page.evaluate(()=>document.fonts.ready);
           const reject=page.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
-          if(await reject.isVisible()) await reject.click();
-          const found=await defects(page);checks++;
+          if(await reject.isVisible()) await reject.tap();
+          const found=await mobileLayoutDefects(page);checks++;
           if(found.length) {
             const record={engine:engine.name,width,route,defects:found};failures.push(record);console.log('[production-mobile] '+JSON.stringify(record));
             await page.screenshot({path:'artifacts/mobile/production-'+engine.name+'-'+width+'-'+route.replace(/[^a-z0-9]/gi,'_')+'.png',fullPage:true});

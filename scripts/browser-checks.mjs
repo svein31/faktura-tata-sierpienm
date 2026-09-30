@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { auditMobileExperience } from './mobile-audit.mjs';
+import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base, db) {
   const browser = await chromium.launch({ headless: true });
@@ -186,11 +186,15 @@ export async function browserChecks(base, db) {
       '/reminders', '/settings/account', '/settings/companies', '/settings/currencies', '/settings/integrations',
       '/settings/ksef', '/settings/team', '/help', '/accountant/portal', '/tax-estimate', '/settings/appearance',
     );
+    const mobileFailures=[];
     for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Mobile overflow: ${route}`);
+      await expect(page.locator('main h1').first()).toBeVisible();
+      await page.waitForLoadState('networkidle');
+      const found=await mobileLayoutDefects(page);
+      if(found.length) {mobileFailures.push({route,defects:found});console.log('[basic-mobile-audit] '+JSON.stringify(mobileFailures.at(-1)));}
     }
     // Numbering preference survives reload, and each new invoice asks auto vs manual on a phone.
     await page.goto('/invoices/new');
@@ -242,6 +246,7 @@ export async function browserChecks(base, db) {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
       await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName,prepareTerms:()=>db.user.update({where:{id:browserOwner.user.id},data:{termsAcceptedVersion:'mobile-test-old-terms'}})});
     }
+    assert.deepEqual(mobileFailures,[],'Basic mobile pages must fit after loading');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }
 }
