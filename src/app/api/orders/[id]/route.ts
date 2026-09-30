@@ -1,4 +1,4 @@
-import { parseOrderBody, orderStatus, orderMinutes, nonNegativeNumber } from "@/lib/business-document-validation";
+import { parseOrderBody, orderStatus, orderMinutes, orderHoursToMinutes } from "@/lib/business-document-validation";
 import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -90,7 +90,7 @@ export async function PATCH(
     if ("status" in body) dataToUpdate.status = orderStatus(body.status);
     if ("trackedMinutes" in body) dataToUpdate.trackedMinutes = orderMinutes(body.trackedMinutes);
     else if ("trackedHours" in body) {
-      const added = orderMinutes(nonNegativeNumber(body.trackedHours, "trackedHours", 1e7) * 60);
+      const added = orderHoursToMinutes(body.trackedHours);
       dataToUpdate.trackedMinutes = { increment: added };
     }
     if ("stages" in body) dataToUpdate.stages = parseOrderBody({ stages: body.stages }, existing).stages;

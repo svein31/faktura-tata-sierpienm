@@ -30,6 +30,10 @@ export function expensePaymentFields(body: Record<string, unknown>, existing?: {
   if (paymentStatus === "paid") {
     if (body.paidAt != null) {
       if (typeof body.paidAt !== "string" && typeof body.paidAt !== "number") throw new ApiError(400, "Nieprawidłowa data płatności.");
+      if (typeof body.paidAt === "string") {
+        const day = /^(\d{4}-\d{2}-\d{2})(?:T|$)/.exec(body.paidAt)?.[1];
+        if (!day || !isIsoCalendarDate(day)) throw new ApiError(400, "Nieprawidłowa data płatności.");
+      }
       paidAt = new Date(body.paidAt);
       if (!Number.isFinite(paidAt.getTime())) throw new ApiError(400, "Nieprawidłowa data płatności.");
     } else paidAt = existing?.paidAt || new Date();
@@ -67,6 +71,13 @@ export function orderMinutes(value: unknown) {
   if (!Number.isInteger(minutes)) throw new ApiError(400, "Czas pracy musi być całkowitą liczbą minut.");
   return minutes;
 }
+/** Normalize floating point noise in whole-minute hours payloads. */
+export function orderHoursToMinutes(value: unknown) {
+  const raw = nonNegativeNumber(value, "trackedHours", 1e7) * 60;
+  const minutes = Math.round(raw);
+  if (Math.abs(raw - minutes) > Math.max(1e-7, raw * Number.EPSILON * 4)) throw new ApiError(400, "Czas pracy musi być całkowitą liczbą minut.");
+  return orderMinutes(minutes);
+}
 function orderStages(value: unknown): Prisma.InputJsonValue {
   if (!Array.isArray(value) || value.length > 100) throw new ApiError(400, "Nieprawidłowa lista etapów zlecenia.");
   const ids = new Set<string>();
@@ -94,7 +105,7 @@ export function parseOrderBody(body: Record<string, unknown>, existing?: Record<
     status: orderStatus(pick("status", "in_progress")),
     currency: documentCurrency(pick("currency", "PLN")),
     hourlyRate: nonNegativeNumber(pick("hourlyRate", 0), "hourlyRate"),
-    trackedMinutes: orderMinutes(body.trackedMinutes ?? (body.trackedHours === undefined ? existing?.trackedMinutes ?? 0 : nonNegativeNumber(body.trackedHours,"trackedHours",1e7) * 60)),
+    trackedMinutes: orderMinutes(body.trackedMinutes ?? (body.trackedHours === undefined ? existing?.trackedMinutes ?? 0 : orderHoursToMinutes(body.trackedHours))),
     stages: orderStages(pick("stages", [])),
     notes: cleanStr(pick("notes"), 4000, "notes") || null,
   };

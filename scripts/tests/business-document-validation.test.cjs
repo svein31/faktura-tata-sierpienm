@@ -22,3 +22,17 @@ test('orders preserve explicit zero and reject invalid time, rates, stages and s
     assert.throws(()=>parseOrderBody(patch,original),e=>e.status===400,JSON.stringify(patch));
   assert.equal(orderMinutes(30),30);assert.equal(parseOrderBody({trackedHours:0.5},original).trackedMinutes,30);
 });
+
+test('whole-minute time survives hours conversion without accepting fractional minutes',()=>{
+  const {orderHoursToMinutes}=require('../../src/lib/business-document-validation.ts');
+  for(const minutes of [1,31,62,123,124,125,9999]) {
+    assert.equal(orderHoursToMinutes(minutes/60),minutes);
+    assert.equal(parseOrderBody({trackedHours:minutes/60}).trackedMinutes,minutes);
+  }
+  assert.throws(()=>orderHoursToMinutes(1.5/60),e=>e.status===400);
+});
+test('paid dates reject normalized impossible calendar dates',()=>{
+  for(const paidAt of ['2026-02-30','2026-02-30T12:00:00Z'])
+    assert.throws(()=>expensePaymentFields({paymentStatus:'paid',paidAt}),e=>e.status===400);
+  assert.equal(expensePaymentFields({paymentStatus:'paid',paidAt:'2026-02-28T12:00:00Z'}).paidAt.toISOString(),'2026-02-28T12:00:00.000Z');
+});
