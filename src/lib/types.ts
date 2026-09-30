@@ -298,6 +298,8 @@ export interface KsefInfo {
 }
 
 export interface Invoice {
+  exemptionBasis?: string | null;
+
   documentKind?: "advance" | "final" | "vat";
   advanceReceivedDate?: string;
   settlementMetadata?: { sourceId: string; sourceNumber: string; orderLines: InvoiceLine[]; advances: {id:string;number:string;ksefNumber?:string|null;gross:number}[] };
