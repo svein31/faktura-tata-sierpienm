@@ -309,6 +309,7 @@ export function invoiceToDto(
     buyerCountry: i.buyerCountry ?? null,
 
     // Ewidencja JPK_V7 (sekcja 3)
+    exemptionBasis: i.exemptionBasis ?? null,
     gtuCodes: (i.gtuCodes ?? []) as any,
     jpkProcedures: (i.jpkProcedures ?? []) as any,
     jpkDocumentType: (i.jpkDocumentType as any) ?? null,
@@ -379,7 +380,6 @@ export function teamInvitationToDto(ti: any): any {
     email: ti.email,
     role: ti.role,
     permissions: ti.permissions ?? null,
-    token: ti.token,
     expiresAt: ti.expiresAt instanceof Date ? ti.expiresAt.toISOString() : String(ti.expiresAt),
     acceptedAt: ti.acceptedAt ? (ti.acceptedAt instanceof Date ? ti.acceptedAt.toISOString() : String(ti.acceptedAt)) : null,
     status: ti.status,
