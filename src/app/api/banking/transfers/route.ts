@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { objectId } from "@/lib/company-scope";
 import { isAccountingInvoice } from "@/lib/accountant-summary";
@@ -43,4 +43,22 @@ export async function POST(req: Request) {
     await recordAuditLog({ companyId: company.id, userId: user.id, userName: user.name, userEmail: user.email, action: "bank_transfer_pack_exported", entityType: "company", entityId: company.id, details: { count: transfers.length, format: body.format, executionDate: body.executionDate } });
     return new Response(exported.content, { headers: { "Content-Type": exported.mime, "Content-Disposition": `attachment; filename="przelewy-${body.executionDate}.${exported.extension}"`, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
   } catch (error) { return handleApiError(error); }
+}
+
+export async function GET(req: Request) {
+  try {
+    const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const companyId = new URL(req.url).searchParams.get("companyId");
+    if (!objectId(companyId)) throw new ApiError(400, "Wybierz firmę.");
+    const access = await requireCompanyAccess(user.id, companyId, "canRecordPayments"); if (!access.ok) throw new ApiError(access.status, access.error);
+    const [invoices, expenses, accounts] = await Promise.all([
+      prisma.invoice.findMany({ where: { sellerCompanyId: companyId, type: "purchase", paymentStatus: { in: ["unpaid", "partially_paid", "overdue"] }, status: { notIn: ["draft", "cancelled"] } }, take: 101, orderBy: { dueDate: "asc" } }),
+      prisma.expense.findMany({ where: { companyId, paymentStatus: "unpaid" }, take: 101, orderBy: { dueDate: "asc" } }),
+      prisma.companyBankAccount.findMany({ where: { companyId } }),
+    ]);
+    const contacts = await prisma.contractor.findMany({ where: { id: { in: invoices.map(i => i.contractorId) } } }), contactMap = new Map(contacts.map(c => [c.id, c]));
+    const refs = new Set(invoices.map(i => i.ksefNumber).filter(Boolean));
+    const rows = [...invoices.filter(i => isAccountingInvoice(i) && !i.isCorrection && !i.isSplitPayment).map(i => ({ kind: "invoice", id: i.id, number: i.number, currency: i.currency, amount: Math.max(0, (i.totalGross || 0) - (i.paidAmount || 0)), recipient: contactMap.get(i.contractorId)?.name || "", iban: contactMap.get(i.contractorId)?.iban || "" })), ...expenses.filter(e => !e.ksefRefNumber || !refs.has(e.ksefRefNumber)).map(e => ({ kind: "expense", id: e.id, number: e.number, currency: e.currency, amount: e.totalGross, recipient: e.contractorName, iban: "" }))];
+    return json({ rows, accounts, truncated: invoices.length > 100 || expenses.length > 100 });
+  } catch (e) { return handleApiError(e); }
 }
