@@ -11,7 +11,7 @@ import { ksefAcceptanceDateFromUpo } from "@/lib/pdf/ksef-acceptance-date";
 
 type ContextData = { company?: CompanyProfile; contractor?: Contractor; config: PrintConfig; templateId?: string; templateVersion: number };
 const PDF_LAYOUT_VERSION = 3;
-const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isOffline", "offlineDeadline", "ksefNumber", "ksefAcceptedAt", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
+const fields = ["id", "number", "documentKind", "isProforma", "type", "currency", "language", "issueDate", "saleDate", "dueDate", "lines", "paymentMethod", "bankAccountSnapshot", "buyerCountry", "buyerTaxIdType", "isCorrection", "correctionReason", "originalInvoiceNumber", "originalIssueDate", "originalKsefNumber", "exchangeRate", "exchangeRateDate", "exchangeRateTable", "exchangeRateUnit", "totalVatPln", "notes", "isSplitPayment", "exemptionBasis", "isOffline", "offlineDeadline", "ksefNumber", "ksefAcceptedAt", "qrCodeI", "qrCodeII", "advanceReceivedDate", "settlementMetadata"] as const;
 export function printInvoiceData(invoice: Invoice) {
   const data: Record<string, unknown> = Object.fromEntries(fields.filter(key => invoice[key] !== undefined).map(key => [key, invoice[key]]));
   if (invoice.ksefNumber && invoice.upoXml) data.ksefAcceptedAt = ksefAcceptanceDateFromUpo(invoice.upoXml, invoice.ksefNumber);
