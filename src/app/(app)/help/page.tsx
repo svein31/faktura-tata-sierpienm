@@ -561,7 +561,7 @@ const HELP_SECTIONS: HelpSection[] = [
       {
         title: "1. Komplet oficjalnych dokumentów prawnych",
         description:
-          "W stopce serwisu oraz w menu bocznym masz stały dostęp do 5 publicznych dokumentów prawnych: Regulaminu świadczenia usług (/regulamin), Polityki prywatności (/polityka-prywatnosci), Polityki cookies (/polityka-cookies), Umowy powierzenia przetwarzania danych DPA (/powierzenie-danych) oraz Listy podwykonawców i podprocesorów (/podwykonawcy).",
+          "W stopce serwisu oraz w Ustawienia → Pomoc masz stały dostęp do 5 publicznych dokumentów prawnych: Regulaminu świadczenia usług (/regulamin), Polityki prywatności (/polityka-prywatnosci), Polityki cookies (/polityka-cookies), Umowy powierzenia przetwarzania danych DPA (/powierzenie-danych) oraz Listy podwykonawców i podprocesorów (/podwykonawcy).",
       },
       {
         title: "2. Przejrzysta akceptacja regulaminu",
@@ -665,6 +665,7 @@ export default function HelpPage() {
 
   return (
     <div className="space-y-6 pb-16">
+      <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4 text-sm" aria-label="Pomoc i informacje prawne">{[["/regulamin","Regulamin"],["/polityka-prywatnosci","Prywatność"],["/polityka-cookies","Cookies"],["/powierzenie-danych","Powierzenie danych"],["/podwykonawcy","Podwykonawcy"]].map(([href,label])=><Link key={href} href={href} className="text-primary underline">{label}</Link>)}<button className="text-primary underline" onClick={()=>window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}>Preferencje cookies</button></div>
       {/* Nagłówek strony */}
       <PageHeader
         title="Instrukcja obsługi FakturaProsto"
