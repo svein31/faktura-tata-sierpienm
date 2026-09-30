@@ -4,7 +4,10 @@ const isAudit = process.env.CONTEXT === 'deploy-preview' && process.env.REVIEW_I
 if (isAudit) {
   const env = {};
   for (const key of ['PATH','HOME','TMPDIR','TEMP','TMP','LANG','LC_ALL','NODE_EXTRA_CA_CERTS','LD_LIBRARY_PATH']) if (process.env[key]) env[key] = process.env[key];
-  Object.assign(env, {CI:'true',NEXT_TELEMETRY_DISABLED:'1',RUN_ALL_MOBILE_CHECKS:'1',MONGOMS_DOWNLOAD_IGNORE_MISSING_HEADER:'true',MONGOMS_DISTRO:'ubuntu-22.04'});
+  Object.assign(env, {CI:'true',NEXT_TELEMETRY_DISABLED:'1',RUN_ALL_MOBILE_CHECKS:'0',MONGOMS_DOWNLOAD_IGNORE_MISSING_HEADER:'true',MONGOMS_DISTRO:'ubuntu-22.04'});
+  const limits={'faktura-tata':'0','tata-fax':'1','prostafv':'3'};
+  if(!(process.env.SITE_NAME in limits)) throw new Error('Unknown diagnostic preview site');
+  env.AUDIT_UI_LIMIT=limits[process.env.SITE_NAME];
   const report={sourceSha:process.env.COMMIT_REF,createdAt:new Date().toISOString(),stages:[],ok:false};
   function command(executable,args,options={}) {
     return new Promise((resolve,reject)=>{
@@ -38,7 +41,7 @@ if (isAudit) {
     report.ok=true;
   } catch(error) {failure=error;report.error=error.message;}
   if(failure)throw failure;
-  console.log('[audit-preview] PASS typecheck, lint, all unit tests and full HTTP integration and Chromium mobile workflows (WebKit remains pending)');
+  console.log('[audit-preview] PASS diagnostic browser prefix only; complete feature/mobile verification remains pending');
 } else {
   console.log('[audit-preview] Standard preview build');
 }
