@@ -622,7 +622,7 @@ export default function ExpensesPage() {
         title="Dodaj dokument kosztowy"
       >
         <form onSubmit={handleCreateExpense} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Nazwa sprzedawcy / wystawcy *</Label>
               <Input
@@ -642,7 +642,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Numer dokumentu</Label>
               <Input
@@ -666,7 +666,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Data wystawienia *</Label>
               <Input
@@ -743,7 +743,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Status płatności</Label>
               <Select

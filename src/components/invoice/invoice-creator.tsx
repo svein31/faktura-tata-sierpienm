@@ -1661,7 +1661,7 @@ export function InvoiceCreator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
               <div className="rounded-lg bg-muted/50 p-2.5">
                 <p className="text-[11px] text-muted-foreground">Netto</p>
                 <p className="text-[14px] font-bold tabular-nums">{formatMoney(totals.net, form.currency)}</p>
@@ -1699,7 +1699,7 @@ export function InvoiceCreator() {
             <Eye className="h-4 w-4 text-muted-foreground" /> Podgląd na żywo
             <Badge tone="outline">{form.language === "PL" ? "PL" : "EN"} · {form.currency}</Badge>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             <Button variant="ghost" size="sm" onClick={exports.exportPdf} title="PDF (drukuj / zapisz jako PDF)">
               <Printer className="h-3.5 w-3.5" /> PDF
             </Button>

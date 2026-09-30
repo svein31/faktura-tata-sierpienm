@@ -36,8 +36,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
     const context=await browser.newContext({baseURL:base,storageState,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
     const publicContext=await browser.newContext({baseURL:base,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
     const page=await context.newPage(), publicPage=await publicContext.newPage(), errors=[];
-    page.on('pageerror',error=>errors.push(error.message));
-    publicPage.on('pageerror',error=>errors.push(error.message));
+    for(const target of [page,publicPage]) target.on('pageerror',error=>{const record={engine:engine.name,url:target.url(),message:error.message,stack:error.stack};errors.push(record);console.log('[mobile-js-error] '+JSON.stringify(record));});
     async function audit(target,label) {
       const found=await defects(target);checks++;
       if(found.length) {
@@ -56,6 +55,11 @@ export async function auditMobileExperience(base, storageState, fixture) {
           const reject=publicPage.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
           if(await reject.isVisible()) await reject.click();
           await publicPage.evaluate(()=>document.fonts.ready); await audit(publicPage,route);
+          if(route==='/' && width<=375) {
+            await publicPage.getByRole('button',{name:'Ustawienia prywatności',exact:true}).click();
+            await expect(publicPage.getByRole('dialog')).toBeVisible(); await audit(publicPage,'cookie preferences');
+            await publicPage.getByRole('dialog').getByRole('button',{name:'Zamknij',exact:true}).click();
+          }
         }
         const routes=width===667?['/invoices/new','/finances','/accountant/portal','/settings/companies']:[...appRoutes,'/invoices/'+fixture.invoiceId];
         for(const route of routes) {
@@ -74,6 +78,17 @@ export async function auditMobileExperience(base, storageState, fixture) {
             }
             await audit(page,route+' expanded');
           }
+        }
+      }
+      for (const [width,height] of [[320,740],[430,932]]) {
+        await page.setViewportSize({width,height});
+        for (const [route,button] of [['/contractors','Dodaj kontrahenta'],['/products','Dodaj pozycję'],['/offers','Nowa oferta'],['/orders','Nowe zlecenie'],['/expenses','Dodaj koszt'],['/settings/companies','Dodaj firmę']]) {
+          await page.goto(route); await expect(page.locator('main h1').first()).toBeVisible();
+          await page.getByRole('button',{name:button,exact:true}).first().click();
+          const dialog=page.getByRole('dialog').first(); await expect(dialog).toBeVisible();
+          await audit(page,route+' create dialog');
+          await dialog.getByRole('button',{name:'Zamknij',exact:true}).click();
+          await expect(dialog).toHaveCount(0);
         }
       }
       // Exercise actual touch-sized controls, not just static screenshots.
