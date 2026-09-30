@@ -10,11 +10,11 @@ import { ApiError, FieldError, cleanStr, num } from "./api";
 import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
 import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
-import { invoiceTotals } from "./format";
+import { invoiceTotals, VAT_RATES as UI_VAT_RATES } from "./format";
 import type { ExchangeRateRule, InvoiceLine } from "./types";
 import type { Address } from "./types";
 
-const VAT_RATES = ["23", "8", "5", "0", "zw", "np"];
+const VAT_RATES: readonly string[] = UI_VAT_RATES;
 
 /* ── Kontrahent ─────────────────────────────────────────────────────────── */
 

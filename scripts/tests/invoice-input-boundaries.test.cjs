@@ -13,3 +13,21 @@ test('invoice price rounding uses half-up and excessive rows/amounts are rejecte
   for(const lines of [Array.from({length:201},()=>body.lines[0]),[{...body.lines[0],quantity:1e100}],[{...body.lines[0],quantity:1e9,netPrice:1e9}]])
     await assert.rejects(parseInvoiceBody({...body,lines},opts),e=>e.status===400);
 });
+
+test('every VAT option available in the invoice and product UI is accepted by the parser',async()=>{
+  const {VAT_RATES}=require('../../src/lib/format.ts');
+  const {parseProductBody}=require('../../src/lib/parsers.ts');
+  for(const vatRate of VAT_RATES) {
+    const parsed=await parseInvoiceBody({...body,lines:[{...body.lines[0],quantity:1,netPrice:100,vatRate}]},opts);
+    assert.equal(parsed.lines[0].vatRate,vatRate);
+    assert.equal(parseProductBody({name:'VAT test',netPrice:100,vatRate}).vatRate,vatRate);
+  }
+});
+test('offer amounts use the same price and quantity precision as invoice conversion',async()=>{
+  const {offerAmounts}=require('../../src/lib/offer-validation.ts');
+  const input=[{...body.lines[0],quantity:10,netPrice:1.005}];
+  const offer=offerAmounts(input),invoice=await parseInvoiceBody({...body,lines:offer.lines},opts);
+  assert.equal(offer.lines[0].netPrice,1.01);assert.equal(offer.totalGross,invoice.totalGross);
+  assert.equal(offer.totalNet,10.1);
+  assert.throws(()=>offerAmounts([{...input[0],quantity:1e-7}]),e=>e.status===400);
+});
