@@ -1,5 +1,6 @@
 require('../register-ts.cjs');
 const test=require('node:test'),assert=require('node:assert/strict'),{spawnSync}=require('node:child_process');
+const {parseInvoiceBody}=require('../../src/lib/parsers.ts');
 const {parseInvoiceTaxFields}=require('../../src/lib/invoice-tax-fields.ts');
 const {buildFa3Xml,validateFa3Xml}=require('../../src/lib/ksef/xmlBuilder.ts');
 const {printInvoiceData}=require('../../src/lib/pdf/invoice-print.ts');
@@ -27,4 +28,11 @@ test('generated theme text tokens meet 4.5:1 on background, card and muted surfa
    for(const surface of ['background','card','muted'])for(const foreground of ['foreground','muted-foreground','primary'])assert.ok(contrastRatio(palette[surface],palette[foreground])>=4.5,mode+' '+background+' '+foreground);
    assert.ok(contrastRatio(palette.primary,palette['primary-foreground'])>=4.5);
  }
+});
+
+test('invoice body persists VAT fields and refuses issued exempt invoice without a basis',async()=>{
+ const body={...invoice,contractorId:'buyer',paymentTermDays:14,gtuCodes:['GTU_12'],jpkProcedures:['TP'],isSplitPayment:true};
+ const result=await parseInvoiceBody(body,{contractorOwnedBy:async()=>true});
+ assert.equal(result.isSplitPayment,true);assert.deepEqual(result.gtuCodes,['GTU_12']);assert.deepEqual(result.jpkProcedures,['TP']);
+ await assert.rejects(parseInvoiceBody({...body,lines:[{...invoice.lines[0],vatRate:'zw'}]},{contractorOwnedBy:async()=>true}),/zwolnienia/);
 });
