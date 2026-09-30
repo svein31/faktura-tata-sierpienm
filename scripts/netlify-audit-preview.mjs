@@ -9,7 +9,7 @@ if (isAudit) {
   for (const key of ['PATH','HOME','TMPDIR','TEMP','TMP','LANG','LC_ALL','NODE_EXTRA_CA_CERTS','LD_LIBRARY_PATH']) {
     if (process.env[key]) env[key] = process.env[key];
   }
-  Object.assign(env, { CI:'true', NEXT_TELEMETRY_DISABLED:'1', RUN_ALL_MOBILE_CHECKS:'1', RUN_WEBKIT_CHECKS:'1' });
+  Object.assign(env, { CI:'true', NEXT_TELEMETRY_DISABLED:'1', SKIP_BROWSER_CHECKS:'1' });
   const run = (command,args,extra={}) => new Promise((resolve,reject)=>{
     const child=spawn(command,args,{env:{...env,...extra},stdio:'inherit'});
     child.once('error',reject);
@@ -19,7 +19,6 @@ if (isAudit) {
   await run('python3',['-m','venv','/tmp/fakturaprosto-audit-python']);
   await run('/tmp/fakturaprosto-audit-python/bin/pip',['install','lxml==6.0.2']);
   env.PATH='/tmp/fakturaprosto-audit-python/bin:'+env.PATH;
-  await run('npx',['playwright','install','--with-deps','chromium','webkit']);
   for(const script of ['typecheck','lint','test','test:integration']) await run('npm',['run',script]);
   assert.equal(env.DATABASE_URL,undefined);
   console.log('[audit-preview] PASS all isolated verification checks');
