@@ -967,7 +967,7 @@ try {
   assert.ok(sharedCounters.some(counter=>counter.hits===8 && counter.expiresAt instanceof Date));
   assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
-  if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base);
+  if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }

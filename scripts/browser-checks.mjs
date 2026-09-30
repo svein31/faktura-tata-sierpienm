@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { auditMobileExperience } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
-export async function browserChecks(base) {
+export async function browserChecks(base, db) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
   const page = await context.newPage(), errors = [];
@@ -32,7 +32,7 @@ export async function browserChecks(base) {
       await expect(publicPage.locator('#funkcje')).toBeInViewport();
       assert.deepEqual(publicErrors, [], 'Public mobile pages must not report JavaScript errors');
     } finally { await publicContext.close(); }
-    await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
+    const browserOwner = await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
     // A fresh phone browser should complete password login and reach the protected app.
     const loginContext = await browser.newContext({
       baseURL: base, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -240,7 +240,7 @@ export async function browserChecks(base) {
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
-      await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName});
+      await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName,prepareTerms:()=>db.user.update({where:{id:browserOwner.user.id},data:{termsAcceptedVersion:'mobile-test-old-terms'}})});
     }
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }

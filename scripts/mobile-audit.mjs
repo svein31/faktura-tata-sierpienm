@@ -91,6 +91,21 @@ export async function auditMobileExperience(base, storageState, fixture) {
           await expect(dialog).toHaveCount(0);
         }
       }
+      await page.setViewportSize({width:320,height:740});
+      await page.goto('/contractors');
+      await page.getByRole('button',{name:'CRM 360°',exact:true}).first().click();
+      const crm=page.getByRole('dialog'); await expect(crm).toBeVisible();
+      await expect(crm.getByRole('status')).toHaveCount(0); await audit(page,'contractor CRM');
+      await crm.getByRole('button',{name:'Zamknij',exact:true}).click(); await expect(crm).toHaveCount(0);
+      await page.goto('/invoices/'+fixture.invoiceId);
+      await page.getByRole('button',{name:'Wyślij e-mailem',exact:true}).click();
+      const email=page.getByRole('dialog'); await expect(email).toBeVisible(); await audit(page,'invoice email dialog');
+      await email.getByRole('button',{name:'Zamknij',exact:true}).first().click(); await expect(email).toHaveCount(0);
+      await page.goto('/invoices/new');
+      await page.getByTitle('Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)',{exact:true}).click();
+      const shortcuts=page.getByRole('dialog',{name:'Skróty klawiszowe',exact:true});
+      await expect(shortcuts).toBeVisible(); await audit(page,'invoice shortcuts');
+      await shortcuts.getByRole('button',{name:'Zamknij',exact:true}).click(); await expect(shortcuts).toHaveCount(0);
       // Exercise actual touch-sized controls, not just static screenshots.
       await page.setViewportSize({width:320,height:740});
       await page.goto('/dashboard'); await expect(page.locator('main h1')).toBeVisible();
@@ -159,11 +174,40 @@ export async function auditMobileExperience(base, storageState, fixture) {
       assert.equal(body.invoice.lines[0].quantity,2);assert.equal(Number(body.invoice.lines[0].netPrice),100);assert.equal(String(body.invoice.lines[0].vatRate),'8');
       await page.goto('/reminders');
       assert.equal(await page.getByText('Dodaj SMS',{exact:true}).count(),0);
+      await fixture.prepareTerms();
+      await page.goto('/dashboard');
+      const terms=page.getByRole('dialog',{name:'Aktualizacja Regulaminu serwisu',exact:true});
+      await expect(terms).toBeVisible();
+      await page.setViewportSize({width:320,height:400});
+      await expect.poll(()=>terms.evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight+1)).toBe(true);
+      await audit(page,'updated terms short viewport');
+      const acceptTerms=terms.getByRole('button',{name:'Akceptuję zaktualizowany Regulamin',exact:true});
+      await expect(acceptTerms).toBeDisabled();
+      await page.keyboard.press('Escape'); await expect(terms).toBeVisible();
+      await terms.getByRole('checkbox').check();
+      const [accepted]=await Promise.all([
+        page.waitForResponse(response=>response.url().endsWith('/api/user/accept-terms') && response.request().method()==='POST'),
+        acceptTerms.click(),
+      ]);
+      assert.ok(accepted.ok(),'Terms acceptance must succeed from a short phone viewport');
+      await expect(terms).toHaveCount(0);
       assert.deepEqual(errors,[],engine.name+' mobile JavaScript errors');
       console.log('[mobile-audit] PASS '+engine.name+' drawer, navigation, company switching, search, bank dialog and mobile invoice draft');
     } catch(error) {
       await page.screenshot({path:'artifacts/mobile/'+engine.name+'-interaction-failure.png',fullPage:true}).catch(()=>{});
-      console.log('[mobile-interaction-failure] '+JSON.stringify(await page.evaluate(()=>({url:location.href,viewport:{width:innerWidth,height:innerHeight,visualHeight:visualViewport?.height,visualTop:visualViewport?.offsetTop},dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(d=>({title:d.textContent?.slice(0,120),rect:d.getBoundingClientRect().toJSON(),buttons:Array.from(d.querySelectorAll('button')).filter(b=>b.getAttribute('aria-label')==='Zamknij').map(b=>{const r=b.getBoundingClientRect();return {rect:r.toJSON(),hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML.slice(0,450)};})}))}))).catch(()=>({}))));
+      const diagnostics=await page.evaluate(()=>({
+        url:location.href,
+        viewport:{width:innerWidth,height:innerHeight,visualHeight:visualViewport?.height,visualTop:visualViewport?.offsetTop},
+        dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(dialog=>({
+          title:dialog.textContent?.slice(0,120),
+          rect:dialog.getBoundingClientRect().toJSON(),
+          buttons:Array.from(dialog.querySelectorAll('button')).filter(button=>button.getAttribute('aria-label')==='Zamknij').map(button=>{
+            const rect=button.getBoundingClientRect();
+            return {rect:rect.toJSON(),hit:document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.outerHTML.slice(0,450)};
+          }),
+        })),
+      })).catch(()=>({}));
+      console.log('[mobile-interaction-failure] '+JSON.stringify(diagnostics));
       throw error;
     } finally {await context.close();await publicContext.close();await browser.close();}
   }
