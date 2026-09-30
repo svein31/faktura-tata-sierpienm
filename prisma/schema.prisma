@@ -359,6 +359,8 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  bookedAt DateTime?
+  bookedBy String? @db.ObjectId
   issuedAt DateTime?
   costReviewId String? @db.ObjectId
   documentKind String?
@@ -724,6 +726,8 @@ model ProjectSourceClaim {
 }
 
 model Expense {
+  bookedAt DateTime?
+  bookedBy String? @db.ObjectId
   lines Json?
   costReviewId String? @db.ObjectId
   companyId String? @db.ObjectId
