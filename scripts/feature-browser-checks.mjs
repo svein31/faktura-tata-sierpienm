@@ -46,7 +46,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('np. Usługa programistyczna (osobodzień)').fill('UI audited product');
     await field(dialog,'Cena netto (PLN)').fill('100');
     const product=await submit(dialog.getByRole('button',{name:'Dodaj',exact:true}),'/api/products');
-    assert.equal(product.product.companyId,fixture.companyId);await expect(page.getByText('UI audited product',{exact:true})).toBeVisible();
+    assert.equal(product.product.companyId,fixture.companyId);await expect(page.getByRole('table').getByText('UI audited product',{exact:true})).toBeVisible();
     const row=page.locator('tr').filter({hasText:'UI audited product'});
     await row.getByTitle('Edytuj',{exact:true}).click();dialog=page.getByRole('dialog');
     await field(dialog,'Cena netto (PLN)').fill('125');
@@ -94,7 +94,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('Nazwa usługi / materiału').first().fill('UI offer service');
     await dialog.getByPlaceholder('Cena netto').first().fill('100');
     const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
-    assert.equal(offer.offer.totalGross,123);await expect(page.getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
+    assert.equal(offer.offer.totalGross,123);await expect(page.getByRole('table').getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
     checks.push('Offer creation through UI');
     assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
     console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
