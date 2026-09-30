@@ -1,3 +1,4 @@
+import { smsConfigured, validSmsPhone } from "@/lib/sms";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
@@ -28,10 +29,15 @@ export async function POST(req: Request) {
       });return json({ok:changed.count===1});
     }
     if(!objectId(body.invoiceId) || typeof body.enabled!=="boolean")throw new ApiError(400,"Nieprawidłowa konfiguracja.");
+    const channels = body.channels === undefined ? undefined : body.channels;
+    if (channels !== undefined && (!Array.isArray(channels) || !channels.length || channels.length > 2 || channels.some(c => c !== "email" && c !== "sms"))) throw new ApiError(400, "Wybierz e-mail lub SMS.");
+    const smsRecipient = body.smsRecipient === undefined ? undefined : String(body.smsRecipient).trim();
+    if (Array.isArray(channels) && channels.includes("sms") && (!validSmsPhone(smsRecipient) || !smsConfigured())) throw new ApiError(400, "SMS wymaga numeru +48… i skonfigurowanego dostawcy Twilio.");
+    const channelData = { ...(channels ? { channels: [...new Set(channels as string[])] } : {}), ...(smsRecipient !== undefined ? { smsRecipient } : {}) };
     const invoice=await prisma.invoice.findFirst({where:{id:body.invoiceId,sellerCompanyId:companyId}});
     if(!invoice || invoice.type!=="sale" || invoice.isProforma || invoice.isCorrection)throw new ApiError(400,"Wybierz fakturę sprzedaży VAT.");
     const setting=await prisma.$transaction(async tx=>{
-      const record=await tx.dueReminderSetting.upsert({where:{invoiceId:invoice.id},create:{invoiceId:invoice.id,companyId,userId:user.id,enabled:body.enabled as boolean},update:{enabled:body.enabled as boolean,userId:user.id,nextCheckAt:new Date()}});
+      const record=await tx.dueReminderSetting.upsert({where:{invoiceId:invoice.id},create:{invoiceId:invoice.id,companyId,userId:user.id,enabled:body.enabled as boolean,...channelData},update:{enabled:body.enabled as boolean,userId:user.id,nextCheckAt:new Date(),...channelData}});
       await recordAuditLog({client:tx,companyId,userId:user.id,documentId:invoice.id,entityType:"invoice",entityId:invoice.id,action:"due_reminder_configured",details:{enabled:record.enabled}});return record;
     });return json({setting});
   } catch(e){return handleApiError(e);}
