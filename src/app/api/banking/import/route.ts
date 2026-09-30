@@ -29,6 +29,13 @@ export async function POST(req: Request) {
     let parsed;
     try { parsed = parseStatement(content, String(body.format || body.bankFormat || "")); }
     catch (error) { throw new ApiError(400, error instanceof Error ? error.message : "Niepoprawny wyciąg."); }
+    if (companyId && parsed.transactions.some(t => t.accountIban)) {
+      const accounts = await prisma.companyBankAccount.findMany({ where: { companyId }, select: { accountNumber: true } });
+      const company = await prisma.companyProfile.findUnique({ where: { id: companyId }, select: { bankAccount: true } });
+      const normalizeAccount = (v: string) => v.replace(/\s/g, "").replace(/^PL/i, "");
+      const ownAccounts = new Set([...accounts.map(a => a.accountNumber), company?.bankAccount || ""].filter(Boolean).map(normalizeAccount));
+      if (parsed.transactions.some(t => t.accountIban && !ownAccounts.has(normalizeAccount(t.accountIban)))) throw new ApiError(400, "Rachunek wyciągu nie należy do wybranej firmy. Dodaj go w ustawieniach firmy.");
+    }
     // Compatibility for older clients: only documents owned by the actor; every write still checks company permissions.
     const scope = companyId ? { sellerCompanyId: companyId } : { userId: user.id };
     const [invoices, costs] = await Promise.all([
@@ -57,7 +64,7 @@ export async function POST(req: Request) {
           await tx.bankStatementImport.create({ data: { userId: user.id, filename: String(body.filename || "wyciag").slice(0, 200), bankFormat: parsed.format, rowCount: matched.length, matchedCount, totalAmount: Math.round(matched.reduce((s, t) => s + t.amount, 0) * 100) / 100, fileHash } });
           const duplicates = new Map<string, number>();
           for (const item of matched) {
-            const identity = hash(JSON.stringify([companyId || user.id, item.accountIban || "", item.externalReference || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
+            const identity = hash(JSON.stringify(item.externalReference ? [companyId || user.id, item.accountIban || "", item.externalReference] : [companyId || user.id, item.accountIban || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
             const occurrence = duplicates.get(identity) || 0; duplicates.set(identity, occurrence + 1);
             const externalId = item.externalReference ? identity : identity + ":" + occurrence;
             if (await tx.bankTransaction.findUnique({ where: { userId_externalId: { userId: ownerId, externalId } } })) { skippedCount++; continue; }
