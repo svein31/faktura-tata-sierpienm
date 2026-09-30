@@ -186,7 +186,7 @@ export default function ContractorsPage() {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AnimatePresence initial={false}>
           {filtered.map((c) => {
             const idType = c.taxIdType || "nip";
@@ -194,6 +194,7 @@ export default function ContractorsPage() {
             return (
               <motion.div
                 key={c.id}
+                className="min-w-0"
                 layout
                 initial={{ opacity: 0, scale: 0.97 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -201,12 +202,12 @@ export default function ContractorsPage() {
               >
                 <Card className="group flex h-full flex-col rounded-2xl border border-border/70 bg-card/75 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
                   <div className="flex items-start justify-between gap-2 p-4 pb-2">
-                    <div className="flex items-start gap-3">
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 group-hover:bg-primary/15 transition-colors">
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[13.5px] font-semibold text-foreground tracking-tight">{c.name}</p>
+                        <p className="break-words text-[13.5px] font-semibold text-foreground tracking-tight">{c.name}</p>
                         <p className="font-mono text-[11.5px] text-muted-foreground">{idType === "nip" ? formatNip(c.nip) : c.taxId || c.nip || "Brak ID"}</p>
                       </div>
                     </div>
