@@ -867,8 +867,8 @@ export function InvoiceCreator() {
         </AnimatePresence>
 
         {/* Pasek statusu autozapisu */}
-        <div className="flex items-center justify-between gap-2 px-1 text-xs">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">Status wersji roboczej:</span>
             {autosaveStatus === "saving" ? (
               <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
@@ -1013,7 +1013,7 @@ export function InvoiceCreator() {
 
         {/* Sprzedawca (Wystawca faktury) oraz typ dokumentu */}
         <Card className="border-primary/25 bg-card">
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 pb-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
                 <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca) & Typ

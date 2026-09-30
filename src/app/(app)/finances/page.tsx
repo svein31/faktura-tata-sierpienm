@@ -359,7 +359,7 @@ export default function FinancesPage() {
         size="lg"
         footer={
           step === "upload" ? (
-            <div className="flex items-center justify-between w-full">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button variant="ghost" onClick={() => setImportModalOpen(false)}>
                 Anuluj
               </Button>
@@ -368,7 +368,7 @@ export default function FinancesPage() {
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between w-full">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button variant="ghost" onClick={() => setStep("upload")}>
                 ← Wróć do pliku
               </Button>

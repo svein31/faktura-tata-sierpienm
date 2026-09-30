@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import {lockBodyScroll} from "@/lib/overlay-scroll";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {ChevronDown, Plus, Star, X, LayoutDashboard, FileText, Receipt, Users, Package, Briefcase, BookOpen, Settings} from "lucide-react";
@@ -29,10 +30,10 @@ export function SidebarContent({onNavigate,navLayoutId}:{onNavigate?:()=>void;na
 export function Sidebar(){return <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-card lg:block"><SidebarContent/></aside>;}
 export function MobileSidebar({open,onClose}:{open:boolean;onClose:()=>void}) {
  const ref=React.useRef<HTMLDivElement>(null);
- React.useEffect(()=>{if(!open)return;const previous=document.activeElement as HTMLElement,scroll=document.body.style.overflow;document.body.style.overflow="hidden";
+ React.useEffect(()=>{if(!open)return;const previous=document.activeElement as HTMLElement,unlock=lockBodyScroll();
  const focusables=()=>Array.from(ref.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),[tabindex="0"]')||[]).filter(el=>el.offsetParent!==null);
  focusables()[0]?.focus();const key=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const list=focusables(),first=list[0],last=list[list.length-1];if(!first){e.preventDefault();return;}if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};document.addEventListener("keydown",key);
- return()=>{document.body.style.overflow=scroll;document.removeEventListener("keydown",key);previous?.focus();};},[open,onClose]);
+ return()=>{unlock();document.removeEventListener("keydown",key);previous?.focus();};},[open,onClose]);
  if(!open)return null;
  return <div className="no-print fixed inset-0 z-50 lg:hidden"><button aria-label="Zamknij menu — tło" tabIndex={-1} className="absolute inset-0 bg-black/60" onClick={onClose}/><div ref={ref} role="dialog" aria-modal="true" aria-label="Nawigacja" className="absolute inset-y-0 left-0 w-72 max-w-[90vw] border-r bg-card shadow-2xl"><SidebarContent onNavigate={onClose} navLayoutId="mobile"/></div></div>;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { lockBodyScroll } from "@/lib/overlay-scroll";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -60,6 +61,7 @@ export function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [visualBounds,setVisualBounds] = React.useState({top:0,height:0});
   const listRef = React.useRef<HTMLDivElement>(null);
 
   // Otwieranie na Ctrl+K / Cmd+K lub zdarzenie globalne
@@ -83,15 +85,23 @@ export function CommandPalette() {
     };
   }, [open]);
 
-  // Focus i reset po otwarciu
   React.useEffect(() => {
-    if (open) {
-      setQuery("");
-      setActiveCategory("all");
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [open]);
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const unlock = lockBodyScroll();
+    const update = () => setVisualBounds({top:window.visualViewport?.offsetTop || 0,height:window.visualViewport?.height || innerHeight});
+    update();
+    window.visualViewport?.addEventListener("resize",update);
+    window.visualViewport?.addEventListener("scroll",update);
+    setQuery(""); setActiveCategory("all"); setSelectedIndex(0);
+    const timer = setTimeout(() => inputRef.current?.focus(),50);
+    return () => {
+      clearTimeout(timer); unlock();
+      window.visualViewport?.removeEventListener("resize",update);
+      window.visualViewport?.removeEventListener("scroll",update);
+      if (previous?.isConnected) previous.focus({preventScroll:true});
+    };
+  },[open]);
 
   // Zbudowanie bazy przeszukiwalnych elementów
   const allItems: CommandItem[] = React.useMemo(() => {
@@ -415,7 +425,8 @@ export function CommandPalette() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-[9999] flex items-start justify-center pt-[10vh] px-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-x-0 z-[9999] flex items-start justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
+          style={{top:visualBounds.top,height:visualBounds.height || "100dvh"}}
           onClick={() => setOpen(false)}
         >
           <motion.div
@@ -423,7 +434,10 @@ export function CommandPalette() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -6 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full max-w-2xl rounded-2xl border border-border/70 bg-card/95 backdrop-blur-2xl shadow-apple-lg overflow-hidden flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Wyszukiwanie i polecenia"
+            className="w-full min-w-0 max-w-2xl max-h-full rounded-2xl border border-border/70 bg-card/95 backdrop-blur-2xl shadow-apple-lg overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pasek Wyszukiwania */}
@@ -436,7 +450,7 @@ export function CommandPalette() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyNavigation}
                 placeholder="Szukaj faktury (numer, kwota), kontrahenta (NIP, nazwa), polecenia…"
-                className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
+                className="min-w-0 flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
               />
               {query && (
                 <button
@@ -482,7 +496,7 @@ export function CommandPalette() {
             {/* Lista Wyników */}
             <div
               ref={listRef}
-              className="max-h-[380px] overflow-y-auto p-2 space-y-1 divide-y divide-border/20"
+              className="min-h-0 max-h-[380px] flex-1 overflow-y-auto p-2 space-y-1 divide-y divide-border/20"
             >
               {filtered.length === 0 ? (
                 <div className="py-12 text-center text-xs text-muted-foreground">
@@ -585,8 +599,8 @@ export function CommandPalette() {
             </div>
 
             {/* Stopka z podpowiedziami klawiatury */}
-            <div className="flex items-center justify-between px-4 py-2 border-t border-border/60 bg-muted/20 text-[11px] text-muted-foreground">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-t border-border/60 bg-muted/20 text-[11px] text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3">
                 <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↑↓</kbd> Nawiguj</span>
                 <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↵</kbd> Otwórz</span>
                 <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">Tab</kbd> Zmień filtr</span>

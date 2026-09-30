@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { auditMobileExperience } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base) {
   const browser = await chromium.launch({ headless: true });
@@ -53,8 +54,8 @@ export async function browserChecks(base) {
       );
       assert.deepEqual(loginErrors, [], 'Mobile login must not report JavaScript errors');
     } finally { await loginContext.close(); }
-    const company = (await post('/api/companies', { companyName: 'Browser Company', nip: '5260301706' })).company;
-    const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer', nip: '5250001003' })).contractor;
+    const company = (await post('/api/companies', { companyName: 'Browser Company — Przedsiębiorstwo usługowe z długą nazwą do sprawdzenia układu na telefonie', nip: '5260301706' })).company;
+    const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer — Kontrahent z długą nazwą i dodatkowymi informacjami handlowymi', nip: '5250001003' })).contractor;
     for (let n = 1; n <= 32; n++) await post('/api/invoices', {
       number: `BROWSER/${String(n).padStart(3,'0')}`, type: 'sale', status: 'draft', sellerCompanyId: company.id, contractorId: contractor.id,
       issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
@@ -237,6 +238,10 @@ export async function browserChecks(base) {
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
     await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
+    if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
+      const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
+      await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName});
+    }
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }
 }

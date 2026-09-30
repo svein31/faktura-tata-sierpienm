@@ -57,10 +57,10 @@ export function InvoicePreview({
   const accentColor = invoice.type === "sale" ? (company.accentColor || company.primaryColor) : undefined;
 
   return (
-    <div className={cn("invoice-paper overflow-hidden p-6 sm:p-8", className)}>
+    <div className={cn("invoice-paper min-w-0 break-words p-4 sm:p-8", className)}>
       {/* Nagłówek */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-5">
-        <div className="flex items-start gap-4">
+        <div className="flex min-w-0 flex-wrap items-start gap-4">
           {logoUrl ? (
             <div className="flex shrink-0 items-center justify-center rounded-xl border border-border/60 bg-white p-2 max-w-[170px] max-h-[75px] shadow-xs">
               <img
@@ -71,7 +71,7 @@ export function InvoicePreview({
             </div>
           ) : null}
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 className={cn(
                   "text-lg font-bold tracking-tight",
@@ -179,7 +179,7 @@ export function InvoicePreview({
 
       {/* Pozycje */}
       <div className="mt-5 overflow-x-auto">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full min-w-[620px] text-[12.5px]">
           <thead>
             <tr className="border-b border-border text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
               <th className="py-2 pr-2">#</th>
