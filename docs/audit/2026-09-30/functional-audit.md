@@ -19,7 +19,9 @@ Alternatywna weryfikacja Netlify dla PR #24 działa z pominięciem produkcyjnych
 
 - fc3d962076f68e8b110b20320512c0baa7c2166e: wszystkie trzy podglądy zaliczyły podstawową integrację HTTP (bez fullFeatureAudit i przeglądarek), a także build, TypeScript, lint i testy jednostkowe. Start aplikacji, migracje i podstawowe scenariusze biznesowe są potwierdzone. Rozszerzony audyt jest ponownie uruchamiany osobno.
 
-Bezpośrednie logi Netlify nie są udostępnione przez aktywne połączenie GitHub. Nie jest to potwierdzenie zaliczenia najnowszych testów integracyjnych. PR pozostaje szkicem; najnowsze zmiany nie zostały wdrożone na produkcję.
+- 005a2ec359d20d4eb658d0fb3c479ebf64b05caf: wszystkie trzy podglądy zaliczyły pełną integrację HTTP, build, TypeScript, lint i testy jednostkowe. Poprawiono uprawnienia w danych testowych księgowej, aby odpowiadały rzeczywistej roli. Nowe testy przeglądarkowe wymagają jeszcze potwierdzenia.
+
+Bezpośrednie logi Netlify nie są udostępnione przez aktywne połączenie GitHub. Pełna integracja HTTP jest potwierdzona powyżej, natomiast najnowsze testy przeglądarkowe nie są jeszcze potwierdzone. PR pozostaje szkicem; najnowsze zmiany nie zostały wdrożone na produkcję.
 
 ## Naprawione problemy
 

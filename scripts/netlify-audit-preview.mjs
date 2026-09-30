@@ -4,7 +4,7 @@ const isAudit = process.env.CONTEXT === 'deploy-preview' && process.env.REVIEW_I
 if (isAudit) {
   const env = {};
   for (const key of ['PATH','HOME','TMPDIR','TEMP','TMP','LANG','LC_ALL','NODE_EXTRA_CA_CERTS','LD_LIBRARY_PATH']) if (process.env[key]) env[key] = process.env[key];
-  Object.assign(env, {CI:'true',NEXT_TELEMETRY_DISABLED:'1',SKIP_BROWSER_CHECKS:'1',MONGOMS_DOWNLOAD_IGNORE_MISSING_HEADER:'true',MONGOMS_DISTRO:'ubuntu-22.04'});
+  Object.assign(env, {CI:'true',NEXT_TELEMETRY_DISABLED:'1',RUN_ALL_MOBILE_CHECKS:'1',MONGOMS_DOWNLOAD_IGNORE_MISSING_HEADER:'true',MONGOMS_DISTRO:'ubuntu-22.04'});
   const report={sourceSha:process.env.COMMIT_REF,createdAt:new Date().toISOString(),stages:[],ok:false};
   function command(executable,args,options={}) {
     return new Promise((resolve,reject)=>{
@@ -33,11 +33,12 @@ if (isAudit) {
     await run('/tmp/fakturaprosto-audit-python/bin/pip',['install','lxml==6.0.2']);
     env.PATH='/tmp/fakturaprosto-audit-python/bin:'+env.PATH;
     await run('npm',['test']);
+    await run('npx',['playwright','install','chromium']);
     await run('npm',['run','test:integration']);
     report.ok=true;
   } catch(error) {failure=error;report.error=error.message;}
   if(failure)throw failure;
-  console.log('[audit-preview] PASS typecheck, lint, all unit tests and full HTTP integration (browser verification remains pending)');
+  console.log('[audit-preview] PASS typecheck, lint, all unit tests and full HTTP integration and Chromium mobile workflows (WebKit remains pending)');
 } else {
   console.log('[audit-preview] Standard preview build');
 }
