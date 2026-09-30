@@ -3,11 +3,32 @@ import { chromium, webkit, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
 const appRoutes = ['/dashboard','/analytics','/calendar','/invoices','/invoices/new','/invoices/recurring','/advances','/offers','/recurring','/reminders','/ksef','/expenses','/documents','/cost-reviews','/finances','/contractors','/products','/warehouse','/orders','/projects','/accountant/portal','/accountant','/jpk','/tax-estimate','/audit','/settings/team','/settings/companies','/settings/appearance','/settings/pdf-templates','/settings/currencies','/settings/integrations','/settings/health','/settings/account','/settings/ksef','/help'];
-// Drain prefetch requests before full document navigation: WebKit otherwise
-// reports cancelled same-origin RSC fetches as access-control exceptions.
-async function navigate(page, route, options) {
-  if (page.url() !== 'about:blank') await page.waitForLoadState('networkidle', { timeout: 20000 });
-  return page.goto(route, options);
+// Isolate full document navigations while preserving the browser context.
+// Closing an old document cancels Next prefetches; detach only its error
+// listener during that deliberate teardown. All live-document errors remain fatal.
+const errorObservers = new WeakMap(), responses = new WeakMap();
+function observeErrors(page, engine, errors, prefix) {
+  const listener = error => {
+    const record = { engine, url: page.url(), message: error.message, stack: error.stack };
+    errors.push(record); console.log(prefix + ' ' + JSON.stringify(record));
+  };
+  page.on('pageerror', listener);
+  errorObservers.set(page, {engine, errors, prefix, listener});
+}
+async function navigate(previous, route, options) {
+  let page = previous;
+  if (previous.url() !== 'about:blank') {
+    const observer = errorObservers.get(previous), viewport = previous.viewportSize();
+    page = await previous.context().newPage();
+    await page.setViewportSize(viewport);
+    if (observer) {
+      previous.off('pageerror', observer.listener);
+      observeErrors(page, observer.engine, observer.errors, observer.prefix);
+    }
+    await previous.close();
+  }
+  responses.set(page, await page.goto(route, options));
+  return page;
 }
 
 const publicRoutes = ['/','/login','/register','/forgot-password','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat'];
@@ -42,8 +63,8 @@ export async function auditMobileExperience(base, storageState, fixture) {
     const browser=await engine.driver.launch({headless:true});
     const context=await browser.newContext({baseURL:base,storageState,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
     const publicContext=await browser.newContext({baseURL:base,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
-    const page=await context.newPage(), publicPage=await publicContext.newPage(), errors=[];
-    for(const target of [page,publicPage]) target.on('pageerror',error=>{const record={engine:engine.name,url:target.url(),message:error.message,stack:error.stack};errors.push(record);console.log('[mobile-js-error] '+JSON.stringify(record));});
+    let page=await context.newPage(), publicPage=await publicContext.newPage(); const errors=[];
+    for(const target of [page,publicPage]) observeErrors(target,engine.name,errors,'[mobile-js-error]');
     let activeTarget=page;
     async function audit(target,label) {
       activeTarget=target;
@@ -59,7 +80,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
         await page.setViewportSize({width,height}); await publicPage.setViewportSize({width,height});
         const publicSet=width===667?['/','/login','/demo']:publicRoutes;
         for(const route of publicSet) {
-          activeTarget=publicPage; await navigate(publicPage,route);
+          publicPage=await navigate(publicPage,route); activeTarget=publicPage;
           await expect(publicPage.locator('h1').first()).toBeVisible();
           await publicPage.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
           if(!await publicPage.evaluate(()=>document.cookie.includes('fakturo_consent='))) await expect(publicPage.getByRole('button',{name:'Odrzuć opcjonalne',exact:true})).toBeVisible();
@@ -74,7 +95,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
         }
         const routes=width===667?['/invoices/new','/finances','/accountant/portal','/settings/companies']:[...appRoutes,'/invoices/'+fixture.invoiceId];
         for(const route of routes) {
-          activeTarget=page; await navigate(page,route);
+          page=await navigate(page,route); activeTarget=page;
           await expect(page.locator('main')).toBeVisible();
           await expect(page.locator('main h1').first()).toBeVisible();
           await page.waitForLoadState('networkidle');
@@ -95,18 +116,18 @@ export async function auditMobileExperience(base, storageState, fixture) {
       let releaseBootstrap;
       const bootstrapGate=new Promise(resolve=>{releaseBootstrap=resolve;});
       const holdBootstrap=async route=>{await bootstrapGate;await route.continue();};
-      await page.route('**/api/data**',holdBootstrap);
+      await context.route('**/api/data**',holdBootstrap);
       try {
-        activeTarget=page; await navigate(page,'/dashboard',{waitUntil:'domcontentloaded'});
+        page=await navigate(page,'/dashboard',{waitUntil:'domcontentloaded'}); activeTarget=page;
         await expect(page.locator('main [aria-busy="true"]')).toBeVisible();
         await audit(page,'data loading on slow connection');
       } finally {releaseBootstrap();}
       await expect(page.locator('main h1').first()).toBeVisible();
-      await page.unroute('**/api/data**',holdBootstrap);
+      await context.unroute('**/api/data**',holdBootstrap);
       for (const [width,height] of [[320,740],[430,932]]) {
         await page.setViewportSize({width,height});
         for (const [route,button] of [['/contractors','Dodaj kontrahenta'],['/products','Dodaj pozycję'],['/offers','Nowa oferta'],['/orders','Nowe zlecenie'],['/expenses','Dodaj koszt'],['/settings/companies','Dodaj firmę']]) {
-          activeTarget=page; await navigate(page,route); await expect(page.locator('main h1').first()).toBeVisible();
+          page=await navigate(page,route); activeTarget=page; await expect(page.locator('main h1').first()).toBeVisible();
           await page.getByRole('button',{name:button,exact:true}).first().tap();
           const dialog=page.getByRole('dialog').first(); await expect(dialog).toBeVisible();
           await audit(page,route+' create dialog');
@@ -115,23 +136,23 @@ export async function auditMobileExperience(base, storageState, fixture) {
         }
       }
       await page.setViewportSize({width:320,height:740});
-      activeTarget=page; await navigate(page,'/contractors');
+      page=await navigate(page,'/contractors'); activeTarget=page;
       await page.getByRole('button',{name:'CRM 360°',exact:true}).first().tap();
       const crm=page.getByRole('dialog'); await expect(crm).toBeVisible();
       await expect(crm.getByRole('status')).toHaveCount(0); await audit(page,'contractor CRM');
       await crm.getByRole('button',{name:'Zamknij',exact:true}).tap(); await expect(crm).toHaveCount(0);
-      activeTarget=page; await navigate(page,'/invoices/'+fixture.invoiceId);
+      page=await navigate(page,'/invoices/'+fixture.invoiceId); activeTarget=page;
       await page.getByRole('button',{name:'Wyślij e-mailem',exact:true}).tap();
       const email=page.getByRole('dialog'); await expect(email).toBeVisible(); await audit(page,'invoice email dialog');
       await email.getByRole('button',{name:'Zamknij',exact:true}).first().tap(); await expect(email).toHaveCount(0);
-      activeTarget=page; await navigate(page,'/invoices/new');
+      page=await navigate(page,'/invoices/new'); activeTarget=page;
       await page.getByTitle('Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)',{exact:true}).tap();
       const shortcuts=page.getByRole('dialog',{name:'Skróty klawiszowe',exact:true});
       await expect(shortcuts).toBeVisible(); await audit(page,'invoice shortcuts');
       await shortcuts.getByRole('button',{name:'Zamknij',exact:true}).tap(); await expect(shortcuts).toHaveCount(0);
       // Exercise actual touch-sized controls, not just static screenshots.
       await page.setViewportSize({width:320,height:740});
-      activeTarget=page; await navigate(page,'/dashboard'); await expect(page.locator('main h1')).toBeVisible();
+      page=await navigate(page,'/dashboard'); activeTarget=page; await expect(page.locator('main h1')).toBeVisible();
       await page.evaluate(()=>window.dispatchEvent(new CustomEvent('fakturo:open-onboarding')));
       const tour=page.getByRole('dialog',{name:'Pierwsze kroki',exact:true});
       await expect(tour).toBeVisible(); await audit(page,'onboarding');
@@ -164,7 +185,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await audit(page,'command search short viewport');
       await page.keyboard.press('Escape'); await expect(search).toHaveCount(0);
       await page.setViewportSize({width:320,height:740});
-      activeTarget=page; await navigate(page,'/finances');
+      page=await navigate(page,'/finances'); activeTarget=page;
       await page.getByRole('button',{name:/Import.*wyciąg/}).tap();
       const importDialog=page.getByRole('dialog',{name:'Import wyciągu bankowego',exact:true});
       await expect(importDialog).toBeVisible(); await audit(page,'bank import dialog');
@@ -175,7 +196,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await audit(page,'bank format dropdown'); await page.keyboard.press('Escape');
       await expect(importDialog).toBeVisible(); await page.keyboard.press('Escape'); await expect(importDialog).toHaveCount(0);
       await page.setViewportSize({width:320,height:740});
-      activeTarget=page; await navigate(page,'/invoices/new');
+      page=await navigate(page,'/invoices/new'); activeTarget=page;
       const discard=page.getByRole('button',{name:'Odrzuć',exact:true});
       if(await discard.isVisible()) await discard.tap();
       await page.getByRole('button',{name:'Wpisz numer ręcznie',exact:true}).tap();
@@ -195,10 +216,10 @@ export async function auditMobileExperience(base, storageState, fixture) {
       const body=await saved.json();assert.ok(saved.ok(),JSON.stringify(body));
       await expect(page).toHaveURL(/invoices$/);
       assert.equal(body.invoice.lines[0].quantity,2);assert.equal(Number(body.invoice.lines[0].netPrice),100);assert.equal(String(body.invoice.lines[0].vatRate),'8');
-      activeTarget=page; await navigate(page,'/reminders');
+      page=await navigate(page,'/reminders'); activeTarget=page;
       assert.equal(await page.getByText('Dodaj SMS',{exact:true}).count(),0);
       await fixture.prepareTerms();
-      activeTarget=page; await navigate(page,'/dashboard');
+      page=await navigate(page,'/dashboard'); activeTarget=page;
       const terms=page.getByRole('dialog',{name:'Aktualizacja Regulaminu serwisu',exact:true});
       await expect(terms).toBeVisible();
       await page.setViewportSize({width:320,height:400});
@@ -246,13 +267,13 @@ export async function auditPublicMobileSite(origin) {
   for(const engine of [{name:'chromium',driver:chromium,widths:[320,390,430]},{name:'webkit',driver:webkit,widths:[375]}]) {
     const browser=await engine.driver.launch({headless:true});
     const context=await browser.newContext({baseURL:origin,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
-    const page=await context.newPage();
-    page.on('pageerror',error=>{const record={engine:engine.name,url:page.url(),message:error.message};errors.push(record);console.log('[production-mobile-js] '+JSON.stringify(record));});
+    let page=await context.newPage();
+    observeErrors(page,engine.name,errors,'[production-mobile-js]');
     try {
       for(const width of engine.widths) {
         await page.setViewportSize({width,height:812});
         for(const route of publicRoutes) {
-          const response=await navigate(page,route,{timeout:60000});
+          page=await navigate(page,route,{timeout:60000}); const response=responses.get(page);
           assert.ok(response?.ok(),engine.name+' '+route+' HTTP '+response?.status());
           await expect(page.locator('h1').first()).toBeVisible({timeout:30000});
           await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
