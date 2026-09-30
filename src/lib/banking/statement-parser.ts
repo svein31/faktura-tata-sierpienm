@@ -48,7 +48,7 @@ export function parseStatementCsv(text: string): StatementTransaction[] {
   let rows: string[][] = [], headerIndex = -1;
   for (const separator of [";", "\t", ","]) {
     const candidate = csvRows(text.replace(/^\uFEFF/, ""), separator);
-    const index = candidate.slice(0, 30).findIndex(row => row.some(v => /data|date/.test(normal(v))) && row.some(v => /kwota|wartosc|amount|credit|debit|uznani|obciaz/.test(normal(v))));
+    const index = candidate.slice(0, 30).findIndex(row => row.length > 1 && row.some(v => /data|date/.test(normal(v))) && row.some(v => /kwota|wartosc|amount|credit|debit|uznani|obciaz/.test(normal(v))));
     if (index >= 0) { rows = candidate; headerIndex = index; break; }
   }
   if (headerIndex < 0) throw new Error("Brak kolumn daty i kwoty. Użyj CSV z nagłówkiem.");
