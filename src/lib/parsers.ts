@@ -141,9 +141,9 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
       name,
       quantity: roundHalfUp(quantity, 6),
       unit: cleanStr(l.unit, 30, `lines[${idx}].unit`) || "szt.",
-      netPrice: Math.round(netPrice * 100) / 100,
+      netPrice: round2(netPrice),
       vatRate,
-      ...(hasSettlement ? { settlementNet: Math.round(settlementNet * 100) / 100, settlementVat: Math.round(settlementVat * 100) / 100 } : {}),
+      ...(hasSettlement ? { settlementNet: round2(settlementNet), settlementVat: round2(settlementVat) } : {}),
     };
   });
 }

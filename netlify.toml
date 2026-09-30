@@ -6,3 +6,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# The audit fallback runs only for PR #24 on the faktura-tata preview.
+[context.deploy-preview]
+  command = "npm run build && node scripts/netlify-audit-preview.mjs"
