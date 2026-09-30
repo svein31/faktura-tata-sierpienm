@@ -160,6 +160,7 @@ export default function AccountantPage() {
         const err = await res.json();
         throw new Error(err.error || "Błąd zapraszania");
       }
+      const data=await res.json();
       toast("success", "Wysłano zaproszenie", `Wygenerowano dostęp dla ${inviteEmail}`);
       if(data.invitation?.id && typeof data.inviteUrl==="string")setInvitationLinks(links=>({...links,[data.invitation.id]:data.inviteUrl}));
       setInviteEmail("");
