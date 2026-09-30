@@ -102,12 +102,13 @@ export function parseCamt053(text: string): StatementTransaction[] {
     const details = list<any>(entry.NtryDtls).flatMap(d => list<any>(d.TxDtls));
     const operations = details.length ? details : [{}]; let sum = 0;
     for (const detail of operations) {
-      const amountNode = detail.AmtDtls?.TxAmt?.Amt || detail.Amt || (operations.length === 1 ? entry.Amt : undefined);
+      const amountNode = operations.length === 1 ? entry.Amt : detail.AmtDtls?.TxAmt?.Amt || detail.Amt;
       if (!amountNode) throw new Error("Brak kwot pojedynczych operacji w zbiorczym wpisie camt.053.");
       const indicator = detail.CdtDbtInd || entry.CdtDbtInd;
       if (!["CRDT", "DBIT"].includes(indicator)) throw new Error("Brak kierunku operacji camt.053.");
       const amount = statementAmount(String(typeof amountNode === "object" ? amountNode["#text"] : amountNode));
       const ccy = currency(amountNode["@_Ccy"] || entry.Amt?.["@_Ccy"] || statement.Acct?.Ccy);
+      if (ccy !== currency(entry.Amt?.["@_Ccy"] || statement.Acct?.Ccy)) throw new Error("Zbiorczy wpis camt.053 zawiera różne waluty; wymagany jest profil banku.");
       if (amount < 0) throw new Error("Kwota camt.053 musi być dodatnia.");
       sum += amount;
       const party = indicator === "CRDT" ? "Dbtr" : "Cdtr";
