@@ -1,75 +1,19 @@
 "use client";
-
 import * as React from "react";
-
-type Theme = "light" | "dark" | "system";
-
-const ThemeContext = React.createContext<{
-  theme: Theme;
-  resolved: "light" | "dark";
-  setTheme: (t: Theme) => void;
-  toggle: () => void;
-} | null>(null);
-
-const STORAGE_KEY = "fakturo-theme";
-
-export function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (stored === "light" || stored === "dark" || stored === "system") return stored;
-  return "dark";
+import {applyCustomColors,DEFAULT_COLORS,sanitizeColors,type CustomColors,type ThemeMode} from "@/lib/theme-colors";
+type Theme="light"|"dark"|"system";
+const STORAGE_KEY="fakturaprosto-theme",COLORS_KEY="fakturaprosto-colors";
+const ThemeContext=React.createContext<{theme:Theme;resolved:ThemeMode;colors:CustomColors;setTheme:(t:Theme)=>void;setColors:(c:CustomColors)=>void;toggle:()=>void}|null>(null);
+export function getInitialTheme():Theme{if(typeof window==="undefined")return "dark";try{const value=localStorage.getItem(STORAGE_KEY)||localStorage.getItem("fakturo-theme");if(value==="light"||value==="dark"||value==="system")return value;}catch{}return "dark";}
+function getColors(){try{return sanitizeColors(JSON.parse(localStorage.getItem(COLORS_KEY)||"{}"));}catch{return DEFAULT_COLORS;}}
+function resolve(theme:Theme):ThemeMode{return theme==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):theme;}
+export function applyTheme(theme:Theme,colors=getColors()){const mode=resolve(theme),root=document.documentElement;root.classList.toggle("dark",mode==="dark");root.style.colorScheme=mode;applyCustomColors(mode,colors);return mode;}
+export function ThemeProvider({children}:{children:React.ReactNode}){
+ const [theme,setThemeState]=React.useState<Theme>("dark"),[resolved,setResolved]=React.useState<ThemeMode>("dark"),[colors,setColorsState]=React.useState<CustomColors>(DEFAULT_COLORS),themeRef=React.useRef<Theme>("dark"),colorsRef=React.useRef<CustomColors>(DEFAULT_COLORS);
+ React.useEffect(()=>{const update=()=>{const t=getInitialTheme(),c=getColors();themeRef.current=t;colorsRef.current=c;setThemeState(t);setColorsState(c);setResolved(applyTheme(t,c));};update();const mq=matchMedia("(prefers-color-scheme: dark)"),system=()=>setResolved(applyTheme(themeRef.current,colorsRef.current)),storage=(e:StorageEvent)=>{if([STORAGE_KEY,COLORS_KEY,"fakturo-theme",null].includes(e.key))update();};mq.addEventListener("change",system);window.addEventListener("storage",storage);return()=>{mq.removeEventListener("change",system);window.removeEventListener("storage",storage);};},[]);
+ const setTheme=React.useCallback((t:Theme)=>{try{localStorage.setItem(STORAGE_KEY,t);localStorage.removeItem("fakturo-theme");}catch{}themeRef.current=t;setThemeState(t);setResolved(applyTheme(t,colorsRef.current));},[]);
+ const setColors=React.useCallback((c:CustomColors)=>{const next=sanitizeColors(c);try{localStorage.setItem(COLORS_KEY,JSON.stringify(next));}catch{}colorsRef.current=next;setColorsState(next);setResolved(applyTheme(themeRef.current,next));},[]);
+ const toggle=React.useCallback(()=>setTheme(resolved==="dark"?"light":"dark"),[resolved,setTheme]);
+ return <ThemeContext.Provider value={{theme,resolved,colors,setTheme,setColors,toggle}}>{children}</ThemeContext.Provider>;
 }
-
-export function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const dark = theme === "dark" || (theme === "system" ? systemDark : false);
-  root.classList.toggle("dark", dark);
-  root.style.colorScheme = dark ? "dark" : "light";
-}
-
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("dark");
-  const [resolved, setResolved] = React.useState<"light" | "dark">("dark");
-
-  React.useEffect(() => {
-    const init = getInitialTheme();
-    setThemeState(init);
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const update = () => {
-      const t = getInitialTheme();
-      applyTheme(t);
-      setResolved(t === "system" ? (mq.matches ? "dark" : "light") : t);
-    };
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
-  const setTheme = React.useCallback((t: Theme) => {
-    window.localStorage.setItem(STORAGE_KEY, t);
-    setThemeState(t);
-    applyTheme(t);
-    setResolved(t === "system"
-      ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-      : t);
-  }, []);
-
-  const toggle = React.useCallback(() => {
-    const cur = getInitialTheme();
-    const next: Theme = cur === "dark" ? "light" : "dark";
-    setTheme(next);
-  }, [setTheme]);
-
-  return (
-    <ThemeContext.Provider value={{ theme, resolved, setTheme, toggle }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-
-export function useTheme() {
-  const ctx = React.useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
-}
+export function useTheme(){const context=React.useContext(ThemeContext);if(!context)throw new Error("useTheme must be used within ThemeProvider");return context;}

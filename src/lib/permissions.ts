@@ -1,51 +1,8 @@
 import { prisma } from "@/lib/db";
 import type { CompanyPermissions, CompanyRole } from "@/lib/types";
 
-export const DEFAULT_ROLE_PERMISSIONS: Record<CompanyRole, CompanyPermissions> = {
-  owner: {
-    canIssueInvoices: true,
-    canCreateCorrections: true,
-    canRecordPayments: true,
-    canExport: true,
-    canSendKsef: true,
-    canManageBankAccounts: true,
-    canManageTeam: true,
-  },
-  accountant: {
-    canIssueInvoices: false,
-    canCreateCorrections: false,
-    canRecordPayments: true,
-    canExport: true,
-    canSendKsef: false,
-    canManageBankAccounts: false,
-    canManageTeam: false,
-  },
-  employee: {
-    canIssueInvoices: true,
-    canCreateCorrections: false,
-    canRecordPayments: false,
-    canExport: false,
-    canSendKsef: true,
-    canManageBankAccounts: false,
-    canManageTeam: false,
-  },
-  viewer: {
-    canIssueInvoices: false,
-    canCreateCorrections: false,
-    canRecordPayments: false,
-    canExport: false,
-    canSendKsef: false,
-    canManageBankAccounts: false,
-    canManageTeam: false,
-  },
-};
-
-export const ROLE_LABELS: Record<CompanyRole, string> = {
-  owner: "Właściciel",
-  accountant: "Księgowa / Biuro",
-  employee: "Pracownik",
-  viewer: "Podgląd (Odczyt)",
-};
+import { DEFAULT_ROLE_PERMISSIONS } from "./role-permissions";
+export { DEFAULT_ROLE_PERMISSIONS, ROLE_LABELS } from "./role-permissions";
 
 export interface MembershipResult {
   role: CompanyRole;
@@ -87,8 +44,9 @@ export async function getCompanyMembership(
   });
 
   if (member) {
-    const role = (member.role as CompanyRole) || "employee";
-    const defaults = DEFAULT_ROLE_PERMISSIONS[role] || DEFAULT_ROLE_PERMISSIONS.employee;
+    const role = member.role as CompanyRole;
+    if (!Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, role)) return null;
+    const defaults = DEFAULT_ROLE_PERMISSIONS[role];
 
     // Właściciel zawsze ma pełne uprawnienia
     if (role === "owner") {
@@ -110,6 +68,7 @@ export async function getCompanyMembership(
         canSendKsef: member.canSendKsef ?? defaults.canSendKsef,
         canManageBankAccounts: member.canManageBankAccounts ?? defaults.canManageBankAccounts,
         canManageTeam: member.canManageTeam ?? defaults.canManageTeam,
+        canManageIntegrations: member.canManageIntegrations ?? defaults.canManageIntegrations,
       },
       company,
       memberId: member.id,

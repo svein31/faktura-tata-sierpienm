@@ -1,0 +1,60 @@
+name: Production deployment smoke check
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-deployment-smoke
+  cancel-in-progress: true
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Wait for production and verify public site, database and authentication
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const origin = 'https://fakturaprosto.pl';
+            const deadline = Date.now() + 10 * 60 * 1000;
+            let lastFailure = 'Production has not been checked.';
+            while (Date.now() < deadline) {
+              try {
+                const get = path => fetch(origin + path, {
+                  headers: { 'Cache-Control': 'no-cache', 'Accept': path === '/' ? 'text/html' : 'application/json' },
+                  redirect: 'error',
+                  signal: AbortSignal.timeout(15000),
+                });
+                const health = await get('/api/health');
+                const body = await health.json();
+                if (health.status !== 200 || body.ok !== true || body.db !== 'ok') throw new Error('Application or database health check failed.');
+                const home = await get('/');
+                const html = await home.text();
+                if (home.status !== 200 || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"')) throw new Error('The new public page is not available yet.');
+                for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers']) {
+                  const response = await get(path);
+                  if (response.status !== 401) throw new Error('Unauthenticated API check failed for ' + path + ': HTTP ' + response.status);
+                }
+                core.info('Production public page, MongoDB and API authentication checks passed.');
+                await core.summary
+                  .addHeading('Production deployment smoke check')
+                  .addTable([
+                    [{ data: 'Check', header: true }, { data: 'Result', header: true }],
+                    ['Target', origin],
+                    ['Release commit', context.sha],
+                    ['Public page and new pricing/preview', 'HTTP 200 and expected content'],
+                    ['Database', 'Health endpoint: ok'],
+                    ['Accountant, tax estimate, bank transfers', 'Unauthenticated requests: HTTP 401'],
+                  ])
+                  .addRaw('Read-only checks; no invoices, accounts or customer messages were created. This does not test authenticated workflows or external providers.')
+                  .write();
+                return;
+              } catch (error) {
+                lastFailure = error.message || error.name || 'Request failed.';
+                core.info(lastFailure);
+              }
+              await new Promise(resolve => setTimeout(resolve, 20000));
+            }
+            core.setFailed('Production did not pass smoke checks within 10 minutes: ' + lastFailure);

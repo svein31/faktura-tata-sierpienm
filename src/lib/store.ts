@@ -13,7 +13,7 @@ import type {
   Product,
 } from "./types";
 import { todayISO } from "./utils";
-import { resolveSelectedCompany } from "./company-selection";
+import { companyKsefSettings, resolveSelectedCompany } from "./company-selection";
 import { PURCHASE_INVOICE_READ_ONLY } from "./invoice-policy";
 
 /**
@@ -145,7 +145,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       company: defaultComp,
       companies,
       selectedCompanyId: defaultComp?.id ?? null,
-      ksef: data.ksef,
+      ksef: companyKsefSettings(defaultComp, data.ksef),
       contractors: data.contractors,
       products: data.products,
       invoices: data.invoices,
@@ -181,7 +181,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         company: defaultComp,
         companies,
         selectedCompanyId: defaultComp?.id ?? null,
-        ksef: data.ksef,
+        ksef: companyKsefSettings(defaultComp, data.ksef),
         contractors: data.contractors,
         products: data.products,
         invoices: data.invoices,
@@ -409,7 +409,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setSelectedCompanyId: (id) => {
     const company = resolveSelectedCompany(get().companies, id);
-    set({ company, selectedCompanyId: company?.id ?? null });
+    set({ company, selectedCompanyId: company?.id ?? null, ksef: companyKsefSettings(company, get().ksef) });
   },
 
   /* ── Ustawienia ─────────────────────────────────────────────────────── */
@@ -440,6 +440,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   updateKsef: async (patch) => {
+    const companyId=get().company?.id;
     const current = get().ksef ?? {
       environment: "demo",
       tokenSet: false,
@@ -454,14 +455,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       const res = await fetch("/api/ksef", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(optimistic),
+        body: JSON.stringify({...optimistic,companyId}),
       });
       if (!res.ok) throw await apiError(res, "Nie udało się zapisać ustawień KSeF.");
       const data = (await res.json()) as { ksef: KsefSettings };
-      set({ ksef: data.ksef });
+      if(get().company?.id===companyId) {
+        const companies=get().companies.map(c=>c.id===companyId?{...c,ksefEnvironment:data.ksef.environment,ksefTokenSet:data.ksef.tokenSet}:c);
+        set({companies,company:companies.find(c=>c.id===companyId)||get().company,ksef:data.ksef});
+      }
       return data.ksef;
     } catch (err) {
-      set({ ksef: current });
+      if(get().company?.id===companyId)set({ ksef: current });
       throw err;
     }
   },

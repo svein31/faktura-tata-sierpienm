@@ -33,7 +33,7 @@ function routeMocks(invoice, role = "owner") {
       updateMany: async () => { writes++; return {count: 1}; },
       delete: async () => { writes++; },
     },
-    companyProfile: {findUnique: async () => ({id: "company", userId: "owner"})},
+    companyProfile: {findUnique: async () => ({id: "aaaaaaaaaaaaaaaaaaaaaaaa", userId: "owner"}), update: async () => ({})},
     companyMember: {findUnique: async () => role ? ({id: "member",role}) : null, findMany: async () => []},
     paymentRecord: {create: async () => { writes++; }, findMany: async () => []},
   };
@@ -48,7 +48,7 @@ function routeMocks(invoice, role = "owner") {
 }
 const req = (body={}) => new Request("http://localhost/api", {method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
 test("purchase preview remains available; update/delete/payment reject before writing", async () => {
-  const writes = routeMocks({id,userId:"user",sellerCompanyId:"company",type:"purchase",version:1});
+  const writes = routeMocks({id,userId:"user",sellerCompanyId:"aaaaaaaaaaaaaaaaaaaaaaaa",type:"purchase",version:1});
   const route = load("src/app/api/invoices/[id]/route.ts");
   const payments = load("src/app/api/invoices/[id]/payments/route.ts");
   const ctx = {params:{id}};
@@ -68,21 +68,21 @@ test("previously issued invoice cannot become a deletable draft", async () => {
   assert.equal(writes(),0);
 });
 test("purchase approval and revocation work for accountants", async () => {
-  const writes = routeMocks({id,userId:"author",sellerCompanyId:"company",type:"purchase",issueDate:"2026-09-20"},"accountant");
+  const writes = routeMocks({id,userId:"author",sellerCompanyId:"aaaaaaaaaaaaaaaaaaaaaaaa",type:"purchase",issueDate:"2026-09-20"},"accountant");
   const route = load("src/app/api/invoices/approve/route.ts");
   for (const status of ["approved","pending"]) assert.equal((await route.POST(req({invoiceIds:[id],status}))).status,200);
   assert.equal(writes(),2);
 });
 test("viewer and revoked author cannot approve", async () => {
   for (const role of ["viewer",null]) {
-    const writes = routeMocks({id,userId:"user",sellerCompanyId:"company",type:"purchase"},role);
+    const writes = routeMocks({id,userId:"user",sellerCompanyId:"aaaaaaaaaaaaaaaaaaaaaaaa",type:"purchase"},role);
     const route = load("src/app/api/invoices/approve/route.ts");
     assert.equal((await route.POST(req({invoiceIds:[id]}))).status,403);
     assert.equal(writes(),0);
   }
 });
 test("sales cannot be approved as costs and sales viewer cannot edit", async () => {
-  const writes = routeMocks({id,userId:"user",sellerCompanyId:"company",type:"sale",version:1},"viewer");
+  const writes = routeMocks({id,userId:"user",sellerCompanyId:"aaaaaaaaaaaaaaaaaaaaaaaa",type:"sale",version:1},"viewer");
   assert.equal((await load("src/app/api/invoices/approve/route.ts").POST(req({invoiceIds:[id]}))).status,400);
   assert.equal((await load("src/app/api/invoices/[id]/route.ts").PUT(req({version:1}),{params:{id}})).status,403);
   assert.equal(writes(),0);

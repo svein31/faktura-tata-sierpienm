@@ -20,6 +20,8 @@ export function ThemeToggle({ className }: { className?: string }) {
           <button
             key={t}
             onClick={() => setTheme(t)}
+            aria-pressed={active}
+            aria-label={t === "light" ? "Jasny" : t === "dark" ? "Ciemny" : "Systemowy"}
             title={t === "light" ? "Jasny" : t === "dark" ? "Ciemny" : "Systemowy"}
             className={cn(
               "flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-all duration-150 active:scale-90",

@@ -110,29 +110,14 @@ export async function GET(req: Request) {
     }
 
     for (const m of memberships) {
-      if (m.company && !companyMap.has(m.company.id)) {
-        const dto = companyProfileToDto(m.company);
-        const role = (m.role as CompanyRole) || "employee";
-        const defaults = DEFAULT_ROLE_PERMISSIONS[role] || DEFAULT_ROLE_PERMISSIONS.employee;
-
-        dto.currentUserRole = role;
-        dto.currentUserPermissions = {
-          canIssueInvoices: m.canIssueInvoices ?? defaults.canIssueInvoices,
-          canCreateCorrections: m.canCreateCorrections ?? defaults.canCreateCorrections,
-          canRecordPayments: m.canRecordPayments ?? defaults.canRecordPayments,
-          canExport: m.canExport ?? defaults.canExport,
-          canSendKsef: m.canSendKsef ?? defaults.canSendKsef,
-          canManageBankAccounts: m.canManageBankAccounts ?? defaults.canManageBankAccounts,
-          canManageTeam: m.canManageTeam ?? defaults.canManageTeam,
-        };
-        dto.bankAccounts = scopedAccounts(m.company);
-        companyMap.set(m.company.id, dto);
-      } else if (m.company && companyMap.has(m.company.id)) {
-        // Uzupełnij rolę jeśli istnieje
-        const existing = companyMap.get(m.company.id);
-        const role = (m.role as CompanyRole) || "owner";
-        existing.currentUserRole = role;
-      }
+      const role=m.role as CompanyRole;
+      if(!Object.hasOwn(DEFAULT_ROLE_PERMISSIONS,role)){companyMap.delete(m.companyId);continue;}
+      const dto=companyMap.get(m.companyId)||companyProfileToDto(m.company);
+      dto.currentUserRole=role;
+      dto.bankAccounts=scopedAccounts(m.company);
+      const defaults=DEFAULT_ROLE_PERMISSIONS[role];
+      dto.currentUserPermissions=Object.fromEntries(Object.entries(defaults).map(([key,value])=>[key,role==="owner"?true:(m as any)[key]??value])) as typeof defaults;
+      companyMap.set(m.companyId,dto);
     }
 
     const allCompanies = Array.from(companyMap.values());

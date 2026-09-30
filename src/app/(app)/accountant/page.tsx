@@ -87,6 +87,8 @@ export default function AccountantPage() {
   const checklist = useWorkspacePreference<Record<string, boolean>>(`accountant:${currentMonth}`, selectedCompanyId);
   const checkedItems = checklist.value || {};
 
+  const [invitationLinks,setInvitationLinks] = React.useState<Record<string,string>>({});
+  React.useEffect(()=>setInvitationLinks({}),[selectedCompanyId]);
   // Team invitations
   const [invitations, setInvitations] = React.useState<TeamInvite[]>([]);
   const [inviteEmail, setInviteEmail] = React.useState("");
@@ -158,7 +160,9 @@ export default function AccountantPage() {
         const err = await res.json();
         throw new Error(err.error || "Błąd zapraszania");
       }
+      const data=await res.json();
       toast("success", "Wysłano zaproszenie", `Wygenerowano dostęp dla ${inviteEmail}`);
+      if(data.invitation?.id && typeof data.inviteUrl==="string")setInvitationLinks(links=>({...links,[data.invitation.id]:data.inviteUrl}));
       setInviteEmail("");
       fetchInvitations();
     } catch (err: unknown) {
@@ -179,10 +183,11 @@ export default function AccountantPage() {
     }
   };
 
-  const copyInviteLink = (token: string) => {
-    const url = `${window.location.origin}/invite/${token}`;
+  const copyInviteLink = (id: string) => {
+    const path = invitationLinks[id]; if (!path) return;
+    const url = window.location.origin + path;
     navigator.clipboard.writeText(url);
-    setCopiedToken(token);
+    setCopiedToken(id);
     setTimeout(() => setCopiedToken(null), 2000);
     toast("success", "Skopiowano link", "Link zaproszenia skopiowany do schowka.");
   };
@@ -451,10 +456,11 @@ export default function AccountantPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyInviteLink(inv.token)}
+                        disabled={!invitationLinks[inv.id]}
+                        onClick={() => copyInviteLink(inv.id)}
                         title="Kopiuj bezpośredni link zaproszenia"
                       >
-                        {copiedToken === inv.token ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+                        {copiedToken === inv.id ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                       </Button>
                       <Button
                         variant="ghost"

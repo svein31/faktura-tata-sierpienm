@@ -1,3 +1,5 @@
+import { WorkspacePreview } from "@/components/landing/workspace-preview";
+import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -57,6 +59,7 @@ export default function LandingPage() {
             <a href="#ksef" className="focus-visible:text-foreground">
               KSeF 2.0 & FA(3)
             </a>
+            <a href="#cennik" className="focus-visible:text-foreground">Cennik</a>
             <a href="#jak-dziala" className="focus-visible:text-foreground">
               Jak to działa
             </a>
@@ -123,6 +126,7 @@ export default function LandingPage() {
             </div>
           </div>
 
+          <WorkspacePreview />
           {/* ── WIZUALIZACJA INTERFEJSU (PRAWDZIWY PODGLĄD FAKTURO) ── */}
           <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl sm:backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4 mb-6">
@@ -226,6 +230,10 @@ export default function LandingPage() {
         </div>
       </section>
 
+
+      <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card/40 py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Dostęp do funkcji Pro według aktualnej oferty.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji; SMS rozlicza dostawca. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
+      </section>
       {/* ── KLUCZOWE FUNKCJE ── */}
       <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">

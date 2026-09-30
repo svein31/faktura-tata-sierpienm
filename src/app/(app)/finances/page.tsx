@@ -1,4 +1,7 @@
 "use client";
+import { TransferPack } from "@/components/banking/transfer-pack";
+import { isAccountingInvoice } from "@/lib/accountant-summary";
+
 import { useCompanyInvoices } from "@/lib/use-company-invoices";
 
 import * as React from "react";
@@ -35,7 +38,7 @@ import type { BankStatementTransaction, Invoice } from "@/lib/types";
 
 export default function FinancesPage() {
   const toast = useToast();
-  const { contractors, revalidate } = useAppStore();
+  const { contractors, revalidate, selectedCompanyId } = useAppStore();
   const invoices = useCompanyInvoices();
 
   const [importModalOpen, setImportModalOpen] = React.useState(false);
@@ -43,7 +46,7 @@ export default function FinancesPage() {
   const [bankFormat, setBankFormat] = React.useState("generic");
   const [importing, setImporting] = React.useState(false);
   const [matchedTransactions, setMatchedTransactions] = React.useState<BankStatementTransaction[]>([]);
-  const [applyPaymentsImmediately, setApplyPaymentsImmediately] = React.useState(true);
+  React.useEffect(() => { setImportModalOpen(false); setMatchedTransactions([]); setCsvContent(""); setStep("upload"); }, [selectedCompanyId]);
   const [step, setStep] = React.useState<"upload" | "preview">("upload");
 
   // Wyliczenie Aging (starzenie należności)
@@ -55,7 +58,7 @@ export default function FinancesPage() {
     let daysOver60 = { count: 0, sum: 0 };
 
     const unpaidSales = invoices.filter(
-      (i) => i.type === "sale" && (i.paymentStatus === "unpaid" || i.paymentStatus === "partially_paid")
+      (i) => isAccountingInvoice(i) && i.currency === "PLN" && i.type === "sale" && (i.paymentStatus === "unpaid" || i.paymentStatus === "partially_paid")
     );
 
     for (const inv of unpaidSales) {
@@ -85,21 +88,23 @@ export default function FinancesPage() {
   // Przychody i wydatki bieżącego miesiąca
   const currentMonth = now.toISOString().slice(0, 7);
   const monthlyRevenue = invoices
-    .filter((i) => i.type === "sale" && i.issueDate.startsWith(currentMonth))
+    .filter((i) => isAccountingInvoice(i) && i.currency === "PLN" && i.type === "sale" && i.issueDate.startsWith(currentMonth))
     .reduce((sum, i) => sum + (i.totalGross || 0), 0);
 
   const monthlyCosts = invoices
-    .filter((i) => i.type === "purchase" && i.issueDate.startsWith(currentMonth))
+    .filter((i) => isAccountingInvoice(i) && i.currency === "PLN" && i.type === "purchase" && i.issueDate.startsWith(currentMonth))
     .reduce((sum, i) => sum + (i.totalGross || 0), 0);
 
   const monthlyBalance = monthlyRevenue - monthlyCosts;
 
   const handleParseCsv = async () => {
+    if (!selectedCompanyId) { toast("error", "Wybierz firmę", "Import wyciągu wymaga wskazania firmy."); return; }
     if (!csvContent.trim()) {
       toast("error", "Błąd", "Wklej treść pliku CSV lub wybierz plik.");
       return;
     }
 
+    const importCompanyId = selectedCompanyId;
     setImporting(true);
     try {
       const res = await fetch("/api/banking/import", {
@@ -108,11 +113,13 @@ export default function FinancesPage() {
         body: JSON.stringify({
           csvContent,
           bankFormat,
+          companyId: selectedCompanyId,
           applyPayments: false,
         }),
       });
 
       const data = await res.json();
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId) return;
       if (res.ok && data.transactions) {
         setMatchedTransactions(data.transactions);
         setStep("preview");
@@ -136,6 +143,7 @@ export default function FinancesPage() {
         body: JSON.stringify({
           csvContent,
           bankFormat,
+          companyId: selectedCompanyId,
           applyPayments: true,
         }),
       });
@@ -145,7 +153,7 @@ export default function FinancesPage() {
         toast(
           "success",
           "Zaksięgowano wpłaty",
-          `Zarejestrowano ${data.appliedCount} płatności na łączną kwotę ${formatMoney(data.totalAmount, "PLN")}`
+          `Rozliczono ${data.appliedCount} płatności. Pominięto wcześniej zapisane operacje: ${data.skippedCount || 0}.`
         );
         setImportModalOpen(false);
         setStep("upload");
@@ -177,10 +185,10 @@ export default function FinancesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Finanse i Rozliczenia"
-        description="Analiza starzenia należności (Aging), bilans przepływów pieniężnych oraz automatyczne księgowanie wyciągów bankowych CSV."
+        description="Analiza starzenia należności (Aging), bilans przepływów pieniężnych oraz rozliczenie wyciągów CSV, MT940 i camt.053. Podsumowania poniżej dotyczą dokumentów PLN."
         actions={
           <Button onClick={() => setImportModalOpen(true)} className="rounded-xl gap-2 shadow-xs">
-            <Upload className="h-4 w-4" /> Importuj wyciąg bankowy (CSV)
+            <Upload className="h-4 w-4" /> Importuj wyciąg
           </Button>
         }
       />
@@ -215,7 +223,7 @@ export default function FinancesPage() {
 
         <Card className="p-4 bg-card/60 backdrop-blur-md border-border/70">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Wynik netto (marża)</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Różnica brutto</p>
             <DollarSign className="h-4 w-4 text-primary" />
           </div>
           <p className={`mt-1 text-2xl font-bold ${monthlyBalance >= 0 ? "text-foreground" : "text-rose-600"}`}>
@@ -337,6 +345,7 @@ export default function FinancesPage() {
         </div>
       </Card>
 
+      <TransferPack />
       {/* Modal importu wyciągu bankowego CSV */}
       <Dialog
         open={importModalOpen}
@@ -345,7 +354,7 @@ export default function FinancesPage() {
           setStep("upload");
           setCsvContent("");
         }}
-        title="Import wyciągu bankowego (CSV)"
+        title="Import wyciągu bankowego"
         description="Wczytaj wyciąg bankowy ze swojego banku, a system automatycznie połączy wpłaty z wystawionymi fakturami."
         size="lg"
         footer={
@@ -364,7 +373,7 @@ export default function FinancesPage() {
                 ← Wróć do pliku
               </Button>
               <Button onClick={handleApplyPayments} loading={importing} className="gap-2 font-semibold">
-                Zaksięguj dopasowane wpłaty ({matchedTransactions.filter((t) => t.matchedInvoiceId).length})
+                Zaksięguj dopasowane wpłaty ({matchedTransactions.filter((t) => t.matchedInvoiceId || t.matchedExpenseId).length})
               </Button>
             </div>
           )
@@ -375,7 +384,7 @@ export default function FinancesPage() {
             <div className="space-y-1.5">
               <Label>Wybierz bank (lub uniwersalny CSV)</Label>
               <Select value={bankFormat} onChange={(e) => setBankFormat(e.target.value)}>
-                <option value="generic">Uniwersalny format CSV (automatyczne wykrywanie)</option>
+                <option value="mt940">MT940 / SWIFT</option><option value="camt053">ISO 20022 camt.053 (XML)</option><option value="generic">Uniwersalny format CSV (automatyczne wykrywanie)</option>
                 <option value="mbank">mBank (CSV z historii operacji)</option>
                 <option value="pko">PKO BP / Inteligo (CSV)</option>
                 <option value="ing">ING Bank Śląski (CSV)</option>
@@ -385,8 +394,8 @@ export default function FinancesPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Wczytaj plik CSV z dysku</Label>
-              <Input type="file" accept=".csv,text/csv" onChange={handleFileUpload} className="h-9 cursor-pointer" />
+              <Label>Wczytaj plik CSV, MT940 lub XML</Label>
+              <Input type="file" accept=".csv,.sta,.mt940,.xml,text/csv,application/xml" onChange={handleFileUpload} className="h-9 cursor-pointer" />
             </div>
 
             <div className="space-y-1.5">
@@ -404,15 +413,15 @@ export default function FinancesPage() {
           <div className="space-y-4 py-2 text-xs">
             <div className="flex items-center justify-between bg-primary/10 rounded-xl p-3 text-foreground">
               <span>
-                Wykryto operacji wpływów: <b>{matchedTransactions.length}</b>. Dopasowano do faktur:{" "}
+                Wykryto operacje: <b>{matchedTransactions.length}</b>. Dopasowano do faktur:{" "}
                 <b className="text-emerald-600 dark:text-emerald-400">
-                  {matchedTransactions.filter((t) => t.matchedInvoiceId).length}
+                  {matchedTransactions.filter((t) => t.matchedInvoiceId || t.matchedExpenseId).length}
                 </b>
               </span>
             </div>
 
-            <div className="max-h-[340px] overflow-y-auto rounded-xl border border-border/60">
-              <table className="w-full text-left text-[11.5px]">
+            <div className="max-h-[340px] overflow-auto rounded-xl border border-border/60">
+              <table className="w-full min-w-[620px] text-left text-[11.5px]">
                 <thead className="sticky top-0 bg-muted/90 backdrop-blur-md">
                   <tr className="border-b border-border/60 text-muted-foreground uppercase text-[10px]">
                     <th className="p-2.5">Data</th>
@@ -430,7 +439,7 @@ export default function FinancesPage() {
                         <p className="text-[10px] text-muted-foreground truncate max-w-[240px]">{tx.title}</p>
                       </td>
                       <td className="p-2.5 text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                        +{formatMoney(tx.amount, "PLN")}
+                        {formatMoney(tx.amount, tx.currency || "PLN")}
                       </td>
                       <td className="p-2.5 text-right">
                         {tx.matchedInvoiceNumber ? (
@@ -447,18 +456,7 @@ export default function FinancesPage() {
               </table>
             </div>
 
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="apply_chk"
-                checked={applyPaymentsImmediately}
-                onChange={(e) => setApplyPaymentsImmediately(e.target.checked)}
-                className="rounded border-border text-primary focus:ring-primary h-4 w-4"
-              />
-              <label htmlFor="apply_chk" className="cursor-pointer text-muted-foreground">
-                Zaksięguj wpłaty w systemie i automatycznie oznacz dopasowane faktury jako opłacone
-              </label>
-            </div>
+            <p className="text-muted-foreground">Po potwierdzeniu zapiszesz operacje i rozliczysz jednoznaczne dopasowania. Niejednoznaczne transakcje pozostaną nierozliczone.</p>
           </div>
         )}
       </Dialog>

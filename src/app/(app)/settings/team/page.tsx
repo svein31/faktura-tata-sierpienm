@@ -30,12 +30,14 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import type { CompanyMember, TeamInvitation, CompanyRole, CompanyPermissions } from "@/lib/types";
-import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
+import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/role-permissions";
 
 const ROLE_INFO: Record<
   CompanyRole,
   { label: string; desc: string; color: string; badgeTone: "default" | "primary" | "accent" | "success" | "warning" | "danger" | "info" | "outline" }
 > = {
+  admin: {label:"Administrator",desc:"Zarządzanie dokumentami, zespołem i integracjami; rola właściciela jest nadawana tylko przez właściciela.",color:"from-indigo-500 to-purple-600",badgeTone:"primary"},
+  sales: {label:"Dział sprzedaży",desc:"Wystawianie dokumentów i praca z katalogiem; pozostałe uprawnienia nadaje administrator.",color:"from-sky-500 to-blue-600",badgeTone:"info"},
   owner: {
     label: "Właściciel",
     desc: "Pełne zarządzanie firmą, zespołem, rachunkami, KSeF, finansami, eksportami i usuwaniem.",
@@ -44,13 +46,13 @@ const ROLE_INFO: Record<
   },
   accountant: {
     label: "Księgowa / Biuro",
-    desc: "Wystawianie faktur, korekt, wpłaty, pliki JPK, audyt i podgląd KSeF; bez usuwania firmy i edycji zespołu.",
+    desc: "Weryfikacja dokumentów, wpłaty, eksporty i audyt; dodatkowe uprawnienia nadaje administrator.",
     color: "from-emerald-500 to-teal-600",
     badgeTone: "success",
   },
   employee: {
     label: "Pracownik / Sprzedawca",
-    desc: "Wystawianie faktur i ofert, baza produktów i klientów; brak dostępu do KSeF i finansów.",
+    desc: "Wystawianie faktur i wysyłka KSeF; pozostałe uprawnienia nadaje administrator.",
     color: "from-sky-500 to-blue-600",
     badgeTone: "info",
   },
@@ -69,6 +71,7 @@ const PERMISSION_LABELS: Array<{ key: keyof CompanyPermissions; label: string; d
   { key: "canExport", label: "Eksporty i JPK", desc: "Pobieranie plików JPK_V7, CSV i paczek księgowych", icon: Download },
   { key: "canSendKsef", label: "Wysyłka do KSeF", desc: "Przekazywanie faktur do Krajowego Systemu e-Faktur", icon: Send },
   { key: "canManageBankAccounts", label: "Rachunki bankowe", desc: "Dodawanie i modyfikacja kont IBAN/SWIFT firmy", icon: CreditCard },
+  { key: "canManageIntegrations", label: "Integracje i tokeny KSeF", desc: "Zarządzanie konfiguracją połączeń firmy", icon: KeyRound },
   { key: "canManageTeam", label: "Zarządzanie zespołem", desc: "Zapraszanie i zmiana uprawnień członków", icon: KeyRound },
 ];
 
@@ -92,6 +95,8 @@ export default function TeamSettingsPage() {
   const [showPermissionCustomizer, setShowPermissionCustomizer] = React.useState(false);
   const [inviting, setInviting] = React.useState(false);
 
+  const [invitationLinks,setInvitationLinks] = React.useState<Record<string,string>>({});
+  React.useEffect(()=>setInvitationLinks({}),[activeCompany?.id]);
   // Skopiowany link
   const [copiedToken, setCopiedToken] = React.useState<string | null>(null);
 
@@ -154,7 +159,8 @@ export default function TeamSettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd wysyłania zaproszenia");
 
-      toast("success", "Wysłano zaproszenie", `Zaproszenie dla ${inviteEmail} zostało utworzone.`);
+      toast("success", "Zaproszenie utworzone", data.emailDelivery === "sent" ? `Wysłano e-mail do ${inviteEmail}.` : "E-mail nie został dostarczony. Skopiuj link zaproszenia i sprawdź konfigurację poczty.");
+      if (data.invitation?.id && typeof data.inviteUrl === "string") setInvitationLinks(links=>({...links,[data.invitation.id]:data.inviteUrl}));
       setInviteEmail("");
       setShowPermissionCustomizer(false);
       fetchTeamData();
@@ -166,11 +172,12 @@ export default function TeamSettingsPage() {
   };
 
   // Kopiowanie linku zaproszenia
-  const copyInviteLink = (token: string) => {
+  const copyInviteLink = (id: string) => {
+    const path = invitationLinks[id]; if (!path) return;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/invite/${token}`;
+    const url = origin + path;
     navigator.clipboard.writeText(url);
-    setCopiedToken(token);
+    setCopiedToken(id);
     toast("success", "Skopiowano link", "Link zaproszenia został skopiowany do schowka.");
     setTimeout(() => setCopiedToken(null), 3000);
   };
@@ -251,6 +258,7 @@ export default function TeamSettingsPage() {
       canSendKsef: member.canSendKsef,
       canManageBankAccounts: member.canManageBankAccounts,
       canManageTeam: member.canManageTeam,
+      canManageIntegrations: member.canManageIntegrations,
     });
   };
 
@@ -513,7 +521,7 @@ export default function TeamSettingsPage() {
               <div className="divide-y divide-border/60">
                 {invitations.map((inv) => {
                   const roleCfg = ROLE_INFO[inv.role as CompanyRole] || ROLE_INFO.employee;
-                  const isCopied = copiedToken === inv.token;
+                  const isCopied = copiedToken === inv.id;
                   return (
                     <div key={inv.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
@@ -533,7 +541,9 @@ export default function TeamSettingsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => copyInviteLink(inv.token)}
+                          disabled={!invitationLinks[inv.id]}
+                          title="Link jest dostępny po utworzeniu zaproszenia. Aby wysłać nowy, ponów zaproszenie."
+                          onClick={() => copyInviteLink(inv.id)}
                           className="h-8 text-xs gap-1.5"
                         >
                           {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}

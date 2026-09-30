@@ -1,3 +1,4 @@
+import { round2 as roundMoney } from "./tax/money";
 import type { Currency, Invoice, InvoiceLine, VatRate } from "./types";
 
 const fmtCache = new Map<string, Intl.NumberFormat>();
@@ -83,7 +84,7 @@ export function vatRateBadgeClass(rate: VatRate): string {
 }
 
 export function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
+  return roundMoney(n);
 }
 
 export function lineNet(line: InvoiceLine): number {

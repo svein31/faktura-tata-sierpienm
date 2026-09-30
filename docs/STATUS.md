@@ -1,29 +1,25 @@
-# Stan wdrożenia — 17 września 2026
+# Stan prac — 30 września 2026
 
-Gałąź robocza: `codex/fakturo-modules`. Wcześniejsze moduły scalono na `main` w PR #2; ostatni pakiet rozliczeń zaliczek wymaga osobnej weryfikacji.
+Gałąź: `codex/saas-audit-20260930`. Pakiet obejmuje odzyskany checkpoint `codex/saas-workflows-20260930` oraz audyt i rozszerzenia opisane w [raporcie](audit/2026-09-30-saas-audit.md).
 
-## Zaimplementowane moduły
+## Bieżący pakiet
 
-- Build, lint, testy regresji i HTTP z izolowanym MongoDB; odwracalne migracje.
-- Kolejka KSeF: uprawnienia, idempotencja, obsługa niepewnego wyniku.
-- Wiele firm: izolacja katalogów i przełączanie profili, role.
-- Audit log: transakcyjny zapis, filtr, paginacja, ekran historii.
-- 2FA TOTP: szyfrowany sekret, QR, kody odzyskiwania, limit prób i ochrona sesji.
-- Waluty: NBP i kwoty PLN liczone na serwerze, EUR/USD.
-- Faktury cykliczne: harmonogram, generator, cron, pauza, role i unikalne wystąpienia.
-- Mini-CRM: historia faktur, salda według firmy/waluty, notatki, tagi i wyszukiwanie.
-- Publiczne API statusów KSeF i webhooki: klucze, podpisy, kolejka, blokada prywatnych adresów. Webhooki przekazują obserwowane migawki statusów.
-- Przypomnienia e-mail: harmonogram, rzeczywista wysyłka SMTP/Resend, trwały dziennik. Test SMTP wyłącznie lokalny.
-- JPK_FA(4) i część ewidencyjna JPK_V7M(3): podstawowe transakcje krajowe, XSD w testach. VAT bez deklaracji, plik do księgowości — nie kompletny pierwotny JPK do złożenia. Szczegółowe ograniczenia: JPK.md.
-- Proforma → faktury zaliczkowe → faktura końcowa: idempotencyjny ledger, rozliczenie netto według stawek VAT, ujemne pozycje rozliczeniowe na finale, blokada edycji/usuwania po rozliczeniu oraz ekran `/advances`.
-- FA(3): zastosowano zatwierdzoną, minimalną korektę serializacji (JST/GV, PMarzy, korekty KSeF oraz zgodna sekcja Platnosc z rzeczywistą datą zapłaty); zwykłe, opłacone i korekcyjne warianty przechodzą oficjalne XSD w testach.
+- Osiem głównych sekcji nawigacji, odchudzony widok księgowy, menu mobilne, linki prawne w Pomocy.
+- Role i uprawnienia firmowe, zaproszenia bez ujawniania tokenów na listach, portal księgowy z akceptacją, księgowaniem i uwagami.
+- Import CSV, MT940 i CAMT.053, trwała historia operacji, dopasowanie wpłat/wypłat z uwzględnieniem waluty, deduplikacja i audyt.
+- Eksport przelewów pain.001/CSV, paczki dokumentów ZIP oraz eksport faktur XLSX/CSV z kontrolą uprawnień.
+- Motywy jasny/ciemny/systemowy, własne kolory z kontrolą kontrastu, poprawki responsywności.
+- Podgląd panelu i spójny cennik na stronie publicznej.
+- Prognozy JDG/CIT/VAT/składek oraz opcjonalne przypomnienia SMS przez Twilio.
+- GTU, procedury, MPP i podstawa zwolnienia w zapisie faktur; FA(3) i wersjonowane PDF-y z polskimi znakami.
+- Regresje parsowania, ról, izolacji firm, księgowania, eksportów, XSD i nowych ekranów mobilnych.
 
-Poprzedni pakiet: GitHub Actions 35197504447 — success. Ostatni pakiet rozliczeń zaliczek i FA(3): lokalny build, lint oraz 35 testów przeszły. Lokalna integracja zablokowana na starcie MongoDB (`open: Operation not permitted`); wymagana weryfikacja GitHub Actions przed publikacją na main.
+Istniejące moduły OCR, KSeF, NBP, GUS/Biała Lista, cykliczne faktury, przypomnienia e-mail, historia i wiele firm zachowano. Szczegóły ich ograniczeń i znalezionych błędów zawiera raport audytu.
 
-## Pozostało przed wdrożeniem
+## Weryfikacja i wdrożenie
 
-- Końcowy przegląd zmian, zielony CI na gałęzi roboczej i fast-forward publikacji na `main`.
+Brama `npm run verify` obejmuje build, typecheck, lint, testy jednostkowe/XSD, integrację HTTP z izolowanym MongoDB oraz Playwright. Aktualny wynik dla konkretnego SHA znajduje się w GitHub Actions i opisie PR. Nie uruchamiano migracji na bazie produkcyjnej ani wiadomości do klientów.
 
-Dedykowane moduły płatności/bankowości nie były modyfikowane. Zmieniono wyłącznie serializację XML FA(3) w celu zgodności ze schematem, bez obsługi przelewów, operatora płatności ani rejestru wpłat. Migracji nie uruchamiano na bazie produkcyjnej. Testów z rzeczywistym środowiskiem MF nie wykonano.
+Przed wdrożeniem: standardowy backup i procedura migracji, odtworzenie Prisma Client, konfiguracja dostawców oraz testy konkretnych banków i rzeczywistego środowiska MF. Paczki ZIP nie są natywnymi importami Optimy/Rachmistrza/Symfonii/Enovy. JPK_V7M obejmuje część ewidencyjną, bez kompletnej deklaracji do złożenia. Eksport przelewów specjalnych, podatkowych i MPP wymaga profilu banku.
 
-Instrukcje modułów, konfiguracji, migracji i testów ręcznych: IMPLEMENTATION.md, INTEGRATIONS.md, JPK.md, scripts/migrations/README.md.
+Instrukcje: [IMPLEMENTATION.md](IMPLEMENTATION.md), [INTEGRATIONS.md](INTEGRATIONS.md), [JPK.md](JPK.md), [migracje](../scripts/migrations/README.md).

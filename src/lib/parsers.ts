@@ -1,3 +1,4 @@
+import { parseInvoiceTaxFields } from "./invoice-tax-fields";
 /**
  * Współdzielone parsery body dla route handlerów (server-only).
  * Oddzielone od plików route, bo Next.js wymaga, by route eksportowały
@@ -272,6 +273,8 @@ export async function parseInvoiceBody(
       } catch (error) { throw new ApiError(502, error instanceof Error ? error.message : "Nie udało się pobrać kursu NBP.", "NBP_UNAVAILABLE"); }
     }
   } else { exchangeRateRule = null; exchangeRateJustification = null; }
+  const taxFields = parseInvoiceTaxFields(body);
+  if (status !== "draft" && lines.some(l => l.vatRate === "zw") && !taxFields.exemptionBasis) throw new FieldError("exemptionBasis", "Dla stawki zw podaj podstawę prawną zwolnienia.");
   const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
   const totalNetPln = currency === "PLN" ? totals.net : convertToPln(totals.net, exchangeRate!, exchangeRateUnit);
   const totalVatPln = currency === "PLN" ? totals.vat : convertToPln(totals.vat, exchangeRate!, exchangeRateUnit);
@@ -343,6 +346,7 @@ export async function parseInvoiceBody(
     bankAccountSnapshot,
     buyerTaxIdType,
     buyerCountry,
+    ...taxFields,
     ksef: undefined,
   };
 }

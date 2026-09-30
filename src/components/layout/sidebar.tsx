@@ -1,216 +1,38 @@
 "use client";
-
-import { useWorkspacePreference } from "@/lib/use-workspace-preference";
+import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  Star,
-  BarChart3,
-  Building2,
-  FileText,
-  LayoutDashboard,
-  Package,
-  Plus,
-  ShieldCheck,
-  UserCog,
-  Users,
-  X,
-  FileCheck2,
-  Briefcase,
-  Receipt,
-  DollarSign,
-  Users2,
-  BookOpen,
-  Calendar,
-  Globe,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Logo } from "@/components/logo";
-import { ThemeToggle } from "./theme-toggle";
-import { useSessionUser } from "@/lib/session-context";
-
-const NAV_MAIN = [
-  { href: "/dashboard", label: "Pulpit", icon: LayoutDashboard, exact: true },
-  { href: "/invoices", label: "Faktury", icon: FileText },
-  { href: "/advances", label: "Proformy i zaliczki", icon: FileText },
-  { href: "/recurring", label: "Faktury cykliczne", icon: FileText },
-  { href: "/reminders", label: "Przypomnienia e-mail", icon: FileText },
-  { href: "/offers", label: "Oferty", icon: FileCheck2 },
-  { href: "/orders", label: "Zlecenia & Czas", icon: Briefcase },
-  { href: "/projects", label: "Rentowność projektów", icon: BarChart3 },
-  { href: "/documents", label: "Skrzynka dokumentów", icon: Receipt },
-  { href: "/expenses", label: "Koszty i wydatki", icon: Receipt },
-  { href: "/cost-reviews", label: "Obieg kosztów", icon: FileCheck2 },
-  { href: "/finances", label: "Finanse & Wyciągi", icon: DollarSign },
-  { href: "/calendar", label: "Terminarz płatności", icon: Calendar },
-  { href: "/contractors", label: "Kontrahenci", icon: Users },
-  { href: "/products", label: "Produkty / Usługi", icon: Package },
-  { href: "/warehouse", label: "Magazyn", icon: Package },
-  { href: "/analytics", label: "Analityka", icon: BarChart3 },
-];
-
-const NAV_SETTINGS = [
-  { href: "/jpk", label: "Eksport JPK", icon: FileCheck2 },
-  { href: "/settings/integrations", label: "API i webhooki", icon: BookOpen },
-  { href: "/settings/health", label: "Stan przetwarzania", icon: BarChart3 },
-  { href: "/audit", label: "Dziennik zmian", icon: BookOpen },
-  { href: "/settings/team", label: "Zespół i uprawnienia", icon: Users2 },
-  { href: "/accountant", label: "Paczka dla księgowej", icon: FileCheck2 },
-  { href: "/ksef", label: "Centrum KSeF", icon: ShieldCheck },
-  { href: "/settings/companies", label: "Moje Firmy / NIP", icon: Building2 },
-  { href: "/settings/pdf-templates", label: "Szablony PDF", icon: FileText },
-  { href: "/settings/currencies", label: "Waluty & Kursy NBP", icon: Globe },
-  { href: "/settings/account", label: "Ustawienia Konta", icon: UserCog },
-  { href: "/help", label: "Instrukcja obsługi", icon: BookOpen },
-];
-
-const ALL_NAV = [...NAV_MAIN, ...NAV_SETTINGS];
-const NAV_GROUPS = [
-  { label: "Start", paths: ["/dashboard"] },
-  { label: "Sprzedaż", paths: ["/invoices", "/advances", "/recurring", "/offers"] },
-  { label: "Zakupy", paths: ["/documents", "/expenses", "/cost-reviews"] },
-  { label: "Klienci i praca", paths: ["/orders", "/projects", "/contractors", "/products", "/warehouse"] },
-  { label: "Księgowość i finanse", paths: ["/accountant", "/jpk", "/analytics", "/finances", "/calendar", "/reminders"] },
-  { label: "Integracje i ustawienia", paths: ["/ksef", "/settings/integrations", "/settings/health", "/audit", "/settings/team", "/settings/companies", "/settings/pdf-templates", "/settings/currencies", "/settings/account", "/help"] },
-];
-
-export function SidebarContent({
-  onNavigate,
-  navLayoutId = "sidebar-active",
-}: {
-  onNavigate?: () => void;
-  navLayoutId?: string;
-}) {
-  const pathname = usePathname();
-  const user = useSessionUser();
-  const prefs = useWorkspacePreference<string[]>("favorites");
-  const favorites = Array.isArray(prefs.value) ? prefs.value.filter(path => ALL_NAV.some(item => item.href === path)) : [];
-  // Pulpit jest zawsze na początku menu; pozostałe ulubione mają jedno miejsce.
-  const quickLinks = favorites.filter(href => href !== "/dashboard");
-  const toggleFavorite = (href: string) => void prefs.save(favorites.includes(href) ? favorites.filter(p => p !== href) : [...favorites, href]);
-  const initials = user.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((s) => s[0]?.toUpperCase() ?? "")
-    .join("");
-
-  return (
-    <div className="flex h-full flex-col select-none">
-      <div className="flex h-16 items-center justify-between px-5 border-b border-border/50">
-        <Logo />
-        <button
-          onClick={onNavigate}
-          className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted lg:hidden"
-          aria-label="Zamknij menu"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="px-3 pt-3">
-        <Link
-          href="/invoices/new"
-          onClick={onNavigate}
-          className="flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Wystaw fakturę</span>
-        </Link>
-      </div>
-
-      <nav aria-label="Menu główne" className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
-        {quickLinks.length > 0 && <div className="space-y-1"><p className="px-3 text-[10.5px] uppercase font-semibold text-muted-foreground">Ulubione</p>{quickLinks.map(href => { const item = ALL_NAV.find(i => i.href === href)!; const active = pathname === href || pathname.startsWith(href + "/"); return <div key={href} className="flex items-center"><Link href={href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn("flex min-h-[40px] min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium hover:bg-muted/40", active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground")}><item.icon size={18} className="shrink-0" /><span className="truncate">{item.label}</span></Link><button disabled={!prefs.ready || prefs.saving} onClick={() => toggleFavorite(href)} aria-label={`Usuń z ulubionych: ${item.label}`} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className="fill-amber-400 text-amber-500" /></button></div>; })}</div>}
-        {NAV_GROUPS.map(group => <div className="space-y-0.5" key={group.label}>
-          <p className="px-3 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">{group.label}</p>
-          {group.paths.filter(href => !quickLinks.includes(href)).map(href => {
-            const item = ALL_NAV.find(i => i.href === href)!;
-            const active = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
-            return <div className="flex items-center group" key={href}>
-              <Link href={href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn("relative flex flex-1 min-w-0 min-h-[40px] items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-colors", active ? "text-primary font-semibold" : "text-muted-foreground hover:bg-muted/40 hover:text-foreground")}>
-                {active && <motion.span layoutId={navLayoutId} className="absolute inset-0 rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20" transition={{ type: "spring", duration: 0.35, bounce: 0.12 }} />}
-                <item.icon className="relative z-10 h-[18px] w-[18px] shrink-0" strokeWidth={active ? 2.3 : 1.8} /><span className="relative z-10">{item.label}</span>
-              </Link>
-              <button disabled={!prefs.ready || prefs.saving} onClick={() => toggleFavorite(href)} aria-label={`${favorites.includes(href) ? "Usuń z" : "Dodaj do"} ulubionych: ${item.label}`} aria-pressed={favorites.includes(href)} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className={favorites.includes(href) ? "fill-amber-400 text-amber-500" : "text-muted-foreground/50"} /></button>
-            </div>;
-          })}
-        </div>)}
-        {prefs.error && <p role="alert" className="px-3 text-xs text-rose-500">{prefs.error}</p>}
-
-      </nav>
-
-      {/* Linki prawne */}
-      <div className="px-4 py-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground/70">
-        <a href="/regulamin" target="_blank" className="hover:text-foreground transition-colors">Regulamin</a>
-        <a href="/polityka-prywatnosci" target="_blank" className="hover:text-foreground transition-colors">Prywatność</a>
-        <a href="/polityka-cookies" target="_blank" className="hover:text-foreground transition-colors">Cookies</a>
-        <button
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("open-cookie-preferences"));
-            }
-          }}
-          className="hover:text-foreground transition-colors cursor-pointer"
-        >
-          Preferencje
-        </button>
-      </div>
-
-      <div className="border-t border-border/60 p-3">
-        <div className="flex items-center justify-between rounded-xl px-2 py-1.5 bg-card/40 border border-border/40">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 text-[11px] font-bold text-white shadow-2xs">
-              {initials || "?"}
-            </div>
-            <div className="min-w-0 leading-tight">
-              <p className="truncate text-[12.5px] font-semibold text-foreground">{user.name}</p>
-              <p className="truncate text-[10.5px] text-muted-foreground">{user.email}</p>
-            </div>
-          </div>
-          <ThemeToggle />
-        </div>
-      </div>
-    </div>
-  );
+import {usePathname} from "next/navigation";
+import {ChevronDown, Plus, Star, X, LayoutDashboard, FileText, Receipt, Users, Package, Briefcase, BookOpen, Settings} from "lucide-react";
+import {Logo} from "@/components/logo";
+import {ThemeToggle} from "./theme-toggle";
+import {useSessionUser} from "@/lib/session-context";
+import {useAppStore} from "@/lib/store";
+import {useWorkspacePreference} from "@/lib/use-workspace-preference";
+import {currentNavigation,navigationForCompany} from "@/lib/navigation";
+import {cn} from "@/lib/utils";
+const icons:Record<string,typeof FileText>={dashboard:LayoutDashboard,sales:FileText,expenses:Receipt,contacts:Users,warehouse:Package,projects:Briefcase,accounting:BookOpen,settings:Settings};
+export function SidebarContent({onNavigate,navLayoutId}:{onNavigate?:()=>void;navLayoutId?:string}) {
+ const pathname=usePathname(),user=useSessionUser(),company=useAppStore(s=>s.company),groups=navigationForCompany(company);
+ const active=currentNavigation(pathname,groups),[expanded,setExpanded]=React.useState<string[]>(active?[active.group.id]:[]);
+ React.useEffect(()=>{if(active)setExpanded(previous=>previous.includes(active.group.id)?previous:[...previous,active.group.id]);},[active?.group.id]);
+ const prefs=useWorkspacePreference<string[]>("favorites"),favorites=Array.isArray(prefs.value)?prefs.value:[];
+ const initials=user.name.split(/\s+/).slice(0,2).map(s=>s[0]).join("").toUpperCase();
+ const canIssue=company?.currentUserPermissions?.canIssueInvoices??company?.currentUserRole!=="accountant";
+ return <div className="flex h-full flex-col"><div className="flex h-16 shrink-0 items-center justify-between border-b px-5"><Logo/><button onClick={onNavigate} aria-label="Zamknij menu" className="rounded-lg p-2 hover:bg-muted lg:hidden"><X size={18}/></button></div>
+ {canIssue&&<div className="p-3"><Link href="/invoices/new" onClick={onNavigate} className="flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-sm font-semibold text-primary-foreground"><Plus size={16}/>Wystaw fakturę</Link></div>}
+ <nav aria-label="Menu główne" className="min-h-0 flex-1 space-y-1 overflow-y-auto p-3">{groups.map(group=>{
+ const Icon=icons[group.id],open=expanded.includes(group.id),selected=active?.group.id===group.id;
+ return <div key={group.id}><button aria-expanded={open} aria-controls={(navLayoutId||"desktop")+"-"+group.id} onClick={()=>setExpanded(previous=>open?previous.filter(g=>g!==group.id):[...previous,group.id])} className={cn("flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-[13px] font-semibold hover:bg-muted",selected?"bg-primary/10 text-primary":"text-foreground")}><Icon size={18} className="shrink-0"/><span className="min-w-0 flex-1 break-words">{group.label}</span><ChevronDown size={14} className={cn("shrink-0 transition-transform",open&&"rotate-180")}/></button>
+ {open&&<div id={(navLayoutId||"desktop")+"-"+group.id} className="my-1 space-y-0.5 border-l pl-2 ml-5">{group.items.map(item=><div key={item.href} className="flex min-w-0 items-center"><Link href={item.href} onClick={onNavigate} aria-current={active?.item.href===item.href?"page":undefined} className={cn("min-w-0 flex-1 rounded-lg px-3 py-2.5 text-xs leading-5 hover:bg-muted",active?.item.href===item.href?"font-semibold text-primary":"text-muted-foreground")}>{item.label}</Link><button disabled={!prefs.ready||prefs.saving} aria-label={`${favorites.includes(item.href)?"Usuń z":"Dodaj do"} ulubionych: ${item.label}`} aria-pressed={favorites.includes(item.href)} onClick={()=>void prefs.save(favorites.includes(item.href)?favorites.filter(p=>p!==item.href):[...favorites,item.href])} className="rounded-lg p-2 hover:bg-muted"><Star size={13} className={favorites.includes(item.href)?"fill-primary text-primary":"text-muted-foreground"}/></button></div>)}</div>}</div>;})}{prefs.error&&<p role="alert" className="p-2 text-xs text-destructive">{prefs.error}</p>}</nav>
+ <div className="flex shrink-0 items-center gap-2 border-t p-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xs text-primary">{initials||"?"}</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{user.name}</p><p className="truncate text-[10px] text-muted-foreground">{user.email}</p></div><ThemeToggle/></div></div>;
 }
-
-export function Sidebar() {
-  return (
-    <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-border/60 bg-card/85 backdrop-blur-2xl dark:bg-card/70 lg:block">
-      <SidebarContent />
-    </aside>
-  );
-}
-
-export function MobileSidebar({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  return (
-    <AnimatePresence>
-      {open && (
-        <div className="no-print fixed inset-0 z-50 lg:hidden">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ x: -280 }}
-            animate={{ x: 0 }}
-            exit={{ x: -280 }}
-            transition={{ type: "spring", duration: 0.35, bounce: 0.1 }}
-            className="absolute inset-y-0 left-0 w-72 border-r border-border bg-card shadow-2xl"
-          >
-            <SidebarContent onNavigate={onClose} navLayoutId="sidebar-active-mobile" />
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
+export function Sidebar(){return <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-card lg:block"><SidebarContent/></aside>;}
+export function MobileSidebar({open,onClose}:{open:boolean;onClose:()=>void}) {
+ const ref=React.useRef<HTMLDivElement>(null);
+ React.useEffect(()=>{if(!open)return;const previous=document.activeElement as HTMLElement,scroll=document.body.style.overflow;document.body.style.overflow="hidden";
+ const focusables=()=>Array.from(ref.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),[tabindex="0"]')||[]).filter(el=>el.offsetParent!==null);
+ focusables()[0]?.focus();const key=(e:KeyboardEvent)=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const list=focusables(),first=list[0],last=list[list.length-1];if(!first){e.preventDefault();return;}if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};document.addEventListener("keydown",key);
+ return()=>{document.body.style.overflow=scroll;document.removeEventListener("keydown",key);previous?.focus();};},[open,onClose]);
+ if(!open)return null;
+ return <div className="no-print fixed inset-0 z-50 lg:hidden"><button aria-label="Zamknij menu — tło" tabIndex={-1} className="absolute inset-0 bg-black/60" onClick={onClose}/><div ref={ref} role="dialog" aria-modal="true" aria-label="Nawigacja" className="absolute inset-y-0 left-0 w-72 max-w-[90vw] border-r bg-card shadow-2xl"><SidebarContent onNavigate={onClose} navLayoutId="mobile"/></div></div>;
 }

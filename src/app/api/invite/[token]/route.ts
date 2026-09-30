@@ -1,3 +1,6 @@
+import {ApiError} from "@/lib/api";
+import {teamActor,validateTeamGrant} from "@/lib/team-grants";
+import {rateLimitShared} from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import {
   getSessionUser,
@@ -75,6 +78,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
  */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
+    const limit=await rateLimitShared(req,{max:30,windowMs:15*60*1000},"team-invite");
+    if(!limit.allowed)throw new ApiError(429,"Zbyt wiele prób przyjęcia zaproszenia.");
     const token = (await params).token;
     if (!token) return json({ error: "Brak tokena zaproszenia." }, { status: 400 });
 
@@ -98,13 +103,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       return json({ error: "Termin ważności zaproszenia wygasł." }, { status: 400 });
     }
 
-    if (!invitation.companyId) {
+    if (!invitation.companyId!) {
       return json({ error: "Brak przypisanej firmy do zaproszenia." }, { status: 400 });
     }
 
     const body = (await readJson(req).catch(() => ({}))) as Record<string, unknown>;
     let targetUser = await getSessionUser();
     let newSessionCookie: string | null = null;
+    const needsSession=!targetUser;
 
     // SCENARIUSZ 1: Użytkownik jest już zalogowany w obecnej sesji
     if (targetUser) {
@@ -124,6 +130,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       });
 
       if (existingUser) {
+        const mfa=await prisma.userMfa.findUnique({where:{userId:existingUser.id},select:{enabledAt:true}});
+        if(mfa?.enabledAt)return json({error:"Zaloguj się z kodem MFA, a następnie przyjmij zaproszenie.",code:"MFA_REQUIRED"},{status:403});
         // Logowanie istniejącego użytkownika
         const password = typeof body.password === "string" ? body.password : "";
         if (!password) {
@@ -155,69 +163,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
         targetUser = createdUser as any;
       }
 
-      // Utwórz sesję dla zalogowanego/zarejestrowanego użytkownika
-      const sessionResult = await createSession(targetUser!.id);
-      const cookieOpts = sessionCookieOptions();
-      newSessionCookie = `${AUTH_SESSION_COOKIE}=${sessionResult.token}; Path=${cookieOpts.path}; HttpOnly; SameSite=${cookieOpts.sameSite}${cookieOpts.secure ? "; Secure" : ""}; Max-Age=${cookieOpts.maxAge}`;
     }
-
-    const role = (invitation.role as CompanyRole) || "employee";
-    const defaults = DEFAULT_ROLE_PERMISSIONS[role] || DEFAULT_ROLE_PERMISSIONS.employee;
-    const permissions = (invitation.permissions as any) || {};
-
-    // 1. Zapisz powiązanie w CompanyMember (lub zaktualizuj jeśli istniało)
-    await prisma.companyMember.upsert({
-      where: {
-        companyId_userId: {
-          companyId: invitation.companyId,
-          userId: targetUser!.id,
-        },
-      },
-      update: {
-        role,
-        canIssueInvoices: permissions.canIssueInvoices ?? defaults.canIssueInvoices,
-        canCreateCorrections: permissions.canCreateCorrections ?? defaults.canCreateCorrections,
-        canRecordPayments: permissions.canRecordPayments ?? defaults.canRecordPayments,
-        canExport: permissions.canExport ?? defaults.canExport,
-        canSendKsef: permissions.canSendKsef ?? defaults.canSendKsef,
-        canManageBankAccounts: permissions.canManageBankAccounts ?? defaults.canManageBankAccounts,
-        canManageTeam: role === "owner" ? true : (permissions.canManageTeam ?? defaults.canManageTeam),
-      },
-      create: {
-        companyId: invitation.companyId,
-        userId: targetUser!.id,
-        role,
-        canIssueInvoices: permissions.canIssueInvoices ?? defaults.canIssueInvoices,
-        canCreateCorrections: permissions.canCreateCorrections ?? defaults.canCreateCorrections,
-        canRecordPayments: permissions.canRecordPayments ?? defaults.canRecordPayments,
-        canExport: permissions.canExport ?? defaults.canExport,
-        canSendKsef: permissions.canSendKsef ?? defaults.canSendKsef,
-        canManageBankAccounts: permissions.canManageBankAccounts ?? defaults.canManageBankAccounts,
-        canManageTeam: role === "owner" ? true : (permissions.canManageTeam ?? defaults.canManageTeam),
-      },
+    await prisma.$transaction(async tx=>{
+      const actor=await teamActor(tx,invitation.userId,invitation.companyId!);
+      const grant=validateTeamGrant(invitation.role,invitation.permissions,actor);
+      if(await tx.companyMember.findUnique({where:{companyId_userId:{companyId:invitation.companyId!,userId:targetUser!.id}}}))throw new ApiError(409,"Jesteś już członkiem firmy.");
+      const claimed=await tx.teamInvitation.updateMany({where:{id:invitation.id,status:"pending",expiresAt:{gt:new Date()}},data:{status:"accepted",acceptedAt:new Date()}});
+      if(claimed.count!==1)throw new ApiError(409,"Zaproszenie zostało wykorzystane lub wygasło.");
+      await tx.companyMember.create({data:{companyId:invitation.companyId!,userId:targetUser!.id,role:grant.role,...grant.permissions}});
+      await recordAuditLog({client:tx,companyId:invitation.companyId!,userId:targetUser!.id,userName:targetUser!.name,userEmail:targetUser!.email,action:"team_join",entityType:"team",entityId:invitation.id,details:{role:grant.role}});
     });
-
-    // 2. Oznacz zaproszenie jako zużyte (jednorazowe)
-    await prisma.teamInvitation.update({
-      where: { id: invitation.id },
-      data: {
-        status: "accepted",
-        acceptedAt: new Date(),
-      },
-    });
-
-    // 3. Zapis w historii audytowej
-    await recordAuditLog({
-      companyId: invitation.companyId,
-      userId: targetUser!.id,
-      userName: targetUser!.name || targetUser!.email,
-      userEmail: targetUser!.email,
-      action: "team_join",
-      entityType: "team",
-      entityId: invitation.companyId,
-      description: `${targetUser!.name || targetUser!.email} dołączył(a) do zespołu firmy (rola: ${role})`,
-      details: { email: invitation.email, role },
-    });
+    if(needsSession){const sessionResult=await createSession(targetUser!.id),cookieOpts=sessionCookieOptions();newSessionCookie=`${AUTH_SESSION_COOKIE}=${sessionResult.token}; Path=${cookieOpts.path}; HttpOnly; SameSite=${cookieOpts.sameSite}${cookieOpts.secure?"; Secure":""}; Max-Age=${cookieOpts.maxAge}`;}
 
     const responseHeaders: HeadersInit = {};
     if (newSessionCookie) {
@@ -228,7 +184,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       {
         success: true,
         message: `Dołączono do firmy ${invitation.company?.companyName || ""}.`,
-        companyId: invitation.companyId,
+        companyId: invitation.companyId!,
       },
       { headers: responseHeaders }
     );

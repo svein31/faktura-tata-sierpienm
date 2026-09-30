@@ -1,0 +1,11 @@
+require('../register-ts.cjs');
+const test=require('node:test'),assert=require('node:assert/strict');
+const {NAVIGATION,currentNavigation}=require('../../src/lib/navigation.ts');
+const {themePalette,contrastRatio,sanitizeColors}=require('../../src/lib/theme-colors.ts');
+const {round2}=require('../../src/lib/format.ts');
+const {validateTeamGrant}=require('../../src/lib/team-grants.ts');
+const {DEFAULT_ROLE_PERMISSIONS}=require('../../src/lib/role-permissions.ts');
+test('eight groups retain distinct document and accountant navigation',()=>{assert.equal(NAVIGATION.length,8);assert.equal(currentNavigation('/accountant/portal').item.href,'/accountant/portal');});
+test('custom colors maintain text and control contrast for arbitrary backgrounds',()=>{for(let i=0;i<100;i++)for(const mode of ['light','dark']){const background='#'+((i*987643)%16777216).toString(16).padStart(6,'0'),p=themePalette(mode,{accent:'#f5eaff',backgrounds:{[mode]:background}});for(const surface of [p.background,p.card,p.muted]){for(const text of [p.foreground,p['muted-foreground'],p.primary,p.destructive])assert.ok(contrastRatio(surface,text)>=4.5);assert.ok(contrastRatio(surface,p.border)>=3);}assert.ok(contrastRatio(p.primary,p['primary-foreground'])>=4.5);}assert.deepEqual(sanitizeColors({accent:'red;display:none',backgrounds:{dark:'#012345',light:'x'}}),{accent:'',backgrounds:{dark:'#012345'}});});
+test('negative corrections round half cents away from zero and avoid negative zero',()=>{assert.equal(round2(-1.005),-1.01);assert.equal(round2(1.005),1.01);assert.equal(Object.is(round2(-.00001),-0),false);});
+test('team grants reject unknown roles, nonboolean grants and escalation',()=>{const admin={role:'admin',permissions:DEFAULT_ROLE_PERMISSIONS.admin};assert.throws(()=>validateTeamGrant('unknown',{},admin));assert.throws(()=>validateTeamGrant('owner',{},admin));assert.throws(()=>validateTeamGrant('accountant',{canExport:'yes'},admin));assert.throws(()=>validateTeamGrant('admin',{}, {role:'employee',permissions:DEFAULT_ROLE_PERMISSIONS.employee}));});

@@ -1,3 +1,6 @@
+import {ApiError} from "@/lib/api";
+import {teamActor,validateTeamGrant} from "@/lib/team-grants";
+import {sendEmail,isValidEmail} from "@/lib/email/sender";
 import * as crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -48,7 +51,7 @@ export async function GET(req: Request) {
         },
         orderBy: [{ role: "asc" }, { createdAt: "asc" }],
       }),
-      prisma.teamInvitation.findMany({
+      access.membership.permissions.canManageTeam ? prisma.teamInvitation.findMany({
         where: {
           companyId,
           status: "pending",
@@ -58,7 +61,7 @@ export async function GET(req: Request) {
           user: { select: { name: true, email: true } },
         },
         orderBy: { createdAt: "desc" },
-      }),
+      }) : Promise.resolve([]),
     ]);
 
     return json({
@@ -83,80 +86,19 @@ export async function POST(req: Request) {
     const body = await readJson(req);
     const companyId = typeof body.companyId === "string" ? body.companyId.trim() : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const role = (typeof body.role === "string" ? body.role : "accountant") as CompanyRole;
-    const permissions = body.permissions && typeof body.permissions === "object" ? body.permissions : null;
-
-    if (!companyId) {
-      return json({ error: "Brak identyfikatora firmy." }, { status: 400 });
-    }
-
-    // Wymagane uprawnienie canManageTeam
-    const access = await requireCompanyAccess(user.id, companyId, "canManageTeam");
-    if (!access.ok) {
-      return json({ error: access.error, code: access.code }, { status: access.status });
-    }
-
-    if (!email || !email.includes("@") || email.length > 254) {
-      return json({ error: "Podaj prawidłowy adres e-mail." }, { status: 400 });
-    }
-
-    // Sprawdź czy użytkownik nie jest już członkiem tej firmy
-    const existingMember = await prisma.companyMember.findFirst({
-      where: {
-        companyId,
-        user: { email },
-      },
+    if (!isValidEmail(email)) throw new ApiError(400,"Podaj prawidłowy adres e-mail.");
+    const invitation=await prisma.$transaction(async tx=>{
+      const actor=await teamActor(tx,user.id,companyId);
+      const grant=validateTeamGrant(body.role||"accountant",body.permissions,actor);
+      if(await tx.companyMember.findFirst({where:{companyId,user:{email}}}))throw new ApiError(400,"Ten użytkownik jest już członkiem zespołu.");
+      await tx.teamInvitation.updateMany({where:{companyId,email,status:"pending"},data:{status:"revoked"}});
+      const result=await tx.teamInvitation.create({data:{companyId,userId:user.id,email,role:grant.role,permissions:grant.permissions as any,token:crypto.randomBytes(32).toString("hex"),expiresAt:new Date(Date.now()+14*86400000),status:"pending"},include:{company:{select:{companyName:true}}}});
+      await recordAuditLog({client:tx,companyId,userId:user.id,userName:user.name,userEmail:user.email,action:"team_invite",entityType:"team",entityId:result.id,details:{email,role:grant.role}});
+      return result;
     });
-    if (existingMember) {
-      return json({ error: `Użytkownik o adresie ${email} jest już członkiem tej firmy.` }, { status: 400 });
-    }
-
-    // Unieważnij poprzednie oczekujące zaproszenia dla tego samego e-maila w tej firmie
-    await prisma.teamInvitation.updateMany({
-      where: {
-        companyId,
-        email,
-        status: "pending",
-      },
-      data: { status: "revoked" },
-    });
-
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 14 * 86400000); // 14 dni ważności
-
-    const invitation = await prisma.teamInvitation.create({
-      data: {
-        companyId,
-        userId: user.id,
-        email,
-        role,
-        permissions,
-        token,
-        expiresAt,
-        status: "pending",
-      },
-      include: {
-        company: { select: { companyName: true } },
-      },
-    });
-
-    // Zapis w historii audytowej
-    await recordAuditLog({
-      companyId,
-      userId: user.id,
-      userName: user.name || user.email,
-      userEmail: user.email,
-      action: "team_invite",
-      entityType: "team",
-      entityId: invitation.id,
-      description: `${user.name || user.email} zaprosił(a) ${email} do zespołu (rola: ${role})`,
-      details: { email, role, expiresAt: expiresAt.toISOString() },
-    });
-
-    return json({
-      invitation: teamInvitationToDto(invitation),
-      inviteUrl: `/invite/${token}`,
-    });
+    let emailDelivery="error";
+    try{const delivery=await sendEmail({to:email,subject:"Zaproszenie do zespołu FakturaProsto",text:`${user.name||user.email} zaprasza Cię do firmy ${invitation.company?.companyName||"Firma"}.\nPrzyjmij zaproszenie: https://fakturaprosto.pl/invite/${invitation.token}\nLink ważny przez 14 dni.`,singleAttempt:true});if(delivery.success)emailDelivery="sent";}catch{}
+    return json({invitation:teamInvitationToDto(invitation),inviteUrl:`/invite/${invitation.token}`,emailDelivery});
   } catch (e) {
     return handleApiError(e);
   }

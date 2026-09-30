@@ -59,6 +59,7 @@ export function companyProfileToDto(cp: DbCompanyProfile): CompanyProfile {
     bankAccount: cp.bankAccount ?? "",
     ksefToken: null,
     ksefTokenSet: Boolean(cp.ksefToken),
+    ksefEnvironment: ["demo","test","production"].includes(cp.ksefEnvironment||"") ? cp.ksefEnvironment as "demo"|"test"|"production" : null,
     isDefault: cp.isDefault,
     logoUrl: cp.logoUrl ?? "",
     createdAt: cp.createdAt.toISOString(),
@@ -308,6 +309,7 @@ export function invoiceToDto(
     buyerCountry: i.buyerCountry ?? null,
 
     // Ewidencja JPK_V7 (sekcja 3)
+    exemptionBasis: i.exemptionBasis ?? null,
     gtuCodes: (i.gtuCodes ?? []) as any,
     jpkProcedures: (i.jpkProcedures ?? []) as any,
     jpkDocumentType: (i.jpkDocumentType as any) ?? null,
@@ -357,6 +359,7 @@ export function companyMemberToDto(cm: any): any {
     canSendKsef: cm.canSendKsef ?? false,
     canManageBankAccounts: cm.canManageBankAccounts ?? false,
     canManageTeam: cm.canManageTeam ?? false,
+    canManageIntegrations: cm.canManageIntegrations ?? false,
     createdAt: cm.createdAt instanceof Date ? cm.createdAt.toISOString() : String(cm.createdAt),
     updatedAt: cm.updatedAt instanceof Date ? cm.updatedAt.toISOString() : String(cm.updatedAt),
     user: cm.user
@@ -377,7 +380,6 @@ export function teamInvitationToDto(ti: any): any {
     email: ti.email,
     role: ti.role,
     permissions: ti.permissions ?? null,
-    token: ti.token,
     expiresAt: ti.expiresAt instanceof Date ? ti.expiresAt.toISOString() : String(ti.expiresAt),
     acceptedAt: ti.acceptedAt ? (ti.acceptedAt instanceof Date ? ti.acceptedAt.toISOString() : String(ti.acceptedAt)) : null,
     status: ti.status,

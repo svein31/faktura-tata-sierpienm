@@ -329,9 +329,9 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
       <P_16>2</P_16>
       <P_17>2</P_17>
       <P_18>${totals.rateOo.net > 0 ? "1" : "2"}</P_18>
-      <P_18A>2</P_18A>
+      <P_18A>${invoice.isSplitPayment ? "1" : "2"}</P_18A>
       <Zwolnienie>
-        ${totals.rateZw.net > 0 ? `<P_19>1</P_19>` : `<P_19N>1</P_19N>`}
+        ${totals.rateZw.net > 0 ? `<P_19>1</P_19><P_19A>${esc(invoice.exemptionBasis || "")}</P_19A>` : `<P_19N>1</P_19N>`}
       </Zwolnienie>
       <NoweSrodkiTransportu>
         <P_22N>1</P_22N>
@@ -423,6 +423,7 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
     issues.push({ severity: "error", path: "/Faktura/Fa/FaWiersz", message: "Faktura musi zawierać co najmniej jeden wiersz <FaWiersz>." });
   }
 
+  if (trimmed.includes("<P_19>1</P_19>") && !/<P_19[ABC]>[^<]+<\/P_19[ABC]>/.test(trimmed)) issues.push({ severity: "error", path: "/Faktura/Fa/Adnotacje/Zwolnienie", message: "Uzupełnij podstawę prawną zwolnienia VAT." });
   if (!trimmed.includes("<P_15>")) {
     issues.push({ severity: "error", path: "/Faktura/Fa/P_15", message: "Brak pola P_15 (kwota brutto ogółem)." });
   }

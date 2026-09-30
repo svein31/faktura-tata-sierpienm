@@ -14,7 +14,7 @@ test('warehouse document lines reject missing, nonfinite and excessive numbers',
 });
 
 test('warehouse writes fail closed for unknown, missing and read-only roles', () => {
-  for (const role of [undefined, null, '', 'admin', 'OWNER', 'viewer']) assert.equal(canManageStock({ role }), false);
+  for (const role of [undefined, null, '', 'invalid', 'OWNER', 'viewer']) assert.equal(canManageStock({ role }), false);
   for (const role of ['owner', 'employee', 'accountant']) assert.equal(canManageStock({ role }), true);
   assert.equal(canManageStock(null), false);
   assert.equal(normalizeRole('unrecognized'), 'viewer');

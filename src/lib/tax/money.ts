@@ -29,7 +29,8 @@ export function roundHalfUp(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   const sign = value < 0 ? -1 : 1;
   const scaled = normalize(Math.abs(value) * factor);
-  return (sign * Math.round(scaled)) / factor;
+  const rounded = (sign * Math.round(scaled)) / factor;
+  return rounded === 0 ? 0 : rounded;
 }
 
 /** Zaokrąglenie do pełnych groszy (2 miejsca), half-up. */
