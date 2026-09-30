@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess } from "@/lib/permissions";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
 import { isIsoCalendarDate } from "@/lib/nbp";
 import { recurrenceIntervals, RecurrenceInterval } from "@/lib/scheduling";
@@ -10,7 +10,8 @@ import { invoiceToDto } from "@/lib/dto";
 export const runtime = "nodejs";
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const user = await getSessionUser();
+    assertObjectId((await params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono faktury.");
     const invoice = await prisma.invoice.findUnique({ where: { id } });
     if (!invoice?.sellerCompanyId || invoice.documentKind === "advance" || invoice.documentKind === "final" || invoice.type !== "sale" || invoice.isCorrection) throw new ApiError(400, "Nie można utworzyć harmonogramu dla tego dokumentu.");

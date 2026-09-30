@@ -6,7 +6,7 @@ import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
@@ -53,6 +53,7 @@ async function getInvoiceWithAccess(invoiceId: string, userId: string) {
 export async function GET(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const result = await getInvoiceWithAccess((await params).id, user.id);
@@ -70,6 +71,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function PUT(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const result = await getInvoiceWithAccess((await params).id, user.id);
@@ -279,6 +281,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const result = await getInvoiceWithAccess((await params).id, user.id);

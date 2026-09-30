@@ -30,9 +30,11 @@ export async function fullFeatureAudit(base, db, fixture) {
     let path=routePath(route);
     if(!path.includes('/auth/'))path+='?companyId='+fixture.companyId+'&month=2026-09&key=favorites';
     await check('authenticated route read', 'GET',path,undefined,fixture.ownerCookie);
-    if(route.path.includes('[id]'))await check('malformed object id','GET',route.path.replaceAll('[id]','not-an-object-id'),undefined,fixture.ownerCookie,[400,404]);
+
   }
-  const company=await check('create audit company','POST','/api/companies',{companyName:'Functional audit company',nip:'5260301706'},fixture.ownerCookie,[201]);
+  for(const route of routes.filter(route=>route.path.includes('[id]'))) for(const method of route.methods)
+    await check('malformed object id',method,route.path.replaceAll('[id]','not-an-object-id'),['GET','DELETE'].includes(method)?undefined:{},fixture.ownerCookie,[400,403,404]);
+  const company=await check('create audit company','POST','/api/companies',{companyName:'Functional audit company',nip:'9876543210'},fixture.ownerCookie,[201]);
   const companyId=company.data?.company?.id;
   if(companyId) {
     const expenseBody={companyId,number:'AUDIT/COST',contractorName:'Audit supplier',issueDate:'2026-09-30',currency:'PLN',totalNet:100,totalVat:23,totalGross:123};
@@ -46,6 +48,7 @@ export async function fullFeatureAudit(base, db, fixture) {
       await check('reject inconsistent cost update','PUT','/api/expenses/'+id,{totalGross:500},fixture.ownerCookie,[400]);
       await check('reject invalid payment status','PATCH','/api/expenses/'+id,{paymentStatus:'anything'},fixture.ownerCookie,[400]);
       await check('reject invalid paid date','PATCH','/api/expenses/'+id,{paymentStatus:'paid',paidAt:'invalid'},fixture.ownerCookie,[400]);
+      await check('protect company with business documents','DELETE','/api/companies/'+companyId,undefined,fixture.ownerCookie,[409]);
       await check('mark cost paid','PATCH','/api/expenses/'+id,{paymentStatus:'paid'},fixture.ownerCookie,[200]);
       await check('read paid cost','GET','/api/expenses/'+id,undefined,fixture.ownerCookie,[200]);
       await check('delete manual cost','DELETE','/api/expenses/'+id,undefined,fixture.ownerCookie,[200]);

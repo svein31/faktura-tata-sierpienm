@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json } from "@/lib/api";
+import { assertObjectId, handleApiError, json } from "@/lib/api";
 import { companyProfileToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -14,6 +14,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }

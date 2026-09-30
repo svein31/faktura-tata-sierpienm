@@ -24,7 +24,7 @@ export async function getCompanyMembership(
   userId: string,
   companyId: string
 ): Promise<MembershipResult | null> {
-  if (!userId || !companyId) return null;
+  if (!userId || !/^[a-f0-9]{24}$/i.test(companyId)) return null;
 
   const company = await prisma.companyProfile.findUnique({
     where: { id: companyId },
@@ -119,6 +119,7 @@ export async function requireCompanyAccess(
   companyId: string,
   requiredPermission?: keyof CompanyPermissions
 ): Promise<{ ok: true; membership: MembershipResult } | { ok: false; status: number; error: string; code: string }> {
+  if (!/^[a-f0-9]{24}$/i.test(companyId)) return { ok: false, status: 400, error: "Nieprawidłowy identyfikator firmy.", code: "INVALID_ID" };
   const membership = await getCompanyMembership(userId, companyId);
   if (!membership) {
     return {

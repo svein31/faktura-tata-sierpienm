@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson, cleanStr } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson, cleanStr } from "@/lib/api";
 import type { Prisma } from "@prisma/client";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { companyBankAccountToDto } from "@/lib/dto";
@@ -34,6 +34,7 @@ async function bankAccountTransaction<T>(companyId: string, operation: (tx: Pris
 export async function GET(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const companyId = (await params).id;
@@ -64,6 +65,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function POST(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const companyId = (await params).id;
@@ -153,6 +155,7 @@ export async function POST(req: Request, { params }: Ctx) {
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const companyId = (await params).id;
     const access = await requireCompanyAccess(user.id, companyId, "canManageBankAccounts");
@@ -181,6 +184,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 export async function DELETE(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const companyId = (await params).id;

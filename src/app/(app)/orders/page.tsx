@@ -183,6 +183,9 @@ export default function OrdersPage() {
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
         toast("info", "Zmieniono status", `Nowy status: ${ORDER_STATUSES.find((s) => s.id === status)?.label}`);
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd aktualizacji", error.error || "Nie udało się zmienić statusu.");
       }
     } catch {
       toast("error", "Błąd aktualizacji", "Nie udało się zmienić statusu.");
@@ -200,12 +203,15 @@ export default function OrdersPage() {
       const res = await fetch(`/api/orders/${logTimeOrder.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackedMinutes: newTracked }),
+        body: JSON.stringify({ trackedHours: addedMinutes / 60 }),
       });
       if (res.ok) {
         toast("success", "Zalogowano czas pracy", `+${addedHours} godz. Łącznie: ${Math.round(newTracked / 60)}h`);
         setLogTimeOrder(null);
         loadOrders();
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd operacji", error.error || "Nie udało się zapisać czasu.");
       }
     } catch {
       toast("error", "Błąd zapisu czasu", "Nie udało się zaktualizować godzin.");
@@ -219,6 +225,9 @@ export default function OrdersPage() {
       if (res.ok) {
         toast("info", "Usunięto zlecenie", "Zlecenie zostało pomyślnie usunięte.");
         loadOrders();
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd operacji", error.error || "Nie udało się usunąć zlecenia.");
       }
     } catch {
       toast("error", "Błąd usuwania", "Nie udało się usunąć zlecenia.");
@@ -384,6 +393,7 @@ export default function OrdersPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          disabled={Boolean(order.billedInvoiceId)}
                           onClick={() => setLogTimeOrder(order)}
                           className="h-7 text-[10.5px] px-2 text-primary hover:bg-primary/10"
                           title="Zaloguj czas pracy"
@@ -409,6 +419,7 @@ export default function OrdersPage() {
                           )}
 
                           <Select
+                            disabled={Boolean(order.billedInvoiceId)}
                             value={order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
                             className="h-7 text-[10.5px] w-auto py-0 px-1.5"
@@ -478,13 +489,15 @@ export default function OrdersPage() {
                               <ArrowRight className="h-3 w-3 mr-1" /> Faktura
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(order)} className="h-8 w-8">
+                          <Button variant="ghost" size="icon" disabled={Boolean(order.billedInvoiceId)}
+                          onClick={() => handleEdit(order)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setToDelete(order.id)}
+                            disabled={Boolean(order.billedInvoiceId)}
+                          onClick={() => setToDelete(order.id)}
                             className="h-8 w-8 text-muted-foreground hover:text-rose-500"
                           >
                             <Trash2 className="h-3.5 w-3.5" />

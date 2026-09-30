@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { companyAccess } from "@/lib/company-write";
 import { lockWarehouses } from "@/lib/warehouse/transaction";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, bool, cleanStr, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, bool, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { recordAuditLog } from "@/lib/audit";
 import { warehouseToDto } from "@/lib/warehouse/dto";
 import { assertCanManageStock } from "@/lib/warehouse/guard";
@@ -27,6 +27,7 @@ async function ownedWarehouse(userId: string, id: string, prisma: Prisma.Transac
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     assertCanManageStock(user);
 
@@ -107,6 +108,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     assertCanManageStock(user);
 

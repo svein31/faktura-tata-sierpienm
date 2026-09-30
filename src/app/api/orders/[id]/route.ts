@@ -1,7 +1,8 @@
+import { parseOrderBody, orderStatus, orderMinutes, nonNegativeNumber } from "@/lib/business-document-validation";
 import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { orderToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -15,6 +16,7 @@ export async function GET(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const order = await prisma.order.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
@@ -36,6 +38,7 @@ export async function PUT(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const existing = await prisma.order.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
@@ -45,32 +48,16 @@ export async function PUT(
     const body = await readJson(req);
     const contractorId = body.contractorId ? String(body.contractorId).trim() : existing.contractorId;
     const contractor = await scopedContractor(user.id, contractorId || "", existing.companyId);
-    const title = typeof body.title === "string" ? body.title.trim() : existing.title;
-    const number = typeof body.number === "string" ? body.number.trim() : existing.number;
-    const status = typeof body.status === "string" ? body.status : existing.status;
-    const currency = typeof body.currency === "string" ? body.currency.toUpperCase() : existing.currency;
-    const totalGross = typeof body.totalGross === "number" ? body.totalGross : (Number(body.totalAmount) || existing.totalGross);
-    const totalNet = typeof body.totalNet === "number" ? body.totalNet : Math.round((totalGross / 1.23) * 100) / 100;
-    const trackedMinutes = typeof body.trackedMinutes === "number" ? body.trackedMinutes : (typeof body.trackedHours === "number" ? body.trackedHours * 60 : existing.trackedMinutes);
-    const hourlyRate = typeof body.hourlyRate === "number" ? body.hourlyRate : existing.hourlyRate;
-    const stages = Array.isArray(body.stages) ? body.stages : (existing.stages as any);
-    const notes = typeof body.notes === "string" ? body.notes.trim() : existing.notes;
+    if (existing.billedInvoiceId) throw new ApiError(409, "Rozliczone zlecenie nie podlega edycji.");
+    const data = parseOrderBody(body, existing);
+    if (!data.title || !data.number) throw new ApiError(400, "Podaj tytuł i numer zlecenia.");
 
     const updated = await prisma.order.update({
-      where: { id },
+      where: { id, updatedAt: existing.updatedAt },
       data: {
         contractorId,
         contractorName: contractor.name,
-        title,
-        number,
-        status,
-        stages,
-        hourlyRate,
-        trackedMinutes,
-        currency,
-        totalNet,
-        totalGross,
-        notes,
+        ...data,
       },
     });
 
@@ -89,6 +76,7 @@ export async function PATCH(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const body = await readJson(req);
 
     const existing = await prisma.order.findFirst({
@@ -97,14 +85,18 @@ export async function PATCH(
     if (!existing) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
     await requireDocumentWrite(user, existing, "canIssueInvoices");
 
-    const dataToUpdate: any = {};
-    if (typeof body.status === "string") dataToUpdate.status = body.status;
-    if (typeof body.trackedMinutes === "number") dataToUpdate.trackedMinutes = body.trackedMinutes;
-    else if (typeof body.trackedHours === "number") dataToUpdate.trackedMinutes = (existing.trackedMinutes || 0) + body.trackedHours * 60;
-    if (Array.isArray(body.stages)) dataToUpdate.stages = body.stages;
+    if (existing.billedInvoiceId) throw new ApiError(409, "Rozliczone zlecenie nie podlega edycji.");
+    const dataToUpdate: Record<string, any> = {};
+    if ("status" in body) dataToUpdate.status = orderStatus(body.status);
+    if ("trackedMinutes" in body) dataToUpdate.trackedMinutes = orderMinutes(body.trackedMinutes);
+    else if ("trackedHours" in body) {
+      const added = orderMinutes(nonNegativeNumber(body.trackedHours, "trackedHours", 1e7) * 60);
+      dataToUpdate.trackedMinutes = { increment: added };
+    }
+    if ("stages" in body) dataToUpdate.stages = parseOrderBody({ stages: body.stages }, existing).stages;
 
     const updated = await prisma.order.update({
-      where: { id },
+      where: { id, updatedAt: existing.updatedAt },
       data: dataToUpdate,
     });
 
@@ -123,13 +115,15 @@ export async function DELETE(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const existing = await prisma.order.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
     if (!existing) return json({ error: "Zlecenie nie zostało znalezione." }, { status: 404 });
     await requireDocumentWrite(user, existing, "canIssueInvoices");
 
-    await prisma.order.delete({ where: { id } });
+    if (existing.billedInvoiceId) throw new ApiError(409, "Nie można usunąć zlecenia powiązanego z fakturą.");
+    await prisma.order.delete({ where: { id, updatedAt: existing.updatedAt } });
 
     return json({ success: true, id });
   } catch (e) {

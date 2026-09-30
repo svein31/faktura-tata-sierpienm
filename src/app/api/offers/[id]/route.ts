@@ -3,7 +3,7 @@ import { validateOfferDates, offerAmounts, assertOfferVersion } from "@/lib/offe
 import { documentWhere, requireDocumentWrite, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { offerToDto } from "@/lib/dto";
 
 export const runtime = "nodejs";
@@ -17,6 +17,7 @@ export async function GET(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const offer = await prisma.offer.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
@@ -38,6 +39,7 @@ export async function PUT(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const existing = await prisma.offer.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
@@ -94,6 +96,7 @@ export async function PATCH(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const body = await readJson(req);
     const status = String(body.status || "").trim();
 
@@ -125,6 +128,7 @@ export async function DELETE(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const existing = await prisma.offer.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
