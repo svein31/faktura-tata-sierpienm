@@ -11,6 +11,7 @@ const invoice={id:'i',number:'FV/1',type:'sale',status:'issued',documentStatus:'
 function schema(xml){const r=spawnSync(process.platform==='win32'?'python':'python3',['scripts/validate-jpk.py','fa3.xsd'],{input:xml,encoding:'utf8'});assert.equal(r.status,0,r.stderr);}
 test('tax fields preserve omitted values and accept only legal codes and boolean MPP',()=>{
  assert.deepEqual(parseInvoiceTaxFields({}),{});
+ assert.deepEqual(parseInvoiceTaxFields({exemptionBasis:null}),{exemptionBasis:null});
  assert.deepEqual(parseInvoiceTaxFields({gtuCodes:['GTU_01','GTU_01'],jpkProcedures:['TP'],isSplitPayment:true,vatRegisterPeriod:'2026-09'}),{gtuCodes:['GTU_01'],jpkProcedures:['TP'],isSplitPayment:true,vatRegisterPeriod:'2026-09'});
  for(const payload of [{gtuCodes:['GTU_99']},{jpkProcedures:['MPP']},{jpkProcedures:['MPU']},{isSplitPayment:'false'},{jpkDocumentType:'invalid'},{vatRegisterPeriod:'2026-13'}])assert.throws(()=>parseInvoiceTaxFields(payload));
 });
@@ -32,7 +33,8 @@ test('generated theme text tokens meet 4.5:1 on background, card and muted surfa
 
 test('invoice body persists VAT fields and refuses issued exempt invoice without a basis',async()=>{
  const body={...invoice,contractorId:'buyer',paymentTermDays:14,gtuCodes:['GTU_12'],jpkProcedures:['TP'],isSplitPayment:true};
- const result=await parseInvoiceBody(body,{contractorOwnedBy:async()=>true});
+ const result=await parseInvoiceBody({...body,exemptionBasis:null},{contractorOwnedBy:async()=>true});
+ assert.equal(result.exemptionBasis,null);
  assert.equal(result.isSplitPayment,true);assert.deepEqual(result.gtuCodes,['GTU_12']);assert.deepEqual(result.jpkProcedures,['TP']);
  await assert.rejects(parseInvoiceBody({...body,lines:[{...invoice.lines[0],vatRate:'zw'}]},{contractorOwnedBy:async()=>true}),/zwolnienia/);
 });
