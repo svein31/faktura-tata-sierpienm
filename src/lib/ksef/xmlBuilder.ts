@@ -423,6 +423,7 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
     issues.push({ severity: "error", path: "/Faktura/Fa/FaWiersz", message: "Faktura musi zawierać co najmniej jeden wiersz <FaWiersz>." });
   }
 
+  if (trimmed.includes("<P_19>1</P_19>") && !/<P_19[ABC]>[^<]+<\/P_19[ABC]>/.test(trimmed)) issues.push({ severity: "error", path: "/Faktura/Fa/Adnotacje/Zwolnienie", message: "Uzupełnij podstawę prawną zwolnienia VAT." });
   if (!trimmed.includes("<P_15>")) {
     issues.push({ severity: "error", path: "/Faktura/Fa/P_15", message: "Brak pola P_15 (kwota brutto ogółem)." });
   }
