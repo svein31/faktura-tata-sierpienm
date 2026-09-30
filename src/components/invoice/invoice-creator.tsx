@@ -83,6 +83,10 @@ const emptyNewContractor: NewContractorDraft = {
 };
 
 interface FormState {
+  isSplitPayment?: boolean;
+  exemptionBasis?: string;
+  gtuCodes?: Invoice["gtuCodes"];
+  jpkProcedures?: Invoice["jpkProcedures"];
   number: string;
   type: InvoiceType;
   isProforma?: boolean;
@@ -135,6 +139,10 @@ function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState
     currency: inv.currency,
     language: inv.language,
     notes: inv.notes ?? "",
+    isSplitPayment: inv.isSplitPayment ?? false,
+    exemptionBasis: inv.exemptionBasis ?? "",
+    gtuCodes: inv.gtuCodes ?? [],
+    jpkProcedures: inv.jpkProcedures ?? [],
     isOffline: inv.isOffline ?? false,
     offlineReason: inv.offlineReason ?? "",
     offlineDeadline: inv.offlineDeadline?.slice(0,10) ?? "",
@@ -171,6 +179,7 @@ function freshForm(defaultCompanyId: string = ""): FormState {
     currency: "PLN",
     language: "PL",
     notes: "",
+    isSplitPayment: false, exemptionBasis: "", gtuCodes: [], jpkProcedures: [],
     isOffline: false,
     offlineReason: "",
     offlineDeadline: "",
@@ -635,6 +644,10 @@ export function InvoiceCreator() {
       paymentMethod: form.paymentMethod,
       paymentTermDays: form.paymentTermDays,
       notes: form.notes.trim() || undefined,
+      isSplitPayment: form.isSplitPayment ?? false,
+      exemptionBasis: form.exemptionBasis || "",
+      gtuCodes: form.gtuCodes || [],
+      jpkProcedures: form.jpkProcedures || [],
       isOffline: Boolean(form.isOffline),
       offlineReason: form.isOffline ? form.offlineReason : undefined,
       offlineDeadline: form.isOffline && form.offlineDeadline ? new Date(form.offlineDeadline).toISOString() : undefined,
@@ -1623,6 +1636,7 @@ export function InvoiceCreator() {
             </div>
 
             <div className="space-y-1.5">
+              <details className="mb-4 rounded-xl border p-3"><summary className="cursor-pointer text-sm font-semibold">Oznaczenia VAT i JPK</summary><div className="mt-3 space-y-3"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isSplitPayment} onChange={e=>setForm(f=>({...f,isSplitPayment:e.target.checked}))}/>Mechanizm podzielonej płatności (MPP)</label><label className="block text-sm">Podstawa prawna zwolnienia VAT<Input value={form.exemptionBasis||""} onChange={e=>setForm(f=>({...f,exemptionBasis:e.target.value}))} placeholder="np. art. 113 ust. 1 ustawy o VAT"/></label><label className="block text-sm">Kody GTU, oddzielone przecinkami<Input value={(form.gtuCodes||[]).join(", ")} onChange={e=>setForm(f=>({...f,gtuCodes:e.target.value.split(",").map(v=>v.trim()).filter(Boolean) as Invoice["gtuCodes"]}))} placeholder="GTU_01, GTU_02"/></label><label className="block text-sm">Procedury JPK, oddzielone przecinkami<Input value={(form.jpkProcedures||[]).join(", ")} onChange={e=>setForm(f=>({...f,jpkProcedures:e.target.value.split(",").map(v=>v.trim()).filter(Boolean) as Invoice["jpkProcedures"]}))} placeholder="np. TP"/></label><p className="text-xs text-muted-foreground">Obowiązek MPP zależy m.in. od progu 15 000 zł i towarów/usług z załącznika 15. Oznaczenia ustal z księgowością. Bieżący eksport JPK obsługuje zwykłe transakcje i odrzuca procedury szczególne.</p></div></details>
               <Label>Uwagi / Informacje dodatkowe</Label>
               <Textarea
                 value={form.notes}
