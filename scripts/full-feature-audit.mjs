@@ -126,16 +126,29 @@ export async function fullFeatureAudit(base, db, fixture) {
             if(xmlDownload.text!==sourceXml||upoDownload.text!==sourceUpo)failures.push({label:'KSeF downloads preserve original document bytes',ok:false});
             const jsonDownload=await check('download KSeF JSON','GET',downloadPath,undefined,fixture.ownerCookie,[200]);
             if(jsonDownload.data?.xml!==sourceXml||jsonDownload.data?.upoXml!==sourceUpo)failures.push({label:'KSeF JSON must contain real archived XML and UPO',ok:false});
+            await check('reject malformed invoice email id','POST','/api/invoices/send-email',{invoiceId:'invalid',recipientEmail:'recipient@example.com'},fixture.ownerCookie,[400]);
+            const mail=await check('send invoice PDF XML UPO by SMTP','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com',subject:'Audit invoice delivery',messageBody:'<script>unsafe</script>',attachPdf:true,attachXml:true,attachUpo:true},fixture.ownerCookie,[200]);
+            if(mail.data?.provider!=='smtp'||mail.data?.attachmentCount!==3||!mail.data?.messageId)failures.push({label:'Email must reach local SMTP with all selected attachments',ok:false});
+            if(fractional.data?.invoice?.id) {
+              await check('send draft preview without issuing','POST','/api/invoices/send-email',{invoiceId:fractional.data.invoice.id,recipientEmail:'recipient@example.com',attachPdf:false},fixture.ownerCookie,[200]);
+              const after=await db.invoice.findUniqueOrThrow({where:{id:fractional.data.invoice.id}});
+              if(after.status!=='draft'||after.issuedAt)failures.push({label:'Emailing a draft must not bypass invoice issuance or quota',ok:false});
+            }
             await check('owner email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.ownerCookie,[200]);
             if(fixture.otherCookie&&fixture.otherUserId) {
+              await check('deny outsider invoice email','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com'},fixture.otherCookie,[404]);
               await check('deny outsider email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
               await check('deny outsider KSeF XML','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[404]);
               await db.companyMember.create({data:{companyId,userId:fixture.otherUserId,role:'accountant'}});
               await check('accountant KSeF XML export','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[200]);
               await db.companyMember.update({where:{companyId_userId:{companyId,userId:fixture.otherUserId}},data:{canExport:false}});
+              await check('read-only accountant cannot send invoice','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com'},fixture.otherCookie,[403]);
+              await db.companyMember.update({where:{companyId_userId:{companyId,userId:fixture.otherUserId}},data:{role:'sales',canIssueInvoices:true}});
+              await check('sales member can send shared invoice','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com',attachPdf:false},fixture.otherCookie,[200]);
               await check('KSeF export permission enforced','GET',downloadPath+'?format=upo',undefined,fixture.otherCookie,[403]);
               await check('shared team email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[200]);
               await db.companyMember.delete({where:{companyId_userId:{companyId,userId:fixture.otherUserId}}});
+              await check('revoked invoice email access','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com'},fixture.otherCookie,[404]);
               await check('revoked KSeF XML access','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[404]);
               await check('revoked email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
             }

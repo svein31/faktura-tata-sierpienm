@@ -2,7 +2,9 @@ import { buildEmailHtml } from "@/lib/email/invoice-template";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, readJson, str } from "@/lib/api";
+import { assertObjectId, ApiError, readJson, str } from "@/lib/api";
+import { accessibleCompanyIds } from "@/lib/company-scope";
+import { requireDocumentWrite } from "@/lib/document-scope";
 import { companyProfileToDto, companyToDto, contractorToDto, emailLogToDto, invoiceToDto } from "@/lib/dto";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
 import { invoicePdf } from "@/lib/pdf/invoice-print";
@@ -45,6 +47,7 @@ const inFlightRequests = new Set<string>();
  * Zwraca status konfiguracji serwera pocztowego dla interfejsu użytkownika.
  */
 export async function GET() {
+  if (!await getSessionUser()) return NextResponse.json({ error: "UNAUTHORIZED", message: "Musisz być zalogowany." }, { status: 401 });
   const config = getEmailConfigStatus();
   return NextResponse.json({
     configured: config.configured,
@@ -162,10 +165,12 @@ export async function POST(req: Request) {
     let buyerContractor: Contractor | undefined = undefined;
 
     if (invoiceId) {
+      assertObjectId(invoiceId);
+      const companies = await accessibleCompanyIds(user.id);
       invoiceRecord = await prisma.invoice.findFirst({
         where: {
           id: invoiceId,
-          userId: user.id, // Izolacja kont: użytkownik może wysłać tylko własną fakturę
+          OR: [{ sellerCompanyId: { in: companies } }, { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] }],
         },
         include: {
           sellerCompany: true,
@@ -181,6 +186,7 @@ export async function POST(req: Request) {
           { status: 404 }
         );
       }
+      await requireDocumentWrite(user, { userId: invoiceRecord.userId, companyId: invoiceRecord.sellerCompanyId });
       if (invoiceRecord.isOffline && (!invoiceRecord.qrCodeI || !invoiceRecord.qrCodeII))
         return NextResponse.json({ error: "OFFLINE_NOT_ISSUED", message: "Faktura offline wymaga podpisanych kodów I i II przed wysłaniem." }, { status: 409 });
 
@@ -211,7 +217,7 @@ export async function POST(req: Request) {
       // Pobranie kontrahenta
       if (invoiceRecord.contractorId) {
         const c = await prisma.contractor.findFirst({
-          where: { id: invoiceRecord.contractorId, userId: user.id },
+          where: { id: invoiceRecord.contractorId },
         });
         if (c) {
           buyerContractor = contractorToDto(c);
@@ -423,7 +429,7 @@ export async function POST(req: Request) {
             sentToEmail: recipientEmail,
             emailStatus: "SENT",
             autoSendEmailOnKsef: autoSendOnKsef ? true : invoiceRecord.autoSendEmailOnKsef,
-            status: invoiceRecord.status === "draft" ? "sent" : invoiceRecord.status,
+            // Email delivery does not issue a draft or alter its legal status.
           },
         });
 
