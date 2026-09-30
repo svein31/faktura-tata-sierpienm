@@ -250,7 +250,7 @@ export default function DemoPage() {
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* ── NAWIGACJA DEMO ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:justify-between sm:py-0 sm:px-6">
+        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-3 px-4 py-3 lg:h-16 lg:flex-nowrap lg:justify-between lg:py-0 sm:px-6">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <Logo />
             <span className="rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
@@ -258,7 +258,7 @@ export default function DemoPage() {
             </span>
           </div>
 
-          <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
+          <div className="flex w-full items-center justify-between gap-2 lg:w-auto lg:justify-end sm:gap-3">
             <Link
               href="/"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -283,7 +283,7 @@ export default function DemoPage() {
         przetwarzane wyłącznie w Twojej przeglądarce. Żadne faktury nie trafiają do produkcyjnego KSeF.
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 sm:px-6">
         {/* Nagłówek piaskownicy */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -368,7 +368,7 @@ export default function DemoPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Sprzedawca (stały podmiot demonstracyjny) */}
               <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
-                <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Sprzedawca (Wystawca)
                   </span>
@@ -386,7 +386,7 @@ export default function DemoPage() {
 
               {/* Nabywca (edytowalny) */}
               <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
-                <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Nabywca (Kontrahent)
                   </span>
@@ -441,7 +441,7 @@ export default function DemoPage() {
 
             {/* Pozycje faktury */}
             <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-4">
                 <h3 className="text-sm font-bold text-foreground">Pozycje towarów i usług</h3>
                 <Button
                   onClick={addLine}
@@ -453,7 +453,7 @@ export default function DemoPage() {
                 </Button>
               </div>
 
-              <div className="overflow-x-auto" role="region" aria-label="Pozycje faktury demonstracyjnej" tabIndex={0}>
+              <div className="hidden min-w-0 max-w-full overflow-x-auto md:block" role="region" aria-label="Pozycje faktury demonstracyjnej" tabIndex={0}>
                 <table className="w-full min-w-[760px] text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground text-[11px]">
@@ -547,6 +547,30 @@ export default function DemoPage() {
                 </table>
               </div>
 
+
+              <div className="space-y-3 md:hidden">
+                {lines.map((line, index) => {
+                  const net = round2(line.quantity * line.netPrice);
+                  const gross = round2(net + net * (Number(line.vatRate) || 0) / 100);
+                  return <fieldset key={line.id} className="min-w-0 rounded-xl border p-3 space-y-3">
+                    <legend className="px-1 text-xs font-semibold">Pozycja {index + 1}</legend>
+                    <label className="block text-xs">Nazwa pozycji
+                      <Input value={line.name} onChange={e => updateLine(line.id, { name: e.target.value })} />
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="min-w-0 text-xs">Ilość<Input type="number" min="1" value={line.quantity} onChange={e => updateLine(line.id, { quantity: Math.max(1, Number(e.target.value)) })} /></label>
+                      <label className="min-w-0 text-xs">Jednostka<Input value={line.unit} onChange={e => updateLine(line.id, { unit: e.target.value })} /></label>
+                      <label className="min-w-0 text-xs">Cena netto<Input type="number" min="0" step="0.01" value={line.netPrice} onChange={e => updateLine(line.id, { netPrice: Math.max(0, Number(e.target.value)) })} /></label>
+                      <label className="min-w-0 text-xs">VAT<Select value={line.vatRate} onChange={e => updateLine(line.id, { vatRate: e.target.value as VatRate })}><option value="23">23%</option><option value="8">8%</option><option value="5">5%</option><option value="0">0%</option><option value="zw">zw.</option></Select></label>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                      <span className="font-semibold">Brutto: {formatMoney(gross, "PLN")}</span>
+                      <Button variant="ghost" size="sm" disabled={lines.length <= 1} onClick={() => removeLine(line.id)} aria-label={`Usuń pozycję: ${line.name}`}><Trash2 className="h-4 w-4" /> Usuń</Button>
+                    </div>
+                  </fieldset>;
+                })}
+              </div>
+
               {/* Podsumowanie finansowe */}
               <div className="mt-6 flex justify-end border-t border-border/60 pt-4">
                 <div className="w-full max-w-sm space-y-2 text-xs text-right">
@@ -558,7 +582,7 @@ export default function DemoPage() {
                     <span>Kwota podatku VAT:</span>
                     <span className="font-semibold text-foreground">{formatMoney(totals.totalVat, "PLN")}</span>
                   </div>
-                  <div className="flex justify-between text-base font-bold text-foreground border-t border-border pt-2">
+                  <div className="flex flex-wrap gap-2 justify-between text-base font-bold text-foreground border-t border-border pt-2">
                     <span>Razem do zapłaty:</span>
                     <span className="text-primary text-lg">{formatMoney(totals.totalGross, "PLN")}</span>
                   </div>
@@ -571,7 +595,7 @@ export default function DemoPage() {
         {/* ── TAB 2: INSPEKTOR XML FA(3) ── */}
         {activeTab === "xml" && (
           <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-foreground">
                   Oficjalny schemat e-Faktury FA(3)
@@ -627,7 +651,7 @@ export default function DemoPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border border-border/60 text-xs">
                     <div>
                       <p className="text-muted-foreground">Przykładowy numer (DEMO):</p>
-                      <p className="font-mono font-bold text-sm text-foreground mt-0.5">{ksefNumber}</p>
+                      <p className="break-all font-mono font-bold text-sm text-foreground mt-0.5">{ksefNumber}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Przykładowy kod odpowiedzi:</p>
@@ -658,7 +682,7 @@ export default function DemoPage() {
             </Card>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

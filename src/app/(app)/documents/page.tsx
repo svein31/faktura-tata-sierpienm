@@ -110,24 +110,24 @@ export default function DocumentsPage() {
   return <div className="page space-y-4">
     <PageHeader title="Skrzynka dokumentów" description="Dodaj oryginał, sprawdź dane i przekaż dokument do kosztów wybranej firmy." />
     {!companyId && <p>Wybierz firmę, aby otworzyć skrzynkę.</p>}
-    <div className="flex flex-wrap gap-3 items-center rounded-xl border p-4">
-      <label className="text-sm">Dodaj PDF, JPG lub PNG (do 3 MB)<input className="block mt-2 max-w-full" type="file" accept="application/pdf,image/jpeg,image/png" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
-      <label className="text-sm">Zrób zdjęcie<input className="block mt-2 max-w-full" type="file" accept="image/jpeg,image/png" capture="environment" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
+    <div className="flex min-w-0 flex-wrap gap-3 items-center rounded-xl border p-4">
+      <label className="min-w-0 w-full sm:w-auto text-sm">Dodaj PDF, JPG lub PNG (do 3 MB)<input className="block mt-2 min-w-0 w-full max-w-full" type="file" accept="application/pdf,image/jpeg,image/png" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
+      <label className="min-w-0 w-full sm:w-auto text-sm">Zrób zdjęcie<input className="block mt-2 min-w-0 w-full max-w-full" type="file" accept="image/jpeg,image/png" capture="environment" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
     </div>
     {error && <div role="alert" className="rounded-xl border border-rose-500 p-3">{error} <Button variant="ghost" onClick={() => selected ? open(selected.id) : load()}>Odśwież</Button></div>}
     {message && <p role="status" className="text-sm text-emerald-600">{message}</p>}
     <Input aria-label="Szukaj dokumentu" placeholder="Szukaj po nazwie pliku…" value={search} onChange={e => setSearch(e.target.value)} />
-    <div className="grid gap-4 xl:grid-cols-[300px_1fr]">
+    <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
       <div className="space-y-2" aria-busy={loading}>
         {!loading && !docs.length && <p className="p-4 text-muted-foreground">Brak dokumentów w tym widoku.</p>}
         {docs.map(doc => <button disabled={busy} key={doc.id} onClick={() => open(doc.id)} className={`block w-full rounded-xl border p-3 text-left ${selected?.id === doc.id ? "border-primary bg-primary/5" : "hover:bg-muted"}`}><span className="block truncate font-medium">{doc.fileName}</span><span className="text-xs text-muted-foreground">{labels[doc.status] || doc.status} · {Math.ceil(doc.sizeBytes / 1024)} KB</span></button>)}
         {next && <Button disabled={loading} onClick={() => load(next)}>Wczytaj następne</Button>}
       </div>
-      {selected && <div className="grid gap-4 lg:grid-cols-2">
+      {selected && <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-2"><a href={`/api/documents/${selected.id}/file`} target="_blank" rel="noreferrer" className="text-sm text-primary underline">Otwórz oryginał</a><iframe title="Oryginał dokumentu" sandbox="" src={`/api/documents/${selected.id}/file`} className="w-full h-[560px] rounded-xl border bg-white" />
-          {selected.rawText && <details className="rounded-xl border p-3"><summary>Tekst odczytany przez OCR — wymaga sprawdzenia</summary><pre className="mt-2 whitespace-pre-wrap text-xs max-h-80 overflow-y-auto">{selected.rawText}</pre></details>}
+          {selected.rawText && <details className="rounded-xl border p-3"><summary>Tekst odczytany przez OCR — wymaga sprawdzenia</summary><pre className="mt-2 whitespace-pre-wrap break-words text-xs max-h-80 overflow-y-auto">{selected.rawText}</pre></details>}
         </div>
-        <div className="space-y-3 rounded-xl border p-4">
+        <div className="min-w-0 break-words space-y-3 rounded-xl border p-4">
           <h2 className="font-semibold">{labels[selected.status] || selected.status}</h2>
           {selected.expenseId && <a className="text-sm text-primary underline" href="/expenses">Koszt zapisany — zobacz w wydatkach</a>}
           <p className="text-xs text-muted-foreground">Oryginalny plik pozostaje niezmienny. Zweryfikuj dane według oryginału. OCR odczytuje tekst; kwoty i dane sprzedawcy zatwierdza człowiek.</p>
