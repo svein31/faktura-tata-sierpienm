@@ -17,6 +17,8 @@ Alternatywna weryfikacja Netlify dla PR #24 działa z pominięciem produkcyjnych
 - a44745e034c19664f0ea4269b626795cc703bc97: trzy niepowodzenia po dodaniu izolowanej integracji HTTP. Sam status nie rozstrzyga między problemem środowiska a niepowodzeniem asercji.
 - ff863e0d45d74ea20d5dab6b56fa10b8aa8d574e: poprawka pełnych minut i dat płatności; wszystkie trzy podglądy potwierdziły build, TypeScript, lint, testy jednostkowe i osobny start MongoDB. Awaria integracji następuje później. GitHub Actions ponownie kończy się bez kroków i logów (run 36739640646).
 
+- fc3d962076f68e8b110b20320512c0baa7c2166e: wszystkie trzy podglądy zaliczyły podstawową integrację HTTP (bez fullFeatureAudit i przeglądarek), a także build, TypeScript, lint i testy jednostkowe. Start aplikacji, migracje i podstawowe scenariusze biznesowe są potwierdzone. Rozszerzony audyt jest ponownie uruchamiany osobno.
+
 Bezpośrednie logi Netlify nie są udostępnione przez aktywne połączenie GitHub. Nie jest to potwierdzenie zaliczenia najnowszych testów integracyjnych. PR pozostaje szkicem; najnowsze zmiany nie zostały wdrożone na produkcję.
 
 ## Naprawione problemy
