@@ -139,7 +139,8 @@ export async function fullFeatureAudit(base, db, fixture) {
               await check('deny outsider invoice email','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com'},fixture.otherCookie,[404]);
               await check('deny outsider email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
               await check('deny outsider KSeF XML','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[404]);
-              await db.companyMember.create({data:{companyId,userId:fixture.otherUserId,role:'accountant'}});
+              // Match the effective permissions assigned by the invitation flow, not schema defaults.
+              await db.companyMember.create({data:{companyId,userId:fixture.otherUserId,role:'accountant',canIssueInvoices:false,canRecordPayments:true,canExport:true}});
               await check('accountant KSeF XML export','GET',downloadPath+'?format=xml',undefined,fixture.otherCookie,[200]);
               await db.companyMember.update({where:{companyId_userId:{companyId,userId:fixture.otherUserId}},data:{canExport:false}});
               await check('read-only accountant cannot send invoice','POST','/api/invoices/send-email',{invoiceId:invoice.id,recipientEmail:'recipient@example.com'},fixture.otherCookie,[403]);
