@@ -359,6 +359,7 @@ model CompanyBankAccount {
 
 /// Faktura
 model Invoice {
+  exemptionBasis String?
   bookedAt DateTime?
   bookedBy String? @db.ObjectId
   issuedAt DateTime?
