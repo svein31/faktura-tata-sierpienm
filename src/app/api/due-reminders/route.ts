@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     const user = await getSessionUser(); if (!user) throw new ApiError(401,"Nieautoryzowany.");
     const companyId = new URL(req.url).searchParams.get("companyId"); if (!objectId(companyId)) throw new ApiError(400,"Wybierz firmę.");
     if (!await getCompanyMembership(user.id,companyId)) throw new ApiError(403,"Brak dostępu.");
-    const [settings,deliveries] = await Promise.all([prisma.dueReminderSetting.findMany({where:{companyId}}),prisma.dueReminderDelivery.findMany({where:{companyId},orderBy:{createdAt:"desc"},take:50})]);
+    const [settings,deliveries] = await Promise.all([prisma.dueReminderSetting.findMany({where:{companyId}}),prisma.dueReminderDelivery.findMany({where:{companyId,OR:[{channel:"email"},{channel:null},{channel:{isSet:false}}]},orderBy:{createdAt:"desc"},take:50})]);
     return json({settings: settings.map(({id,invoiceId,enabled,channels}) => ({id,invoiceId,enabled:enabled && (!channels.length || channels.includes("email"))})),deliveries:deliveries.filter(d=>!d.channel || d.channel==="email")});
   } catch(e) {return handleApiError(e);}
 }

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Dialog } from "@/components/ui/dialog";
 import {
   Building2,
   ShieldCheck,
@@ -13,7 +14,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  X,
   ExternalLink,
   Keyboard,
   Shield,
@@ -192,25 +192,7 @@ export function OnboardingTour() {
   const progressPercent = ((stepIndex + 1) / TOUR_STEPS.length) * 100;
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Tło przyciemniające */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={handleComplete}
-          className="fixed inset-0 bg-black/75 backdrop-blur-sm"
-        />
-
-        {/* Modal Onboardingu */}
-        <motion.div
-          initial={{ scale: 0.94, opacity: 0, y: 15 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.94, opacity: 0, y: 15 }}
-          transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
-          className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-border/80 bg-[#0c1017] shadow-2xl"
-        >
+    <Dialog open={isOpen} onClose={handleComplete} title="Pierwsze kroki" size="lg">
           {/* Górny pasek postępu */}
           <div className="h-1.5 w-full bg-muted/30">
             <motion.div
@@ -221,24 +203,10 @@ export function OnboardingTour() {
             />
           </div>
 
-          <div className="p-6">
-            {/* Nagłówek z etykietą kroku i przyciskiem zamknięcia */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge tone="primary" className="font-semibold">
-                  {currentStep.badge}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Krok {stepIndex + 1} z {TOUR_STEPS.length}
-                </span>
-              </div>
-              <button
-                onClick={handleComplete}
-                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors"
-                title="Pomiń samouczek"
-              >
-                <X className="h-4 w-4" />
-              </button>
+          <div className="min-w-0 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="primary" className="font-semibold">{currentStep.badge}</Badge>
+              <span className="text-xs text-muted-foreground">Krok {stepIndex + 1} z {TOUR_STEPS.length}</span>
             </div>
 
             {/* Treść kroku */}
@@ -253,7 +221,7 @@ export function OnboardingTour() {
                 >
                   <StepIcon className="h-6 w-6" />
                 </div>
-                <div>
+                <div className="min-w-0 break-words">
                   <h3 className="text-lg font-bold text-foreground">
                     {currentStep.title}
                   </h3>
@@ -280,8 +248,8 @@ export function OnboardingTour() {
             </div>
 
             {/* Dolny pasek nawigacji */}
-            <div className="mt-6 flex items-center justify-between border-t border-border/50 pt-4">
-              <div className="flex items-center gap-2">
+            <div className="mt-6 flex flex-col gap-3 border-t border-border/50 pt-4 sm:flex-row sm:flex-wrap sm:justify-between">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -302,11 +270,11 @@ export function OnboardingTour() {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Link
                   href={currentStep.actionHref}
                   onClick={() => setIsOpen(false)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"
+                  className="inline-flex min-h-11 min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"
                 >
                   <span>{currentStep.actionLabel}</span>
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -323,8 +291,6 @@ export function OnboardingTour() {
               </div>
             </div>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+    </Dialog>
   );
 }

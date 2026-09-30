@@ -11,7 +11,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/70 bg-background/95">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" aria-label="FakturaProsto — strona główna"><Logo /></Link>
+          <Logo />
           <nav aria-label="Poradniki i narzędzia" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <Link className="hover:text-primary" href="/program-do-faktur">Program</Link>
             <Link className="hover:text-primary" href="/faktury">Faktury</Link>

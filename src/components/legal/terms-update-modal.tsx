@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { FileText, Shield, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { FileText, Shield, CheckCircle2 } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/session-context";
 import { useToast } from "@/components/toast";
@@ -59,32 +60,26 @@ export function TermsUpdateModal() {
   if (!needsAcceptance) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="terms-update-title"
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-      >
-        {/* Nagłówek */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 id="terms-update-title" className="text-lg font-bold text-slate-900 dark:text-white">
-                Aktualizacja Regulaminu serwisu
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Wersja {LEGAL_VERSIONS.terms} — obowiązuje od {EFFECTIVE_DATE}
-              </p>
-            </div>
-          </div>
+    <Dialog open={needsAcceptance} onClose={() => {}} dismissible={false} title="Aktualizacja Regulaminu serwisu" description={`Wersja ${LEGAL_VERSIONS.terms} — obowiązuje od ${EFFECTIVE_DATE}`} footer={<div className="w-full">        {/* Przycisk */}
+        <div className="rounded-xl p-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleAccept}
+            loading={busy}
+            disabled={!accepted || busy}
+            className="w-full h-10 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {!busy && <CheckCircle2 className="w-4 h-4" />}
+            {busy ? "Zapisywanie…" : "Akceptuję zaktualizowany Regulamin"}
+          </Button>
+          <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 mt-2">
+            Akceptacja jest wymagana do kontynuowania korzystania z serwisu.
+          </p>
         </div>
-
+</div>}>
         {/* Treść */}
-        <div className="p-6 space-y-4 text-sm text-slate-600 dark:text-slate-300">
+        <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
           <p className="leading-relaxed">
             Zaktualizowaliśmy Regulamin świadczenia usług drogą elektroniczną. Prosimy o zapoznanie się z nowym dokumentem przed kontynuowaniem korzystania z serwisu.
           </p>
@@ -133,24 +128,6 @@ export function TermsUpdateModal() {
           </label>
         </div>
 
-        {/* Przycisk */}
-        <div className="p-5 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleAccept}
-            loading={busy}
-            disabled={!accepted || busy}
-            className="w-full h-10 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {!busy && <CheckCircle2 className="w-4 h-4" />}
-            {busy ? "Zapisywanie…" : "Akceptuję zaktualizowany Regulamin"}
-          </Button>
-          <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 mt-2">
-            Akceptacja jest wymagana do kontynuowania korzystania z serwisu.
-          </p>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

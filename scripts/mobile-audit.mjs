@@ -94,6 +94,16 @@ export async function auditMobileExperience(base, storageState, fixture) {
       // Exercise actual touch-sized controls, not just static screenshots.
       await page.setViewportSize({width:320,height:740});
       await page.goto('/dashboard'); await expect(page.locator('main h1')).toBeVisible();
+      await page.evaluate(()=>window.dispatchEvent(new CustomEvent('fakturo:open-onboarding')));
+      const tour=page.getByRole('dialog',{name:'Pierwsze kroki',exact:true});
+      await expect(tour).toBeVisible(); await audit(page,'onboarding');
+      await page.setViewportSize({width:320,height:360});
+      await expect.poll(()=>tour.evaluate(element=>element.getBoundingClientRect().bottom<=innerHeight+1)).toBe(true);
+      await audit(page,'onboarding short viewport');
+      await tour.getByRole('button',{name:'Dalej',exact:true}).click();
+      await expect(tour.getByText('Krok 2 z 5',{exact:true})).toBeVisible();
+      await tour.getByRole('button',{name:'Pomiń',exact:true}).click();
+      await expect(tour).toHaveCount(0); await page.setViewportSize({width:320,height:740});
       const menuButton=page.getByRole('button',{name:'Otwórz menu',exact:true});
       await menuButton.click(); const drawer=page.getByRole('dialog',{name:'Nawigacja',exact:true});
       await expect(drawer).toBeVisible(); await audit(page,'drawer');
@@ -151,8 +161,46 @@ export async function auditMobileExperience(base, storageState, fixture) {
       assert.equal(await page.getByText('Dodaj SMS',{exact:true}).count(),0);
       assert.deepEqual(errors,[],engine.name+' mobile JavaScript errors');
       console.log('[mobile-audit] PASS '+engine.name+' drawer, navigation, company switching, search, bank dialog and mobile invoice draft');
+    } catch(error) {
+      await page.screenshot({path:'artifacts/mobile/'+engine.name+'-interaction-failure.png',fullPage:true}).catch(()=>{});
+      console.log('[mobile-interaction-failure] '+JSON.stringify(await page.evaluate(()=>({url:location.href,viewport:{width:innerWidth,height:innerHeight,visualHeight:visualViewport?.height,visualTop:visualViewport?.offsetTop},dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(d=>({title:d.textContent?.slice(0,120),rect:d.getBoundingClientRect().toJSON(),buttons:Array.from(d.querySelectorAll('button')).filter(b=>b.getAttribute('aria-label')==='Zamknij').map(b=>{const r=b.getBoundingClientRect();return {rect:r.toJSON(),hit:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML.slice(0,450)};})}))}))).catch(()=>({}))));
+      throw error;
     } finally {await context.close();await publicContext.close();await browser.close();}
   }
   console.log('[mobile-audit] '+checks+' layout checks; '+failures.length+' failing screens');
   assert.deepEqual(failures,[],'All mobile screens and expanded forms must fit the viewport');
+}
+
+/** Read-only verification of the public production site; never creates accounts or documents. */
+export async function auditPublicMobileSite(origin) {
+  assert.equal(origin,'https://fakturaprosto.pl','Production audit is restricted to the configured public origin');
+  await mkdir('artifacts/mobile',{recursive:true});
+  const failures=[],errors=[];let checks=0;
+  for(const engine of [{name:'chromium',driver:chromium,widths:[320,390,430]},{name:'webkit',driver:webkit,widths:[375]}]) {
+    const browser=await engine.driver.launch({headless:true});
+    const context=await browser.newContext({baseURL:origin,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
+    const page=await context.newPage();
+    page.on('pageerror',error=>{const record={engine:engine.name,url:page.url(),message:error.message};errors.push(record);console.log('[production-mobile-js] '+JSON.stringify(record));});
+    try {
+      for(const width of engine.widths) {
+        await page.setViewportSize({width,height:812});
+        for(const route of publicRoutes) {
+          const response=await page.goto(route,{timeout:60000});
+          assert.ok(response?.ok(),engine.name+' '+route+' HTTP '+response?.status());
+          await expect(page.locator('h1').first()).toBeVisible({timeout:30000});
+          await page.evaluate(()=>document.fonts.ready);
+          const reject=page.getByRole('button',{name:'Odrzuć opcjonalne',exact:true});
+          if(await reject.isVisible()) await reject.click();
+          const found=await defects(page);checks++;
+          if(found.length) {
+            const record={engine:engine.name,width,route,defects:found};failures.push(record);console.log('[production-mobile] '+JSON.stringify(record));
+            await page.screenshot({path:'artifacts/mobile/production-'+engine.name+'-'+width+'-'+route.replace(/[^a-z0-9]/gi,'_')+'.png',fullPage:true});
+          }
+        }
+      }
+    } finally {await context.close();await browser.close();}
+  }
+  assert.deepEqual(errors,[],'Public production JavaScript errors');
+  assert.deepEqual(failures,[],'Public production mobile layout failures');
+  console.log('[production-mobile] PASS '+checks+' public layout checks in Chromium and WebKit');
 }

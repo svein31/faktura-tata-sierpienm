@@ -8,8 +8,9 @@ import { getEmailConfigStatus, isValidEmail, sendEmail } from "./email/sender";
 import { recordAuditLog } from "./audit";
 import { ApiError } from "./api";
 export async function processDueReminders() {
-  if (!getEmailConfigStatus().configured) throw new ApiError(503,"Skonfiguruj SMTP lub Resend przed uruchomieniem przypomnień.");
   await prisma.dueReminderDelivery.updateMany({ where: { channel: "sms", status: "pending" }, data: { status: "cancelled", error: "Obsługa SMS została wyłączona." } });
+  await prisma.dueReminderSetting.updateMany({ where: { enabled: true, channels: { has: "sms" }, NOT: { channels: { has: "email" } } }, data: { enabled: false } });
+  if (!getEmailConfigStatus().configured) throw new ApiError(503,"Skonfiguruj SMTP lub Resend przed uruchomieniem przypomnień.");
   const now = new Date(), today = warsawDate(now), start = Date.now();
   await prisma.dueReminderDelivery.updateMany({ where: { status: "sending", startedAt: { lt: new Date(now.getTime() - 600000) } }, data: { status: "verify_needed", error: "Przerwane wysyłanie — sprawdź u dostawcy poczty przed ponowieniem." } });
   const settings = await prisma.dueReminderSetting.findMany({ where: { enabled: true, nextCheckAt: { lte: now } }, orderBy: { nextCheckAt: "asc" }, take: 30 });

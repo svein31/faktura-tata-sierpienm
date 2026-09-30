@@ -420,9 +420,11 @@ try {
   await db.dueReminderDelivery.update({where:{id:retiredSms.id},data:{status:'verify_needed'}});
   assert.equal((await api('POST','/api/due-reminders',{companyId,action:'retry',id:retiredSms.id},a.cookie)).res.status,409);
   await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},a.cookie);
+  await db.dueReminderSetting.createMany({data:Array.from({length:31},()=>({invoiceId:new ObjectId().toHexString(),companyId,userId:a.data.user.id,enabled:true,channels:['sms'],nextCheckAt:new Date(0)}))});
   const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
   assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
   assert.equal(deliveredEmails.length,1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
+  assert.equal(await db.dueReminderSetting.count({where:{companyId,enabled:true,channels:{has:'sms'},NOT:{channels:{has:'email'}}}}),0,'Retired SMS schedules cannot starve the e-mail queue');
   assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
   await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
   await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
