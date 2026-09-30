@@ -67,7 +67,7 @@ export function parseStatementCsv(text: string): StatementTransaction[] {
   }).filter(tx => tx.amount !== 0);
 }
 export function parseMt940(text: string): StatementTransaction[] {
-  const tags = [...text.replace(/\r/g, "").matchAll(/^:(\d{2}[A-Z]?):([\s\S]*?)(?=^:\d{2}[A-Z]?:|$)/gm)];
+  const tags = [...text.replace(/\r/g, "").matchAll(/^:(\d{2}[A-Z]?):([\s\S]*?)(?=^:\d{2}[A-Z]?:|(?![\s\S]))/gm)];
   const transactions: StatementTransaction[] = []; let accountIban = "", ccy = "", last: StatementTransaction | undefined;
   for (const [, tag, value] of tags) {
     if (tag === "25") accountIban = value.trim().split("\n")[0].replace(/\s/g, "");
