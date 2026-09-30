@@ -11,7 +11,13 @@ Build, TypeScript, ESLint, 7 testów requested-fixes, 133 testy jednostkowe, 370
 Równoległy przebieg API 36718743968 miał jedno niepowodzenie: 15-sekundowy timeout starego endpointu pobierania KSeF. Analiza wykazała brak kontroli dostępu i fikcyjny XML/UPO jako fallback. Endpoint został następnie przepisany i pokryty dodatkowymi testami.
 
 Commit 8d5ae6d7c101b92e2aa801fbf1d8b2bf9de123a1 przeszedł wszystkie trzy buildy Netlify. GitHub Actions dla tego commita kończyły się przed pierwszym krokiem, bez przydzielonego runnera i logów; retry również nie wystartował. To blokada środowiska, a nie potwierdzony wynik testów kodu.
-Najnowsza korekta zaokrąglania cen i dodatkowe testy wymagają ponownego pełnego przebiegu. Przygotowano alternatywną weryfikację w preview Netlify wyłącznie tej gałęzi, z pominięciem produkcyjnych sekretów.
+Alternatywna weryfikacja Netlify dla PR #24 działa z pominięciem produkcyjnych sekretów:
+- 1ec54547e42c07f06992775b7c5c3a23e7a5be1d: trzy poprawne podglądy — build, TypeScript, ESLint i wskazane testy nowych walidatorów.
+- f0c68262f3ff4308e1d165ff28532ef774a54628: trzy poprawne podglądy po dodaniu całego npm test, w tym walidacji XSD przez lxml.
+- a44745e034c19664f0ea4269b626795cc703bc97: trzy niepowodzenia po dodaniu izolowanej integracji HTTP. Sam status nie rozstrzyga między problemem środowiska a niepowodzeniem asercji.
+- ff863e0d45d74ea20d5dab6b56fa10b8aa8d574e: poprawka pełnych minut i dat płatności; wszystkie trzy podglądy potwierdziły build, TypeScript, lint, testy jednostkowe i osobny start MongoDB. Awaria integracji następuje później. GitHub Actions ponownie kończy się bez kroków i logów (run 36739640646).
+
+Bezpośrednie logi Netlify nie są udostępnione przez aktywne połączenie GitHub. Nie jest to potwierdzenie zaliczenia najnowszych testów integracyjnych. PR pozostaje szkicem; najnowsze zmiany nie zostały wdrożone na produkcję.
 
 ## Naprawione problemy
 
@@ -27,6 +33,9 @@ Najnowsza korekta zaokrąglania cen i dodatkowe testy wymagają ponownego pełne
 | Portal płatności | niepoprawne daty i nieatomowy komentarz | walidacja daty i transakcja; deklaracja nie oznacza opłacenia |
 | Historia e-mail | księgowa nie widziała historii współdzielonej faktury; surowe błędy bazy | dostęp członków firmy, odcięcie po odebraniu roli, bez szczegółów bazy |
 | E-mail | nieescapowane dane użytkownika w HTML | escapowanie pól i zachowanie łamania wierszy |
+| Wysyłanie e-mail | brak spójnej kontroli uprawnień i zmiana szkicu na wysłany przy wysyłce wiadomości | kontrola firmy i canIssueInvoices, zachowanie statusu szkicu, kontrola historii |
+| VAT i oferty | UI akceptował oo, którego API odmawiało; rozbieżne zaokrąglenia ofert | spójny zestaw stawek oraz precyzja ilości/cen przed konwersją |
+| Czas i daty | 31 minut odrzucane po konwersji na godziny; 30 lutego normalizowany do marca | tolerancja wyłącznie szumu obliczeń i walidacja rzeczywistego dnia kalendarza |
 | Webhook Stripe | żądanie bez podpisu zwracało 500 przy braku konfiguracji | 400 dla braku podpisu, 503 dla braku konfiguracji |
 | Kwoty faktur | małe ilości zaokrąglane do zera, 1,005 do 1,00; brak limitów | sześć miejsc ilości w API i kreatorze, half-up ceny, limity pozycji i wartości |
 
