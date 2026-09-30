@@ -26,13 +26,14 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity'); if(checks.length>=limit) return;
     await page.setViewportSize({width:1280,height:900});
     await page.goto('/narzedzia/kalkulator-vat');
+    const vatCalculator=page.getByRole('heading',{name:'Oblicz kwoty',exact:true}).locator('..');
     await page.getByLabel('Kwota w PLN').fill('100');
-    await expect(page.getByRole('status')).toContainText('123,00');
-    await page.getByLabel('Kwota w PLN').fill('abc');await expect(page.getByRole('alert')).toContainText('Popraw format');
+    await expect(vatCalculator.getByRole('status')).toContainText('123,00');
+    await page.getByLabel('Kwota w PLN').fill('abc');await expect(vatCalculator.getByRole('alert')).toContainText('Popraw format');
     await page.getByLabel('Kwota w PLN').fill('100,01');
     await page.getByRole('button',{name:'Brutto',exact:true}).click();
     await expect(page.getByRole('button',{name:'Brutto',exact:true})).toHaveAttribute('aria-pressed','true');
-    await expect(page.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input'); if(checks.length>=limit) return;
+    await expect(vatCalculator.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input'); if(checks.length>=limit) return;
     await page.goto('/narzedzia/limit-ksef');
     await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('8000');
     await page.getByLabel('Nowa faktura brutto').fill('2000');
