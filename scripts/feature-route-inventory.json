@@ -1,0 +1,782 @@
+[
+  {
+    "path": "/api/accountant/export-pack",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/accountant/package",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/accountant/period",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/accountant/portal",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/accountant/workspace",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/audit",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/auth/[...nextauth]",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/forgot-password",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/login",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/logout",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/me",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/auth/mfa",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/register",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/auth/reset-password",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/banking/import",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/banking/transfers",
+    "methods": [
+      "POST",
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/companies/[id]/bank-accounts",
+    "methods": [
+      "GET",
+      "POST",
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/companies/[id]/numbering",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "path": "/api/companies/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/companies/[id]/set-default",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "path": "/api/companies",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/company",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/consents",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/contractors/[id]/history",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/contractors/[id]",
+    "methods": [
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/contractors/import",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/contractors",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/cost-reviews",
+    "methods": [
+      "POST",
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/data",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/documents/[id]/file",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/documents/[id]/ocr",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/documents/[id]",
+    "methods": [
+      "GET",
+      "PATCH"
+    ]
+  },
+  {
+    "path": "/api/documents/process",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/documents",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/due-reminders/process",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/due-reminders",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/expenses/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/expenses",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/gus/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/health",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/integrations/process",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/integrations",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invite/[token]",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoice-settlements",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]/email-history",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]/payments",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]/pdf",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]/recurrence",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]/reminders",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/invoices/approve",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/bulk/pay",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/export",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/invoices/send-email",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/jpk",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/auth/login",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/auth",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/auto-sync",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/center",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/invoices/download/[ksefReferenceNumber]",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/ksef/invoices/send",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/invoices/status/[elementReferenceNumber]",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/ksef/offline/issue",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/queue/process",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/queue",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/ksef/send",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/status/[refNumber]",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/ksef/sync-incoming",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ksef/test-connection",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/nbp",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/nip-lookup",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/notifications/[id]",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/notifications/preferences",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/notifications",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/offers/[id]/convert",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/offers/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/offers",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/orders/[id]/convert",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/orders/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/orders",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/overview",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/pdf-templates",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/portal/[token]/decision",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/portal/[token]/declare-payment",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/portal/[token]",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/products/[id]",
+    "methods": [
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/products",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/projects",
+    "methods": [
+      "POST",
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/recurring/process",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/subscription/checkout",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/subscription/portal",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/subscription",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/tax-estimate",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/team/invitations/[id]",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/team/members/[id]",
+    "methods": [
+      "PUT",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/team",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/test/incoming",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/user/accept-terms",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/user/change-email",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/user/change-password",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/user/delete-account",
+    "methods": [
+      "POST",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/user/export-data",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/user/logout-all",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/user/profile",
+    "methods": [
+      "GET",
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/v1/catalogs",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/v1/documents",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/v1/ksef/statuses",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/vies/check",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/warehouse/commands",
+    "methods": [
+      "POST",
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/warehouse/documents",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/warehouse/overview",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/warehouse/stock/[id]",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "path": "/api/warehouse/stock",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/warehouse/warehouses/[id]",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ]
+  },
+  {
+    "path": "/api/warehouse/warehouses",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/webhooks/stripe",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/workspace/health",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "path": "/api/workspace/preferences",
+    "methods": [
+      "GET",
+      "PUT"
+    ]
+  }
+]
