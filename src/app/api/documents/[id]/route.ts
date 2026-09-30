@@ -10,7 +10,7 @@ type Context = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, context: Context) {
   try {
     const user = await getSessionUser();
-    assertObjectId((await params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    assertObjectId((await context.params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await context.params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
     const record = await prisma.expenseScan.findUnique({ where: { id }, omit: { imageData: true } });
     if (!record) throw new ApiError(404, "Nie znaleziono dokumentu.");
@@ -22,7 +22,7 @@ export async function GET(_req: Request, context: Context) {
 export async function PATCH(req: Request, context: Context) {
   try {
     const user = await getSessionUser();
-    assertObjectId((await params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    assertObjectId((await context.params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await context.params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
     const record = await prisma.expenseScan.findUnique({ where: { id } }); if (!record) throw new ApiError(404, "Nie znaleziono dokumentu.");
     const body = await readJson(req);

@@ -72,7 +72,60 @@ export async function fullFeatureAudit(base, db, fixture) {
         await check('complete order','PATCH','/api/orders/'+id,{status:'completed'},fixture.ownerCookie,[200]);
         await check('delete order','DELETE','/api/orders/'+id,undefined,fixture.ownerCookie,[200]);
       }
+
+      const offerBody={companyId,contractorId,number:'AUDIT/OFFER',title:'Mixed VAT offer',issueDate:'2026-09-30',validUntil:'2027-09-30',currency:'PLN',
+        lines:[{id:'a',name:'VAT 23',quantity:1,unit:'szt.',netPrice:100,vatRate:'23'},{id:'b',name:'VAT 8',quantity:1,unit:'szt.',netPrice:100,vatRate:'8'}]};
+      const offer=await check('create offer','POST','/api/offers',offerBody,fixture.ownerCookie,[201]);
+      if(offer.data?.offer?.id) {
+        const id=offer.data.offer.id;
+        const sent=await check('share offer','PATCH','/api/offers/'+id,{status:'sent',version:offer.data.offer.version},fixture.ownerCookie,[200]);
+        const token=sent.data?.offer?.publicToken;
+        if(token) {
+          const portal=await check('public offer preview','GET','/api/portal/'+token,undefined,undefined,[200]);
+          if(portal.data?.document?.id||portal.data?.document?.userId)failures.push({label:'Public offer must not disclose tenant identifiers',ok:false});
+          await check('accept offer','POST','/api/portal/'+token+'/decision',{decision:'accepted',name:'Audit client',version:sent.data.offer.version},undefined,[200]);
+          await check('reject stale offer decision','POST','/api/portal/'+token+'/decision',{decision:'rejected',name:'Audit client',version:sent.data.offer.version},undefined,[409]);
+        }
+        const converted=await check('convert accepted offer to order','POST','/api/offers/'+id+'/convert',{target:'order'},fixture.ownerCookie,[200]);
+        await check('reject repeated offer conversion','POST','/api/offers/'+id+'/convert',{target:'order'},fixture.ownerCookie,[409]);
+        if(converted.data?.order?.id) {
+          const orderId=converted.data.order.id;
+          const invoiced=await check('invoice order with mixed VAT','POST','/api/orders/'+orderId+'/convert',undefined,fixture.ownerCookie,[200]);
+          if(invoiced.data?.invoice?.id) {
+            const invoice=invoiced.data.invoice;
+            if(invoice.totalGross!==231)failures.push({label:'Mixed VAT totals must survive offer/order conversion',ok:false});
+            const order=await db.order.findUniqueOrThrow({where:{id:orderId}});
+            if(order.status!=='billed'||order.billedInvoiceId!==invoice.id)failures.push({label:'Converted order must be shown as billed',ok:false});
+            await check('reject duplicate order invoice','POST','/api/orders/'+orderId+'/convert',undefined,fixture.ownerCookie,[409]);
+            await check('protect billed order edit','PUT','/api/orders/'+orderId,{totalGross:999},fixture.ownerCookie,[409]);
+            await check('protect billed order deletion','DELETE','/api/orders/'+orderId,undefined,fixture.ownerCookie,[409]);
+            const token=invoice.shareToken;
+            if(token) {
+              await check('reject invalid promised payment date','POST','/api/portal/'+token+'/declare-payment',{declaredDate:'2026-02-30'},undefined,[400]);
+              await check('declare promised payment','POST','/api/portal/'+token+'/declare-payment',{declaredDate:'2026-10-15',note:'Audit promise'},undefined,[200]);
+              const after=await db.invoice.findUniqueOrThrow({where:{id:invoice.id}});
+              if(after.declaredPaymentDate!=='2026-10-15'||after.paymentStatus==='paid')failures.push({label:'Payment promise must persist without marking invoice paid',ok:false});
+              if(await db.documentComment.count({where:{invoiceId:invoice.id}})!==1)failures.push({label:'Payment promise must have exactly one comment',ok:false});
+            }
+            await check('owner email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.ownerCookie,[200]);
+            if(fixture.otherCookie&&fixture.otherUserId) {
+              await check('deny outsider email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
+              await db.companyMember.create({data:{companyId,userId:fixture.otherUserId,role:'accountant'}});
+              await check('shared team email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[200]);
+              await db.companyMember.delete({where:{companyId_userId:{companyId,userId:fixture.otherUserId}}});
+              await check('revoked email history','GET','/api/invoices/'+invoice.id+'/email-history',undefined,fixture.otherCookie,[404]);
+            }
+          }
+        }
+      }
     }
+  }
+  const sitemap=await fetch(base+"/sitemap.xml");
+  assert.equal(sitemap.status,200);
+  const xml=await sitemap.text();
+  for(const match of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    const url=new URL(match[1]);
+    await check("public sitemap page","GET",url.pathname+url.search,undefined,undefined,[200]);
   }
   await mkdir('artifacts/functional',{recursive:true});
   const report={createdAt:new Date().toISOString(),routeCount:routes.length,methodCount:routes.reduce((sum,r)=>sum+r.methods.length,0),checks:results.length,failures,results};

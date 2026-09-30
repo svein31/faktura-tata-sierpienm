@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export async function POST(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const user = await getSessionUser();
-    assertObjectId((await params).id);
+    assertObjectId((await context.params).id);
     if (!user) throw new ApiError(401, "Nieautoryzowany.");
     if (!process.env.OCR_SPACE_API_KEY) throw new ApiError(503, "OCR nie jest skonfigurowany. Możesz opracować dokument ręcznie.");
     return json(await enqueueOcr(user.id, (await context.params).id), { status: 202 });

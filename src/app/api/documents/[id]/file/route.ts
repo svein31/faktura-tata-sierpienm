@@ -6,7 +6,7 @@ import { objectId } from "@/lib/company-scope";
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const user = await getSessionUser();
-    assertObjectId((await params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    assertObjectId((await context.params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await context.params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
     const doc = await prisma.expenseScan.findUnique({ where: { id } }); if (!doc?.imageData) throw new ApiError(404, "Nie znaleziono dokumentu.");
     await inboxAccess(user.id, doc.companyId);

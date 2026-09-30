@@ -88,6 +88,7 @@ export default function OrdersPage() {
       if (scopeRef.current !== scope) return;
       if (res.ok) {
         const data = await res.json();
+        if (scopeRef.current !== scope) return;
         setOrders(data.orders || []);
       }
     } catch {
@@ -131,7 +132,10 @@ export default function OrdersPage() {
     setModalOpen(true);
   };
 
+  const [savingForm, setSavingForm] = React.useState(false);
+  const savingFormRef = React.useRef(false);
   const handleSave = async () => {
+    if (savingFormRef.current) return;
     if (!formContractorId) {
       toast("error", "Błąd walidacji", "Wybierz kontrahenta.");
       return;
@@ -152,6 +156,8 @@ export default function OrdersPage() {
       notes: formNotes,
     };
 
+    savingFormRef.current = true;
+    setSavingForm(true);
     try {
       const url = editingOrder ? `/api/orders/${editingOrder.id}` : "/api/orders";
       const method = editingOrder ? "PUT" : "POST";
@@ -170,6 +176,9 @@ export default function OrdersPage() {
       }
     } catch {
       toast("error", "Błąd zapisu", "Wystąpił problem z połączeniem.");
+    } finally {
+      savingFormRef.current = false;
+      setSavingForm(false);
     }
   };
 
@@ -525,7 +534,7 @@ export default function OrdersPage() {
             <Button variant="ghost" onClick={() => setModalOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} className="font-semibold">
+            <Button onClick={handleSave} disabled={savingForm} className="font-semibold">
               {editingOrder ? "Zapisz zmiany" : "Utwórz zlecenie"}
             </Button>
           </div>
