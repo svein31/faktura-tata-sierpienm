@@ -529,6 +529,8 @@ export interface Expense {
 }
 
 export interface BankStatementTransaction {
+  currency?: string;
+  matchedExpenseId?: string;
   id: string;
   date: string;
   amount: number;
