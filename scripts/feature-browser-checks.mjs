@@ -27,7 +27,8 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await expect(page.getByRole('status')).toContainText('123,00');
     await page.getByLabel('Kwota w PLN').fill('abc');await expect(page.getByRole('alert')).toContainText('Popraw format');
     await page.getByLabel('Kwota w PLN').fill('100,01');
-    await page.getByRole('combobox',{name:'Rodzaj kwoty'}).click();await page.getByRole('option',{name:'Brutto',exact:true}).click();
+    await page.getByRole('button',{name:'Brutto',exact:true}).click();
+    await expect(page.getByRole('button',{name:'Brutto',exact:true})).toHaveAttribute('aria-pressed','true');
     await expect(page.getByRole('status')).toContainText('81,31');checks.push('VAT calculator directions and invalid input');
     await page.goto('/narzedzia/limit-ksef');
     await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('8000');
