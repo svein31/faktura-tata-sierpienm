@@ -1,0 +1,44 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fakturaprosto.pl/#organization",
+      "name": "FakturaProsto",
+      "legalName": "MICHAŁ WYCZAŁEK-JAGIEŁŁO GEOMATIC",
+      "url": "https://fakturaprosto.pl/",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "faktura.prosto@gmail.com",
+        "availableLanguage": "Polish"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fakturaprosto.pl/#website",
+      "name": "FakturaProsto",
+      "url": "https://fakturaprosto.pl/",
+      "inLanguage": "pl-PL",
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://fakturaprosto.pl/demo#demo",
+      "name": "Demo FakturaProsto",
+      "url": "https://fakturaprosto.pl/demo",
+      "description": "Formularz przykładowej faktury i symulacja KSeF bez rejestracji. Demo nie wysyła rzeczywistych faktur do KSeF.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web browser",
+      "isAccessibleForFree": true,
+      "inLanguage": "pl-PL",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "PLN"
+      }
+    }
+  ]
+}
