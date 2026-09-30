@@ -518,6 +518,8 @@ export async function generateInvoicePdfBuffer(
   const information: string[] = [];
   if (invoice.ksef?.number) information.push(`KSeF Numer: ${invoice.ksef.number} | Srodowisko: ${invoice.ksef.environment || "test"}`);
   else if (invoice.isOffline) information.push(`Dokument wystawiony w trybie awaryjnym/offline. Termin przeslania: ${invoice.offlineDeadline || "nastepny dzien roboczy"}`);
+  if (invoice.isSplitPayment) information.push("Mechanizm podzielonej płatności");
+  if (invoice.exemptionBasis) information.push("Podstawa zwolnienia VAT: " + invoice.exemptionBasis);
   if (invoice.notes) information.push(`Uwagi: ${invoice.notes}`);
   for (const paragraph of information) {
     for (const text of wrap(paragraph, width - 104, 8)) {
