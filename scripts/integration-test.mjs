@@ -877,6 +877,10 @@ try {
   // Expanded SaaS workflows use their own company to keep financial fixtures independent.
   const workflowCompany = await db.companyProfile.create({data:{userId:a.data.user.id,nip:'1234567890',companyName:'Workflow isolated company',bankAccount:'61109010140000071219812874'}});
   const workflowAccount = await db.companyBankAccount.create({data:{companyId:workflowCompany.id,accountName:'Workflow PLN',accountNumber:'PL61109010140000071219812874'}});
+  await db.teamInvitation.create({data:{companyId:workflowCompany.id,userId:a.data.user.id,email:'workflow-invite@example.test',role:'accountant',token:'workflow-private-invite-token',expiresAt:new Date(Date.now()+86400000)}});
+  const teamWithoutCredentials=await api('GET','/api/team?companyId='+workflowCompany.id,undefined,a.cookie);
+  assert.equal(teamWithoutCredentials.res.status,200);
+  assert.ok(!JSON.stringify(teamWithoutCredentials.data).includes('workflow-private-invite-token'),'Invitation lists must not expose credentials');
   const workflowContact = await db.contractor.create({data:{userId:a.data.user.id,companyId:workflowCompany.id,name:'Supplier & Client',nip:'5260301706',address:{street:'Test',city:'Warszawa'},iban:'PL61109010140000071219812874'}});
   const workflowBase = {userId:a.data.user.id,sellerCompanyId:workflowCompany.id,contractorId:workflowContact.id,issueDate:'2026-09-30',saleDate:'2026-09-30',dueDate:'2026-10-14',status:'issued',documentStatus:'issued',currency:'PLN',lines:[{id:'line1',name:'Usługa',quantity:1,unit:'szt.',netPrice:100,vatRate:23}],totalNet:100,totalVat:23,totalGross:123};
   const workflowSale = await db.invoice.create({data:{...workflowBase,number:'WORKFLOW/SALE/1',type:'sale'}});
