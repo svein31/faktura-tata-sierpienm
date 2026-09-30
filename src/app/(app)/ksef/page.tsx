@@ -666,6 +666,7 @@ function KsefPageInner() {
                 {/* Przycisk zapisu */}
                 <div className="pt-2 flex items-center gap-3">
                   <Button
+                    disabled={company?.currentUserRole!=="owner"&&!company?.currentUserPermissions?.canManageIntegrations}
                     onClick={handleSaveKsefSettings}
                     loading={savingKsef}
                     className="flex-1 rounded-xl gap-2 h-10 font-semibold"

@@ -65,7 +65,7 @@ async function getSession(userId: string, companyId: string | null) {
   const ksefToken = (companyProfile?.ksefToken || '').trim();
   const settings = await prisma.ksefSettings.findUnique({ where: { userId } });
   const environment = asEnvironment(
-    settings?.environment ?? process.env.KSEF_ENV ?? process.env.KSEF_ENVIRONMENT
+    companyProfile?.ksefEnvironment ?? settings?.environment ?? process.env.KSEF_ENV ?? process.env.KSEF_ENVIRONMENT
   );
   const now = new Date();
 

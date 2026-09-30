@@ -1,4 +1,7 @@
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import {readFile} from "node:fs/promises";
+import path from "node:path";
+import { PDFDocument, rgb } from "pdf-lib";
 import { formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "../format";
 import { invoiceLabels, paymentMethodLabel } from "../i18n";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "../types";
@@ -12,21 +15,10 @@ import { remoteLogo } from "./remote-logo";
  * Zapobiega błędom kodowania WinAnsi w środowiskach bez zewnętrznych fontów TTF.
  */
 function cleanText(text: string | number | undefined | null): string {
-  if (text === undefined || text === null) return "";
-  const s = String(text);
-  const polishMap: Record<string, string> = {
-    ą: "a", Ą: "A",
-    ć: "c", Ć: "C",
-    ę: "e", Ę: "E",
-    ł: "l", Ł: "L",
-    ń: "n", Ń: "N",
-    ó: "o", Ó: "O",
-    ś: "s", Ś: "S",
-    ź: "z", Ź: "Z",
-    ż: "z", Ż: "Z",
-  };
-  return s.replace(/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, (m) => polishMap[m] || m);
+ return String(text??"").replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,"");
 }
+let fontBytes:Promise<Buffer[]>|undefined;
+function fonts(){return fontBytes??=Promise.all(["DejaVuSans.ttf","DejaVuSans-Bold.ttf"].map(name=>readFile(path.join(process.cwd(),"public/fonts",name))));}
 
 /**
  * Generuje profesjonalny plik PDF faktury (Buffer / Uint8Array) w środowisku Node.js / Netlify Functions.
@@ -54,8 +46,10 @@ export async function generateInvoicePdfBuffer(
   let page = pdfDoc.addPage([595.28, 841.89]); // A4 (points)
   const { width, height } = page.getSize();
 
-  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  pdfDoc.registerFontkit(fontkit);
+  const [regular,bold]=await fonts();
+  const fontRegular = await pdfDoc.embedFont(regular,{subset:true});
+  const fontBold = await pdfDoc.embedFont(bold,{subset:true});
 
   const L = invoiceLabels[invoice.language || "PL"];
   const t = invoiceTotals(invoice);

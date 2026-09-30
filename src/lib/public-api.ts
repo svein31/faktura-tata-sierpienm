@@ -5,7 +5,7 @@ import { tokenHash } from "./integration-security";
 import { getCompanyMembership } from "./permissions";
 export async function requireIntegrationOwner(userId: string, companyId: string) {
   const membership = await getCompanyMembership(userId, companyId);
-  if (membership?.role !== "owner") throw new ApiError(403, "Integracje może zarządzać wyłącznie właściciel firmy.");
+  if (membership?.role !== "owner" && !membership?.permissions.canManageIntegrations) throw new ApiError(403, "Brak uprawnienia do zarządzania integracjami.");
   return membership;
 }
 export const PUBLIC_API_SCOPES = ["ksef:read", "documents:read", "catalogs:read"] as const;

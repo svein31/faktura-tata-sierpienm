@@ -7,8 +7,8 @@ export type InvoiceStatus = "draft" | "issued" | "sent" | "paid" | "ksef_sent" |
 export type DocumentStatus = "draft" | "ready" | "issued" | "cancelled";
 export type KsefStatus = "none" | "draft" | "ready" | "queued" | "sending" | "accepted" | "rejected" | "verify_needed";
 export type PaymentStatus = "unpaid" | "partially_paid" | "paid" | "overdue";
-export type UserRole = "owner" | "accountant" | "employee" | "viewer";
-export type CompanyRole = "owner" | "accountant" | "employee" | "viewer";
+export type UserRole = "owner" | "admin" | "sales" | "accountant" | "employee" | "viewer";
+export type CompanyRole = "owner" | "admin" | "sales" | "accountant" | "employee" | "viewer";
 export type TaxIdType = "nip" | "vat_eu" | "tin" | "other" | "none";
 export type ExchangeRateRule = "art_31a_sale_date" | "art_31a_issue_date" | "art_31a_tax_point" | "manual";
 export type KsefEnv = "demo" | "test" | "production";
@@ -59,6 +59,7 @@ export interface CompanyPermissions {
   canSendKsef: boolean;
   canManageBankAccounts: boolean;
   canManageTeam: boolean;
+  canManageIntegrations: boolean;
 }
 
 export interface CompanyMember {
@@ -73,6 +74,7 @@ export interface CompanyMember {
   canSendKsef: boolean;
   canManageBankAccounts: boolean;
   canManageTeam: boolean;
+  canManageIntegrations: boolean;
   createdAt: string;
   updatedAt: string;
   user?: {
@@ -161,6 +163,7 @@ export interface CompanyProfile {
   bankAccount?: string | null;
   ksefToken?: string | null;
   ksefTokenSet?: boolean;
+  ksefEnvironment?: "demo" | "test" | "production" | null;
   isDefault: boolean;
   logoUrl?: string | null;
   accentColor?: string | null;

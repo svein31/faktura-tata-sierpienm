@@ -11,6 +11,7 @@ import {
   Plus,
   UserCog,
 } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -28,6 +29,8 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const company = useAppStore(s=>s.company);
+  const items = company?.currentUserRole === "accountant" ? [{href:"/accountant/portal",label:"Dokumenty",icon:FileText},{href:"/expenses",label:"Koszty",icon:FileText},{href:"/accountant",label:"Eksporty",icon:FileText},{href:"/settings/companies",label:"Firmy",icon:Building2},{href:"/settings/account",label:"Konto",icon:UserCog}] : NAV_ITEMS.filter(item=>!item.isAction || company?.currentUserPermissions?.canIssueInvoices!==false);
 
   return (
     <nav
@@ -36,7 +39,7 @@ export function BottomNav() {
     >
       <div className="border-t border-border/60 bg-background/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl">
         <div className="flex items-center justify-around">
-          {NAV_ITEMS.map((item) => {
+          {items.map((item) => {
             const active = item.exact
               ? pathname === item.href
               : pathname.startsWith(item.href);

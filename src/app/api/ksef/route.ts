@@ -1,70 +1,13 @@
-import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
-import { ApiError, cleanStr, handleApiError, json, readJson, str } from "@/lib/api";
-import { ksefToDto } from "@/lib/dto";
-
-export const runtime = "nodejs";
-
-const ENVIRONMENTS = ["demo", "test", "production"] as const;
-
-/**
- * PUT /api/ksef — ustawienia KSeF bieżącego użytkownika.
- */
-export async function PUT(req: Request) {
-  try {
-    const user = await getSessionUser();
-    if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
-
-    const body = await readJson(req);
-
-    const environmentRaw = str(body.environment);
-    if (!ENVIRONMENTS.includes(environmentRaw as (typeof ENVIRONMENTS)[number])) {
-      throw new ApiError(400, "Nieprawidłowe środowisko KSeF.");
-    }
-    const environment = environmentRaw as (typeof ENVIRONMENTS)[number];
-
-    const existing = await prisma.ksefSettings.findUnique({ where: { userId: user.id } });
-
-    let tokenSet = existing?.tokenSet ?? false;
-    let tokenMask = existing?.tokenMask ?? "";
-
-    // Opcjonalny token w body — zapisujemy maskę oraz aktualizujemy domyślny profil firmy
-    if (typeof body.token === "string" && body.token.trim().length > 0) {
-      const t = body.token.trim();
-      if (t.length < 4) throw new ApiError(400, "Token musi mieć co najmniej 4 znaki.");
-      tokenSet = true;
-      tokenMask = `••••${t.slice(-4)}`;
-
-      // Zapisz token w profilu firmy użytkownika
-      const defaultProfile = await prisma.companyProfile.findFirst({
-        where: { userId: user.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-      });
-
-      if (defaultProfile) {
-        await prisma.companyProfile.update({
-          where: { id: defaultProfile.id },
-          data: { ksefToken: t },
-        });
-      }
-    }
-
-    const data = {
-      environment,
-      tokenSet,
-      tokenMask,
-      certName: cleanStr(body.certName, 200, "certName"),
-      autoValidate: body.autoValidate === false ? false : true,
-    };
-
-    const ksef = await prisma.ksefSettings.upsert({
-      where: { userId: user.id },
-      update: data,
-      create: { userId: user.id, ...data },
-    });
-
-    return json({ ksef: ksefToDto(ksef) });
-  } catch (e) {
-    return handleApiError(e);
-  }
-}
+import {companyAccess} from "@/lib/company-write";
+import {recordAuditLog} from "@/lib/audit";
+import {prisma} from "@/lib/db";
+import {getSessionUser} from "@/lib/auth";
+import {ApiError,cleanStr,handleApiError,json,readJson,str} from "@/lib/api";
+import {ksefToDto} from "@/lib/dto";
+export const runtime="nodejs";
+export async function PUT(req:Request){try{
+ const user=await getSessionUser();if(!user)throw new ApiError(401,"Nieautoryzowany.");const body=await readJson(req),environment=str(body.environment);
+ if(!["demo","test","production"].includes(environment))throw new ApiError(400,"Nieprawidłowe środowisko KSeF.");
+ const token=typeof body.token==="string"?body.token.trim():"";if(token&&(token.length<4||token.length>10000))throw new ApiError(400,"Nieprawidłowa długość tokena.");const certName=cleanStr(body.certName,200,"certName");
+ const settings=await prisma.$transaction(async tx=>{const {company}=await companyAccess(tx,user.id,body.companyId,"canManageIntegrations");const profile=await tx.companyProfile.update({where:{id:company.id},data:{ksefEnvironment:environment,...(token?{ksefToken:token}:{})}});const data={environment,tokenSet:Boolean(profile.ksefToken),tokenMask:"",certName,autoValidate:body.autoValidate!==false};const result=await tx.ksefSettings.upsert({where:{userId:user.id},create:{userId:user.id,...data},update:data});await recordAuditLog({client:tx,companyId:company.id,userId:user.id,userName:user.name,userEmail:user.email,action:"ksef.settings_updated",entityType:"company",entityId:company.id,details:{environment,credentialsChanged:Boolean(token)}});return result;});return json({ksef:ksefToDto(settings)});
+}catch(e){return handleApiError(e);}}

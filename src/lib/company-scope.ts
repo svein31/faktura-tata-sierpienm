@@ -1,3 +1,4 @@
+import { DEFAULT_ROLE_PERMISSIONS } from "./role-permissions";
 import { prisma } from "@/lib/db";
 import { ApiError } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
@@ -7,9 +8,9 @@ export const objectId = (value: unknown): value is string => typeof value === "s
 export async function accessibleCompanyIds(userId: string): Promise<string[]> {
   const [owned, memberships] = await Promise.all([
     prisma.companyProfile.findMany({ where: { userId }, select: { id: true } }),
-    prisma.companyMember.findMany({ where: { userId }, select: { companyId: true } }),
+    prisma.companyMember.findMany({ where: { userId }, select: { companyId: true, role: true } }),
   ]);
-  return [...new Set([...owned.map(c => c.id), ...memberships.map(m => m.companyId)])];
+  return [...new Set([...owned.map(c => c.id), ...memberships.filter(m => Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, m.role)).map(m => m.companyId)])];
 }
 
 export function catalogWhere(userId: string, companyIds: string[]) {
