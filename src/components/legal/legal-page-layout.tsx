@@ -120,8 +120,8 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-blue-500 selection:text-white">
       {/* ── TOP HEADER (Ukryty przy drukowaniu) ── */}
       <header className="print:hidden sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
             <Link
               href="/"
               className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
@@ -138,7 +138,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-full flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -263,7 +263,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
           </aside>
 
           {/* TREŚĆ DOKUMENTU - Prawa kolumna */}
-          <article className="lg:col-span-8 space-y-8 bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm print:shadow-none print:border-none print:p-0 print:space-y-6">
+          <article className="min-w-0 break-words lg:col-span-8 space-y-8 bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm print:shadow-none print:border-none print:p-0 print:space-y-6">
             {doc.sections.map((sec, index) => (
               <section
                 key={index}
@@ -289,7 +289,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
               Dokumenty sporządzone zgodnie z RODO (UE 2016/679), Prawem komunikacji elektronicznej (PKE) oraz Ustawą o prawach konsumenta.
             </p>
           </div>
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
             <button
               onClick={handleOpenCookieSettings}
               className="text-blue-600 hover:underline inline-flex items-center gap-1"

@@ -403,10 +403,28 @@ try {
   await db.contractor.update({where:{id:reminderInvoice.data.invoice.contractorId},data:{email:'customer@example.test'}});
   assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},b.cookie)).res.status,403);
   assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},a.cookie)).res.status,200);
+  assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true,channels:['sms'],smsRecipient:'+48123456789'},a.cookie)).res.status,400);
+  const legacySmsSetting=await db.dueReminderSetting.findUniqueOrThrow({where:{invoiceId:reminderId}});
+  await db.dueReminderDelivery.create({data:{settingId:legacySmsSetting.id,companyId,eventKey:'retired-sms-event',dueDate:reminderInvoice.data.invoice.dueDate,stage:'due',channel:'sms',status:'pending'}});
+  const smsHidden=await api('GET','/api/due-reminders?companyId='+companyId,undefined,a.cookie);
+  assert.ok(smsHidden.data.deliveries.every(delivery=>delivery.channel!=='sms'));
+
   assert.equal((await api('POST','/api/due-reminders/process',{})).res.status,401);
+
+  await db.dueReminderSetting.update({where:{id:legacySmsSetting.id},data:{channels:['sms'],nextCheckAt:new Date(0)}});
+  assert.equal((await api('GET','/api/due-reminders?companyId='+companyId,undefined,a.cookie)).data.settings.find(setting=>setting.id===legacySmsSetting.id).enabled,false);
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);
+  assert.equal(deliveredEmails.length,0,'SMS-only settings must not silently become e-mail subscriptions');
+  assert.equal((await db.dueReminderDelivery.findUniqueOrThrow({where:{eventKey:'retired-sms-event'}})).status,'cancelled');
+  const retiredSms=await db.dueReminderDelivery.findUniqueOrThrow({where:{eventKey:'retired-sms-event'}});
+  await db.dueReminderDelivery.update({where:{id:retiredSms.id},data:{status:'verify_needed'}});
+  assert.equal((await api('POST','/api/due-reminders',{companyId,action:'retry',id:retiredSms.id},a.cookie)).res.status,409);
+  await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:true},a.cookie);
+  await db.dueReminderSetting.createMany({data:Array.from({length:31},()=>({invoiceId:new ObjectId().toHexString(),companyId,userId:a.data.user.id,enabled:true,channels:['sms'],nextCheckAt:new Date(0)}))});
   const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
   assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
   assert.equal(deliveredEmails.length,1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
+  assert.equal(await db.dueReminderSetting.count({where:{companyId,enabled:true,channels:{has:'sms'},NOT:{channels:{has:'email'}}}}),0,'Retired SMS schedules cannot starve the e-mail queue');
   assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
   await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
   await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
@@ -949,7 +967,7 @@ try {
   assert.ok(sharedCounters.some(counter=>counter.hits===8 && counter.expiresAt instanceof Date));
   assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
-  if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base);
+  if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
 finally {
   if (server && server.exitCode === null) { const stopped = once(server, 'exit'); server.kill('SIGTERM'); const timer = setTimeout(() => server.kill('SIGKILL'), 5000); await stopped; clearTimeout(timer); }

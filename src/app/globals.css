@@ -203,3 +203,21 @@
 
 /* Keep the hosting badge clear of mobile invoice actions. */
 iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
+
+/* Native date controls need min-width: 0 in narrow grid cells. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]),
+  textarea {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px !important;
+    scroll-margin-top: 8rem;
+    scroll-margin-bottom: 7rem;
+  }
+}
+@media (pointer: coarse) {
+  button { min-height: 44px; }
+  button:not([role="option"]) { min-width: 44px; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]),
+  [role="combobox"] { min-height: 44px; }
+}

@@ -154,8 +154,34 @@ export function LineItemsEditor({
 
   return (
     <div className="space-y-4">
+      <div className="space-y-3 md:hidden" data-mobile-line-editor>
+        {lines.map((item, index) => (
+          <div key={item.id} className="min-w-0 space-y-3 rounded-xl border bg-card p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold">Pozycja {index + 1}</h3>
+              <Button type="button" size="icon" variant="ghost" aria-label={"Usuń pozycję " + (index + 1)} disabled={disabled} onClick={() => onChange(lines.filter(other => other.id !== item.id))}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            <label className="block space-y-1 text-xs font-medium">Nazwa towaru / usługi
+              <Textarea aria-label={"Nazwa pozycji " + (index + 1)} value={item.name} disabled={disabled} onChange={event => update(item.id, {name:event.target.value})} rows={2} />
+            </label>
+            {products.length > 0 && <Select aria-label={"Produkt z katalogu dla pozycji " + (index + 1)} value="" disabled={disabled} onChange={event => event.target.value && applyProduct(item.id, event.target.value)}><option value="">Wstaw z katalogu…</option>{products.map(product => <option key={product.id} value={product.id}>{product.name}</option>)}</Select>}
+            <div className="grid grid-cols-2 gap-3">
+              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} type="number" inputMode="decimal" min="0" step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Jednostka<Input aria-label={"Jednostka pozycji " + (index + 1)} value={item.unit} disabled={disabled} onChange={event => update(item.id, {unit:event.target.value})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} type="number" inputMode="decimal" min="0" step="0.01" value={item.netPrice} disabled={disabled} onChange={event => update(item.id, {netPrice:Number(event.target.value) || 0})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Stawka VAT<Select aria-label={"VAT pozycji " + (index + 1)} value={item.vatRate} disabled={disabled} onChange={event => update(item.id, {vatRate:event.target.value as VatRate})}>{VAT_RATES.map(rate => <option key={rate} value={rate}>{vatRateLabel(rate)}</option>)}</Select></label>
+            </div>
+            <dl className="grid grid-cols-1 gap-1 break-words border-t pt-3 text-xs">
+              <div className="flex flex-wrap justify-between gap-1"><dt>Netto</dt><dd>{formatMoney(lineNet(item),currency)}</dd></div>
+              <div className="flex flex-wrap justify-between gap-1"><dt>VAT</dt><dd>{formatMoney(lineVat(item),currency)}</dd></div>
+              <div className="flex flex-wrap justify-between gap-1 font-semibold"><dt>Brutto</dt><dd>{formatMoney(lineGross(item),currency)}</dd></div>
+            </dl>
+          </div>
+        ))}
+      </div>
+
       {/* ── Tabela pozycji ── */}
-      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm">
+      <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card/70 md:block backdrop-blur-md shadow-sm">
         <table className="w-full min-w-[940px] table-fixed text-[13px]">
           <colgroup>
             <col className="w-9" />
@@ -348,7 +374,7 @@ export function LineItemsEditor({
 
       {/* ── Przycisk dodania + wklejania z arkusza + podsumowanie ogólne ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -369,7 +395,7 @@ export function LineItemsEditor({
             📋 Wklej z arkusza / CSV
           </Button>
         </div>
-        <div className="flex items-center gap-4 text-[13px]">
+        <div className="flex flex-wrap items-center gap-4 text-[13px]">
           <span className="text-muted-foreground">
             Netto:{" "}
             <AnimatedCounter
@@ -399,13 +425,13 @@ export function LineItemsEditor({
 
       {/* ── Tabela podsumowania VAT (wg stawek) ── */}
       {lines.length > 0 && (
-        <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+        <div className="rounded-xl border border-border/60 bg-muted/20 overflow-x-auto">
           <div className="px-4 py-2 border-b border-border/40 bg-muted/30">
             <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
               Podsumowanie VAT wg stawek
             </p>
           </div>
-          <table className="w-full text-[12.5px]">
+          <table className="w-full min-w-[500px] text-[12.5px]">
             <thead>
               <tr className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/30">
                 <th className="px-4 py-2 text-left">Stawka VAT</th>

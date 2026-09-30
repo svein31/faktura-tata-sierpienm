@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
-export async function browserChecks(base) {
+export async function browserChecks(base, db) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
   const page = await context.newPage(), errors = [];
@@ -31,7 +32,7 @@ export async function browserChecks(base) {
       await expect(publicPage.locator('#funkcje')).toBeInViewport();
       assert.deepEqual(publicErrors, [], 'Public mobile pages must not report JavaScript errors');
     } finally { await publicContext.close(); }
-    await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
+    const browserOwner = await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
     // A fresh phone browser should complete password login and reach the protected app.
     const loginContext = await browser.newContext({
       baseURL: base, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -53,8 +54,8 @@ export async function browserChecks(base) {
       );
       assert.deepEqual(loginErrors, [], 'Mobile login must not report JavaScript errors');
     } finally { await loginContext.close(); }
-    const company = (await post('/api/companies', { companyName: 'Browser Company', nip: '5260301706' })).company;
-    const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer', nip: '5250001003' })).contractor;
+    const company = (await post('/api/companies', { companyName: 'Browser Company — Przedsiębiorstwo usługowe z długą nazwą do sprawdzenia układu na telefonie', nip: '5260301706' })).company;
+    const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer — Kontrahent z długą nazwą i dodatkowymi informacjami handlowymi', nip: '5250001003' })).contractor;
     for (let n = 1; n <= 32; n++) await post('/api/invoices', {
       number: `BROWSER/${String(n).padStart(3,'0')}`, type: 'sale', status: 'draft', sellerCompanyId: company.id, contractorId: contractor.id,
       issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
@@ -185,11 +186,15 @@ export async function browserChecks(base) {
       '/reminders', '/settings/account', '/settings/companies', '/settings/currencies', '/settings/integrations',
       '/settings/ksef', '/settings/team', '/help', '/accountant/portal', '/tax-estimate', '/settings/appearance',
     );
+    const mobileFailures=[];
     for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Mobile overflow: ${route}`);
+      await expect(page.locator('main h1').first()).toBeVisible();
+      await page.waitForLoadState('networkidle');
+      const found=await mobileLayoutDefects(page);
+      if(found.length) {mobileFailures.push({route,defects:found});console.log('[basic-mobile-audit] '+JSON.stringify(mobileFailures.at(-1)));}
     }
     // Numbering preference survives reload, and each new invoice asks auto vs manual on a phone.
     await page.goto('/invoices/new');
@@ -237,6 +242,11 @@ export async function browserChecks(base) {
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
     await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
+    if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
+      const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
+      await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName,prepareTerms:()=>db.user.update({where:{id:browserOwner.user.id},data:{termsAcceptedVersion:'mobile-test-old-terms'}})});
+    }
+    assert.deepEqual(mobileFailures,[],'Basic mobile pages must fit after loading');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
   } finally { await context.close(); await browser.close(); }
 }

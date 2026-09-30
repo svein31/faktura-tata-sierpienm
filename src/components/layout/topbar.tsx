@@ -39,6 +39,8 @@ const ROLE_DISPLAY: Record<string, { label: string; badgeClass: string }> = {
   owner: { label: "Właściciel", badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
   accountant: { label: "Księgowa", badgeClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
   employee: { label: "Pracownik", badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
+  admin: { label: "Administrator", badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
+  sales: { label: "Sprzedaż", badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
   viewer: { label: "Podgląd", badgeClass: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
 };
 
@@ -114,17 +116,17 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="no-print sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/60 bg-background px-4 sm:bg-background/85 sm:px-6 sm:backdrop-blur-xl">
-      <div className="flex items-center gap-3">
+    <header className="no-print sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-border/60 bg-background px-3 py-2 sm:flex sm:h-14 sm:gap-3 sm:bg-background/85 sm:px-6 sm:py-0 sm:backdrop-blur-xl">
+      <div className="order-1 flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onMenu}
-          className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted/60 active:scale-95 lg:hidden"
+          className="flex shrink-0 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted/60 active:scale-95 lg:hidden"
           aria-label="Otwórz menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="leading-tight">
-          <h1 className="text-[14px] font-semibold tracking-tight text-foreground sm:text-[15px]">
+        <div className="min-w-0 leading-tight">
+          <h1 className="truncate text-[14px] font-semibold tracking-tight text-foreground sm:text-[15px]">
             {title}
           </h1>
           <p className="hidden text-[11px] text-muted-foreground sm:block">
@@ -136,21 +138,24 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           </p>
         </div>
 
+
+      </div>
+
         {/* Company Switcher z widoczną rolą użytkownika */}
         {activeCompany && (
-          <div className="relative ml-2 sm:ml-4" ref={companyMenuRef}>
+          <div className="relative order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2" ref={companyMenuRef}>
             <button
               type="button"
               onClick={() => companies.length > 1 ? setShowCompanyMenu(!showCompanyMenu) : router.push("/settings/companies")}
               aria-label={companies.length > 1 ? "Wybierz firmę" : "Ustawienia firmy"}
               aria-expanded={companies.length > 1 ? showCompanyMenu : undefined}
-              className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs"
+              className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs sm:w-auto"
             >
               <div className="p-1 rounded-lg bg-primary/10 text-primary">
                 <Building2 className="w-3.5 h-3.5" />
               </div>
-              <div className="hidden sm:block">
-                <p className="max-w-[140px] truncate text-xs font-semibold text-foreground leading-tight">
+              <div className="min-w-0 flex-1">
+                <p className="truncate sm:max-w-[140px] text-xs font-semibold text-foreground leading-tight">
                   {activeCompany.companyName || activeCompany.name || "Moja Firma"}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
@@ -167,7 +172,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
             {/* Dropdown przełączania firm */}
             {showCompanyMenu && companies.length > 1 && (
-              <div className="absolute top-full left-0 mt-1.5 w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
+              <div className="absolute top-full left-0 mt-1.5 w-full max-w-[calc(100vw-24px)] sm:w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
                 <p className="px-2 py-1 text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Twoje firmy i zespoły
                 </p>
@@ -213,9 +218,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             )}
           </div>
         )}
-      </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div className="order-2 flex shrink-0 items-center gap-1 sm:order-3 sm:ml-auto sm:gap-2">
         {/* Przycisk wyszukiwania / Command Palette */}
         <button
           type="button"
@@ -247,7 +251,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             href="/settings/account"
             prefetch={true}
             title="Przejdź do Ustawień Konta"
-            className="flex items-center gap-2 rounded-lg px-1.5 py-0.5 transition-all hover:bg-muted/60 active:scale-95"
+            className="hidden items-center gap-2 rounded-lg px-1.5 py-0.5 sm:flex transition-all hover:bg-muted/60 active:scale-95"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
               {initials || "?"}

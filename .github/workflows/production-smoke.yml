@@ -11,7 +11,7 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - name: Wait for production and verify public site, database and authentication
         uses: actions/github-script@v7
@@ -32,7 +32,7 @@ jobs:
                 if (health.status !== 200 || body.ok !== true || body.db !== 'ok') throw new Error('Application or database health check failed.');
                 const home = await get('/');
                 const html = await home.text();
-                if (home.status !== 200 || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"')) throw new Error('The new public page is not available yet.');
+                if (home.status !== 200 || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
                 for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers']) {
                   const response = await get(path);
                   if (response.status !== 401) throw new Error('Unauthenticated API check failed for ' + path + ': HTTP ' + response.status);
@@ -58,3 +58,20 @@ jobs:
               await new Promise(resolve => setTimeout(resolve, 20000));
             }
             core.setFailed('Production did not pass smoke checks within 10 minutes: ' + lastFailure);
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify the public production site on mobile Chromium and WebKit
+        run: node scripts/production-mobile.mjs
+      - name: Save production mobile audit screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-mobile-audit
+          path: artifacts/mobile
+          if-no-files-found: ignore
+          retention-days: 7

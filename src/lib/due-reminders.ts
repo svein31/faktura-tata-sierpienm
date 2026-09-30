@@ -1,4 +1,3 @@
-import { sendReminderSms, smsConfigured, validSmsPhone } from "./sms";
 import "server-only";
 import { prisma } from "./db";
 import { invoiceToDto } from "./dto";
@@ -9,11 +8,14 @@ import { getEmailConfigStatus, isValidEmail, sendEmail } from "./email/sender";
 import { recordAuditLog } from "./audit";
 import { ApiError } from "./api";
 export async function processDueReminders() {
-  if (!getEmailConfigStatus().configured && !smsConfigured()) throw new ApiError(503,"Skonfiguruj SMTP, Resend lub Twilio przed uruchomieniem przypomnień.");
+  await prisma.dueReminderDelivery.updateMany({ where: { channel: "sms", status: "pending" }, data: { status: "cancelled", error: "Obsługa SMS została wyłączona." } });
+  await prisma.dueReminderSetting.updateMany({ where: { enabled: true, channels: { has: "sms" }, NOT: { channels: { has: "email" } } }, data: { enabled: false } });
+  if (!getEmailConfigStatus().configured) throw new ApiError(503,"Skonfiguruj SMTP lub Resend przed uruchomieniem przypomnień.");
   const now = new Date(), today = warsawDate(now), start = Date.now();
   await prisma.dueReminderDelivery.updateMany({ where: { status: "sending", startedAt: { lt: new Date(now.getTime() - 600000) } }, data: { status: "verify_needed", error: "Przerwane wysyłanie — sprawdź u dostawcy poczty przed ponowieniem." } });
   const settings = await prisma.dueReminderSetting.findMany({ where: { enabled: true, nextCheckAt: { lte: now } }, orderBy: { nextCheckAt: "asc" }, take: 30 });
   for (const setting of settings) {
+    if (setting.channels.length && !setting.channels.includes("email")) continue;
     const claim = await prisma.dueReminderSetting.updateMany({ where: { id: setting.id, enabled: true, nextCheckAt: { lte: now } }, data: { nextCheckAt: new Date(now.getTime() + 900000) } });
     if (!claim.count) continue;
     const access = await requireCompanyAccess(setting.userId, setting.companyId, "canIssueInvoices");
@@ -22,13 +24,11 @@ export async function processDueReminders() {
     if (!invoice) continue;
     const content = dueReminderContent(invoiceToDto(invoice),today,invoice.sellerCompany?.companyName || "");
     if (!content) continue;
-    for (const channel of setting.channels.length ? setting.channels : ["email"]) {
-      const eventKey = `${invoice.id}:${invoice.dueDate}:${content.stage}` + (channel === "sms" ? ":sms" : "");
-      await prisma.dueReminderDelivery.upsert({ where: { eventKey }, update: {}, create: { settingId: setting.id, companyId: setting.companyId, eventKey, dueDate: invoice.dueDate, stage: content.stage, channel } });
-    }
+    const eventKey = `${invoice.id}:${invoice.dueDate}:${content.stage}`;
+    await prisma.dueReminderDelivery.upsert({ where: { eventKey }, update: {}, create: { settingId: setting.id, companyId: setting.companyId, eventKey, dueDate: invoice.dueDate, stage: content.stage, channel: "email" } });
   }
   let sent = 0;
-  const pending = await prisma.dueReminderDelivery.findMany({ where: { status: "pending" }, orderBy: { createdAt: "asc" }, take: 5 });
+  const pending = await prisma.dueReminderDelivery.findMany({ where: { status: "pending", OR: [{channel:"email"},{channel:null},{channel:{isSet:false}}] }, orderBy: { createdAt: "asc" }, take: 5 });
   for (const delivery of pending) {
     if (Date.now() - start > 5000) break;
     const claim = await prisma.dueReminderDelivery.updateMany({ where: { id: delivery.id, status: "pending" }, data: { status: "sending", startedAt: new Date() } });
@@ -36,7 +36,7 @@ export async function processDueReminders() {
     let attempted = false;
     try {
       const setting = await prisma.dueReminderSetting.findUnique({ where: { id: delivery.settingId } });
-      if (!setting?.enabled || (setting.channels.length && !setting.channels.includes(delivery.channel || "email")) || !(await requireCompanyAccess(setting.userId, setting.companyId,"canIssueInvoices")).ok) throw new Error("Harmonogram wyłączony lub odebrano uprawnienia.");
+      if (!setting?.enabled || (setting.channels.length && !setting.channels.includes("email")) || !(await requireCompanyAccess(setting.userId, setting.companyId,"canIssueInvoices")).ok) throw new Error("Harmonogram wyłączony lub odebrano uprawnienia.");
       const invoice = await prisma.invoice.findFirst({ where: { id: setting.invoiceId, sellerCompanyId: setting.companyId }, include: { sellerCompany: true } });
       const content = invoice && dueReminderContent(invoiceToDto(invoice),today,invoice.sellerCompany?.companyName || "");
       if (!content || !invoice || invoice.dueDate !== delivery.dueDate || content.stage !== delivery.stage) {
@@ -44,14 +44,14 @@ export async function processDueReminders() {
       }
       const contractor = await prisma.contractor.findUnique({ where: { id: invoice.contractorId } });
       if (!contractor || contractor.companyId && contractor.companyId !== setting.companyId) throw new Error("Kontrahent należy do innej firmy.");
-      const channel = delivery.channel || "email";
-      const recipient = channel === "sms" ? setting.smsRecipient : contractor.email;
-      if (channel === "sms" ? !validSmsPhone(recipient) || !smsConfigured() : !recipient || !isValidEmail(recipient) || !getEmailConfigStatus().configured) throw new Error("Brak poprawnego odbiorcy lub konfiguracji wybranego kanału.");
+      const channel = "email";
+      const recipient = contractor.email;
+      if (!recipient || !isValidEmail(recipient)) throw new Error("Brak poprawnego adresu e-mail odbiorcy.");
       await prisma.dueReminderDelivery.update({ where: { id: delivery.id }, data: { recipient } });
       attempted = true;
       let timer: ReturnType<typeof setTimeout> | undefined;
       const result = await Promise.race([
-        channel === "sms" ? sendReminderSms(recipient!, content.text) : sendEmail({ to: recipient!, subject: content.subject, text: content.text, singleAttempt: true, signal: AbortSignal.timeout(15000) }),
+        sendEmail({ to: recipient!, subject: content.subject, text: content.text, singleAttempt: true, signal: AbortSignal.timeout(15000) }),
         new Promise<never>((_,reject) => { timer = setTimeout(() => reject(new Error("Limit czasu wysyłki — sprawdź status u dostawcy poczty.")),17000); }),
       ]).finally(() => { if (timer) clearTimeout(timer); });
       if (!result.success) throw new Error("Dostawca nie potwierdził przyjęcia wiadomości.");

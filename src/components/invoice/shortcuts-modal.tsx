@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Keyboard, X, Check, Command } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 
 interface ShortcutsModalProps {
@@ -46,34 +45,15 @@ export function ShortcutsModal({ open, onClose }: ShortcutsModalProps) {
   const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <div className="p-5 sm:p-6 space-y-4 max-w-md w-full">
-        <div className="flex items-center justify-between border-b border-border/60 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-              <Keyboard className="h-4 w-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-foreground">Skróty klawiszowe</h3>
-              <p className="text-xs text-muted-foreground">Szybkie wystawianie dokumentów w FakturaProsto</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
+    <Dialog open={open} onClose={onClose} title="Skróty klawiszowe" description="Szybkie wystawianie dokumentów w FakturaProsto">
+      <div className="min-w-0 space-y-4">
         <div className="space-y-2.5">
           {SHORTCUTS.map((s, idx) => {
             const keyList = isMac ? s.macKeys : s.keys;
             return (
               <div
                 key={idx}
-                className="flex items-center justify-between gap-3 p-2.5 rounded-xl border border-border/60 bg-muted/20 text-xs"
+                className="flex flex-col gap-2 p-2.5 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-muted/20 text-xs"
               >
                 <span className="text-foreground/90 font-medium">
                   {s.description}
@@ -94,7 +74,7 @@ export function ShortcutsModal({ open, onClose }: ShortcutsModalProps) {
           })}
         </div>
 
-        <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
           <span>Działa na formularzu wystawiania faktury</span>
           <button
             type="button"

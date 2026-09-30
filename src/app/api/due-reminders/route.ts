@@ -1,4 +1,3 @@
-import { smsConfigured, validSmsPhone } from "@/lib/sms";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
@@ -11,8 +10,8 @@ export async function GET(req: Request) {
     const user = await getSessionUser(); if (!user) throw new ApiError(401,"Nieautoryzowany.");
     const companyId = new URL(req.url).searchParams.get("companyId"); if (!objectId(companyId)) throw new ApiError(400,"Wybierz firmę.");
     if (!await getCompanyMembership(user.id,companyId)) throw new ApiError(403,"Brak dostępu.");
-    const [settings,deliveries] = await Promise.all([prisma.dueReminderSetting.findMany({where:{companyId}}),prisma.dueReminderDelivery.findMany({where:{companyId},orderBy:{createdAt:"desc"},take:50})]);
-    return json({settings,deliveries});
+    const [settings,deliveries] = await Promise.all([prisma.dueReminderSetting.findMany({where:{companyId}}),prisma.dueReminderDelivery.findMany({where:{companyId,OR:[{channel:"email"},{channel:null},{channel:{isSet:false}}]},orderBy:{createdAt:"desc"},take:50})]);
+    return json({settings: settings.map(({id,invoiceId,enabled,channels}) => ({id,invoiceId,enabled:enabled && (!channels.length || channels.includes("email"))})),deliveries:deliveries.filter(d=>!d.channel || d.channel==="email")});
   } catch(e) {return handleApiError(e);}
 }
 export async function POST(req: Request) {
@@ -23,17 +22,15 @@ export async function POST(req: Request) {
     if (body.action === "retry") {
       if (!objectId(body.id)) throw new ApiError(400,"Nieprawidłowe ID.");
       const changed=await prisma.$transaction(async tx => {
-        const result=await tx.dueReminderDelivery.updateMany({where:{id:body.id as string,companyId,status:{in:["failed","verify_needed"]}},data:{status:"pending",error:null}});
+        const result=await tx.dueReminderDelivery.updateMany({where:{id:body.id as string,companyId,status:{in:["failed","verify_needed"]},OR:[{channel:"email"},{channel:null},{channel:{isSet:false}}]},data:{status:"pending",error:null}});
         if(!result.count)throw new ApiError(409,"Nie można ponowić tej wiadomości.");
         await recordAuditLog({client:tx,companyId,userId:user.id,action:"due_reminder_retry",entityType:"reminder",entityId:body.id as string});return result;
       });return json({ok:changed.count===1});
     }
     if(!objectId(body.invoiceId) || typeof body.enabled!=="boolean")throw new ApiError(400,"Nieprawidłowa konfiguracja.");
-    const channels = body.channels === undefined ? undefined : body.channels;
-    if (channels !== undefined && (!Array.isArray(channels) || !channels.length || channels.length > 2 || channels.some(c => c !== "email" && c !== "sms"))) throw new ApiError(400, "Wybierz e-mail lub SMS.");
-    const smsRecipient = body.smsRecipient === undefined ? undefined : String(body.smsRecipient).trim();
-    if (Array.isArray(channels) && channels.includes("sms") && (!validSmsPhone(smsRecipient) || !smsConfigured())) throw new ApiError(400, "SMS wymaga numeru +48… i skonfigurowanego dostawcy Twilio.");
-    const channelData = { ...(channels ? { channels: [...new Set(channels as string[])] } : {}), ...(smsRecipient !== undefined ? { smsRecipient } : {}) };
+    if (body.channels !== undefined && (!Array.isArray(body.channels) || body.channels.length !== 1 || body.channels[0] !== "email")) throw new ApiError(400, "Dostępne są wyłącznie przypomnienia e-mail.");
+    if (body.smsRecipient !== undefined) throw new ApiError(400, "Konfiguracja SMS została usunięta.");
+    const channelData = { channels: ["email"] };
     const invoice=await prisma.invoice.findFirst({where:{id:body.invoiceId,sellerCompanyId:companyId}});
     if(!invoice || invoice.type!=="sale" || invoice.isProforma || invoice.isCorrection)throw new ApiError(400,"Wybierz fakturę sprzedaży VAT.");
     const setting=await prisma.$transaction(async tx=>{

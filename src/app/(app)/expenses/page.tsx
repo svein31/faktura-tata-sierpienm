@@ -391,7 +391,7 @@ export default function ExpensesPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", justifyContent: "space-between" }}>
             {/* Wyszukiwarka */}
-            <div style={{ position: "relative", minWidth: "260px", flex: 1 }}>
+            <div className="relative min-w-0 w-full sm:min-w-[260px] sm:flex-1">
               <Search size={16} style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--muted)" }} />
               <Input
                 placeholder="Szukaj po numerze, sprzedawcy, NIP lub opisie..."
@@ -402,7 +402,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Filtr kategorii */}
-            <div style={{ minWidth: "180px" }}>
+            <div className="min-w-0 w-full sm:w-auto sm:min-w-[180px]">
               <Select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value as "all" | ExpenseCategory)}
@@ -417,7 +417,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Filtr płatności */}
-            <div style={{ minWidth: "150px" }}>
+            <div className="min-w-0 w-full sm:w-auto sm:min-w-[150px]">
               <Select
                 value={paymentFilter}
                 onChange={(e) => setPaymentFilter(e.target.value as "all" | "paid" | "unpaid")}
@@ -622,7 +622,7 @@ export default function ExpensesPage() {
         title="Dodaj dokument kosztowy"
       >
         <form onSubmit={handleCreateExpense} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Nazwa sprzedawcy / wystawcy *</Label>
               <Input
@@ -642,7 +642,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Numer dokumentu</Label>
               <Input
@@ -666,7 +666,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Data wystawienia *</Label>
               <Input
@@ -698,7 +698,7 @@ export default function ExpensesPage() {
               gap: "0.75rem",
             }}
           >
-            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gap: "0.75rem" }}>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <Label>Kwota brutto *</Label>
                 <Input
@@ -743,7 +743,7 @@ export default function ExpensesPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <div>
               <Label>Status płatności</Label>
               <Select

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Cookie, X, Sliders, Lock } from "lucide-react";
+import { Cookie, Sliders, Lock } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { COOKIE_INVENTORY } from "@/lib/legal/config";
 
@@ -128,48 +129,46 @@ export function CookieConsentBanner() {
   return (
     <>
       {/* ── MODAL SZCZEGÓŁOWYCH PREFERENCJI ── */}
-      {showPreferencesModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cookie-modal-title"
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-          >
-            {/* Nagłówek modalu */}
-            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                  <Sliders className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 id="cookie-modal-title" className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                    Ustawienia prywatności i plików cookies
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Zgodność z art. 399 Prawa komunikacji elektronicznej (PKE) i RODO
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowPreferencesModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                aria-label="Zamknij"
+      <Dialog open={showPreferencesModal} onClose={() => setShowPreferencesModal(false)} title="Ustawienia prywatności i plików cookies" description="Zgodność z art. 399 Prawa komunikacji elektronicznej (PKE) i RODO" size="lg" footer={
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRejectOptional}
+                className="w-full sm:w-auto text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900"
               >
-                <X className="w-5 h-5" />
-              </button>
+                Odrzuć wszystkie opcjonalne
+              </Button>
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveCustom}
+                  className="w-full sm:w-auto text-xs"
+                >
+                  Zapisz wybrane preferencje
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleAcceptAll}
+                  className="w-full sm:w-auto text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Zaakceptuj wszystkie
+                </Button>
+              </div>
             </div>
-
+      }>
             {/* Treść modalu */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-600 dark:text-slate-300">
+            <div className="min-w-0 space-y-5 break-words text-xs text-slate-600 dark:text-slate-300">
               <p className="leading-relaxed">
                 Szanujemy Twoją prywatność. Serwis FakturaProsto stosuje wyłącznie technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — technologie ułatwiające korzystanie z serwisu (np. zapamiętywanie wybranego motywu graficznego).
               </p>
 
               {/* Kategoria 1: Niezbędne (Zawsze aktywne) */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <span className="font-bold text-sm text-slate-900 dark:text-white">
                       1. Niezbędne i techniczne
                     </span>
@@ -195,7 +194,7 @@ export function CookieConsentBanner() {
 
               {/* Kategoria 2: Funkcjonalne (Opt-in) */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
                     <span className="font-bold text-sm text-slate-900 dark:text-white">
                       2. Funkcjonalne i preferencje
@@ -204,14 +203,15 @@ export function CookieConsentBanner() {
                       Opcjonalne
                     </span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
+                      aria-label="Cookies funkcjonalne"
                       checked={functionalConsent}
                       onChange={(e) => setFunctionalConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -224,7 +224,7 @@ export function CookieConsentBanner() {
 
               {/* Kategoria 3: Analityczne — nieaktywna */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2 opacity-80">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
                     <span className="font-bold text-sm text-slate-900 dark:text-white">
                       3. Analityczne i statystyczne
@@ -233,14 +233,15 @@ export function CookieConsentBanner() {
                       Aktualnie nieaktywne
                     </span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
+                      aria-label="Cookies analityczne"
                       checked={analyticsConsent}
                       onChange={(e) => setAnalyticsConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -250,7 +251,7 @@ export function CookieConsentBanner() {
 
               {/* Kategoria 4: Reklamowe — nieaktywna */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2 opacity-80">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
                     <span className="font-bold text-sm text-slate-900 dark:text-white">
                       4. Reklamowe i profilujące
@@ -259,14 +260,15 @@ export function CookieConsentBanner() {
                       Aktualnie nieaktywne
                     </span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center cursor-pointer">
                     <input
                       type="checkbox"
+                      aria-label="Cookies reklamowe"
                       checked={marketingConsent}
                       onChange={(e) => setMarketingConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -283,38 +285,7 @@ export function CookieConsentBanner() {
               </div>
             </div>
 
-            {/* Przyciski akcji modalu */}
-            <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleRejectOptional}
-                className="w-full sm:w-auto text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900"
-              >
-                Odrzuć wszystkie opcjonalne
-              </Button>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSaveCustom}
-                  className="w-full sm:w-auto text-xs"
-                >
-                  Zapisz wybrane preferencje
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleAcceptAll}
-                  className="w-full sm:w-auto text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Zaakceptuj wszystkie
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
 
       {/* ── GŁÓWNY BANER COOKIES (Na dole ekranu) ── */}
       {isVisible && !showPreferencesModal && (

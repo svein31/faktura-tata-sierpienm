@@ -285,12 +285,12 @@ export default function TeamSettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex min-w-0 w-full flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center">
               <Label className="text-xs whitespace-nowrap">Zmień firmę:</Label>
               <Select
                 value={activeCompany?.id || ""}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="h-8 text-xs min-w-[200px]"
+                className="h-8 w-full min-w-0 text-xs sm:min-w-[200px]"
               >
                 {companies.map((c) => (
                   <option key={c.id} value={c.id}>

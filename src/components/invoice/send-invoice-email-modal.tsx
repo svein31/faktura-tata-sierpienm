@@ -254,7 +254,7 @@ export function SendInvoiceEmailModal({
       description="Prześlij dokument bezpośrednio do kontrahenta wraz z załącznikami PDF oraz KSeF."
       footer={
         activeTab === "compose" ? (
-          <div className="flex w-full items-center justify-between gap-3">
+          <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <Button
               type="button"
               variant="ghost"
@@ -291,9 +291,9 @@ export function SendInvoiceEmailModal({
         )
       }
     >
-      <div className="space-y-4 pt-1">
+      <div className="min-w-0 space-y-4 break-words pt-1">
         {/* Przełącznik zakładek (Nowa wysyłka / Historia wysyłek) */}
-        <div className="flex items-center gap-2 border-b border-border/70 pb-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border/70 pb-2.5">
           <button
             type="button"
             onClick={() => setActiveTab("compose")}

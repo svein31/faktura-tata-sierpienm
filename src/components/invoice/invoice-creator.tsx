@@ -867,8 +867,8 @@ export function InvoiceCreator() {
         </AnimatePresence>
 
         {/* Pasek statusu autozapisu */}
-        <div className="flex items-center justify-between gap-2 px-1 text-xs">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">Status wersji roboczej:</span>
             {autosaveStatus === "saving" ? (
               <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
@@ -1013,7 +1013,7 @@ export function InvoiceCreator() {
 
         {/* Sprzedawca (Wystawca faktury) oraz typ dokumentu */}
         <Card className="border-primary/25 bg-card">
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0 pb-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-[15px]">
                 <Building2 className="h-4 w-4 text-primary" /> Sprzedawca (Wystawca) & Typ
@@ -1661,7 +1661,7 @@ export function InvoiceCreator() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
               <div className="rounded-lg bg-muted/50 p-2.5">
                 <p className="text-[11px] text-muted-foreground">Netto</p>
                 <p className="text-[14px] font-bold tabular-nums">{formatMoney(totals.net, form.currency)}</p>
@@ -1699,7 +1699,7 @@ export function InvoiceCreator() {
             <Eye className="h-4 w-4 text-muted-foreground" /> Podgląd na żywo
             <Badge tone="outline">{form.language === "PL" ? "PL" : "EN"} · {form.currency}</Badge>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             <Button variant="ghost" size="sm" onClick={exports.exportPdf} title="PDF (drukuj / zapisz jako PDF)">
               <Printer className="h-3.5 w-3.5" /> PDF
             </Button>

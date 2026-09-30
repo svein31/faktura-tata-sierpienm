@@ -73,7 +73,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     return (
       <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true">
         {/* Nagłówek — natychmiast widoczna struktura */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1.5">
             <Skeleton className="h-6 w-36 rounded-lg" />
             <Skeleton className="h-3.5 w-56 rounded-lg" />
@@ -100,7 +100,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
                     <Skeleton className="h-2.5 w-20" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden items-center gap-2 sm:flex">
                   <Skeleton className="h-3.5 w-20" />
                   <Skeleton className="h-5 w-14 rounded-full" />
                 </div>

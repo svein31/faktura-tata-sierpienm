@@ -40,11 +40,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex select-none items-center justify-center whitespace-nowrap font-medium transition-all duration-150 cursor-pointer",
+        "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-45 disabled:scale-100",
         variants[variant],
         sizes[size],
+        size !== "icon" && "max-md:!h-auto max-md:py-2",
         className
       )}
       {...props}

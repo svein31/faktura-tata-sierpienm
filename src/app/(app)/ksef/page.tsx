@@ -824,7 +824,7 @@ function KsefPageInner() {
                       setSelectedInvoiceId(e.target.value);
                       if (e.target.value) handleGenerateXmlFromInvoice(e.target.value);
                     }}
-                    className="min-w-[280px] flex-1 rounded-xl text-xs h-10"
+                    className="w-full min-w-0 flex-1 rounded-xl text-xs h-10"
                   >
                     <option value="">— Załaduj dane z wystawionej faktury —</option>
                     {salesWithoutKsef.map((inv) => (

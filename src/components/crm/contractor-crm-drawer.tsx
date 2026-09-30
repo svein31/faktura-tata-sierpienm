@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { Dialog } from "@/components/ui/dialog";
 import {
-  Building2,
   ShieldCheck,
   ShieldAlert,
   CreditCard,
@@ -13,7 +12,6 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
-  X,
   Plus,
   Percent,
   Lock,
@@ -119,57 +117,14 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex justify-end">
-        {/* Tło przyciemniające */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-        />
-
-        {/* Panel boczny CRM 360 */}
-        <motion.div
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative z-50 flex h-full w-full max-w-xl flex-col border-l border-border/80 bg-[#0c1017] p-6 shadow-2xl overflow-y-auto"
-        >
-          {/* Nagłówek panelu */}
-          <div className="flex items-center justify-between border-b border-border/60 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-foreground truncate max-w-[280px]">
-                  {contractor.name}
-                </h3>
-                <p className="text-xs text-muted-foreground font-mono">
-                  NIP: {contractor.nip} · CRM 360°
-                </p>
-              </div>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+    <Dialog open={Boolean(contractor)} onClose={onClose} title={contractor.name} description={`NIP: ${contractor.nip} · CRM 360°`} size="lg">
           {!summary && !summaryError && <p role="status" className="mt-2 text-xs text-muted-foreground">Wczytywanie danych kontrahenta…</p>}
           {summaryError && <p role="alert" className="mt-2 text-xs text-destructive">{summaryError}</p>}
 
-          <div className="mt-6 space-y-6">
+          <div className="mt-4 min-w-0 space-y-4 break-words">
             {/* 1. Karta Scoringu Płatniczego */}
             <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
-              <div className="flex items-center justify-between">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Scoring Wiarygodności Płatniczej
                 </span>
@@ -178,10 +133,10 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                 </Badge>
               </div>
 
-              <div className="mt-3 flex items-center gap-4">
+              <div className="mt-3 flex min-w-0 items-start gap-3">
                 <div
                   className={cn(
-                    "flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-black border shadow-inner",
+                    "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl font-black border shadow-inner",
                     scoreGrade === "A" && "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
                     scoreGrade === "B" && "bg-sky-500/15 text-sky-400 border-sky-500/30",
                     scoreGrade === "C" && "bg-amber-500/15 text-amber-400 border-amber-500/30",
@@ -204,7 +159,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
 
             {/* 2. Pasek Limitu Kupieckiego */}
             <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -264,7 +219,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                 </div>
 
                 <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-foreground h-8">
+                  <label className="flex min-h-11 items-center gap-2 cursor-pointer text-xs font-medium text-foreground">
                     <input
                       type="checkbox"
                       checked={creditBlocking}
@@ -284,7 +239,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
             </Card>
 
             {/* 3. Podsumowanie Obrotów */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Card className="border-border/60 bg-card/60 p-3.5 backdrop-blur">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Łączny obrót
@@ -337,7 +292,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                   {contractorInvoices.slice(0, 5).map((inv) => (
                     <div
                       key={inv.id}
-                      className="flex items-center justify-between rounded-xl border border-border/50 bg-card/50 p-3 text-xs hover:border-border transition-colors"
+                      className="flex min-w-0 flex-col gap-2 rounded-xl sm:flex-row sm:justify-between border border-border/50 bg-card/50 p-3 text-xs hover:border-border transition-colors"
                     >
                       <div>
                         <Link href={`/invoices/${inv.id}`} className="font-semibold text-foreground hover:text-primary">
@@ -348,7 +303,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                         </p>
                       </div>
 
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <p className="font-bold text-foreground">
                           {formatMoney(inv.totalGross || 0, inv.currency || "PLN")}
                         </p>
@@ -365,8 +320,6 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
               )}
             </div>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+    </Dialog>
   );
 }

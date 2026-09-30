@@ -22,15 +22,15 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
 
   return (
     <SessionProvider user={user}>
-      <div className="min-h-screen bg-background text-foreground overflow-x-hidden antialiased selection:bg-primary/20 selection:text-primary">
+      <div className="min-h-dvh min-w-0 bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <CommandPalette />
         <TermsUpdateModal />
         <OnboardingTour />
         <Sidebar />
         <MobileSidebar open={mobileOpen} onClose={closeMobile} />
-        <div className="lg:pl-64 flex min-h-screen flex-col">
+        <div className="lg:pl-64 flex min-h-dvh min-w-0 flex-col">
           <Topbar onMenu={() => setMobileOpen(true)} />
-          <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-24 md:pb-8 min-w-0">
+          <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0">
             <DataBootstrap><WorkspaceNavigation />{children}</DataBootstrap>
           </main>
           <BottomNav />

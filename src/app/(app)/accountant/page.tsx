@@ -225,14 +225,14 @@ export default function AccountantPage() {
         title="Księgowość & Współpraca"
         description="Miesięczne podsumowania dla biura rachunkowego, bilans podatkowy VAT i dochodu oraz darmowy dostęp dla Twojego zespołu."
         actions={
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Input
               type="month"
               value={currentMonth}
               onChange={(e) => setCurrentMonth(e.target.value)}
-              style={{ width: "auto", fontSize: "0.875rem" }}
+              className="w-full sm:w-auto"
             />
-            <Select aria-label="Waluta zestawienia" value={currency} onChange={e => setCurrency(e.target.value)}>{["PLN", "EUR", "USD", "GBP", "CHF", "CZK"].map(c => <option key={c}>{c}</option>)}</Select>
+            <Select className="w-full sm:w-24" aria-label="Waluta zestawienia" value={currency} onChange={e => setCurrency(e.target.value)}>{["PLN", "EUR", "USD", "GBP", "CHF", "CZK"].map(c => <option key={c}>{c}</option>)}</Select>
             <Button variant="primary" onClick={exportMonthlyCsv} disabled={loading || Boolean(loadError)}>
               <Download size={16} />
               Pobierz zestawienie CSV
@@ -400,7 +400,7 @@ export default function AccountantPage() {
           </p>
 
           <form onSubmit={handleInvite} style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.25rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "0.5rem" }}>
+            <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
               <Input
                 type="email"
                 placeholder="ksiegowa@biuro-podatkowe.pl"
