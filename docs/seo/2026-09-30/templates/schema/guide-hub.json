@@ -1,0 +1,56 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fakturaprosto.pl/#organization",
+      "name": "FakturaProsto",
+      "legalName": "MICHAŁ WYCZAŁEK-JAGIEŁŁO GEOMATIC",
+      "url": "https://fakturaprosto.pl/",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "faktura.prosto@gmail.com",
+        "availableLanguage": "Polish"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fakturaprosto.pl/#website",
+      "name": "FakturaProsto",
+      "url": "https://fakturaprosto.pl/",
+      "inLanguage": "pl-PL",
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      }
+    },
+    {
+      "@type": "CollectionPage",
+      "@id": "https://fakturaprosto.pl/poradnik-ksef#page",
+      "url": "https://fakturaprosto.pl/poradnik-ksef",
+      "name": "KSeF 2.0: praktyczny poradnik dla firm i księgowych",
+      "inLanguage": "pl-PL",
+      "isPartOf": {
+        "@id": "https://fakturaprosto.pl/#website"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://fakturaprosto.pl/poradnik-ksef#breadcrumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "FakturaProsto",
+          "item": "https://fakturaprosto.pl/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Poradnik KSeF",
+          "item": "https://fakturaprosto.pl/poradnik-ksef"
+        }
+      ]
+    }
+  ]
+}

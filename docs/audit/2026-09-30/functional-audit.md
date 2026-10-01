@@ -8,6 +8,9 @@ Repozytorium: svein31/faktura-tata-sierpienm. Zmiany i aktualne wyniki CI: [PR #
 
 Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: scripts/feature-route-inventory.json.
 
+- **27333b7**, [pełny Verify 36819637406](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36819637406): build, TypeScript, lint, 146 testów, 395 kontroli HTTP, siedem scenariuszy UI (w tym formularze przy 390 px) oraz 454 kontrole układu Chromium/WebKit — zero niepowodzeń i wad ekranów.
+- **2fd3a70**, [weryfikacja z materiałami SEO 36820205694](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36820205694): ten sam pełny zestaw przeszedł również ze szablonami metadata i OpenGraph.
+- **Produkcja po #24**, [smoke 36820958085](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36820958085): strona publiczna i baza dostępne, chronione API zwraca 401 bez logowania, 68 publicznych kontroli mobilnych Chromium/WebKit bez błędów.
 - **83c97c0**, [audyt API 36818690992](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818690992): build, TypeScript, lint, 146 testów jednostkowych oraz 395 kontroli HTTP bez niepowodzeń.
 - **83c97c0**, [test UI 36818694701](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818694701): wszystkie siedem scenariuszy formularzy zaliczone bez błędów JavaScript. Audyt mobilny wykrył przepełnienie tablicy zleceń z dokumentem przy 320 px (strona rozszerzała się do 372 px) i utrudnione zamknięcie okna. Siatka, kolumny i akcje kart mają teraz ograniczoną szerokość oraz zawijanie.
 - **1162c38**, [test przeglądarkowy 36818189512](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818189512): potwierdzone wystawienie szkicu z ilością 0,004, oba kalkulatory, zapis i edycja produktu, zapis kosztu, płatność oraz eksport CSV. Kolejny błąd dotyczył odczytu niezużytej odpowiedzi zapisu zlecenia.

@@ -1,0 +1,70 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fakturaprosto.pl/#organization",
+      "name": "FakturaProsto",
+      "legalName": "MICHAŁ WYCZAŁEK-JAGIEŁŁO GEOMATIC",
+      "url": "https://fakturaprosto.pl/",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "faktura.prosto@gmail.com",
+        "availableLanguage": "Polish"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fakturaprosto.pl/#website",
+      "name": "FakturaProsto",
+      "url": "https://fakturaprosto.pl/",
+      "inLanguage": "pl-PL",
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://fakturaprosto.pl/narzedzia/kalkulator-vat#tool",
+      "name": "Kalkulator VAT FakturaProsto",
+      "url": "https://fakturaprosto.pl/narzedzia/kalkulator-vat",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web browser",
+      "inLanguage": "pl-PL",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "PLN"
+      },
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://fakturaprosto.pl/narzedzia/kalkulator-vat#breadcrumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "FakturaProsto",
+          "item": "https://fakturaprosto.pl/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Narzędzia",
+          "item": "https://fakturaprosto.pl/narzedzia"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Kalkulator VAT",
+          "item": "https://fakturaprosto.pl/narzedzia/kalkulator-vat"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+name: Read-only SEO and source audit
+on:
+  push:
+    branches: [codex/seo-geo-audit-20260930]
+    paths: [scripts/seo-public-audit.mjs, .github/workflows/seo-public-audit.yml]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read public SEO metadata and sources
+        run: node scripts/seo-public-audit.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public-seo-audit
+          path: artifacts/seo
+          retention-days: 14

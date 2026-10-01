@@ -1,0 +1,294 @@
+[
+  {
+    "url": "/",
+    "title": "Faktury online z KSeF 2.0 | FakturaProsto",
+    "description": "Faktury VAT online z KSeF 2.0. Free: 5 faktur miesięcznie. Pro: 7 zł brutto/mies. lub 59 zł brutto/rok. Sprawdź demo bez rejestracji i bez karty.",
+    "h1": "Faktury VAT online z KSeF 2.0 dla małych firm",
+    "h2": [
+      "Jak działa FakturaProsto?",
+      "KSeF 2.0: FA(3), statusy i UPO",
+      "Współpraca z księgową",
+      "Free i Pro — ceny brutto",
+      "Sprawdź demo bez rejestracji",
+      "Najczęstsze pytania"
+    ],
+    "answer": "FakturaProsto to polski program do wystawiania faktur VAT online z integracją KSeF 2.0. Plan Free obejmuje 5 faktur miesięcznie, a Pro kosztuje 7 zł brutto miesięcznie lub 59 zł brutto rocznie. Formularz możesz sprawdzić w demo bez rejestracji i bez karty. Program obsługuje FA(3), statusy KSeF, UPO i współpracę z księgową.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/program-do-faktur",
+    "title": "Darmowy program do faktur: 5 miesięcznie | FakturaProsto",
+    "description": "Szukasz darmowego programu do faktur? Free obejmuje 5 faktur miesięcznie. Poznaj KSeF 2.0, porównaj plany i sprawdź demo bez rejestracji.",
+    "h1": "Darmowy program do faktur — do 5 faktur miesięcznie",
+    "h2": [
+      "Co obejmuje darmowy plan?",
+      "Jak wystawić pierwszą fakturę?",
+      "Obsługa KSeF i danych z GUS",
+      "Free czy Pro — który plan wybrać?",
+      "Porównanie z bezpłatną aplikacją MF",
+      "Najczęstsze pytania"
+    ],
+    "answer": "Darmowy program do faktur FakturaProsto pozwala wystawiać do 5 faktur miesięcznie w planie Free. Jeśli potrzebujesz planu Pro, cena wynosi 7 zł brutto miesięcznie lub 59 zł brutto rocznie. Przed rejestracją możesz sprawdzić formularz w demo bez karty. Demo korzysta z danych przykładowych i nie wysyła rzeczywistych faktur do KSeF.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/faktury",
+    "title": "Faktura VAT: rodzaje, wzory i korekty | FakturaProsto",
+    "description": "Faktura VAT, korekta, zaliczkowa i bez VAT. Sprawdź wymagane dane, przykłady oraz powiązania z KSeF. Wypróbuj formularz w demo.",
+    "h1": "Faktura VAT: rodzaje, wymagane dane i przykłady",
+    "h2": [
+      "Jakie dane musi mieć faktura?",
+      "Rodzaje faktur",
+      "Przykłady z kwotami",
+      "Faktura PDF a XML w KSeF",
+      "Jak poprawić błąd?"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef",
+    "title": "KSeF 2.0: poradnik, FA(3) i UPO | FakturaProsto",
+    "description": "Jak działa KSeF 2.0? Sprawdź FA(3), numer KSeF, UPO, offline24 i zasady dla JDG. Konkretne przykłady oraz źródła MF.",
+    "h1": "KSeF 2.0: praktyczny poradnik dla firm i księgowych",
+    "h2": [
+      "Co to jest KSeF 2.0?",
+      "Kogo dotyczy obowiązek i jakie są wyjątki?",
+      "FA(3): format faktury",
+      "Od wysyłki do numeru KSeF i UPO",
+      "Offline24, niedostępność i awaria",
+      "KSeF dla JDG i biura rachunkowego",
+      "Przykłady, kalkulatory i źródła MF"
+    ],
+    "answer": "KSeF to Krajowy System e-Faktur, służący do wystawiania, odbierania i przechowywania faktur ustrukturyzowanych. W KSeF 2.0 faktura korzysta ze struktury FA(3), a po przyjęciu otrzymuje numer KSeF. Ten poradnik wyjaśnia zasady dla JDG, przejściowy limit 10 000 zł w 2026 r., UPO i offline24 na podstawie źródeł Ministerstwa Finansów.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef/jdg",
+    "title": "KSeF dla JDG: obowiązki i wyjątki | FakturaProsto",
+    "description": "KSeF dla JDG: sprawdź obowiązki, wyjątki i odbiór faktur. Poznaj zasadę 10 000 zł w 2026 r. oraz przygotowanie firmy do KSeF.",
+    "h1": "KSeF dla JDG: obowiązki, wyjątki i przygotowanie firmy",
+    "h2": [
+      "Kiedy JDG musi wystawiać faktury w KSeF?",
+      "Odbiór faktur a obowiązek wystawiania",
+      "Limit 10 000 zł i wyłączenia",
+      "JDG zwolniona z VAT",
+      "Lista przygotowań i przykłady"
+    ],
+    "answer": "KSeF obejmuje co do zasady JDG od 1 kwietnia 2026 r., z uwzględnieniem ustawowych wyłączeń i przepisów przejściowych. Do końca 2026 r. możliwe jest wystawianie określonych faktur poza KSeF przy miesięcznej wartości sprzedaży do 10 000 zł brutto. Otrzymywanie faktur w KSeF podlega odrębnym zasadom; sam brak obowiązku wystawiania nie wyłącza odbioru.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef/limit-10000-zl",
+    "title": "KSeF: limit 10 000 zł w 2026 roku | FakturaProsto",
+    "description": "Jak liczyć limit 10 000 zł brutto w KSeF w 2026 r.? Zobacz, która faktura przekracza próg, przykład i kalkulator. Źródła MF.",
+    "h1": "Limit 10 000 zł brutto w KSeF w 2026 roku",
+    "h2": [
+      "Które faktury wchodzą do limitu?",
+      "Dokładnie 10 000 zł a przekroczenie",
+      "Od której faktury stosować KSeF?",
+      "Co z kolejnym miesiącem?",
+      "Przykłady i kalkulator",
+      "Co zmienia koniec 2026 roku?"
+    ],
+    "answer": "Limit 10 000 zł brutto to przejściowe ułatwienie dotyczące określonych faktur w 2026 r., a nie całego obrotu firmy. Faktura, która zwiększa właściwą miesięczną sumę powyżej limitu, musi już trafić do KSeF. Po przekroczeniu również kolejne faktury objęte obowiązkiem wystawia się w KSeF; niższa suma w następnym miesiącu nie przywraca wyjątku.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef/numer-faktury",
+    "title": "Numer KSeF a numer faktury: różnice | FakturaProsto",
+    "description": "Numer KSeF różni się od numeru faktury. Sprawdź, kiedy jest nadawany, gdzie go odczytać i co potwierdza UPO. Przykłady i źródła MF.",
+    "h1": "Numer KSeF a numer faktury — gdzie je znaleźć?",
+    "h2": [
+      "Numer własny, numer sesji i numer KSeF",
+      "Gdzie znaleźć numer KSeF?",
+      "Numer KSeF w UPO",
+      "Odwołania w korekcie i zaliczkach",
+      "Co zrobić, jeśli numeru brakuje?"
+    ],
+    "answer": "Numer KSeF to unikalny identyfikator nadawany fakturze po jej przyjęciu przez Krajowy System e-Faktur. Różni się od numeru nadanego przez wystawcę, który pozostaje w polu P_2 struktury FA(3). Nadany tej fakturze numer KSeF odczytasz z odpowiedzi systemu lub UPO. Rozpoczęcie wysyłki i numer referencyjny sesji nie potwierdzają przyjęcia dokumentu.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef/offline24",
+    "title": "KSeF offline24: termin wysyłki i QR | FakturaProsto",
+    "description": "Offline24: wysyłka najpóźniej w następnym dniu roboczym, FA(3) i kody QR. Sprawdź zasady, wyjątki oraz przykłady ze źródłami MF.",
+    "h1": "Offline24 w KSeF: termin wysyłki i kody QR",
+    "h2": [
+      "Kiedy można użyć offline24?",
+      "Następny dzień roboczy — przykłady",
+      "Data P_1 i przesłanie do KSeF",
+      "Kiedy potrzebne są dwa kody QR?",
+      "Certyfikat typu 2",
+      "Offline24 a ogłoszona awaria"
+    ],
+    "answer": "Offline24 pozwala wystawić elektroniczną fakturę zgodną z FA(3) i przesłać ją do KSeF niezwłocznie, najpóźniej w następnym dniu roboczym po wystawieniu. Udostępnienie jej poza KSeF przed wysyłką określonym nabywcom wymaga dwóch kodów QR; drugi korzysta z certyfikatu KSeF typu 2. Ogłoszona awaria systemu może zmienić zasady dalszego postępowania.",
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/faktury/korygujaca",
+    "title": "Faktura korygująca w KSeF: jak wystawić | FakturaProsto",
+    "description": "Jak wystawić fakturę korygującą w KSeF? Sprawdź powiązanie z fakturą pierwotną, korektę kwot i status dokumentu. Przykład krok po kroku.",
+    "h1": "Jak wystawić fakturę korygującą w KSeF?",
+    "h2": [
+      "Korekta a poprawienie szkicu",
+      "Powiązanie z fakturą pierwotną",
+      "Zmiana kwoty lub danych",
+      "Przykład korekty",
+      "Korekta dokumentu offline24"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/faktury/jak-wystawic",
+    "title": "Jak wystawić fakturę online: instrukcja | FakturaProsto",
+    "description": "Jak wystawić fakturę online? Dane stron, pozycje, VAT i kontrola kwot. Sprawdź status KSeF i przećwicz formularz w demo.",
+    "h1": "Jak wystawić fakturę online krok po kroku?",
+    "h2": [
+      "Dane sprzedawcy i nabywcy",
+      "Pozycje, VAT i kwoty",
+      "Sprawdzenie i zatwierdzenie",
+      "Status KSeF i UPO",
+      "Przykład w demo"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/faktury/bez-vat",
+    "title": "Faktura bez VAT a KSeF: zasady i przykład | FakturaProsto",
+    "description": "Faktura bez VAT: zwolnienie to nie stawka 0%. Sprawdź dane dokumentu, przykład i obowiązki KSeF niezależne od statusu VAT.",
+    "h1": "Faktura bez VAT: zwolnienie, dane i KSeF",
+    "h2": [
+      "Zwolnienie a stawka 0%",
+      "Podstawa zwolnienia i dane dokumentu",
+      "Faktura bez VAT w KSeF",
+      "Przykład i źródła"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/narzedzia",
+    "title": "Darmowe kalkulatory VAT i limitu KSeF | FakturaProsto",
+    "description": "Darmowe kalkulatory netto, VAT, brutto i limitu KSeF 10 000 zł w 2026 r. Wyniki z objaśnieniami oraz linkami do źródeł MF.",
+    "h1": "Darmowe kalkulatory dla wystawiających faktury",
+    "h2": [
+      "Kalkulator netto, VAT i brutto",
+      "Kalkulator limitu KSeF",
+      "Założenia i ograniczenia narzędzi"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/narzedzia/kalkulator-vat",
+    "title": "Kalkulator VAT: netto i brutto | FakturaProsto",
+    "description": "Oblicz netto, VAT i brutto dla wybranej stawki. Bez rejestracji. Zobacz wzory, zaokrąglenia oraz przykłady obliczeń.",
+    "h1": "Kalkulator VAT: oblicz netto, podatek i brutto",
+    "h2": [
+      "Oblicz kwoty",
+      "Wzory netto i brutto",
+      "Przykłady: 23%, 8% i 5%",
+      "Zaokrąglenia i ustalenie stawki"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/narzedzia/limit-ksef",
+    "title": "Kalkulator limitu KSeF: 10 000 zł | FakturaProsto",
+    "description": "Sprawdź przekroczenie limitu KSeF 10 000 zł brutto w 2026 r. Wpisz kwoty właściwych faktur i zobacz wynik z objaśnieniem.",
+    "h1": "Kalkulator limitu KSeF 10 000 zł w 2026 roku",
+    "h2": [
+      "Wpisz kwoty właściwych faktur",
+      "Jak działa obliczenie?",
+      "Których dokumentów nie dodawać?",
+      "Przykład przekroczenia",
+      "Okres obowiązywania: 2026"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/demo",
+    "title": "Demo faktur i KSeF bez rejestracji | FakturaProsto",
+    "description": "Przetestuj formularz faktury i symulację KSeF bez konta i bez karty. Demo używa danych przykładowych i nie wysyła faktur do KSeF.",
+    "h1": "Demo formularza faktury i symulacji KSeF",
+    "h2": [
+      "Edytuj dane przykładowej faktury",
+      "Sprawdź XML FA(3)",
+      "Zasymuluj status i UPO",
+      "Przejdź do rzeczywistego konta"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/pomoc",
+    "title": "Pomoc: faktury, KSeF i kontakt | FakturaProsto",
+    "description": "Pomoc FakturaProsto: statusy KSeF, UPO, demo i obsługa faktur. Znajdź instrukcję lub skontaktuj się ze wsparciem.",
+    "h1": "Pomoc FakturaProsto: faktury i KSeF",
+    "h2": [
+      "Faktury i konto",
+      "Statusy KSeF i UPO",
+      "Demo i plan Free",
+      "Kontakt z pomocą"
+    ],
+    "publication": "existing",
+    "index": true
+  },
+  {
+    "url": "/register",
+    "title": "Załóż darmowe konto do faktur | FakturaProsto",
+    "description": "Załóż konto Free i wystawiaj do 5 faktur miesięcznie. Bez karty. Wcześniej możesz sprawdzić formularz w demo bez rejestracji.",
+    "h1": "Załóż konto Free do wystawiania faktur",
+    "h2": [
+      "Co obejmuje plan Free?",
+      "Formularz rejestracji",
+      "Dane i warunki korzystania"
+    ],
+    "publication": "existing",
+    "index": false
+  },
+  {
+    "url": "/poradnik-ksef/fa3",
+    "title": "FA(3): struktura faktury KSeF 2.0 | FakturaProsto",
+    "description": "Czym jest FA(3)? Poznaj strukturę XML faktury KSeF 2.0, wymagane dane, typowe błędy i różnice między XML a PDF. Źródła MF.",
+    "h1": "FA(3): struktura XML faktury w KSeF 2.0",
+    "h2": [
+      "FA(3) a faktura PDF",
+      "Najważniejsze grupy danych XML",
+      "Walidacja XSD a poprawność podatkowa",
+      "Typowe błędy",
+      "Schemat i źródła MF"
+    ],
+    "answer": "FA(3) to struktura logiczna faktury ustrukturyzowanej używana w KSeF 2.0 od 1 lutego 2026 r. Określa dane i format XML przesyłanego dokumentu. PDF jest jego wizualizacją, a nie zamiennikiem pliku XML wysyłanego do KSeF. Zgodność ze schematem XSD nie rozstrzyga samodzielnie poprawności podatkowej transakcji ani przyjęcia faktury przez system.",
+    "publication": "new",
+    "index": true
+  },
+  {
+    "url": "/poradnik-ksef/upo",
+    "title": "UPO w KSeF: jak pobrać potwierdzenie | FakturaProsto",
+    "description": "Co potwierdza UPO w KSeF i jak je pobrać? Sprawdź numer KSeF, status przyjęcia oraz różnicę między UPO a samą wysyłką.",
+    "h1": "UPO w KSeF: co potwierdza i jak je pobrać?",
+    "h2": [
+      "Co potwierdza UPO?",
+      "Kiedy można je pobrać?",
+      "Jak pobrać XML w FakturaProsto?",
+      "Numer faktury, numer KSeF i status",
+      "Brak UPO — co sprawdzić?"
+    ],
+    "answer": "UPO, czyli Urzędowe Poświadczenie Odbioru, jest dokumentem potwierdzającym odbiór przez KSeF w ramach zakończonego procesu przesłania faktur. Pozwala powiązać przyjęte dokumenty z numerami KSeF. W FakturaProsto można pobrać UPO w XML. Samo rozpoczęcie wysyłki, lokalny PDF ani numer sesji nie zastępują sprawdzenia wyniku przetwarzania; UPO nie jest potwierdzeniem zapłaty.",
+    "publication": "new",
+    "index": true
+  }
+]

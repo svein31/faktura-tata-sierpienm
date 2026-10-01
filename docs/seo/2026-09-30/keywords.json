@@ -1,0 +1,138 @@
+[
+  {
+    "fraza": "faktury online; fakturowanie online",
+    "intencja": "T",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "wysoka",
+    "url": "/",
+    "kanibalizacja": "Strona marki i produktu; nie powielaj katalogu rodzajów faktur."
+  },
+  {
+    "fraza": "program do faktur; darmowy program do faktur",
+    "intencja": "T",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "bardzo wysoka",
+    "url": "/program-do-faktur",
+    "kanibalizacja": "Jedna strona dla wariantów darmowy/program; bez drugiej identycznej strony."
+  },
+  {
+    "fraza": "KSeF; KSeF 2.0",
+    "intencja": "I",
+    "wolumen": ">10 tys.",
+    "trudnosc": "bardzo wysoka",
+    "url": "/poradnik-ksef",
+    "kanibalizacja": "Główny poradnik; podstrony odpowiadają na węższe pytania."
+  },
+  {
+    "fraza": "FA(3); struktura FA3",
+    "intencja": "I",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/poradnik-ksef/fa3",
+    "kanibalizacja": "Nowy artykuł, jeden URL dla pisowni FA3 i FA(3)."
+  },
+  {
+    "fraza": "KSeF dla JDG",
+    "intencja": "I",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "wysoka",
+    "url": "/poradnik-ksef/jdg",
+    "kanibalizacja": "Obowiązki, wyjątki i przygotowanie, nie ogólny landing produktu."
+  },
+  {
+    "fraza": "KSeF limit 10 000 zł",
+    "intencja": "I",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/poradnik-ksef/limit-10000-zl",
+    "kanibalizacja": "Wyjaśnienie prawne; kalkulator ma osobną intencję."
+  },
+  {
+    "fraza": "numer KSeF; numer KSeF a numer faktury",
+    "intencja": "I",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/poradnik-ksef/numer-faktury",
+    "kanibalizacja": "Zachowaj istniejący URL, nie twórz duplikatu /numer-ksef."
+  },
+  {
+    "fraza": "UPO KSeF; jak pobrać UPO",
+    "intencja": "I",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/poradnik-ksef/upo",
+    "kanibalizacja": "Nowa instrukcja; na stronie numeru tylko skrót i link."
+  },
+  {
+    "fraza": "offline24; KSeF offline",
+    "intencja": "I",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/poradnik-ksef/offline24",
+    "kanibalizacja": "Odróżnij od awarii; awaria ma odrębną instrukcję."
+  },
+  {
+    "fraza": "faktura VAT; rodzaje faktur",
+    "intencja": "I",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "wysoka",
+    "url": "/faktury",
+    "kanibalizacja": "Hub wiedzy; główne frazy komercyjne przypisane do / i /program-do-faktur."
+  },
+  {
+    "fraza": "faktura korekta; faktura korygująca",
+    "intencja": "I",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "wysoka",
+    "url": "/faktury/korygujaca",
+    "kanibalizacja": "Jeden artykuł obejmuje synonimy."
+  },
+  {
+    "fraza": "jak wystawić fakturę online",
+    "intencja": "I/T",
+    "wolumen": "100–1 tys.",
+    "trudnosc": "średnia",
+    "url": "/faktury/jak-wystawic",
+    "kanibalizacja": "Instrukcja, nie druga oferta darmowego programu."
+  },
+  {
+    "fraza": "kalkulator VAT; netto brutto",
+    "intencja": "narzędzie",
+    "wolumen": "1–10 tys.",
+    "trudnosc": "bardzo wysoka",
+    "url": "/narzedzia/kalkulator-vat",
+    "kanibalizacja": "Narzędzie z objaśnieniem; hub /narzedzia pełni funkcję nawigacyjną."
+  },
+  {
+    "fraza": "kalkulator limitu KSeF",
+    "intencja": "narzędzie",
+    "wolumen": "≤100",
+    "trudnosc": "niska/średnia",
+    "url": "/narzedzia/limit-ksef",
+    "kanibalizacja": "Interaktywny wynik; źródło zasad w poradniku limitu."
+  },
+  {
+    "fraza": "demo programu do faktur; symulator KSeF",
+    "intencja": "T",
+    "wolumen": "≤100",
+    "trudnosc": "niska/średnia",
+    "url": "/demo",
+    "kanibalizacja": "Nie obiecuj prawdziwej faktury bez konta."
+  },
+  {
+    "fraza": "program do faktur dla JDG; freelancerów; biura",
+    "intencja": "T",
+    "wolumen": "100–1 tys. na segment",
+    "trudnosc": "średnia/wysoka",
+    "url": "/program-do-faktur/dla-jdg i strony segmentowe",
+    "kanibalizacja": "Każdy segment wymaga własnego procesu i przykładu."
+  },
+  {
+    "fraza": "FakturaProsto vs Fakturownia / wFirma / iFirma",
+    "intencja": "P",
+    "wolumen": "≤100 na parę",
+    "trudnosc": "niska przy własnej marce",
+    "url": "/porownania/[konkurent]",
+    "kanibalizacja": "Porównuj właściwe produkty i plany; brak danych nie oznacza braku funkcji."
+  }
+]

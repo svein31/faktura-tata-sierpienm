@@ -1,0 +1,90 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fakturaprosto.pl/#organization",
+      "name": "FakturaProsto",
+      "legalName": "MICHAŁ WYCZAŁEK-JAGIEŁŁO GEOMATIC",
+      "url": "https://fakturaprosto.pl/",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "faktura.prosto@gmail.com",
+        "availableLanguage": "Polish"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fakturaprosto.pl/#website",
+      "name": "FakturaProsto",
+      "url": "https://fakturaprosto.pl/",
+      "inLanguage": "pl-PL",
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://fakturaprosto.pl/#software",
+      "name": "FakturaProsto",
+      "url": "https://fakturaprosto.pl/program-do-faktur",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web browser",
+      "inLanguage": "pl-PL",
+      "publisher": {
+        "@id": "https://fakturaprosto.pl/#organization"
+      },
+      "description": "Polski program do faktur VAT online z integracją KSeF 2.0, obsługą FA(3), statusów i UPO.",
+      "featureList": [
+        "Faktury VAT online",
+        "Integracja KSeF 2.0 po konfiguracji",
+        "Struktura FA(3)",
+        "UPO XML",
+        "Dane kontrahenta z GUS po NIP",
+        "Dostęp dla księgowej",
+        "Demo bez rejestracji"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free",
+          "price": "0",
+          "priceCurrency": "PLN",
+          "url": "https://fakturaprosto.pl/register",
+          "description": "Do 5 faktur miesięcznie."
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro miesięczny",
+          "price": "7",
+          "priceCurrency": "PLN",
+          "url": "https://fakturaprosto.pl/#cennik",
+          "description": "7 zł brutto za miesiąc. Subskrypcja odnawiana automatycznie.",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "7",
+            "priceCurrency": "PLN",
+            "valueAddedTaxIncluded": true,
+            "billingDuration": "P1M"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro roczny",
+          "price": "59",
+          "priceCurrency": "PLN",
+          "url": "https://fakturaprosto.pl/#cennik",
+          "description": "59 zł brutto za rok, płatne za cały rok. Subskrypcja odnawiana automatycznie.",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "59",
+            "priceCurrency": "PLN",
+            "valueAddedTaxIncluded": true,
+            "billingDuration": "P1Y"
+          }
+        }
+      ]
+    }
+  ]
+}

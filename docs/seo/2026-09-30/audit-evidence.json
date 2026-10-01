@@ -1,0 +1,2749 @@
+{
+  "date": "2026-09-30",
+  "release": "09edb00f5d5ee420fbfb8ec41b53569191d5f63f",
+  "site": [
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/",
+      "url": "https://fakturaprosto.pl/",
+      "status": 200,
+      "ms": 1581,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "FakturaProsto — faktury online i KSeF dla firm",
+      "description": "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez rejestracji, poznaj KSeF i oblicz kwoty faktury w darmowych narzędziach.",
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        }
+      ],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — faktury online i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Niezawodne fakturowanie VAT i bezpośrednia integracja z KSeF"
+        },
+        {
+          "level": "h2",
+          "text": "Dokumenty sprzedaży w jednym miejscu"
+        },
+        {
+          "level": "h2",
+          "text": "Zacznij bez opłat. Rozwijaj firmę z Pro."
+        },
+        {
+          "level": "h3",
+          "text": "Free"
+        },
+        {
+          "level": "h3",
+          "text": "Pro · miesięczny"
+        },
+        {
+          "level": "h3",
+          "text": "Pro · roczny"
+        },
+        {
+          "level": "h2",
+          "text": "Wszystko, czego potrzebujesz do fakturowania"
+        },
+        {
+          "level": "h3",
+          "text": "Pełny cykl obsługi KSeF 2.0"
+        },
+        {
+          "level": "h3",
+          "text": "Integracja z bazą GUS BIR 1.1"
+        },
+        {
+          "level": "h3",
+          "text": "Korekty (KOR) i historia zmian"
+        },
+        {
+          "level": "h3",
+          "text": "Tryby offline i kody QR (KOD I/II)"
+        },
+        {
+          "level": "h3",
+          "text": "Dostęp dla Księgowej i Eksporty"
+        },
+        {
+          "level": "h3",
+          "text": "Trwała kolejka serwerowa"
+        },
+        {
+          "level": "h2",
+          "text": "Jak rozpocząć pracę w 3 krokach"
+        },
+        {
+          "level": "h3",
+          "text": "Podaj NIP swojej firmy"
+        },
+        {
+          "level": "h3",
+          "text": "Wybierz środowisko KSeF"
+        },
+        {
+          "level": "h3",
+          "text": "Wystawiaj i kontroluj stan"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://fakturaprosto.pl/#organization",
+              "name": "FakturaProsto",
+              "url": "https://fakturaprosto.pl"
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://fakturaprosto.pl/#website",
+              "name": "FakturaProsto",
+              "url": "https://fakturaprosto.pl",
+              "inLanguage": "pl-PL",
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              }
+            },
+            {
+              "@type": "SoftwareApplication",
+              "@id": "https://fakturaprosto.pl/#software",
+              "name": "FakturaProsto",
+              "url": "https://fakturaprosto.pl",
+              "description": "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "inLanguage": "pl-PL",
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "PLN",
+                "description": "Plan Free: do 5 faktur miesięcznie",
+                "url": "https://fakturaprosto.pl/register"
+              }
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/demo",
+        "/program-do-faktur",
+        "/login",
+        "/register",
+        "/regulamin",
+        "/pomoc",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/polityka-prywatnosci",
+        "/polityka-cookies",
+        "/powierzenie-danych",
+        "/podwykonawcy"
+      ],
+      "words": 620
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/program-do-faktur",
+      "url": "https://fakturaprosto.pl/program-do-faktur",
+      "status": 200,
+      "ms": 1543,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Darmowy program do faktur online — FakturaProsto · FakturaProsto",
+      "description": "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez logowania, sprawdź przykłady faktur i poznaj zasady KSeF.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/program-do-faktur"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Darmowy program do faktur online — FakturaProsto"
+        },
+        {
+          "property": "og:description",
+          "content": "Do 5 faktur miesięcznie w planie Free. Zobacz demo bez rejestracji."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/program-do-faktur"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Darmowy program do faktur online"
+        },
+        {
+          "level": "h2",
+          "text": "1. Przygotuj dane"
+        },
+        {
+          "level": "h2",
+          "text": "2. Sprawdź fakturę"
+        },
+        {
+          "level": "h2",
+          "text": "3. Kontroluj status"
+        },
+        {
+          "level": "h2",
+          "text": "Co oznacza „darmowy”?"
+        },
+        {
+          "level": "h2",
+          "text": "Rozwiąż konkretny problem"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/register",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/poradnik-ksef/jdg",
+        "/narzedzia/limit-ksef",
+        "/narzedzia/kalkulator-vat",
+        "/faktury/korygujaca",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 150
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/faktury",
+      "url": "https://fakturaprosto.pl/faktury",
+      "status": 200,
+      "ms": 1597,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Faktury online — instrukcje, przykłady i darmowe demo · FakturaProsto",
+      "description": "Jak wystawić fakturę, zaliczkową, końcową i korektę? Praktyczne przykłady z oficjalnymi źródłami oraz darmowe demo.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/faktury"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Faktury: odpowiedzi i przykłady"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura zaliczkowa: jak rozliczyć wpłatę?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura końcowa po zaliczkach: co wykazać?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura korygująca: co zrobić z błędem?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura dla osoby prywatnej a KSeF"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "@id": "https://fakturaprosto.pl/faktury#page",
+          "url": "https://fakturaprosto.pl/faktury",
+          "name": "Faktury: odpowiedzi i przykłady",
+          "description": "Wybierz rodzaj dokumentu, sprawdź przykład z kwotami i przejdź do demo wystawiania faktury. Wyjaśniamy także, kiedy przepisy wymagają dodatkowej kontroli.",
+          "isPartOf": {
+            "@id": "https://fakturaprosto.pl/#website"
+          },
+          "inLanguage": "pl-PL"
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/faktury/zaliczkowa",
+        "/faktury/koncowa",
+        "/faktury/korygujaca",
+        "/faktury/dla-osoby-prywatnej",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 178
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/faktury/jak-wystawic",
+      "url": "https://fakturaprosto.pl/faktury/jak-wystawic",
+      "status": 200,
+      "ms": 416,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Jak wystawić fakturę online krok po kroku? · FakturaProsto",
+      "description": "Dane do faktury, kontrola kwot i status KSeF. Krótka instrukcja z przykładem oraz demo faktury bez rejestracji.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/faktury/jak-wystawic"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "property": "og:description",
+          "content": "Dane do faktury, kontrola kwot i status KSeF. Krótka instrukcja z przykładem oraz demo faktury bez rejestracji."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/faktury/jak-wystawic"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "1. Wprowadź strony i przedmiot sprzedaży"
+        },
+        {
+          "level": "h2",
+          "text": "2. Sprawdź daty i obliczenia"
+        },
+        {
+          "level": "h2",
+          "text": "3. Zatwierdź i sprawdź rezultat"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura zaliczkowa: jak rozliczyć wpłatę?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/faktury/jak-wystawic#page",
+              "url": "https://fakturaprosto.pl/faktury/jak-wystawic",
+              "name": "Jak wystawić fakturę online krok po kroku?",
+              "description": "Dane do faktury, kontrola kwot i status KSeF. Krótka instrukcja z przykładem oraz demo faktury bez rejestracji.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/faktury/jak-wystawic#article",
+              "headline": "Jak wystawić fakturę online krok po kroku?",
+              "description": "Dane do faktury, kontrola kwot i status KSeF. Krótka instrukcja z przykładem oraz demo faktury bez rejestracji.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/faktury/jak-wystawic#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+                "https://www.podatki.gov.pl/podatki-firmowe/vat/stawki-i-limity"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/faktury/jak-wystawic#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Faktury",
+                  "item": "https://fakturaprosto.pl/faktury"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Jak wystawić fakturę online krok po kroku?",
+                  "item": "https://fakturaprosto.pl/faktury/jak-wystawic"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/faktury/bez-vat",
+        "/poradnik-ksef/jdg",
+        "/faktury/zaliczkowa",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 320
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/faktury/korygujaca",
+      "url": "https://fakturaprosto.pl/faktury/korygujaca",
+      "status": 200,
+      "ms": 261,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Faktura korygująca: co zrobić z błędem? · FakturaProsto",
+      "description": "Kiedy wystawić korektę i dlaczego faktury przyjętej przez KSeF nie można po prostu edytować.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/faktury/korygujaca"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Faktura korygująca: co zrobić z błędem?"
+        },
+        {
+          "property": "og:description",
+          "content": "Kiedy wystawić korektę i dlaczego faktury przyjętej przez KSeF nie można po prostu edytować."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/faktury/korygujaca"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Faktura korygująca: co zrobić z błędem?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź status dokumentu pierwotnego"
+        },
+        {
+          "level": "h2",
+          "text": "Ustal, co się zmienia"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/faktury/korygujaca#page",
+              "url": "https://fakturaprosto.pl/faktury/korygujaca",
+              "name": "Faktura korygująca: co zrobić z błędem?",
+              "description": "Kiedy wystawić korektę i dlaczego faktury przyjętej przez KSeF nie można po prostu edytować.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/faktury/korygujaca#article",
+              "headline": "Faktura korygująca: co zrobić z błędem?",
+              "description": "Kiedy wystawić korektę i dlaczego faktury przyjętej przez KSeF nie można po prostu edytować.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/faktury/korygujaca#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/faktury/korygujaca#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Faktury",
+                  "item": "https://fakturaprosto.pl/faktury"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Faktura korygująca: co zrobić z błędem?",
+                  "item": "https://fakturaprosto.pl/faktury/korygujaca"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/numer-faktury",
+        "/poradnik-ksef/jdg",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 260
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/faktury/bez-vat",
+      "url": "https://fakturaprosto.pl/faktury/bez-vat",
+      "status": 200,
+      "ms": 252,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Faktura bez VAT: kiedy i jak ją wystawić? · FakturaProsto",
+      "description": "Faktura bez VAT a zwolnienie z podatku. Sprawdź różnicę między zwolnieniem, stawką 0% i obowiązkiem KSeF.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/faktury/bez-vat"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktura bez VAT a zwolnienie z podatku. Sprawdź różnicę między zwolnieniem, stawką 0% i obowiązkiem KSeF."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/faktury/bez-vat"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Ustal podstawę zwolnienia"
+        },
+        {
+          "level": "h2",
+          "text": "Oddziel zwolnienie od stawki 0%"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź KSeF osobno"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura zaliczkowa: jak rozliczyć wpłatę?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/faktury/bez-vat#page",
+              "url": "https://fakturaprosto.pl/faktury/bez-vat",
+              "name": "Faktura bez VAT: kiedy i jak ją wystawić?",
+              "description": "Faktura bez VAT a zwolnienie z podatku. Sprawdź różnicę między zwolnieniem, stawką 0% i obowiązkiem KSeF.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/faktury/bez-vat#article",
+              "headline": "Faktura bez VAT: kiedy i jak ją wystawić?",
+              "description": "Faktura bez VAT a zwolnienie z podatku. Sprawdź różnicę między zwolnieniem, stawką 0% i obowiązkiem KSeF.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/faktury/bez-vat#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://www.podatki.gov.pl/podatki-firmowe/vat/stawki-i-limity",
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/faktury/bez-vat#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Faktury",
+                  "item": "https://fakturaprosto.pl/faktury"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Faktura bez VAT: kiedy i jak ją wystawić?",
+                  "item": "https://fakturaprosto.pl/faktury/bez-vat"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/jdg",
+        "/poradnik-ksef/limit-10000-zl",
+        "/faktury/jak-wystawic",
+        "/faktury/zaliczkowa",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 321
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/poradnik-ksef",
+      "url": "https://fakturaprosto.pl/poradnik-ksef",
+      "status": 200,
+      "ms": 84,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "KSeF 2026 — terminy, próg 10 000 zł i numery faktur · FakturaProsto",
+      "description": "KSeF dla JDG, próg 10 000 zł brutto, numer KSeF i tryb offline24. Odpowiedzi z przykładami oraz źródłami Ministerstwa Finansów.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/poradnik-ksef"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "KSeF 2026: co zrobić w Twojej sytuacji?"
+        },
+        {
+          "level": "h3",
+          "text": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?"
+        },
+        {
+          "level": "h3",
+          "text": "Limit 10 000 zł w KSeF: która faktura go przekracza?"
+        },
+        {
+          "level": "h3",
+          "text": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?"
+        },
+        {
+          "level": "h3",
+          "text": "KSeF offline24: co zrobić, gdy wystawiasz offline?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "@id": "https://fakturaprosto.pl/poradnik-ksef#page",
+          "url": "https://fakturaprosto.pl/poradnik-ksef",
+          "name": "KSeF 2026: co zrobić w Twojej sytuacji?",
+          "description": "Sprawdź terminy, wyjątek dla małej sprzedaży, status i numer faktury. Każda odpowiedź zawiera przykład oraz odnośnik do oficjalnych wyjaśnień.",
+          "isPartOf": {
+            "@id": "https://fakturaprosto.pl/#website"
+          },
+          "inLanguage": "pl-PL"
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/jdg",
+        "/poradnik-ksef/limit-10000-zl",
+        "/poradnik-ksef/numer-faktury",
+        "/poradnik-ksef/offline24",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 148
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/poradnik-ksef/jdg",
+      "url": "https://fakturaprosto.pl/poradnik-ksef/jdg",
+      "status": 200,
+      "ms": 180,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "KSeF dla JDG w 2026 roku: od kiedy obowiązek? · FakturaProsto",
+      "description": "Terminy wdrożenia KSeF dla JDG, wyjątek do 10 000 zł i faktury dla konsumentów. Odpowiedź oparta na źródłach MF.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/poradnik-ksef/jdg"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?"
+        },
+        {
+          "property": "og:description",
+          "content": "Terminy wdrożenia KSeF dla JDG, wyjątek do 10 000 zł i faktury dla konsumentów. Odpowiedź oparta na źródłach MF."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/poradnik-ksef/jdg"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź datę i rodzaj faktury"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź wyjątek przejściowy"
+        },
+        {
+          "level": "h2",
+          "text": "Nie utożsamiaj VAT z KSeF"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/jdg#page",
+              "url": "https://fakturaprosto.pl/poradnik-ksef/jdg",
+              "name": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?",
+              "description": "Terminy wdrożenia KSeF dla JDG, wyjątek do 10 000 zł i faktury dla konsumentów. Odpowiedź oparta na źródłach MF.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/jdg#article",
+              "headline": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?",
+              "description": "Terminy wdrożenia KSeF dla JDG, wyjątek do 10 000 zł i faktury dla konsumentów. Odpowiedź oparta na źródłach MF.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/poradnik-ksef/jdg#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+                "https://ksef.podatki.gov.pl/ponizej-10-000-zl/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/jdg#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "KSeF",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "KSeF dla JDG w 2026 roku: od kiedy obowiązek?",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef/jdg"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/limit-10000-zl",
+        "/faktury/bez-vat",
+        "/faktury/dla-osoby-prywatnej",
+        "/faktury/jak-wystawic",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 357
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl",
+      "url": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl",
+      "status": 200,
+      "ms": 209,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Limit 10 000 zł w KSeF: która faktura go przekracza? · FakturaProsto",
+      "description": "Próg KSeF w 2026 r. na przykładach. Sprawdź, którą fakturę trzeba wystawić w KSeF i jak liczyć kolejne dokumenty.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Limit 10 000 zł w KSeF: która faktura go przekracza?"
+        },
+        {
+          "property": "og:description",
+          "content": "Próg KSeF w 2026 r. na przykładach. Sprawdź, którą fakturę trzeba wystawić w KSeF i jak liczyć kolejne dokumenty."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Limit 10 000 zł w KSeF: która faktura go przekracza?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Policz właściwe faktury"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź moment przekroczenia"
+        },
+        {
+          "level": "h2",
+          "text": "Uwzględnij następne miesiące"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl#page",
+              "url": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl",
+              "name": "Limit 10 000 zł w KSeF: która faktura go przekracza?",
+              "description": "Próg KSeF w 2026 r. na przykładach. Sprawdź, którą fakturę trzeba wystawić w KSeF i jak liczyć kolejne dokumenty.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl#article",
+              "headline": "Limit 10 000 zł w KSeF: która faktura go przekracza?",
+              "description": "Próg KSeF w 2026 r. na przykładach. Sprawdź, którą fakturę trzeba wystawić w KSeF i jak liczyć kolejne dokumenty.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/ponizej-10-000-zl/",
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "KSeF",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Limit 10 000 zł w KSeF: która faktura go przekracza?",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/jdg",
+        "/faktury/dla-osoby-prywatnej",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 327
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury",
+      "url": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury",
+      "status": 200,
+      "ms": 204,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Numer KSeF: gdzie go znaleźć i kiedy powstaje? · FakturaProsto",
+      "description": "Numer faktury a numer KSeF to dwa różne identyfikatory. Sprawdź UPO i status przyjęcia dokumentu.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?"
+        },
+        {
+          "property": "og:description",
+          "content": "Numer faktury a numer KSeF to dwa różne identyfikatory. Sprawdź UPO i status przyjęcia dokumentu."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Odróżnij dwa numery"
+        },
+        {
+          "level": "h2",
+          "text": "Sprawdź status"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury#page",
+              "url": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury",
+              "name": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?",
+              "description": "Numer faktury a numer KSeF to dwa różne identyfikatory. Sprawdź UPO i status przyjęcia dokumentu.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury#article",
+              "headline": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?",
+              "description": "Numer faktury a numer KSeF to dwa różne identyfikatory. Sprawdź UPO i status przyjęcia dokumentu.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/numer-ksef-i-zbiorczy-identyfikator/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "KSeF",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "Numer KSeF: gdzie go znaleźć i kiedy powstaje?",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef/numer-faktury"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/faktury/korygujaca",
+        "/poradnik-ksef/offline24",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 258
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/poradnik-ksef/offline24",
+      "url": "https://fakturaprosto.pl/poradnik-ksef/offline24",
+      "status": 200,
+      "ms": 191,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "KSeF offline24: co zrobić, gdy wystawiasz offline? · FakturaProsto",
+      "description": "Tryb offline24, data faktury i dalsza wysyłka do KSeF. Najważniejsze rozróżnienia z oficjalnym źródłem.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/poradnik-ksef/offline24"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "KSeF offline24: co zrobić, gdy wystawiasz offline?"
+        },
+        {
+          "property": "og:description",
+          "content": "Tryb offline24, data faktury i dalsza wysyłka do KSeF. Najważniejsze rozróżnienia z oficjalnym źródłem."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/poradnik-ksef/offline24"
+        },
+        {
+          "property": "og:type",
+          "content": "article"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "KSeF offline24: co zrobić, gdy wystawiasz offline?"
+        },
+        {
+          "level": "h2",
+          "text": "Krótka odpowiedź"
+        },
+        {
+          "level": "h2",
+          "text": "Zachowaj datę i dokument"
+        },
+        {
+          "level": "h2",
+          "text": "Dosyłka i wynik"
+        },
+        {
+          "level": "h2",
+          "text": "Przykład z wynikiem"
+        },
+        {
+          "level": "h2",
+          "text": "Kiedy sprawdzić szczegóły?"
+        },
+        {
+          "level": "h2",
+          "text": "Źródła urzędowe"
+        },
+        {
+          "level": "h2",
+          "text": "Przejdź do działania"
+        },
+        {
+          "level": "h2",
+          "text": "Powiązane tematy"
+        },
+        {
+          "level": "h2",
+          "text": "Więcej odpowiedzi"
+        },
+        {
+          "level": "h3",
+          "text": "Jak wystawić fakturę online krok po kroku?"
+        },
+        {
+          "level": "h3",
+          "text": "Faktura bez VAT: kiedy i jak ją wystawić?"
+        }
+      ],
+      "schemas": [
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "WebPage",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/offline24#page",
+              "url": "https://fakturaprosto.pl/poradnik-ksef/offline24",
+              "name": "KSeF offline24: co zrobić, gdy wystawiasz offline?",
+              "description": "Tryb offline24, data faktury i dalsza wysyłka do KSeF. Najważniejsze rozróżnienia z oficjalnym źródłem.",
+              "isPartOf": {
+                "@id": "https://fakturaprosto.pl/#website"
+              },
+              "inLanguage": "pl-PL"
+            },
+            {
+              "@type": "Article",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/offline24#article",
+              "headline": "KSeF offline24: co zrobić, gdy wystawiasz offline?",
+              "description": "Tryb offline24, data faktury i dalsza wysyłka do KSeF. Najważniejsze rozróżnienia z oficjalnym źródłem.",
+              "mainEntityOfPage": {
+                "@id": "https://fakturaprosto.pl/poradnik-ksef/offline24#page"
+              },
+              "author": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "publisher": {
+                "@id": "https://fakturaprosto.pl/#organization"
+              },
+              "datePublished": "2026-09-24",
+              "dateModified": "2026-09-24",
+              "inLanguage": "pl-PL",
+              "citation": [
+                "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/tryb-offline24/"
+              ]
+            },
+            {
+              "@type": "BreadcrumbList",
+              "@id": "https://fakturaprosto.pl/poradnik-ksef/offline24#breadcrumbs",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Start",
+                  "item": "https://fakturaprosto.pl"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "KSeF",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": "KSeF offline24: co zrobić, gdy wystawiasz offline?",
+                  "item": "https://fakturaprosto.pl/poradnik-ksef/offline24"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/numer-faktury",
+        "/poradnik-ksef/jdg",
+        "/faktury/jak-wystawic",
+        "/faktury/bez-vat",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 267
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/narzedzia",
+      "url": "https://fakturaprosto.pl/narzedzia",
+      "status": 200,
+      "ms": 86,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Darmowe narzędzia do faktur i KSeF · FakturaProsto",
+      "description": "Sprawdź próg 10 000 zł w KSeF w 2026 roku oraz oblicz netto, VAT i brutto. Wynik z objaśnieniem i oficjalnym źródłem.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/narzedzia"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Darmowe narzędzia do faktur"
+        },
+        {
+          "level": "h2",
+          "text": "Kalkulator netto, VAT i brutto"
+        },
+        {
+          "level": "h2",
+          "text": "Próg 10 000 zł w KSeF"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/narzedzia/kalkulator-vat",
+        "/narzedzia/limit-ksef",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 51
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/narzedzia/kalkulator-vat",
+      "url": "https://fakturaprosto.pl/narzedzia/kalkulator-vat",
+      "status": 200,
+      "ms": 72,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Kalkulator VAT: netto, brutto i kwota podatku · FakturaProsto",
+      "description": "Bezpłatny kalkulator VAT dla stawek 23%, 8%, 5% i 0%. Wyświetla netto, podatek i brutto oraz opis metody liczenia.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/narzedzia/kalkulator-vat"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Kalkulator VAT: netto, brutto i podatek"
+        },
+        {
+          "level": "h2",
+          "text": "Oblicz kwoty"
+        },
+        {
+          "level": "h2",
+          "text": "Jak obliczamy?"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/vat/stawki",
+        "/faktury/jak-wystawic",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 157
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/narzedzia/limit-ksef",
+      "url": "https://fakturaprosto.pl/narzedzia/limit-ksef",
+      "status": 200,
+      "ms": 86,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Kalkulator limitu 10 000 zł KSeF — 2026 · FakturaProsto",
+      "description": "Która faktura przekracza limit 10 000 zł brutto w 2026 roku? Sprawdź wynik z uwzględnieniem wcześniejszego przekroczenia.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/narzedzia/limit-ksef"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Kalkulator limitu 10 000 zł w KSeF"
+        },
+        {
+          "level": "h2",
+          "text": "Która faktura przekracza 10 000 zł?"
+        },
+        {
+          "level": "h2",
+          "text": "Jak interpretować wynik?"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/program-do-faktur",
+        "/faktury",
+        "/poradnik-ksef",
+        "/narzedzia",
+        "/demo",
+        "/poradnik-ksef/limit-10000-zl",
+        "/poradnik-ksef/jdg",
+        "/pomoc",
+        "/polityka-prywatnosci",
+        "/regulamin"
+      ],
+      "words": 152
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/demo",
+      "url": "https://fakturaprosto.pl/demo",
+      "status": 200,
+      "ms": 119,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Demo faktury i symulacja KSeF · FakturaProsto",
+      "description": "Wypróbuj przykładową fakturę i symulację KSeF bez rejestracji. Nic nie trafia do produkcyjnego KSeF.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/demo"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Demo FakturaProsto"
+        },
+        {
+          "property": "og:description",
+          "content": "Przykładowa faktura i symulacja KSeF bez rejestracji."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/demo"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Interaktywny symulator e-Faktur FA(3)"
+        },
+        {
+          "level": "h3",
+          "text": "Pozycje towarów i usług"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/register"
+      ],
+      "words": 138
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/pomoc",
+      "url": "https://fakturaprosto.pl/pomoc",
+      "status": 200,
+      "ms": 86,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Pomoc i kontakt · FakturaProsto",
+      "description": "Krótka pomoc dotycząca faktur, demonstracji i statusu dokumentów KSeF.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://fakturaprosto.pl/pomoc"
+        }
+      ],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "Pomoc FakturaProsto"
+        },
+        {
+          "property": "og:description",
+          "content": "Odpowiedzi na pytania i kontakt z pomocą."
+        },
+        {
+          "property": "og:url",
+          "content": "https://fakturaprosto.pl/pomoc"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Pomoc i kontakt"
+        },
+        {
+          "level": "h2",
+          "text": "Potrzebujesz pomocy?"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/"
+      ],
+      "words": 128
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/register",
+      "url": "https://fakturaprosto.pl/register",
+      "status": 200,
+      "ms": 148,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "FakturaProsto — faktury online i KSeF",
+      "description": "Wystawiaj faktury online i sprawdzaj status KSeF. Darmowe demo, praktyczne poradniki o fakturach i kalkulatory VAT.",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Stwórz konto"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/regulamin",
+        "/polityka-prywatnosci",
+        "/login"
+      ],
+      "words": 85
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/login",
+      "url": "https://fakturaprosto.pl/login",
+      "status": 200,
+      "ms": 113,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "FakturaProsto — faktury online i KSeF",
+      "description": "Wystawiaj faktury online i sprawdzaj status KSeF. Darmowe demo, praktyczne poradniki o fakturach i kalkulatory VAT.",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [],
+      "schemas": [],
+      "internal": [],
+      "words": 6
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/forgot-password",
+      "url": "https://fakturaprosto.pl/forgot-password",
+      "status": 200,
+      "ms": 81,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "FakturaProsto — faktury online i KSeF",
+      "description": "Wystawiaj faktury online i sprawdzaj status KSeF. Darmowe demo, praktyczne poradniki o fakturach i kalkulatory VAT.",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "og": [
+        {
+          "property": "og:title",
+          "content": "FakturaProsto — Faktury VAT i KSeF"
+        },
+        {
+          "property": "og:description",
+          "content": "Faktury VAT, demonstracja działania i integracja z KSeF."
+        },
+        {
+          "property": "og:site_name",
+          "content": "FakturaProsto"
+        },
+        {
+          "property": "og:locale",
+          "content": "pl_PL"
+        },
+        {
+          "property": "og:type",
+          "content": "website"
+        }
+      ],
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Resetowanie hasła"
+        }
+      ],
+      "schemas": [],
+      "internal": [
+        "/",
+        "/login"
+      ],
+      "words": 35
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/robots.txt",
+      "url": "https://fakturaprosto.pl/robots.txt",
+      "status": 200,
+      "ms": 63,
+      "robotsHeader": null,
+      "contentType": "text/plain",
+      "body": "User-Agent: *\nAllow: /\nDisallow: /api/\nDisallow: /portal/\nDisallow: /dashboard/\nDisallow: /settings/\n\nSitemap: https://fakturaprosto.pl/sitemap.xml\n"
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/sitemap.xml",
+      "url": "https://fakturaprosto.pl/sitemap.xml",
+      "status": 200,
+      "ms": 149,
+      "robotsHeader": null,
+      "contentType": "application/xml",
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n<url>\n<loc>https://fakturaprosto.pl/</loc>\n<changefreq>weekly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/demo</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/pomoc</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/program-do-faktur</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/poradnik-ksef</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/vat</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/narzedzia</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/narzedzia/kalkulator-vat</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/narzedzia/limit-ksef</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/regulamin</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/polityka-prywatnosci</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/polityka-cookies</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/powierzenie-danych</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/podwykonawcy</loc>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/jak-wystawic</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/bez-vat</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/zaliczkowa</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/koncowa</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/korygujaca</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/faktury/dla-osoby-prywatnej</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/poradnik-ksef/jdg</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/poradnik-ksef/numer-faktury</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/poradnik-ksef/offline24</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n<url>\n<loc>https://fakturaprosto.pl/vat/stawki</loc>\n<lastmod>2026-09-24T12:00:00.000Z</lastmod>\n<changefreq>monthly</changefreq>\n</url>\n</urlset>\n"
+    },
+    {
+      "kind": "site",
+      "requested": "https://fakturaprosto.pl/llms.txt",
+      "url": "https://fakturaprosto.pl/llms.txt",
+      "status": 404,
+      "ms": 154,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ],
+  "competitors": [
+    [
+      "wFirma",
+      "Odczytano stronę i ofertę biur: szeroki system księgowy, automatyzacje, instrukcje i ekosystem wiedzy.",
+      "Pokazać prosty workflow faktury; w porównaniu wybrać taryfę przedsiębiorcy, nie cennik biura."
+    ],
+    [
+      "Fakturownia",
+      "Homepage eksponuje fakturowanie, KSeF, eksporty i integracje. Cennik Micro: 3 faktury/mies., 0 zł.",
+      "Porównanie limitu 5 vs 3 i procesu, bez twierdzenia, że rywal nie obsługuje KSeF."
+    ],
+    [
+      "iFirma",
+      "Treść obejmuje księgowość, branże i faktury. Cennik wskazuje darmowy limit 3 faktur; pełna oferta wymaga rozdzielenia usług.",
+      "Oddzielić program do faktur od usługi prowadzenia księgowości; użyć własnych przykładów branżowych."
+    ],
+    [
+      "inFakt",
+      "Odczyt strony z CI zwrócił 403 i CAPTCHA; nie oceniono aktualnego cennika ani pełnej treści.",
+      "Ręczny audyt przed publikacją tabeli. Nie traktować braku odczytu jako braku funkcji."
+    ],
+    [
+      "Comarch",
+      "Odczytano markę ERP i centrum wiedzy KSeF. Automatycznie znaleziony cennik ERP XL nie odpowiada prostemu programowi do faktur.",
+      "Porównywać konkretny produkt (np. Betterfly), po sprawdzeniu właściwej oferty; nie zestawiać cen różnych kategorii."
+    ],
+    [
+      "Aplikacja MF",
+      "Oficjalnie bezpłatne narzędzie: wystawianie/odbiór, korekty, FA(3), PDF/XML, uprawnienia, QR i UPO.",
+      "Uczciwie wskazać bezpłatną alternatywę. Przewaga FakturaProsto ma wynikać z procesu i wygody, nie z rzekomego przymusu kupna programu."
+    ]
+  ],
+  "sources": [
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+      "status": 200,
+      "ms": 433,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Zakres obowiązkowego KSeF - KSeF (Krajowy System e-Faktur)",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 1243
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/ponizej-10-000-zl/",
+      "url": "https://ksef.podatki.gov.pl/ponizej-10-000-zl/",
+      "status": 200,
+      "ms": 430,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 938
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/tryb-offline24/",
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/tryb-offline24/",
+      "status": 200,
+      "ms": 436,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Tryb offline24 - KSeF (Krajowy System e-Faktur)",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 731
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/numer-ksef-i-zbiorczy-identyfikator/",
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/numer-ksef-i-zbiorczy-identyfikator/",
+      "status": 200,
+      "ms": 133,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Numer KSeF i zbiorczy identyfikator - KSeF (Krajowy System e-Faktur)",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 673
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/pytania-i-odpowiedzi-ksef-20/",
+      "url": "https://ksef.podatki.gov.pl/pytania-i-odpowiedzi-ksef-20/",
+      "status": 200,
+      "ms": 130,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Pytania i odpowiedzi KSeF 2.0 - KSeF (Krajowy System e-Faktur)",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 17902
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+      "url": "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+      "status": 200,
+      "ms": 124,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Najczęstsze pytania - KSeF (Krajowy System e-Faktur)",
+      "description": "",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 2062
+    },
+    {
+      "kind": "source",
+      "requested": "https://ksef.podatki.gov.pl/",
+      "url": "https://ksef.podatki.gov.pl/",
+      "status": 200,
+      "ms": 132,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Krajowy System e-Faktur (KSeF)",
+      "description": "Krajowy System e-Faktur (KSeF)",
+      "robots": [],
+      "canonical": [],
+      "hreflang": [],
+      "words": 393
+    },
+    {
+      "kind": "source",
+      "requested": "https://developers.google.com/search/docs/appearance/ai-features",
+      "url": "https://developers.google.com/search/docs/appearance/ai-features?hl=de",
+      "status": 200,
+      "ms": 423,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "KI-Funktionen und deine Website | Google Search Central  |  Documentation  |  Google for Developers",
+      "description": "Die KI-Funktionen der Google Suche können Nutzern dabei helfen, deine Website zu finden. Hier erfährst du mehr darüber, wie KI-Funktionen in der Google Suche funktionieren und wie du deine Inhalte in diese Funktionen einbinden kannst.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=de"
+        }
+      ],
+      "hreflang": [
+        {
+          "rel": "alternate",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "x-default",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ar",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=ar"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hans",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=zh-cn"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hant",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=zh-tw"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "fr",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=fr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "de",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=de"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "hi",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=hi"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "id",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=id"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "it",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=it"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ja",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=ja"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ko",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=ko"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pl",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=pl"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pt-BR",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=pt-br"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ru",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=ru"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=es"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es-419",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=es-419"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "th",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=th"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "tr",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=tr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "vi",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=vi"
+        },
+        {
+          "rel": "alternate machine-translated-from",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/docs/appearance/ai-features?hl=en"
+        }
+      ],
+      "words": 1140
+    },
+    {
+      "kind": "source",
+      "requested": "https://developers.google.com/search/docs/appearance/structured-data/faqpage",
+      "url": "https://developers.google.com/search/updates?hl=pt-br",
+      "status": 200,
+      "ms": 1134,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Atualizações mais recentes da documentação da Pesquisa Google | Central da Pesquisa Google  |  What&apos;s new  |  Google for Developers",
+      "description": "Saiba mais sobre as atualizações mais recentes da documentação da Central da Pesquisa Google. Fique por dentro das novidades da Central da Pesquisa Google.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://developers.google.com/search/updates?hl=pt-br"
+        }
+      ],
+      "hreflang": [
+        {
+          "rel": "alternate",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/updates"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "x-default",
+          "href": "https://developers.google.com/search/updates"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ar",
+          "href": "https://developers.google.com/search/updates?hl=ar"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hans",
+          "href": "https://developers.google.com/search/updates?hl=zh-cn"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hant",
+          "href": "https://developers.google.com/search/updates?hl=zh-tw"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "fr",
+          "href": "https://developers.google.com/search/updates?hl=fr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "de",
+          "href": "https://developers.google.com/search/updates?hl=de"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "hi",
+          "href": "https://developers.google.com/search/updates?hl=hi"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "id",
+          "href": "https://developers.google.com/search/updates?hl=id"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "it",
+          "href": "https://developers.google.com/search/updates?hl=it"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ja",
+          "href": "https://developers.google.com/search/updates?hl=ja"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ko",
+          "href": "https://developers.google.com/search/updates?hl=ko"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pl",
+          "href": "https://developers.google.com/search/updates?hl=pl"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pt-BR",
+          "href": "https://developers.google.com/search/updates?hl=pt-br"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ru",
+          "href": "https://developers.google.com/search/updates?hl=ru"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es",
+          "href": "https://developers.google.com/search/updates?hl=es"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es-419",
+          "href": "https://developers.google.com/search/updates?hl=es-419"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "th",
+          "href": "https://developers.google.com/search/updates?hl=th"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "tr",
+          "href": "https://developers.google.com/search/updates?hl=tr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "vi",
+          "href": "https://developers.google.com/search/updates?hl=vi"
+        },
+        {
+          "rel": "alternate machine-translated-from",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/updates?hl=en"
+        }
+      ],
+      "words": 21775
+    },
+    {
+      "kind": "source",
+      "requested": "https://developers.google.com/search/blog/2023/08/howto-faq-changes",
+      "url": "https://developers.google.com/search/blog/2023/08/howto-faq-changes",
+      "status": 200,
+      "ms": 308,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Changes to HowTo and FAQ rich results  |  Google Search Central Blog  |  Google for Developers",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes"
+        }
+      ],
+      "hreflang": [
+        {
+          "rel": "alternate",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "x-default",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ar",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=ar"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hans",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=zh-cn"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hant",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=zh-tw"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "fr",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=fr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "de",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=de"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "hi",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=hi"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "id",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=id"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "it",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=it"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ja",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=ja"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ko",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=ko"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pl",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=pl"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pt-BR",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=pt-br"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ru",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=ru"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=es"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es-419",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=es-419"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "th",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=th"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "tr",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=tr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "vi",
+          "href": "https://developers.google.com/search/blog/2023/08/howto-faq-changes?hl=vi"
+        }
+      ],
+      "words": 687
+    },
+    {
+      "kind": "source",
+      "requested": "https://developers.google.com/search/docs/appearance/structured-data/software-app",
+      "url": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=de",
+      "status": 200,
+      "ms": 636,
+      "robotsHeader": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Schema für Softwareanwendungen (SoftwareApplication) | Google Search Central  |  Documentation  |  Google for Developers",
+      "description": "Hier erfährst du, wie du einer Webseite ein Softwareanwendungsschema hinzufügst, damit du die Details zu deiner App besser in der Google Suche anzeigen lassen kannst.",
+      "robots": [],
+      "canonical": [
+        {
+          "rel": "canonical",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=de"
+        }
+      ],
+      "hreflang": [
+        {
+          "rel": "alternate",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "x-default",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ar",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=ar"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hans",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=zh-cn"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "zh-Hant",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=zh-tw"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "fr",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=fr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "de",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=de"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "hi",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=hi"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "id",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=id"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "it",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=it"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ja",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=ja"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ko",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=ko"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pl",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=pl"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "pt-BR",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=pt-br"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "ru",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=ru"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=es"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "es-419",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=es-419"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "th",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=th"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "tr",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=tr"
+        },
+        {
+          "rel": "alternate",
+          "hreflang": "vi",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=vi"
+        },
+        {
+          "rel": "alternate machine-translated-from",
+          "hreflang": "en",
+          "href": "https://developers.google.com/search/docs/appearance/structured-data/software-app?hl=en"
+        }
+      ],
+      "words": 1517
+    }
+  ],
+  "limitations": [
+    "No GSC or analytics",
+    "No measured keyword volume or SERP positions",
+    "No CWV field/lab measurement",
+    "inFakt HTTP 403 CAPTCHA"
+  ]
+}

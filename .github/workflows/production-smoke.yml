@@ -33,7 +33,7 @@ jobs:
                 const home = await get('/');
                 const html = await home.text();
                 if (home.status !== 200 || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
-                for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers']) {
+                for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers', '/api/ksef/invoices/download/AUDIT-MISSING-REFERENCE?format=upo']) {
                   const response = await get(path);
                   if (response.status !== 401) throw new Error('Unauthenticated API check failed for ' + path + ': HTTP ' + response.status);
                 }
@@ -47,6 +47,7 @@ jobs:
                     ['Public page and new pricing/preview', 'HTTP 200 and expected content'],
                     ['Database', 'Health endpoint: ok'],
                     ['Accountant, tax estimate, bank transfers', 'Unauthenticated requests: HTTP 401'],
+                    ['KSeF document download', 'Unauthenticated request: HTTP 401; no synthetic UPO'],
                   ])
                   .addRaw('Read-only checks; no invoices, accounts or customer messages were created. This does not test authenticated workflows or external providers.')
                   .write();
