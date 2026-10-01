@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
   const scopeRef = React.useRef(scope);
   scopeRef.current = scope;
-  React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
+  React.useEffect(() => { setModalOpen(false); setToDelete(null); setLogTimeOrder(null); }, [scope]);
   const { contractors: allContractors } = useAppStore();
   const contractors = allContractors.filter(c => !c.companyId || c.companyId === scope);
 

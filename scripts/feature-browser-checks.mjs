@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { expect } from '@playwright/test';
+import { mobileLayoutDefects } from './mobile-audit.mjs';
 export async function auditFeatureControls(page, context, db, fixture) {
   page.setDefaultTimeout(15000);
   page.setDefaultNavigationTimeout(30000);
@@ -11,6 +12,10 @@ export async function auditFeatureControls(page, context, db, fixture) {
     try { return await Promise.race([promise,new Promise(resolve=>{timer=setTimeout(()=>resolve(fallback),2000);})]); }
     catch { return fallback; }
     finally { clearTimeout(timer); }
+  }
+  async function checkPhoneDialog(label) {
+    const defects=await mobileLayoutDefects(page);
+    assert.deepEqual(defects,[],label+' must fit the phone viewport');
   }
   const field=(root,label)=>root.locator('label').filter({hasText:label}).first().locator('..').locator('input').first();
   async function submit(button,endpoint) {
@@ -68,11 +73,13 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await page.getByLabel('Suma wcześniejszych faktur brutto w tym miesiącu').fill('0');
     await page.getByLabel('Nowa faktura brutto').fill('1');
     await expect(page.getByRole('status')).toContainText('nie przywraca wyjątku');checks.push('KSeF exact threshold, crossing and earlier crossing');
+    await page.setViewportSize({width:390,height:844});
     await page.goto('/products');
     await page.getByRole('button',{name:'Dodaj pozycję',exact:true}).first().click();
     let dialog=page.getByRole('dialog');
     await dialog.getByPlaceholder('np. Usługa programistyczna (osobodzień)').fill('UI audited product');
     await field(dialog,'Cena netto (PLN)').fill('100');
+    await checkPhoneDialog('Product creation');
     const product=await submit(dialog.getByRole('button',{name:'Dodaj',exact:true}),'/api/products');
     assert.equal(product.product.companyId,fixture.companyId);
     await expect(dialog).toHaveCount(0);
@@ -83,6 +90,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const row=page.locator('tr').filter({hasText:'UI audited product'});
     await row.getByTitle('Edytuj',{exact:true}).click();dialog=page.getByRole('dialog');
     await field(dialog,'Cena netto (PLN)').fill('125');
+    await checkPhoneDialog('Product editing');
     await submit(dialog.getByRole('button',{name:'Zapisz zmiany',exact:true}),'/api/products/'+product.product.id);
     assert.equal((await db.product.findUniqueOrThrow({where:{id:product.product.id}})).netPrice,125);
     checks.push('Product create and edit through UI');
@@ -94,6 +102,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const validity=await dialog.locator('form').evaluate(form=>({valid:form.checkValidity(),invalid:Array.from(form.querySelectorAll('input')).filter(input=>!input.validity.valid).map(input=>({placeholder:input.placeholder,message:input.validationMessage}))}));
     console.log('[feature-controls-stage] expense form validity '+JSON.stringify(validity));
     assert.ok(validity.valid,JSON.stringify(validity));
+    await checkPhoneDialog('Expense creation');
     const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
     assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
     assert.equal(await db.expense.count({where:{companyId:fixture.companyId,number:'UI/AUDIT/COST'}}),1,'One UI submission creates exactly one expense');
@@ -109,11 +118,13 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await field(dialog,'Tytuł zlecenia').fill('UI audited order');
     await field(dialog,'Numer zlecenia').fill('UI/AUDIT/ORDER');
     await field(dialog,'Wycena brutto').fill('123');
+    await checkPhoneDialog('Order creation');
     const order=await submit(dialog.getByRole('button',{name:'Utwórz zlecenie',exact:true}),'/api/orders');
     assert.equal(order.order.companyId,fixture.companyId);
     await expect(page.getByText('UI audited order',{exact:true})).toBeVisible();
     await page.getByTitle('Zaloguj czas pracy',{exact:true}).first().click();dialog=page.getByRole('dialog');
     await field(dialog,'Liczba godzin do dodania').fill('0.5');
+    await checkPhoneDialog('Order time logging');
     await submit(dialog.getByRole('button',{name:'Zapisz czas',exact:true}),'/api/orders/'+order.order.id);
     assert.equal((await db.order.findUniqueOrThrow({where:{id:order.order.id}})).trackedMinutes,30);
     // Failed requests must show their message and keep the user's time-entry dialog.
@@ -133,6 +144,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('np. Wdrożenie sklepu internetowego i integracja z ERP').fill('UI audited offer');
     await dialog.getByPlaceholder('Nazwa usługi / materiału').first().fill('UI offer service');
     await dialog.getByPlaceholder('Cena netto').first().fill('100');
+    await checkPhoneDialog('Offer creation');
     const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
     assert.equal(offer.offer.totalGross,123);await expect(page.getByRole('table').getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
     checks.push('Offer creation through UI');

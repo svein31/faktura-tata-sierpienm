@@ -1,26 +1,25 @@
-# Audyt funkcjonalny — 30 września 2026
+# Audyt funkcjonalny — FakturaProsto
 
 Aktualizacja: 1 października 2026 r.
 
 ## Zakres i dowody
 
-Repozytorium: svein31/faktura-tata-sierpienm. PR: [#24](https://github.com/svein31/faktura-tata-sierpienm/pull/24).
+Repozytorium: svein31/faktura-tata-sierpienm. Zmiany i aktualne wyniki CI: [PR #24](https://github.com/svein31/faktura-tata-sierpienm/pull/24).
+
 Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: scripts/feature-route-inventory.json.
 
-- **005a2ec**: wszystkie trzy podglądy Netlify zaliczyły build, TypeScript, ESLint, pełne testy jednostkowe i pełną integrację HTTP z izolowanymi MongoDB i SMTP.
-- **a916e21**: podstawowe scenariusze przeglądarkowe, zapis faktury z ilością 0,004 i oba kalkulatory (VAT oraz próg KSeF) potwierdzone w podglądach diagnostycznych.
-- **488ea30**, podgląd faktura-tata: dodatkowo dodawanie i edycja produktu przez UI, z kontrolą zapisu w bazie. Test czeka na usunięcie tymczasowego wiersza po zapisie.
-- **b705997**: trzy nieudane podglądy w scenariuszu dodawania kosztu. Zapis, zmiana płatności i CSV przez aktualny interfejs nie są jeszcze potwierdzone.
-- **c04a4e6**, [Verify application 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): poprzedni pełny przebieg zaliczył build, TypeScript, lint, 7 + 133 testy, 370 kontroli HTTP i 454 kontrole układu Chromium/WebKit. Wynik nie obejmuje późniejszych zmian aplikacji.
-- **fb79f6e**, run 36814652731: aktualny audyt API przeszedł 395 kontroli bez niepowodzeń oraz 7 + 139 testów jednostkowych. Testy kontraktu NBP korzystają lokalnie z PLN; przeliczenia walut obcych i awarie dostawcy pozostają w testach kontrolowanych odpowiedzi. Nie potwierdza to bieżącej dostępności publicznego API NBP.
-- **84605ad**, run 36817407696: build, TypeScript, lint, 146 testów i 395 kontroli HTTP zaliczone ponownie. Run 36817410586 zawęził blokadę UI do odczytu body odpowiedzi POST /api/expenses: HTTP 201, formularz zamknięty, brak zakończenia odczytu przez Playwright. Odczyt ma teraz limit 30 sekund i podaje etap błędu.
-- Formularz kosztu odczytuje zapisany dokument przed pokazaniem sukcesu i aktualizuje listę z odpowiedzi, zamiast ponownie pobierać cały zbiór. Ma blokadę podwójnego wysłania oraz ignoruje odpowiedź po zmianie firmy. Aktualny pełny test UI pozostaje do zaliczenia.
+- **83c97c0**, [audyt API 36818690992](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818690992): build, TypeScript, lint, 146 testów jednostkowych oraz 395 kontroli HTTP bez niepowodzeń.
+- **1162c38**, [test przeglądarkowy 36818189512](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818189512): potwierdzone wystawienie szkicu z ilością 0,004, oba kalkulatory, zapis i edycja produktu, zapis kosztu, płatność oraz eksport CSV. Kolejny błąd dotyczył odczytu niezużytej odpowiedzi zapisu zlecenia.
+- **c04a4e6**, [pełny wcześniejszy przebieg 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): 454 kontrole układu Chromium/WebKit bez wad ekranów. Ten historyczny wynik nie obejmuje późniejszych zmian aplikacji.
+- Aktualny Verify wykonuje wszystkie scenariusze formularzy i pełny audyt mobilny. Dodatkowo zapis produktów, kosztów, zleceń, czasu i ofert działa w teście przy szerokości 390 px; sześć otwartych formularzy jest sprawdzanych pod kątem wychodzenia elementów poza ekran i zbyt małej czcionki pól. Wynik aktualnego commita należy odczytać z jego kontroli CI.
 
-Odtworzenie stanu wykazało też nieaktualne dane testowe: faktury datowane na wrzesień były porównywane ze sprzedażą bieżącego miesiąca. Fixture używa teraz bieżącej daty, aby zmiana miesiąca nie powodowała fałszywego błędu analityki.
+W testach odtworzono zatrzymanie Playwright przy odczycie body odpowiedzi POST kosztu i zlecenia, mimo HTTP 201 oraz zamknięcia formularza. Formularze odczytują teraz potwierdzony dokument i aktualizują listę bez natychmiastowego ponownego pobierania całego zbioru. Koszty, zlecenia i oferty zachowują dane przy odmowie API oraz ignorują spóźnione odpowiedzi po zmianie firmy. Zmiana firmy zamyka też okno logowania czasu.
 
-Tymczasowe skróty diagnostyczne i dodatkowe polecenie audytu w buildzie Netlify zostały usunięte. Pełne testy pozostają w GitHub Actions; podgląd i produkcja korzystają ze standardowego npm run build.
+Dane faktur testowych korzystają z bieżącej daty; zmiana miesiąca nie powoduje fałszywego błędu analityki. Testy kontraktu NBP korzystają lokalnie z PLN, a kursy walut obcych, daty publikacji i awarie dostawcy są sprawdzane na kontrolowanych odpowiedziach.
 
-**Stan publikacji:** PR pozostaje szkicem, main nie jest zmieniony. Aktualny pełny audyt formularzy oraz mobilny Chromium/WebKit musi przejść przed scaleniem. Sam sukces builda Netlify nie dowodzi zaliczenia audytu.
+Netlify buduje aplikację standardowym npm run build. Tymczasowy skrypt audytu podglądu i diagnostyczne skróty testów zostały usunięte. Pełna weryfikacja działa w GitHub Actions na izolowanych MongoDB i SMTP. Sukces builda Netlify sam nie dowodzi zaliczenia scenariuszy biznesowych.
+
+**Publikacja:** pełny Verify aktualnego kodu jest warunkiem scalenia. Bieżący status scalenia i wdrożenia jest dostępny w PR oraz kontrolach produkcyjnych; raport nie zastępuje monitorowania działającego serwisu.
 
 ## Naprawione problemy
 
@@ -31,7 +30,7 @@ Tymczasowe skróty diagnostyczne i dodatkowe polecenie audytu w buildzie Netlify
 | Koszty | ujemne/niespójne kwoty, nieprawidłowe daty i statusy | wspólna walidacja POST/PUT/PATCH, brak zapisu błędnych danych |
 | Zlecenia | wartość zero zastępowana poprzednią; ujemny/ułamkowy czas; nieprawidłowe statusy | zachowanie zera, czas w pełnych minutach, kontrola statusów i CAS |
 | Konwersja | zafakturowane zlecenie pokazywane jako zakończone | status billed i blokada zmian źródła |
-| Formularze | błędy API ignorowane; możliwy wielokrotny zapis | widoczny komunikat, zachowanie formularza, blokada podwójnego zapisu |
+| Formularze | błędy API ignorowane, niezużyta odpowiedź zapisu, możliwy wielokrotny zapis i spóźnione zmiany firmy | potwierdzony dokument z API, widoczny komunikat, zachowanie formularza, blokada podwójnego zapisu i kontrola firmy |
 | Usuwanie firmy | możliwe osierocenie kosztów, ofert, zleceń i innych danych | 409, jeśli istnieją dokumenty biznesowe |
 | Portal płatności | niepoprawne daty i nieatomowy komentarz | walidacja daty i transakcja; deklaracja nie oznacza opłacenia |
 | Historia e-mail | księgowa nie widziała historii współdzielonej faktury; surowe błędy bazy | dostęp członków firmy, odcięcie po odebraniu roli, bez szczegółów bazy |
