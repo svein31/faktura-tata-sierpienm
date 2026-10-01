@@ -70,18 +70,15 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await dialog.getByPlaceholder('np. FV/2026/03/4821').fill('UI/AUDIT/COST');
     await dialog.getByPlaceholder('0.00').fill('123');
     const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
-    if(process.env.AUDIT_UI_STOP==='expense-response') return;
     assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
     await expect(page.getByText('UI/AUDIT/COST',{exact:true}).first()).toBeVisible();
     await submit(page.getByTitle('Kliknij, aby przełączyć status płatności').first(),'/api/expenses/'+expense.expense.id);
     assert.equal((await db.expense.findUniqueOrThrow({where:{id:expense.expense.id}})).paymentStatus,'paid');
-    if(process.env.AUDIT_UI_STOP==='expense-paid') return;
     const expenseRow=page.locator('tr').filter({hasText:'UI/AUDIT/COST'});
     await expect(expenseRow.getByTitle('Kliknij, aby przełączyć status płatności')).toHaveText('Opłacone');
     const downloadPromise=page.waitForEvent('download',{timeout:15000});await page.getByRole('button',{name:'Eksportuj CSV',exact:true}).click();
     const download=await downloadPromise;assert.match(download.suggestedFilename(),/\.csv$/);
     checks.push('Expense save, payment toggle and CSV download');
-    if(process.env.AUDIT_UI_STOP==='expense-csv') return;
     await page.goto('/orders');await page.getByRole('button',{name:'Nowe zlecenie',exact:true}).click();dialog=page.getByRole('dialog');
     await field(dialog,'Tytuł zlecenia').fill('UI audited order');
     await field(dialog,'Numer zlecenia').fill('UI/AUDIT/ORDER');
@@ -115,6 +112,18 @@ export async function auditFeatureControls(page, context, db, fixture) {
     checks.push('Offer creation through UI');
     assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
     console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
+  } catch(error) {
+    const diagnostic=await page.evaluate(()=>({
+      url:location.pathname,
+      headings:Array.from(document.querySelectorAll('h1,h2')).map(el=>el.textContent),
+      dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(el=>({
+        title:el.querySelector('h2')?.textContent,
+        buttons:Array.from(el.querySelectorAll('button')).map(button=>({text:button.textContent,disabled:button.disabled,type:button.type})),
+        inputs:Array.from(el.querySelectorAll('input')).map(input=>({placeholder:input.placeholder,type:input.type,valid:input.validity.valid,message:input.validationMessage})),
+      })),
+    })).catch(()=>({}));
+    console.log('[feature-controls-failure] '+JSON.stringify({checks,error:error.message,diagnostic}));
+    throw error;
   } finally {
     page.off('pageerror',listener);
     await page.setViewportSize(originalViewport);

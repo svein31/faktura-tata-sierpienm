@@ -1,27 +1,24 @@
 # Audyt funkcjonalny — 30 września 2026
 
+Aktualizacja: 1 października 2026 r.
+
 ## Zakres i dowody
 
 Repozytorium: svein31/faktura-tata-sierpienm. PR: [#24](https://github.com/svein31/faktura-tata-sierpienm/pull/24).
-Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras jest w scripts/feature-route-inventory.json.
+Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: scripts/feature-route-inventory.json.
 
-**Ostatni potwierdzony pełny przebieg:** [Verify application 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031), commit c04a4e68db23d22bc4b370de77b94d90e73d0fe0.
-Build, TypeScript, ESLint, 7 testów requested-fixes, 133 testy jednostkowe, 370 kontroli HTTP bez niepowodzeń oraz 454 kontrole układu Chromium/WebKit bez wad ekranu.
+- **005a2ec**: wszystkie trzy podglądy Netlify zaliczyły build, TypeScript, ESLint, pełne testy jednostkowe i pełną integrację HTTP z izolowanymi MongoDB i SMTP.
+- **a916e21**: podstawowe scenariusze przeglądarkowe, zapis faktury z ilością 0,004 i oba kalkulatory (VAT oraz próg KSeF) potwierdzone w podglądach diagnostycznych.
+- **488ea30**, podgląd faktura-tata: dodatkowo dodawanie i edycja produktu przez UI, z kontrolą zapisu w bazie. Test czeka na usunięcie tymczasowego wiersza po zapisie.
+- **b705997**: trzy nieudane podglądy w scenariuszu dodawania kosztu. Zapis, zmiana płatności i CSV przez aktualny interfejs nie są jeszcze potwierdzone.
+- **c04a4e6**, [Verify application 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): poprzedni pełny przebieg zaliczył build, TypeScript, lint, 7 + 133 testy, 370 kontroli HTTP i 454 kontrole układu Chromium/WebKit. Wynik nie obejmuje późniejszych zmian aplikacji.
+- **1 października**: ponowiono run 36751508339. GitHub Actions znów przydziela runnera i wykonuje kroki. Instalacja Chromium/WebKit przeszła; pełna weryfikacja jest w toku. Wcześniejsze zadania kończyły się przed pierwszym krokiem.
 
-Równoległy przebieg API 36718743968 miał jedno niepowodzenie: 15-sekundowy timeout starego endpointu pobierania KSeF. Analiza wykazała brak kontroli dostępu i fikcyjny XML/UPO jako fallback. Endpoint został następnie przepisany i pokryty dodatkowymi testami.
+Odtworzenie stanu wykazało też nieaktualne dane testowe: faktury datowane na wrzesień były porównywane ze sprzedażą bieżącego miesiąca. Fixture używa teraz bieżącej daty, aby zmiana miesiąca nie powodowała fałszywego błędu analityki.
 
-Commit 8d5ae6d7c101b92e2aa801fbf1d8b2bf9de123a1 przeszedł wszystkie trzy buildy Netlify. GitHub Actions dla tego commita kończyły się przed pierwszym krokiem, bez przydzielonego runnera i logów; retry również nie wystartował. To blokada środowiska, a nie potwierdzony wynik testów kodu.
-Alternatywna weryfikacja Netlify dla PR #24 działa z pominięciem produkcyjnych sekretów:
-- 1ec54547e42c07f06992775b7c5c3a23e7a5be1d: trzy poprawne podglądy — build, TypeScript, ESLint i wskazane testy nowych walidatorów.
-- f0c68262f3ff4308e1d165ff28532ef774a54628: trzy poprawne podglądy po dodaniu całego npm test, w tym walidacji XSD przez lxml.
-- a44745e034c19664f0ea4269b626795cc703bc97: trzy niepowodzenia po dodaniu izolowanej integracji HTTP. Sam status nie rozstrzyga między problemem środowiska a niepowodzeniem asercji.
-- ff863e0d45d74ea20d5dab6b56fa10b8aa8d574e: poprawka pełnych minut i dat płatności; wszystkie trzy podglądy potwierdziły build, TypeScript, lint, testy jednostkowe i osobny start MongoDB. Awaria integracji następuje później. GitHub Actions ponownie kończy się bez kroków i logów (run 36739640646).
+Tymczasowe skróty diagnostyczne i dodatkowe polecenie audytu w buildzie Netlify zostały usunięte. Pełne testy pozostają w GitHub Actions; podgląd i produkcja korzystają ze standardowego npm run build.
 
-- fc3d962076f68e8b110b20320512c0baa7c2166e: wszystkie trzy podglądy zaliczyły podstawową integrację HTTP (bez fullFeatureAudit i przeglądarek), a także build, TypeScript, lint i testy jednostkowe. Start aplikacji, migracje i podstawowe scenariusze biznesowe są potwierdzone. Rozszerzony audyt jest ponownie uruchamiany osobno.
-
-- 005a2ec359d20d4eb658d0fb3c479ebf64b05caf: wszystkie trzy podglądy zaliczyły pełną integrację HTTP, build, TypeScript, lint i testy jednostkowe. Poprawiono uprawnienia w danych testowych księgowej, aby odpowiadały rzeczywistej roli. Nowe testy przeglądarkowe wymagają jeszcze potwierdzenia.
-
-Bezpośrednie logi Netlify nie są udostępnione przez aktywne połączenie GitHub. Pełna integracja HTTP jest potwierdzona powyżej, natomiast najnowsze testy przeglądarkowe nie są jeszcze potwierdzone. PR pozostaje szkicem; najnowsze zmiany nie zostały wdrożone na produkcję.
+**Stan publikacji:** PR pozostaje szkicem, main nie jest zmieniony. Aktualny pełny audyt formularzy oraz mobilny Chromium/WebKit musi przejść przed scaleniem. Sam sukces builda Netlify nie dowodzi zaliczenia audytu.
 
 ## Naprawione problemy
 

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base, db) {
+  const invoiceDate = new Date().toISOString().slice(0, 10);
+  const invoiceDueDate = new Date(Date.parse(invoiceDate + 'T00:00:00Z') + 7 * 86400000).toISOString().slice(0, 10);
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
   const page = await context.newPage(), errors = [];
@@ -59,7 +61,7 @@ export async function browserChecks(base, db) {
     const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer — Kontrahent z długą nazwą i dodatkowymi informacjami handlowymi', nip: '5250001003' })).contractor;
     for (let n = 1; n <= 32; n++) await post('/api/invoices', {
       number: `BROWSER/${String(n).padStart(3,'0')}`, type: 'sale', status: 'draft', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     });
     // HTTP assertions cover cardinality, stable paging, search and archive scoping.
@@ -79,7 +81,7 @@ export async function browserChecks(base, db) {
     assert.equal(overview.totals.length, 0);
     const issued = await post('/api/invoices', {
       number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 2, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     });
     const issuedOverview = await get(`/api/overview?companyId=${company.id}&months=12`);
@@ -89,7 +91,7 @@ export async function browserChecks(base, db) {
     assert.equal(issuedOverview.counts.drafts, 32);
     const changed = await context.request.put(`/api/invoices/${issued.invoice.id}`, { data: {
       number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 3, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     } });
     assert.ok(changed.ok(), JSON.stringify(await changed.json()));
