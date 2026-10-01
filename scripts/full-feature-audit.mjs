@@ -22,16 +22,25 @@ export async function fullFeatureAudit(base, db, fixture) {
   const missing='000000000000000000000001';
   const routePath=route=>route.path.replace('[...nextauth]','session').replace(/\[[^\]]+\]/g,missing);
   for(const route of routes) for(const method of route.methods) {
-    const path=routePath(route);
+    const path=routePath(route)+(route.path==='/api/nbp'?'?currency=PLN&issueDate=2026-09-30':'');
     await check('anonymous route boundary',method,path,['GET','DELETE'].includes(method)?undefined:{},undefined);
   }
   // GETs and invalid identifiers must be safe on every authenticated read route.
   for(const route of routes.filter(route=>route.methods.includes('GET'))) {
     let path=routePath(route);
     if(!path.includes('/auth/'))path+='?companyId='+fixture.companyId+'&month=2026-09&key=favorites';
+    if(route.path==='/api/nbp')path+='&currency=PLN&issueDate=2026-09-30';
     await check('authenticated route read', 'GET',path,undefined,fixture.ownerCookie);
 
   }
+  // Local HTTP contract checks avoid depending on public NBP availability.
+  // Foreign-rate publication dates, holidays and upstream failures are tested
+  // with controlled responses in the NBP unit suite.
+  const pln=await check('NBP base currency HTTP contract','GET','/api/nbp?currency=PLN&issueDate=2026-09-30',undefined,fixture.ownerCookie,[200]);
+  if(pln.data?.currency!=='PLN'||pln.data?.rate!==1||pln.data?.targetReferenceDate!=='2026-09-30')
+    failures.push({label:'PLN rate must preserve the base currency and reference date',ok:false});
+  await check('NBP invalid currency','GET','/api/nbp?currency=INVALID&issueDate=2026-09-30',undefined,fixture.ownerCookie,[400]);
+  await check('NBP invalid calendar date','GET','/api/nbp?currency=EUR&issueDate=2026-02-30',undefined,fixture.ownerCookie,[400]);
   for(const route of routes.filter(route=>route.path.includes('[id]'))) for(const method of route.methods)
     await check('malformed object id',method,route.path.replaceAll('[id]','not-an-object-id'),['GET','DELETE'].includes(method)?undefined:{},fixture.ownerCookie,[400,403,404]);
   const company=await check('create audit company','POST','/api/companies',{companyName:'Functional audit company',nip:'9876543210'},fixture.ownerCookie,[201]);
