@@ -96,6 +96,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.ok(validity.valid,JSON.stringify(validity));
     const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
     assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
+    assert.equal(await db.expense.count({where:{companyId:fixture.companyId,number:'UI/AUDIT/COST'}}),1,'One UI submission creates exactly one expense');
     await expect(page.getByText('UI/AUDIT/COST',{exact:true}).first()).toBeVisible();
     await submit(page.getByTitle('Kliknij, aby przełączyć status płatności').first(),'/api/expenses/'+expense.expense.id);
     assert.equal((await db.expense.findUniqueOrThrow({where:{id:expense.expense.id}})).paymentStatus,'paid');

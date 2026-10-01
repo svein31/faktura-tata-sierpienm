@@ -85,6 +85,7 @@ export default function ExpensesPage() {
   const [formCurrency, setFormCurrency] = React.useState<Currency>("PLN");
   const [formPaymentStatus, setFormPaymentStatus] = React.useState<"paid" | "unpaid">("unpaid");
   const [formSaving, setFormSaving] = React.useState(false);
+  const formSavingRef = React.useRef(false);
 
   const fetchExpenses = React.useCallback(async () => {
     try {
@@ -176,6 +177,7 @@ export default function ExpensesPage() {
 
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formSavingRef.current) return;
     if (!formContractor.trim()) {
       toast("error", "Błąd walidacji", "Wpisz nazwę wystawcy faktury / kontrahenta.");
       return;
@@ -185,6 +187,8 @@ export default function ExpensesPage() {
       return;
     }
 
+    const savedScope = scope;
+    formSavingRef.current = true;
     try {
       setFormSaving(true);
       const res = await fetch("/api/expenses", {
@@ -208,18 +212,21 @@ export default function ExpensesPage() {
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Błąd zapisu kosztu");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd zapisu kosztu");
+      if (!data.expense?.id) throw new Error("Serwer nie potwierdził zapisu kosztu.");
+      if (scopeRef.current !== savedScope) return;
 
+      setExpenses((previous) => [data.expense as Expense, ...previous].sort((a, b) => b.issueDate.localeCompare(a.issueDate)));
       toast("success", "Dodano dokument kosztowy");
       setModalOpen(false);
       resetForm();
-      fetchExpenses();
     } catch (err: unknown) {
-      toast("error", "Błąd", err instanceof Error ? err.message : "Błąd dodawania kosztu.");
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd", err instanceof Error ? err.message : "Błąd dodawania kosztu.");
+      }
     } finally {
+      formSavingRef.current = false;
       setFormSaving(false);
     }
   };

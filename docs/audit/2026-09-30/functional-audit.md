@@ -13,7 +13,8 @@ Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: script
 - **b705997**: trzy nieudane podglądy w scenariuszu dodawania kosztu. Zapis, zmiana płatności i CSV przez aktualny interfejs nie są jeszcze potwierdzone.
 - **c04a4e6**, [Verify application 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): poprzedni pełny przebieg zaliczył build, TypeScript, lint, 7 + 133 testy, 370 kontroli HTTP i 454 kontrole układu Chromium/WebKit. Wynik nie obejmuje późniejszych zmian aplikacji.
 - **fb79f6e**, run 36814652731: aktualny audyt API przeszedł 395 kontroli bez niepowodzeń oraz 7 + 139 testów jednostkowych. Testy kontraktu NBP korzystają lokalnie z PLN; przeliczenia walut obcych i awarie dostawcy pozostają w testach kontrolowanych odpowiedzi. Nie potwierdza to bieżącej dostępności publicznego API NBP.
-- **1 października**: ponowiono run 36751508339. GitHub Actions znów przydziela runnera i wykonuje kroki. Instalacja Chromium/WebKit przeszła; pełna weryfikacja jest w toku. Wcześniejsze zadania kończyły się przed pierwszym krokiem.
+- **84605ad**, run 36817407696: build, TypeScript, lint, 146 testów i 395 kontroli HTTP zaliczone ponownie. Run 36817410586 zawęził blokadę UI do odczytu body odpowiedzi POST /api/expenses: HTTP 201, formularz zamknięty, brak zakończenia odczytu przez Playwright. Odczyt ma teraz limit 30 sekund i podaje etap błędu.
+- Formularz kosztu odczytuje zapisany dokument przed pokazaniem sukcesu i aktualizuje listę z odpowiedzi, zamiast ponownie pobierać cały zbiór. Ma blokadę podwójnego wysłania oraz ignoruje odpowiedź po zmianie firmy. Aktualny pełny test UI pozostaje do zaliczenia.
 
 Odtworzenie stanu wykazało też nieaktualne dane testowe: faktury datowane na wrzesień były porównywane ze sprzedażą bieżącego miesiąca. Fixture używa teraz bieżącej daty, aby zmiana miesiąca nie powodowała fałszywego błędu analityki.
 
@@ -73,7 +74,7 @@ Nowe testy przeglądarkowe dodatkowo wykonują zapis ułamkowej ilości z formul
 4. RUN_ALL_MOBILE_CHECKS=1 RUN_WEBKIT_CHECKS=1 npm run verify.
 5. Raport HTTP: artifacts/functional/http-audit.json. Logi: feature-audit-summary, feature-controls-summary, mobile-audit.
 
-Integracja tworzy własną replikę MongoDB oraz lokalny SMTP. Nigdy nie korzysta z odziedziczonego DATABASE_URL. Alternatywa Netlify dodatkowo przekazuje procesom testowym tylko minimalne zmienne systemowe.
+Integracja tworzy własną replikę MongoDB oraz lokalny SMTP. Nigdy nie korzysta z odziedziczonego DATABASE_URL. Polecenie build Netlify nie uruchamia integracji.
 
 ## Granice weryfikacji
 
