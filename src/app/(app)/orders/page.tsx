@@ -156,6 +156,7 @@ export default function OrdersPage() {
       notes: formNotes,
     };
 
+    const savedScope = scope;
     savingFormRef.current = true;
     setSavingForm(true);
     try {
@@ -166,16 +167,19 @@ export default function OrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
-      if (res.ok) {
-        toast("success", editingOrder ? "Zaktualizowano zlecenie" : "Utworzono zlecenie", formNumber);
-        setModalOpen(false);
-        loadOrders();
-      } else {
-        const err = await res.json();
-        toast("error", "Błąd zapisu", err.error || "Nie udało się zapisać zlecenia.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać zlecenia.");
+      if (!data.order?.id) throw new Error("Serwer nie potwierdził zapisu zlecenia.");
+      if (scopeRef.current !== savedScope) return;
+      setOrders((previous) => editingOrder
+        ? previous.map((order) => order.id === data.order.id ? data.order as Order : order)
+        : [data.order as Order, ...previous]);
+      toast("success", editingOrder ? "Zaktualizowano zlecenie" : "Utworzono zlecenie", formNumber);
+      setModalOpen(false);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu", error instanceof Error ? error.message : "Wystąpił problem z połączeniem.");
       }
-    } catch {
-      toast("error", "Błąd zapisu", "Wystąpił problem z połączeniem.");
     } finally {
       savingFormRef.current = false;
       setSavingForm(false);
@@ -201,29 +205,37 @@ export default function OrdersPage() {
     }
   };
 
+  const loggingTimeRef = React.useRef(false);
   const handleLogTime = async () => {
-    if (!logTimeOrder) return;
-    const addedHours = Number(hoursToAdd) || 0;
-    if (addedHours <= 0) return;
-
-    const addedMinutes = Math.round(addedHours * 60);
-    const newTracked = (logTimeOrder.trackedMinutes || 0) + addedMinutes;
+    if (!logTimeOrder || loggingTimeRef.current) return;
+    const addedHours = Number(hoursToAdd);
+    const rawMinutes = addedHours * 60;
+    const addedMinutes = Math.round(rawMinutes);
+    if (!Number.isFinite(addedHours) || addedMinutes <= 0 || Math.abs(rawMinutes - addedMinutes) > 1e-7) {
+      toast("error", "Błąd walidacji", "Podaj dodatni czas w pełnych minutach.");
+      return;
+    }
+    const savedScope = scope;
+    loggingTimeRef.current = true;
     try {
       const res = await fetch(`/api/orders/${logTimeOrder.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ trackedHours: addedMinutes / 60 }),
       });
-      if (res.ok) {
-        toast("success", "Zalogowano czas pracy", `+${addedHours} godz. Łącznie: ${Math.round(newTracked / 60)}h`);
-        setLogTimeOrder(null);
-        loadOrders();
-      } else {
-        const error = await res.json();
-        toast("error", "Błąd operacji", error.error || "Nie udało się zapisać czasu.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać czasu.");
+      if (!data.order?.id) throw new Error("Serwer nie potwierdził zapisu czasu.");
+      if (scopeRef.current !== savedScope) return;
+      setOrders((previous) => previous.map((order) => order.id === data.order.id ? data.order as Order : order));
+      toast("success", "Zalogowano czas pracy", `+${addedMinutes} min. Łącznie: ${data.order.trackedMinutes} min.`);
+      setLogTimeOrder(null);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu czasu", error instanceof Error ? error.message : "Nie udało się zaktualizować czasu.");
       }
-    } catch {
-      toast("error", "Błąd zapisu czasu", "Nie udało się zaktualizować godzin.");
+    } finally {
+      loggingTimeRef.current = false;
     }
   };
 

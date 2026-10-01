@@ -158,6 +158,7 @@ export default function OffersPage() {
       lines: validLines,
     };
 
+    const savedScope = scope;
     savingFormRef.current = true;
     setSavingForm(true);
     try {
@@ -168,16 +169,19 @@ export default function OffersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
-      if (res.ok) {
-        toast("success", editingOffer ? "Zaktualizowano ofertę" : "Utworzono ofertę", formNumber);
-        setModalOpen(false);
-        loadOffers();
-      } else {
-        const err = await res.json();
-        toast("error", "Błąd zapisu", err.error || "Nie udało się zapisać oferty.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać oferty.");
+      if (!data.offer?.id) throw new Error("Serwer nie potwierdził zapisu oferty.");
+      if (scopeRef.current !== savedScope) return;
+      setOffers((previous) => editingOffer
+        ? previous.map((offer) => offer.id === data.offer.id ? data.offer as Offer : offer)
+        : [data.offer as Offer, ...previous]);
+      toast("success", editingOffer ? "Zaktualizowano ofertę" : "Utworzono ofertę", formNumber);
+      setModalOpen(false);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu", error instanceof Error ? error.message : "Wystąpił problem z połączeniem.");
       }
-    } catch {
-      toast("error", "Błąd zapisu", "Wystąpił problem z połączeniem.");
     } finally {
       savingFormRef.current = false;
       setSavingForm(false);
