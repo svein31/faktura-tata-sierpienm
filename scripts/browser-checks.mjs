@@ -7,6 +7,8 @@ export async function browserChecks(base, db) {
   const invoiceDueDate = new Date(Date.parse(invoiceDate + 'T00:00:00Z') + 7 * 86400000).toISOString().slice(0, 10);
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
+  context.setDefaultTimeout(15000);
+  context.setDefaultNavigationTimeout(30000);
   const page = await context.newPage(), errors = [];
   page.on('pageerror', error => errors.push(error.message));
   async function post(path, data) {
@@ -19,10 +21,13 @@ export async function browserChecks(base, db) {
     const publicContext = await browser.newContext({
       baseURL: base, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
     });
+    publicContext.setDefaultTimeout(15000);
+    publicContext.setDefaultNavigationTimeout(30000);
     const publicPage = await publicContext.newPage(), publicErrors = [];
     publicPage.on('pageerror', error => publicErrors.push(error.message));
     try {
       for (const route of ['/', '/login', '/register', '/demo']) {
+        console.log('[browser-stage] public '+route);
         await publicPage.goto(route);
         await expect(publicPage.locator('h1')).toBeVisible();
         assert.ok(
@@ -40,6 +45,8 @@ export async function browserChecks(base, db) {
     const loginContext = await browser.newContext({
       baseURL: base, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
     });
+    loginContext.setDefaultTimeout(15000);
+    loginContext.setDefaultNavigationTimeout(30000);
     await loginContext.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
     const loginPage = await loginContext.newPage(), loginErrors = [];
     loginPage.on('pageerror', error => loginErrors.push(error.message));
@@ -176,6 +183,7 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Zapisz nową wersję' }).click();
     await expect(page.getByText(/Zapisano wersję/)).toBeVisible();
     for (const [route, heading] of [['/warehouse','Magazyn'], ['/cost-reviews','Obieg kosztów'], ['/accountant','Panel księgowej'], ['/documents','Skrzynka dokumentów']]) {
+      console.log('[browser-stage] mobile '+route);
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
@@ -244,6 +252,7 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Przywróć', exact: true }).click();
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
     await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    console.log('[browser-stage] feature form controls');
     await auditFeatureControls(page, context, db, {companyId:company.id,contractorId:contractor.id});
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
