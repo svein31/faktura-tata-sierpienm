@@ -12,6 +12,7 @@ Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: script
 - **488ea30**, podgląd faktura-tata: dodatkowo dodawanie i edycja produktu przez UI, z kontrolą zapisu w bazie. Test czeka na usunięcie tymczasowego wiersza po zapisie.
 - **b705997**: trzy nieudane podglądy w scenariuszu dodawania kosztu. Zapis, zmiana płatności i CSV przez aktualny interfejs nie są jeszcze potwierdzone.
 - **c04a4e6**, [Verify application 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): poprzedni pełny przebieg zaliczył build, TypeScript, lint, 7 + 133 testy, 370 kontroli HTTP i 454 kontrole układu Chromium/WebKit. Wynik nie obejmuje późniejszych zmian aplikacji.
+- **fb79f6e**, run 36814652731: aktualny audyt API przeszedł 395 kontroli bez niepowodzeń oraz 7 + 139 testów jednostkowych. Testy kontraktu NBP korzystają lokalnie z PLN; przeliczenia walut obcych i awarie dostawcy pozostają w testach kontrolowanych odpowiedzi. Nie potwierdza to bieżącej dostępności publicznego API NBP.
 - **1 października**: ponowiono run 36751508339. GitHub Actions znów przydziela runnera i wykonuje kroki. Instalacja Chromium/WebKit przeszła; pełna weryfikacja jest w toku. Wcześniejsze zadania kończyły się przed pierwszym krokiem.
 
 Odtworzenie stanu wykazało też nieaktualne dane testowe: faktury datowane na wrzesień były porównywane ze sprzedażą bieżącego miesiąca. Fixture używa teraz bieżącej daty, aby zmiana miesiąca nie powodowała fałszywego błędu analityki.

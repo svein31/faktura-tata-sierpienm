@@ -8,8 +8,11 @@ export async function auditFeatureControls(page, context, db, fixture) {
   page.on('pageerror',listener);
   const field=(root,label)=>root.locator('label').filter({hasText:label}).first().locator('..').locator('input').first();
   async function submit(button,endpoint) {
-    const responsePromise=page.waitForResponse(response=>new URL(response.url()).pathname===endpoint&&['POST','PUT','PATCH'].includes(response.request().method()));
-    await button.click();const response=await responsePromise;
+    console.log('[feature-controls-stage] submit '+endpoint);
+    const [response]=await Promise.all([
+      page.waitForResponse(response=>new URL(response.url()).pathname===endpoint&&['POST','PUT','PATCH'].includes(response.request().method())),
+      button.click(),
+    ]);
     assert.ok(response.ok(),endpoint+': '+await response.text());return response.json();
   }
   try {
@@ -65,10 +68,14 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await submit(dialog.getByRole('button',{name:'Zapisz zmiany',exact:true}),'/api/products/'+product.product.id);
     assert.equal((await db.product.findUniqueOrThrow({where:{id:product.product.id}})).netPrice,125);
     checks.push('Product create and edit through UI');
+    console.log('[feature-controls-stage] open expense form');
     await page.goto('/expenses');await page.getByRole('button',{name:'Dodaj koszt',exact:true}).click();dialog=page.getByRole('dialog');
     await dialog.getByPlaceholder('np. Adobe Systems, PKN Orlen').fill('UI audited supplier');
     await dialog.getByPlaceholder('np. FV/2026/03/4821').fill('UI/AUDIT/COST');
     await dialog.getByPlaceholder('0.00').fill('123');
+    const validity=await dialog.locator('form').evaluate(form=>({valid:form.checkValidity(),invalid:Array.from(form.querySelectorAll('input')).filter(input=>!input.validity.valid).map(input=>({placeholder:input.placeholder,message:input.validationMessage}))}));
+    console.log('[feature-controls-stage] expense form validity '+JSON.stringify(validity));
+    assert.ok(validity.valid,JSON.stringify(validity));
     const expense=await submit(dialog.getByRole('button',{name:'Zapisz koszt',exact:true}),'/api/expenses');
     assert.equal(expense.expense.totalGross,123);assert.equal(expense.expense.totalNet,100);
     await expect(page.getByText('UI/AUDIT/COST',{exact:true}).first()).toBeVisible();
