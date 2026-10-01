@@ -365,13 +365,13 @@ export default function OrdersPage() {
 
       {/* Widok KANBAN */}
       {viewMode === "kanban" ? (
-        <div className="grid gap-4 md:grid-cols-4 items-start">
+        <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-4 items-start">
           {ORDER_STATUSES.map((statusObj) => {
             const statusOrders = filtered.filter((o) => o.status === statusObj.id);
             return (
               <div
                 key={statusObj.id}
-                className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-md p-3.5 space-y-3"
+                className="min-w-0 rounded-2xl border border-border/70 bg-card/50 backdrop-blur-md p-3.5 space-y-3"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-border/40">
                   <div className="flex items-center gap-2">
@@ -388,8 +388,8 @@ export default function OrdersPage() {
                       key={order.id}
                       className="p-3.5 hover:shadow-md transition-shadow bg-card/90 border-border/80 space-y-2.5"
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        <div>
+                      <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1 break-words">
                           <span className="text-[10.5px] font-mono text-muted-foreground">{order.number}</span>
                           <h4 className="font-semibold text-xs text-foreground line-clamp-2">{order.title}</h4>
                         </div>
@@ -400,7 +400,7 @@ export default function OrdersPage() {
 
                       <p className="text-[11px] text-muted-foreground truncate">{order.contractorName}</p>
 
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                         <span className="font-semibold text-foreground">
                           {formatMoney(order.totalGross, order.currency)}
                         </span>
@@ -410,7 +410,7 @@ export default function OrdersPage() {
                       </div>
 
                       {/* Akcje karty */}
-                      <div className="flex items-center justify-between pt-1 gap-1">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between pt-1 gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -422,7 +422,7 @@ export default function OrdersPage() {
                           <Clock className="h-3 w-3 mr-1" /> +Czas
                         </Button>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex min-w-0 flex-wrap items-center gap-1">
                           {order.status !== "billed" ? (
                             <Button
                               variant="outline"

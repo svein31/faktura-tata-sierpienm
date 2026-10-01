@@ -9,6 +9,7 @@ Repozytorium: svein31/faktura-tata-sierpienm. Zmiany i aktualne wyniki CI: [PR #
 Zinwentaryzowano 121 tras API / 175 metod i 60 plików stron. Lista tras: scripts/feature-route-inventory.json.
 
 - **83c97c0**, [audyt API 36818690992](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818690992): build, TypeScript, lint, 146 testów jednostkowych oraz 395 kontroli HTTP bez niepowodzeń.
+- **83c97c0**, [test UI 36818694701](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818694701): wszystkie siedem scenariuszy formularzy zaliczone bez błędów JavaScript. Audyt mobilny wykrył przepełnienie tablicy zleceń z dokumentem przy 320 px (strona rozszerzała się do 372 px) i utrudnione zamknięcie okna. Siatka, kolumny i akcje kart mają teraz ograniczoną szerokość oraz zawijanie.
 - **1162c38**, [test przeglądarkowy 36818189512](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36818189512): potwierdzone wystawienie szkicu z ilością 0,004, oba kalkulatory, zapis i edycja produktu, zapis kosztu, płatność oraz eksport CSV. Kolejny błąd dotyczył odczytu niezużytej odpowiedzi zapisu zlecenia.
 - **c04a4e6**, [pełny wcześniejszy przebieg 36718744031](https://github.com/svein31/faktura-tata-sierpienm/actions/runs/36718744031): 454 kontrole układu Chromium/WebKit bez wad ekranów. Ten historyczny wynik nie obejmuje późniejszych zmian aplikacji.
 - Aktualny Verify wykonuje wszystkie scenariusze formularzy i pełny audyt mobilny. Dodatkowo zapis produktów, kosztów, zleceń, czasu i ofert działa w teście przy szerokości 390 px; sześć otwartych formularzy jest sprawdzanych pod kątem wychodzenia elementów poza ekran i zbyt małej czcionki pól. Wynik aktualnego commita należy odczytać z jego kontroli CI.
@@ -60,7 +61,7 @@ Kontrola wszystkich metod bez zalogowania i wszystkich GET po zalogowaniu jest k
 | Oferta → zlecenie → faktura | publiczna akceptacja, stale version, mieszane VAT, zakaz ponownej konwersji |
 | E-mail/przypomnienia | lokalny SMTP, historia zespołu, escapowanie HTML, zdarzenia przypomnień i deduplikacja |
 | Kalkulatory | netto/brutto VAT, niepoprawne dane, próg KSeF dokładnie 10 000 i przekroczenie o grosz, wcześniejsze przekroczenie |
-| UI/RWD | nawigacja, drawer, wyszukiwanie, zmiana firmy, bank, formularz faktury; Chromium/WebKit, 454 kontrole układu |
+| UI/RWD | nawigacja, drawer, wyszukiwanie, zmiana firmy, bank, formularz faktury, tablica zleceń z dokumentem; Chromium/WebKit, pełna macierz układu |
 | Publiczne strony | wszystkie URL z sitemap, strona główna, demo, pricing, pomoc, poradniki i narzędzia |
 
 Nowe testy przeglądarkowe dodatkowo wykonują zapis ułamkowej ilości z formularza faktury, zapis i edycję produktu, zapis kosztu / zmianę płatności / CSV, zapis zlecenia / czas / konflikt zapisu / konwersję oraz zapis oferty.
