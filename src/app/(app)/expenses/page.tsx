@@ -232,41 +232,45 @@ export default function ExpensesPage() {
   };
 
   const handleUpdateWorkflow = async (id: string, newWorkflow: WorkflowStatus) => {
+    const savedScope = scope;
     try {
       const res = await fetch(`/api/expenses/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workflowStatus: newWorkflow }),
       });
-      if (!res.ok) throw new Error("Błąd aktualizacji statusu");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd aktualizacji statusu");
+      if (!data.expense?.id) throw new Error("Serwer nie potwierdził aktualizacji kosztu.");
+      if (scopeRef.current !== savedScope) return;
+      setExpenses((prev) => prev.map((expense) => expense.id === id ? data.expense as Expense : expense));
       toast("success", "Zaktualizowano status weryfikacji");
-      setExpenses((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, workflowStatus: newWorkflow } : e))
-      );
-    } catch {
-      toast("error", "Błąd", "Nie udało się zmienić statusu.");
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd", error instanceof Error ? error.message : "Nie udało się zmienić statusu.");
+      }
     }
   };
 
   const handleTogglePayment = async (id: string, currentStatus: "paid" | "unpaid") => {
     const nextStatus = currentStatus === "paid" ? "unpaid" : "paid";
+    const savedScope = scope;
     try {
       const res = await fetch(`/api/expenses/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ paymentStatus: nextStatus }),
       });
-      if (!res.ok) throw new Error("Błąd aktualizacji płatności");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd aktualizacji płatności");
+      if (!data.expense?.id) throw new Error("Serwer nie potwierdził aktualizacji kosztu.");
+      if (scopeRef.current !== savedScope) return;
+      setExpenses((prev) => prev.map((expense) => expense.id === id ? data.expense as Expense : expense));
       toast("success", nextStatus === "paid" ? "Oznaczono jako opłacone" : "Oznaczono jako nieopłacone");
-      setExpenses((prev) =>
-        prev.map((e) =>
-          e.id === id
-            ? { ...e, paymentStatus: nextStatus, paidAt: nextStatus === "paid" ? new Date().toISOString() : null }
-            : e
-        )
-      );
-    } catch {
-      toast("error", "Błąd", "Nie udało się zmienić statusu płatności.");
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd", error instanceof Error ? error.message : "Nie udało się zmienić statusu płatności.");
+      }
     }
   };
 
