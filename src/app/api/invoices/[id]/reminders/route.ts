@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { formatMoney, invoiceTotals } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
@@ -15,6 +15,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {
@@ -64,6 +65,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function POST(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     if (!/^[0-9a-fA-F]{24}$/.test((await params).id)) {

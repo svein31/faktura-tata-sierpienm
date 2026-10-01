@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { parseInvoicePattern } from "@/lib/invoice-numbering";
 import { requireCompanyAccess } from "@/lib/permissions";
 
@@ -9,6 +9,7 @@ export const runtime = "nodejs";
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany." }, { status: 401 });
     const { id } = await params;
     if (!/^[a-f0-9]{24}$/i.test(id)) throw new ApiError(404, "Nie znaleziono firmy.");

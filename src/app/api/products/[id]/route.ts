@@ -2,7 +2,7 @@ import { requireCatalogEdit, objectId } from "@/lib/company-scope";
 import { recordAuditLog, buildFieldDiff } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, handleApiError, json, readJson } from "@/lib/api";
 import { productToDto } from "@/lib/dto";
 import { parseProductBody } from "@/lib/parsers";
 
@@ -14,6 +14,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PUT(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const id = (await params).id;
@@ -44,6 +45,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const id = (await params).id;

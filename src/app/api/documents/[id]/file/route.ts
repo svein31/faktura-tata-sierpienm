@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError } from "@/lib/api";
 import { inboxAccess } from "@/lib/document-inbox";
 import { objectId } from "@/lib/company-scope";
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const user = await getSessionUser();
+    assertObjectId((await context.params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await context.params; if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
     const doc = await prisma.expenseScan.findUnique({ where: { id } }); if (!doc?.imageData) throw new ApiError(404, "Nie znaleziono dokumentu.");
     await inboxAccess(user.id, doc.companyId);

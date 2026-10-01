@@ -1,3 +1,4 @@
+import { parseOrderBody } from "@/lib/business-document-validation";
 import { documentWhere, newDocumentCompany, scopedContractor } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -37,16 +38,9 @@ export async function POST(req: Request) {
     const contractor = await scopedContractor(user.id, contractorId, companyId);
 
     const orderCount = await prisma.order.count({ where: { userId: user.id } });
-    const number = String(body.number || "").trim() || `ZL/${new Date().getFullYear()}/${(orderCount + 1).toString().padStart(4, "0")}`;
-    const title = String(body.title || "").trim() || `Zlecenie ${number}`;
-    const status = String(body.status || "in_progress");
-    const currency = String(body.currency || "PLN").toUpperCase();
-    const notes = typeof body.notes === "string" ? body.notes.trim() : null;
-    const totalGross = typeof body.totalGross === "number" ? body.totalGross : (Number(body.totalAmount) || 0);
-    const totalNet = typeof body.totalNet === "number" ? body.totalNet : Math.round((totalGross / 1.23) * 100) / 100;
-    const trackedMinutes = typeof body.trackedMinutes === "number" ? body.trackedMinutes : ((Number(body.trackedHours) || 0) * 60);
-    const hourlyRate = typeof body.hourlyRate === "number" ? body.hourlyRate : 0;
-    const stages = Array.isArray(body.stages) ? body.stages : [];
+    const data = parseOrderBody(body);
+    data.number ||= `ZL/${new Date().getFullYear()}/${(orderCount + 1).toString().padStart(4, "0")}`;
+    data.title ||= `Zlecenie ${data.number}`;
     const offerId = typeof body.offerId === "string" && body.offerId ? body.offerId : null;
 
     if (offerId && !await prisma.offer.findFirst({ where: { id: offerId, companyId, ...(!companyId ? { userId: user.id } : {}) } })) throw new ApiError(400, "Oferta nie należy do wybranej firmy.");
@@ -57,16 +51,7 @@ export async function POST(req: Request) {
         contractorId,
         contractorName: contractor.name,
         offerId,
-        number,
-        title,
-        status,
-        stages,
-        hourlyRate,
-        trackedMinutes,
-        currency,
-        totalNet,
-        totalGross,
-        notes,
+        ...data,
       },
     });
 

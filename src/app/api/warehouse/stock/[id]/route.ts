@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, cleanStr, handleApiError, json, num, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, cleanStr, handleApiError, json, num, readJson } from "@/lib/api";
 import { stockItemToDto } from "@/lib/warehouse/dto";
 import { assertCanManageStock } from "@/lib/warehouse/guard";
 import { roundQty } from "@/lib/warehouse/math";
@@ -15,6 +15,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     assertCanManageStock(user);
 

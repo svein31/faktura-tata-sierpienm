@@ -7,7 +7,7 @@ import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import * as crypto from "crypto";
 
@@ -26,6 +26,7 @@ export async function POST(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const order = await prisma.order.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });
@@ -59,7 +60,7 @@ export async function POST(
     await captureInvoicePrint(tx, invoice, "order-conversion");
     await tx.order.update({
       where: { id: order.id },
-      data: { status: "completed", billedInvoiceId: invoice.id },
+      data: { status: "billed", billedInvoiceId: invoice.id },
     });
 
     await recordAuditLog({ client: tx, companyId: order.companyId, userId: user.id, entityType: "order", entityId: order.id, action: "order.converted", details: { invoiceId: invoice.id } });

@@ -88,6 +88,7 @@ export default function OffersPage() {
       if (scopeRef.current !== scope) return;
       if (res.ok) {
         const data = await res.json();
+        if (scopeRef.current !== scope) return;
         setOffers(data.offers || []);
       }
     } catch {
@@ -131,7 +132,10 @@ export default function OffersPage() {
     setModalOpen(true);
   };
 
+  const [savingForm, setSavingForm] = React.useState(false);
+  const savingFormRef = React.useRef(false);
   const handleSave = async () => {
+    if (savingFormRef.current) return;
     if (!formContractorId) {
       toast("error", "Błąd walidacji", "Wybierz kontrahenta.");
       return;
@@ -154,6 +158,9 @@ export default function OffersPage() {
       lines: validLines,
     };
 
+    const savedScope = scope;
+    savingFormRef.current = true;
+    setSavingForm(true);
     try {
       const url = editingOffer ? `/api/offers/${editingOffer.id}` : "/api/offers";
       const method = editingOffer ? "PUT" : "POST";
@@ -162,16 +169,22 @@ export default function OffersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
-      if (res.ok) {
-        toast("success", editingOffer ? "Zaktualizowano ofertę" : "Utworzono ofertę", formNumber);
-        setModalOpen(false);
-        loadOffers();
-      } else {
-        const err = await res.json();
-        toast("error", "Błąd zapisu", err.error || "Nie udało się zapisać oferty.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać oferty.");
+      if (!data.offer?.id) throw new Error("Serwer nie potwierdził zapisu oferty.");
+      if (scopeRef.current !== savedScope) return;
+      setOffers((previous) => editingOffer
+        ? previous.map((offer) => offer.id === data.offer.id ? data.offer as Offer : offer)
+        : [data.offer as Offer, ...previous]);
+      toast("success", editingOffer ? "Zaktualizowano ofertę" : "Utworzono ofertę", formNumber);
+      setModalOpen(false);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu", error instanceof Error ? error.message : "Wystąpił problem z połączeniem.");
       }
-    } catch {
-      toast("error", "Błąd zapisu", "Wystąpił problem z połączeniem.");
+    } finally {
+      savingFormRef.current = false;
+      setSavingForm(false);
     }
   };
 
@@ -182,6 +195,9 @@ export default function OffersPage() {
       if (res.ok) {
         toast("info", "Usunięto ofertę", "Oferta została pomyślnie usunięta.");
         loadOffers();
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd usuwania", error.error || "Nie udało się usunąć oferty.");
       }
     } catch {
       toast("error", "Błąd usuwania", "Nie udało się usunąć oferty.");
@@ -445,7 +461,7 @@ export default function OffersPage() {
             <Button variant="ghost" onClick={() => setModalOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} className="font-semibold">
+            <Button onClick={handleSave} disabled={savingForm} className="font-semibold">
               {editingOffer ? "Zapisz zmiany" : "Zapisz i wygeneruj ofertę"}
             </Button>
           </div>

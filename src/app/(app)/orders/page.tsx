@@ -52,7 +52,7 @@ export default function OrdersPage() {
   const scope = legacy ? "legacy" : selectedCompanyId || "legacy";
   const scopeRef = React.useRef(scope);
   scopeRef.current = scope;
-  React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
+  React.useEffect(() => { setModalOpen(false); setToDelete(null); setLogTimeOrder(null); }, [scope]);
   const { contractors: allContractors } = useAppStore();
   const contractors = allContractors.filter(c => !c.companyId || c.companyId === scope);
 
@@ -88,6 +88,7 @@ export default function OrdersPage() {
       if (scopeRef.current !== scope) return;
       if (res.ok) {
         const data = await res.json();
+        if (scopeRef.current !== scope) return;
         setOrders(data.orders || []);
       }
     } catch {
@@ -131,7 +132,10 @@ export default function OrdersPage() {
     setModalOpen(true);
   };
 
+  const [savingForm, setSavingForm] = React.useState(false);
+  const savingFormRef = React.useRef(false);
   const handleSave = async () => {
+    if (savingFormRef.current) return;
     if (!formContractorId) {
       toast("error", "Błąd walidacji", "Wybierz kontrahenta.");
       return;
@@ -152,6 +156,9 @@ export default function OrdersPage() {
       notes: formNotes,
     };
 
+    const savedScope = scope;
+    savingFormRef.current = true;
+    setSavingForm(true);
     try {
       const url = editingOrder ? `/api/orders/${editingOrder.id}` : "/api/orders";
       const method = editingOrder ? "PUT" : "POST";
@@ -160,16 +167,22 @@ export default function OrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...payload, companyId: scope === "legacy" ? null : scope }),
       });
-      if (res.ok) {
-        toast("success", editingOrder ? "Zaktualizowano zlecenie" : "Utworzono zlecenie", formNumber);
-        setModalOpen(false);
-        loadOrders();
-      } else {
-        const err = await res.json();
-        toast("error", "Błąd zapisu", err.error || "Nie udało się zapisać zlecenia.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać zlecenia.");
+      if (!data.order?.id) throw new Error("Serwer nie potwierdził zapisu zlecenia.");
+      if (scopeRef.current !== savedScope) return;
+      setOrders((previous) => editingOrder
+        ? previous.map((order) => order.id === data.order.id ? data.order as Order : order)
+        : [data.order as Order, ...previous]);
+      toast("success", editingOrder ? "Zaktualizowano zlecenie" : "Utworzono zlecenie", formNumber);
+      setModalOpen(false);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu", error instanceof Error ? error.message : "Wystąpił problem z połączeniem.");
       }
-    } catch {
-      toast("error", "Błąd zapisu", "Wystąpił problem z połączeniem.");
+    } finally {
+      savingFormRef.current = false;
+      setSavingForm(false);
     }
   };
 
@@ -183,32 +196,46 @@ export default function OrdersPage() {
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
         toast("info", "Zmieniono status", `Nowy status: ${ORDER_STATUSES.find((s) => s.id === status)?.label}`);
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd aktualizacji", error.error || "Nie udało się zmienić statusu.");
       }
     } catch {
       toast("error", "Błąd aktualizacji", "Nie udało się zmienić statusu.");
     }
   };
 
+  const loggingTimeRef = React.useRef(false);
   const handleLogTime = async () => {
-    if (!logTimeOrder) return;
-    const addedHours = Number(hoursToAdd) || 0;
-    if (addedHours <= 0) return;
-
-    const addedMinutes = Math.round(addedHours * 60);
-    const newTracked = (logTimeOrder.trackedMinutes || 0) + addedMinutes;
+    if (!logTimeOrder || loggingTimeRef.current) return;
+    const addedHours = Number(hoursToAdd);
+    const rawMinutes = addedHours * 60;
+    const addedMinutes = Math.round(rawMinutes);
+    if (!Number.isFinite(addedHours) || addedMinutes <= 0 || Math.abs(rawMinutes - addedMinutes) > 1e-7) {
+      toast("error", "Błąd walidacji", "Podaj dodatni czas w pełnych minutach.");
+      return;
+    }
+    const savedScope = scope;
+    loggingTimeRef.current = true;
     try {
       const res = await fetch(`/api/orders/${logTimeOrder.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackedMinutes: newTracked }),
+        body: JSON.stringify({ trackedHours: addedMinutes / 60 }),
       });
-      if (res.ok) {
-        toast("success", "Zalogowano czas pracy", `+${addedHours} godz. Łącznie: ${Math.round(newTracked / 60)}h`);
-        setLogTimeOrder(null);
-        loadOrders();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się zapisać czasu.");
+      if (!data.order?.id) throw new Error("Serwer nie potwierdził zapisu czasu.");
+      if (scopeRef.current !== savedScope) return;
+      setOrders((previous) => previous.map((order) => order.id === data.order.id ? data.order as Order : order));
+      toast("success", "Zalogowano czas pracy", `+${addedMinutes} min. Łącznie: ${data.order.trackedMinutes} min.`);
+      setLogTimeOrder(null);
+    } catch (error) {
+      if (scopeRef.current === savedScope) {
+        toast("error", "Błąd zapisu czasu", error instanceof Error ? error.message : "Nie udało się zaktualizować czasu.");
       }
-    } catch {
-      toast("error", "Błąd zapisu czasu", "Nie udało się zaktualizować godzin.");
+    } finally {
+      loggingTimeRef.current = false;
     }
   };
 
@@ -219,6 +246,9 @@ export default function OrdersPage() {
       if (res.ok) {
         toast("info", "Usunięto zlecenie", "Zlecenie zostało pomyślnie usunięte.");
         loadOrders();
+      } else {
+        const error = await res.json();
+        toast("error", "Błąd operacji", error.error || "Nie udało się usunąć zlecenia.");
       }
     } catch {
       toast("error", "Błąd usuwania", "Nie udało się usunąć zlecenia.");
@@ -335,13 +365,13 @@ export default function OrdersPage() {
 
       {/* Widok KANBAN */}
       {viewMode === "kanban" ? (
-        <div className="grid gap-4 md:grid-cols-4 items-start">
+        <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-4 items-start">
           {ORDER_STATUSES.map((statusObj) => {
             const statusOrders = filtered.filter((o) => o.status === statusObj.id);
             return (
               <div
                 key={statusObj.id}
-                className="rounded-2xl border border-border/70 bg-card/50 backdrop-blur-md p-3.5 space-y-3"
+                className="min-w-0 rounded-2xl border border-border/70 bg-card/50 backdrop-blur-md p-3.5 space-y-3"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-border/40">
                   <div className="flex items-center gap-2">
@@ -358,8 +388,8 @@ export default function OrdersPage() {
                       key={order.id}
                       className="p-3.5 hover:shadow-md transition-shadow bg-card/90 border-border/80 space-y-2.5"
                     >
-                      <div className="flex items-start justify-between gap-1">
-                        <div>
+                      <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1 break-words">
                           <span className="text-[10.5px] font-mono text-muted-foreground">{order.number}</span>
                           <h4 className="font-semibold text-xs text-foreground line-clamp-2">{order.title}</h4>
                         </div>
@@ -370,7 +400,7 @@ export default function OrdersPage() {
 
                       <p className="text-[11px] text-muted-foreground truncate">{order.contractorName}</p>
 
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1 border-t border-border/40">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                         <span className="font-semibold text-foreground">
                           {formatMoney(order.totalGross, order.currency)}
                         </span>
@@ -380,10 +410,11 @@ export default function OrdersPage() {
                       </div>
 
                       {/* Akcje karty */}
-                      <div className="flex items-center justify-between pt-1 gap-1">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between pt-1 gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
+                          disabled={Boolean(order.billedInvoiceId)}
                           onClick={() => setLogTimeOrder(order)}
                           className="h-7 text-[10.5px] px-2 text-primary hover:bg-primary/10"
                           title="Zaloguj czas pracy"
@@ -391,7 +422,7 @@ export default function OrdersPage() {
                           <Clock className="h-3 w-3 mr-1" /> +Czas
                         </Button>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex min-w-0 flex-wrap items-center gap-1">
                           {order.status !== "billed" ? (
                             <Button
                               variant="outline"
@@ -409,6 +440,7 @@ export default function OrdersPage() {
                           )}
 
                           <Select
+                            disabled={Boolean(order.billedInvoiceId)}
                             value={order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
                             className="h-7 text-[10.5px] w-auto py-0 px-1.5"
@@ -478,13 +510,15 @@ export default function OrdersPage() {
                               <ArrowRight className="h-3 w-3 mr-1" /> Faktura
                             </Button>
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(order)} className="h-8 w-8">
+                          <Button variant="ghost" size="icon" disabled={Boolean(order.billedInvoiceId)}
+                          onClick={() => handleEdit(order)} className="h-8 w-8">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setToDelete(order.id)}
+                            disabled={Boolean(order.billedInvoiceId)}
+                          onClick={() => setToDelete(order.id)}
                             className="h-8 w-8 text-muted-foreground hover:text-rose-500"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -512,7 +546,7 @@ export default function OrdersPage() {
             <Button variant="ghost" onClick={() => setModalOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} className="font-semibold">
+            <Button onClick={handleSave} disabled={savingForm} className="font-semibold">
               {editingOrder ? "Zapisz zmiany" : "Utwórz zlecenie"}
             </Button>
           </div>
