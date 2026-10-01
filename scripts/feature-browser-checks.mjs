@@ -15,11 +15,23 @@ export async function auditFeatureControls(page, context, db, fixture) {
   const field=(root,label)=>root.locator('label').filter({hasText:label}).first().locator('..').locator('input').first();
   async function submit(button,endpoint) {
     console.log('[feature-controls-stage] submit '+endpoint);
-    const [response]=await Promise.all([
-      page.waitForResponse(response=>new URL(response.url()).pathname===endpoint&&['POST','PUT','PATCH'].includes(response.request().method())),
-      button.click(),
-    ]);
-    assert.ok(response.ok(),endpoint+': '+await response.text());return response.json();
+    let timer,stage='response and click';
+    const task=(async()=>{
+      const [response]=await Promise.all([
+        page.waitForResponse(response=>new URL(response.url()).pathname===endpoint&&['POST','PUT','PATCH'].includes(response.request().method()),{timeout:15000}),
+        button.click({timeout:15000}),
+      ]);
+      console.log('[feature-controls-stage] response '+endpoint+' '+response.status());
+      stage='response body';
+      const body=await response.json();
+      assert.ok(response.ok(),endpoint+': '+JSON.stringify(body));
+      console.log('[feature-controls-stage] body '+endpoint);
+      return body;
+    })();
+    try { return await Promise.race([task,new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(new Error('Timed out during '+stage+' for '+endpoint)),30000);
+    })]); }
+    finally { clearTimeout(timer); }
   }
   try {
     await page.setViewportSize({width:390,height:844});
