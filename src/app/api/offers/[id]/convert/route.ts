@@ -6,7 +6,7 @@ import { recordAuditLog } from "@/lib/audit";
 import { documentWhere, requireDocumentWrite } from "@/lib/document-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto, orderToDto } from "@/lib/dto";
 import * as crypto from "crypto";
 
@@ -25,6 +25,7 @@ export async function POST(
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const { id } = await params;
+    assertObjectId(id);
     const offer = await prisma.offer.findFirst({
       where: { id, ...await documentWhere(user.id) },
     });

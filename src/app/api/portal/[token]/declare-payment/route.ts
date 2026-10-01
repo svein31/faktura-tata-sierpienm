@@ -1,5 +1,6 @@
+import { isIsoCalendarDate } from "@/lib/nbp";
 import { prisma } from "@/lib/db";
-import { json, handleApiError, readJson } from "@/lib/api";
+import { json, handleApiError, readJson, cleanStr } from "@/lib/api";
 
 export const runtime = "nodejs";
 
@@ -13,11 +14,11 @@ export async function POST(req: Request, context: RouteContext) {
     if (!/^[A-Za-z0-9_-]{32,128}$/.test(token)) return json({ error: "Nie znaleziono dokumentu." }, { status: 404 });
     const body = await readJson(req);
 
-    const declaredDate = typeof body.declaredDate === "string" ? body.declaredDate.trim() : "";
-    const note = typeof body.note === "string" ? body.note.trim() : "";
+    const declaredDate = cleanStr(body.declaredDate, 10, "declaredDate");
+    const note = cleanStr(body.note, 2000, "note");
 
-    if (!declaredDate) {
-      return json({ error: "Podaj planowaną datę zapłaty." }, { status: 400 });
+    if (!isIsoCalendarDate(declaredDate)) {
+      return json({ error: "Podaj prawidłową planowaną datę zapłaty." }, { status: 400 });
     }
 
     const invoice = await prisma.invoice.findFirst({
@@ -39,12 +40,12 @@ export async function POST(req: Request, context: RouteContext) {
     const message = `Zadeklarowano płatność na dzień: ${declaredDate}${note ? ` (Wiadomość: "${note}")` : ""}`;
 
     // Zapisz deklarację na fakturze oraz w komentarzach
-    await Promise.all([
-      prisma.invoice.update({
+    await prisma.$transaction(async tx => {
+      await tx.invoice.update({
         where: { id: invoice.id },
         data: { declaredPaymentDate: declaredDate },
-      }),
-      prisma.documentComment.create({
+      });
+      await tx.documentComment.create({
         data: {
           userId: invoice.userId,
           authorName: clientName,
@@ -54,8 +55,8 @@ export async function POST(req: Request, context: RouteContext) {
           invoiceId: invoice.id,
           message,
         },
-      }),
-    ]);
+      });
+    });
 
     return json({ success: true, message: "Pomyślnie zgłoszono planowaną datę płatności." });
   } catch (e) {

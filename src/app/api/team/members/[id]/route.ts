@@ -1,6 +1,6 @@
 import {prisma} from "@/lib/db";
 import {getSessionUser} from "@/lib/auth";
-import {ApiError,handleApiError,json,readJson} from "@/lib/api";
+import { assertObjectId, ApiError,handleApiError,json,readJson } from "@/lib/api";
 import {teamActor,validateTeamGrant} from "@/lib/team-grants";
 import {companyMemberToDto} from "@/lib/dto";
 import {recordAuditLog} from "@/lib/audit";
@@ -8,7 +8,8 @@ import {objectId} from "@/lib/company-scope";
 export const runtime="nodejs";
 type Ctx={params:Promise<{id:string}>};
 async function mutate(req:Request,{params}:Ctx,remove:boolean){try{
- const user=await getSessionUser();if(!user)throw new ApiError(401,"Nieautoryzowany.");const id=(await params).id;if(!objectId(id))throw new ApiError(400,"Nieprawidłowy członek zespołu.");const body=remove?{}:await readJson(req);
+ const user=await getSessionUser();
+    assertObjectId((await params).id);if(!user)throw new ApiError(401,"Nieautoryzowany.");const id=(await params).id;if(!objectId(id))throw new ApiError(400,"Nieprawidłowy członek zespołu.");const body=remove?{}:await readJson(req);
  const member=await prisma.$transaction(async tx=>{
   const current=await tx.companyMember.findUnique({where:{id}});if(!current)throw new ApiError(404,"Nie znaleziono członka zespołu.");
   const actor=await teamActor(tx,user.id,current.companyId);

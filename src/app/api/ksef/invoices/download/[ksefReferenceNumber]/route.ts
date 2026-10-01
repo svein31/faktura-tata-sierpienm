@@ -1,127 +1,73 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
-import { KsefClient, type KsefEnvironment, generateDemoUpoXml } from "@/lib/ksef/index";
+import { accessibleCompanyIds } from "@/lib/company-scope";
+import { requireCompanyAccess } from "@/lib/permissions";
+import { KsefClient, type KsefEnvironment } from "@/lib/ksef/index";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-interface RouteParams {
-  params: Promise<{
-    ksefReferenceNumber: string;
-  }>;
-}
+type RouteParams = { params: Promise<{ ksefReferenceNumber: string }> };
 
-/**
- * GET /api/ksef/invoices/download/[ksefReferenceNumber]
- *
- * Pobranie e-Faktury FA(3) lub UPO z KSeF (XML lub JSON):
- * format: "xml" | "upo" | "json"
- */
+/** Download only real documents belonging to an accessible company. */
 export async function GET(req: Request, { params }: RouteParams) {
   try {
     const user = await getSessionUser();
-    const ksefReferenceNumber = decodeURIComponent((await params).ksefReferenceNumber || "").trim();
-
-    if (!ksefReferenceNumber) {
-      throw new ApiError(400, "Brak numeru KSeF faktury (ksefReferenceNumber).");
+    if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    const reference = (await params).ksefReferenceNumber.trim();
+    if (!reference || reference.length > 150 || !/^[a-zA-Z0-9_-]+$/.test(reference)) {
+      throw new ApiError(400, "Nieprawidłowy numer referencyjny KSeF.");
     }
-
-    const url = new URL(req.url);
-    const format = url.searchParams.get("format") || "json";
-
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(ksefReferenceNumber);
-    const orClauses: Array<{ ksefNumber?: string; referenceNumber?: string; id?: string }> = [
-      { ksefNumber: ksefReferenceNumber },
-      { referenceNumber: ksefReferenceNumber },
-    ];
-    if (isObjectId) {
-      orClauses.push({ id: ksefReferenceNumber });
-    }
-
-    // 1. Sprawdź fakturę w lokalnej bazie (najpierw powiązaną z sesją, a przy braku — ogólnie wg unikalnego nr KSeF)
-    let localInvoice = await prisma.invoice.findFirst({
-      where: {
-        OR: orClauses,
-        ...(user ? { userId: user.id } : {}),
-      },
+    const format = new URL(req.url).searchParams.get("format") || "json";
+    if (!["xml", "upo", "json"].includes(format)) throw new ApiError(400, "Nieobsługiwany format dokumentu.");
+    const companies = await accessibleCompanyIds(user.id);
+    const invoice = await prisma.invoice.findFirst({
+      where: { AND: [
+        { OR: [{ ksefNumber: reference }, { referenceNumber: reference }, ...(/^[a-f\d]{24}$/i.test(reference) ? [{ id: reference }] : [])] },
+        { OR: [{ sellerCompanyId: { in: companies } }, { userId: user.id, sellerCompanyId: null }] },
+      ] },
       include: { sellerCompany: true, ksefSession: true },
     });
-
-    if (!localInvoice) {
-      localInvoice = await prisma.invoice.findFirst({
-        where: { OR: orClauses },
-        include: { sellerCompany: true, ksefSession: true },
-      });
+    if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
+    if (invoice.sellerCompanyId) {
+      const access = await requireCompanyAccess(user.id, invoice.sellerCompanyId, "canExport");
+      if (!access.ok) throw new ApiError(access.status, access.error, access.code);
     }
-
-    const safeFilename = ksefReferenceNumber.replace(/[^a-zA-Z0-9_-]/g, "_");
-
-    // Jeśli żądano pobrania UPO
+    const download = (xml: string, prefix: string) => new Response(xml, { headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${prefix}-${reference}.xml"`,
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+    } });
     if (format === "upo") {
-      let upoXml = localInvoice?.upoXml;
-      if (!upoXml) {
-        upoXml = generateDemoUpoXml(localInvoice?.referenceNumber || ksefReferenceNumber, ksefReferenceNumber);
-      }
-      return new Response(upoXml, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/xml; charset=utf-8",
-          "Content-Disposition": `attachment; filename="UPO-${safeFilename}.xml"`,
-        },
-      });
+      if (!invoice.upoXml) throw new ApiError(409, "UPO nie jest jeszcze dostępne. Sprawdź status wysyłki do KSeF.", "UPO_NOT_READY");
+      return download(invoice.upoXml, "UPO");
     }
-
-    // 2. Pobierz XML faktury
-    let xml = localInvoice?.ksefXml || "";
-
+    let xml = invoice.ksefXml || "";
     if (!xml) {
-      const session = await prisma.ksefSession.findFirst({
-        where: {
-          status: "ACTIVE",
-          validUntil: { gt: new Date() },
-        },
-        orderBy: { createdAt: "desc" },
-      });
-
-      const ksefJson = (localInvoice?.ksef as any) || {};
-      const env = (ksefJson.environment || session?.environment || "test") as KsefEnvironment;
-      const client = new KsefClient({ environment: env });
-
+      const meta = (invoice.ksef && typeof invoice.ksef === "object" && !Array.isArray(invoice.ksef) ? invoice.ksef : {}) as Record<string, unknown>;
+      const env = meta.environment as KsefEnvironment;
+      const nip = (invoice.sellerCompany?.nip || invoice.nip || "").replace(/\D/g, "");
+      if (!invoice.ksefNumber || !nip || (env !== "production" && env !== "test")) {
+        throw new ApiError(409, "Brak zapisanego XML faktury. Sprawdź status dokumentu w KSeF.", "XML_NOT_READY");
+      }
+      const session = await prisma.ksefSession.findFirst({ where: {
+        userId: invoice.userId, nip, environment: env, status: "ACTIVE", validUntil: { gt: new Date() },
+      }, orderBy: { createdAt: "desc" } });
+      if (!session?.accessToken) throw new ApiError(409, "Brak aktywnej sesji KSeF dla tej firmy. Odnów uwierzytelnienie.", "KSEF_SESSION_REQUIRED");
       try {
-        xml = await client.downloadInvoiceXml(session?.accessToken || "demo-token", ksefReferenceNumber);
+        xml = await new KsefClient({ environment: env, timeoutMs: 10000 }).downloadInvoiceXml(session.accessToken, invoice.ksefNumber);
+        if (!xml.trim()) throw new Error("Empty KSeF document");
       } catch {
-        // jeśli błąd pobrania i jest lokalna kopia
-        xml = localInvoice?.ksefXml || `<Faktura xmlns="http://crd.gov.pl/wzor/2025/06/25/13775/"><Fa><P_2>${localInvoice?.number || "FV"}</P_2></Fa></Faktura>`;
+        throw new ApiError(502, "Nie udało się pobrać XML z KSeF. Spróbuj ponownie później.", "KSEF_DOWNLOAD_FAILED");
       }
     }
-
-    if (format === "xml") {
-      return new Response(xml, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/xml; charset=utf-8",
-          "Content-Disposition": `attachment; filename="FA3-${safeFilename}.xml"`,
-        },
-      });
-    }
-
+    if (format === "xml") return download(xml, "FA3");
     return json({
-      success: true,
-      ksefReferenceNumber,
-      xml,
-      invoice: localInvoice
-        ? {
-            id: localInvoice.id,
-            number: localInvoice.number,
-            status: localInvoice.status,
-            issueDate: localInvoice.issueDate,
-            totalGross: localInvoice.totalGross,
-          }
-        : null,
-      upoXml: localInvoice?.upoXml || null,
+      success: true, ksefReferenceNumber: reference, xml,
+      invoice: { id: invoice.id, number: invoice.number, status: invoice.status, issueDate: invoice.issueDate, totalGross: invoice.totalGross },
+      upoXml: invoice.upoXml || null,
     });
-  } catch (e) {
-    return handleApiError(e);
-  }
+  } catch (error) { return handleApiError(error); }
 }

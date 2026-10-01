@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json } from "@/lib/api";
 import { objectId, contractorForCompany } from "@/lib/company-scope";
 import { requireCompanyAccess } from "@/lib/permissions";
 
@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const id = (await params).id;
     const query = new URL(req.url).searchParams;

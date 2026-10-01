@@ -82,3 +82,7 @@ export function handleApiError(e: unknown): NextResponse {
   const incident = reportUnexpectedError(e);
   return json({ error: "Wewnętrzny błąd serwera.", code: "INTERNAL", incident }, { status: 500 });
 }
+
+export function assertObjectId(value: unknown): asserts value is string {
+  if (typeof value !== "string" || !/^[a-f0-9]{24}$/i.test(value)) throw new ApiError(400, "Nieprawidłowy identyfikator dokumentu.", "INVALID_ID");
+}

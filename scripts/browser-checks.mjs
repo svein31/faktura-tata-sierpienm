@@ -1,9 +1,14 @@
+import { auditFeatureControls } from "./feature-browser-checks.mjs";
 import assert from 'node:assert/strict';
 import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base, db) {
+  const invoiceDate = new Date().toISOString().slice(0, 10);
+  const invoiceDueDate = new Date(Date.parse(invoiceDate + 'T00:00:00Z') + 7 * 86400000).toISOString().slice(0, 10);
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
+  context.setDefaultTimeout(15000);
+  context.setDefaultNavigationTimeout(30000);
   const page = await context.newPage(), errors = [];
   page.on('pageerror', error => errors.push(error.message));
   async function post(path, data) {
@@ -16,10 +21,13 @@ export async function browserChecks(base, db) {
     const publicContext = await browser.newContext({
       baseURL: base, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
     });
+    publicContext.setDefaultTimeout(15000);
+    publicContext.setDefaultNavigationTimeout(30000);
     const publicPage = await publicContext.newPage(), publicErrors = [];
     publicPage.on('pageerror', error => publicErrors.push(error.message));
     try {
       for (const route of ['/', '/login', '/register', '/demo']) {
+        console.log('[browser-stage] public '+route);
         await publicPage.goto(route);
         await expect(publicPage.locator('h1')).toBeVisible();
         assert.ok(
@@ -37,6 +45,8 @@ export async function browserChecks(base, db) {
     const loginContext = await browser.newContext({
       baseURL: base, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
     });
+    loginContext.setDefaultTimeout(15000);
+    loginContext.setDefaultNavigationTimeout(30000);
     await loginContext.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
     const loginPage = await loginContext.newPage(), loginErrors = [];
     loginPage.on('pageerror', error => loginErrors.push(error.message));
@@ -58,7 +68,7 @@ export async function browserChecks(base, db) {
     const contractor = (await post('/api/contractors', { companyId: company.id, name: 'Searchable Buyer — Kontrahent z długą nazwą i dodatkowymi informacjami handlowymi', nip: '5250001003' })).contractor;
     for (let n = 1; n <= 32; n++) await post('/api/invoices', {
       number: `BROWSER/${String(n).padStart(3,'0')}`, type: 'sale', status: 'draft', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     });
     // HTTP assertions cover cardinality, stable paging, search and archive scoping.
@@ -78,7 +88,7 @@ export async function browserChecks(base, db) {
     assert.equal(overview.totals.length, 0);
     const issued = await post('/api/invoices', {
       number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 2, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     });
     const issuedOverview = await get(`/api/overview?companyId=${company.id}&months=12`);
@@ -88,7 +98,7 @@ export async function browserChecks(base, db) {
     assert.equal(issuedOverview.counts.drafts, 32);
     const changed = await context.request.put(`/api/invoices/${issued.invoice.id}`, { data: {
       number: 'BROWSER/ISSUED', type: 'sale', status: 'issued', sellerCompanyId: company.id, contractorId: contractor.id,
-      issueDate: '2026-09-22', saleDate: '2026-09-22', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
+      issueDate: invoiceDate, saleDate: invoiceDate, dueDate: invoiceDueDate, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 7,
       lines: [{ id: 'line', name: 'Browser service', quantity: 3, unit: 'szt.', netPrice: 100, vatRate: '23', discount: 0 }],
     } });
     assert.ok(changed.ok(), JSON.stringify(await changed.json()));
@@ -173,6 +183,7 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Zapisz nową wersję' }).click();
     await expect(page.getByText(/Zapisano wersję/)).toBeVisible();
     for (const [route, heading] of [['/warehouse','Magazyn'], ['/cost-reviews','Obieg kosztów'], ['/accountant','Panel księgowej'], ['/documents','Skrzynka dokumentów']]) {
+      console.log('[browser-stage] mobile '+route);
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
@@ -241,6 +252,8 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Przywróć', exact: true }).click();
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue('RECOVER-009');
     await expect(page.getByRole('button', { name: 'Wpisz numer ręcznie', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    console.log('[browser-stage] feature form controls');
+    await auditFeatureControls(page, context, db, {companyId:company.id,contractorId:contractor.id});
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
@@ -248,5 +261,5 @@ export async function browserChecks(base, db) {
     }
     assert.deepEqual(mobileFailures,[],'Basic mobile pages must fit after loading');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
-  } finally { await context.close(); await browser.close(); }
+  } finally { await browser.close(); }
 }

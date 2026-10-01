@@ -2,7 +2,7 @@ import { recordAuditLog, buildFieldDiff } from "@/lib/audit";
 import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { companyProfileToDto } from "@/lib/dto";
 import { parseCompanyProfileBody } from "@/lib/parsers";
 import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
@@ -18,6 +18,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
@@ -46,6 +47,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function PUT(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
@@ -108,6 +110,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
@@ -133,6 +136,19 @@ export async function DELETE(_req: Request, { params }: Ctx) {
         `Nie można usunąć profilu firmy (${existing.companyName}), ponieważ wystawiono z niego ${linkedInvoicesCount} faktur(y).`
       );
     }
+
+    const businessRecords = await Promise.all([
+      prisma.expense.count({where:{companyId:existing.id}}),
+      prisma.offer.count({where:{companyId:existing.id}}),
+      prisma.order.count({where:{companyId:existing.id}}),
+      prisma.project.count({where:{companyId:existing.id}}),
+      prisma.expenseScan.count({where:{companyId:existing.id}}),
+      prisma.warehouse.count({where:{companyId:existing.id}}),
+      prisma.accountingPeriod.count({where:{companyId:existing.id}}),
+      prisma.jpkExport.count({where:{companyId:existing.id}}),
+      prisma.costReview.count({where:{companyId:existing.id}}),
+    ]);
+    if (businessRecords.some(count=>count>0)) throw new ApiError(409, "Firma posiada dokumenty kosztowe, oferty, zlecenia lub inne dane robocze. Nie można jej usunąć bez uporządkowania tych danych.");
 
     const catalogCount = await prisma.contractor.count({ where: { companyId: existing.id } }) + await prisma.product.count({ where: { companyId: existing.id } });
     if (catalogCount) throw new ApiError(409, "Firma posiada katalog kontrahentów lub produktów. Usuń nieużywane rekordy przed usunięciem profilu.");

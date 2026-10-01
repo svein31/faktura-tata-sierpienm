@@ -9,18 +9,20 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!webhookSecret) {
-      console.error("[Stripe Webhook] Brak zdefiniowanej zmiennej STRIPE_WEBHOOK_SECRET w środowisku.");
-      return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 500 });
-    }
-
     const signature = req.headers.get("stripe-signature");
     if (!signature) {
       console.warn("[Stripe Webhook] Odrzucono żądanie bez nagłówka stripe-signature.");
       return json({ error: "Brak nagłówka stripe-signature." }, { status: 400 });
     }
+
+
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("[Stripe Webhook] Brak zdefiniowanej zmiennej STRIPE_WEBHOOK_SECRET w środowisku.");
+      return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 503 });
+    }
+
 
     const stripe = getStripe();
     const rawBody = await req.text();

@@ -1,3 +1,4 @@
+import { round2, roundHalfUp } from "./tax/money";
 import { parseInvoiceTaxFields } from "./invoice-tax-fields";
 /**
  * Współdzielone parsery body dla route handlerów (server-only).
@@ -9,11 +10,11 @@ import { ApiError, FieldError, cleanStr, num } from "./api";
 import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
 import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
-import { invoiceTotals } from "./format";
+import { invoiceTotals, VAT_RATES as UI_VAT_RATES } from "./format";
 import type { ExchangeRateRule, InvoiceLine } from "./types";
 import type { Address } from "./types";
 
-const VAT_RATES = ["23", "8", "5", "0", "zw", "np"];
+const VAT_RATES: readonly string[] = UI_VAT_RATES;
 
 /* ── Kontrahent ─────────────────────────────────────────────────────────── */
 
@@ -80,7 +81,7 @@ export function parseProductBody(body: Record<string, unknown>) {
     name,
     sku: cleanStr(body.sku, 60, "sku") || null,
     unit: cleanStr(body.unit, 30, "unit") || "szt.",
-    netPrice: Math.round(netPrice * 100) / 100,
+    netPrice: round2(netPrice),
     vatRate,
     description: cleanStr(body.description, 1000, "description") || null,
   };
@@ -106,8 +107,8 @@ interface Line {
 }
 
 function parseLines(v: unknown, allowSettlementLines = false): Line[] {
-  if (!Array.isArray(v) || v.length === 0) {
-    throw new ApiError(400, "Faktura musi zawierać co najmniej jedną pozycję.");
+  if (!Array.isArray(v) || v.length === 0 || v.length > 200) {
+    throw new ApiError(400, "Faktura musi zawierać od 1 do 200 pozycji.");
   }
   return v.map((raw, idx) => {
     const l = (raw ?? {}) as Record<string, unknown>;
@@ -115,7 +116,7 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
     if (!name) throw new ApiError(400, `Pozycja #${idx + 1}: podaj nazwę towaru/usługi.`);
 
     const quantity = typeof l.quantity === "number" ? l.quantity : Number(l.quantity ?? 0);
-    if (!Number.isFinite(quantity) || quantity <= 0) {
+    if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 1e9 || roundHalfUp(quantity, 6) <= 0) {
       throw new ApiError(400, `Pozycja #${idx + 1}: ilość musi być większa od zera.`);
     }
 
@@ -123,7 +124,7 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
     const settlementNet = typeof l.settlementNet === "number" ? l.settlementNet : Number(l.settlementNet ?? NaN);
     const settlementVat = typeof l.settlementVat === "number" ? l.settlementVat : Number(l.settlementVat ?? NaN);
     const hasSettlement = allowSettlementLines && Number.isFinite(settlementNet) && Number.isFinite(settlementVat);
-    if (!Number.isFinite(netPrice) || (!hasSettlement && netPrice < 0)) {
+    if (!Number.isFinite(netPrice) || Math.abs(netPrice) > 1e9 || (!hasSettlement && netPrice < 0)) {
       throw new ApiError(400, `Pozycja #${idx + 1}: cena netto nie może być ujemna.`);
     }
     if (hasSettlement && (![settlementNet, settlementVat].every(value => Math.abs(value) <= Number.MAX_SAFE_INTEGER / 100) || (settlementNet !== 0 && settlementVat !== 0 && Math.sign(settlementNet) !== Math.sign(settlementVat)))) {
@@ -138,11 +139,11 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
     return {
       id: typeof l.id === "string" && l.id ? l.id : undefined,
       name,
-      quantity: Math.round(quantity * 100) / 100,
+      quantity: roundHalfUp(quantity, 6),
       unit: cleanStr(l.unit, 30, `lines[${idx}].unit`) || "szt.",
-      netPrice: Math.round(netPrice * 100) / 100,
+      netPrice: round2(netPrice),
       vatRate,
-      ...(hasSettlement ? { settlementNet: Math.round(settlementNet * 100) / 100, settlementVat: Math.round(settlementVat * 100) / 100 } : {}),
+      ...(hasSettlement ? { settlementNet: round2(settlementNet), settlementVat: round2(settlementVat) } : {}),
     };
   });
 }
@@ -276,6 +277,7 @@ export async function parseInvoiceBody(
   const taxFields = parseInvoiceTaxFields(body);
   if (status !== "draft" && lines.some(l => l.vatRate === "zw") && !taxFields.exemptionBasis) throw new FieldError("exemptionBasis", "Dla stawki zw podaj podstawę prawną zwolnienia.");
   const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
+  if (![totals.net, totals.vat, totals.gross].every(value => Number.isFinite(value) && Math.abs(value) <= 1e12)) throw new ApiError(400, "Przekroczono dopuszczalną wartość faktury.");
   const totalNetPln = currency === "PLN" ? totals.net : convertToPln(totals.net, exchangeRate!, exchangeRateUnit);
   const totalVatPln = currency === "PLN" ? totals.vat : convertToPln(totals.vat, exchangeRate!, exchangeRateUnit);
   const totalGrossPln = currency === "PLN" ? totals.gross : convertToPln(totals.gross, exchangeRate!, exchangeRateUnit);

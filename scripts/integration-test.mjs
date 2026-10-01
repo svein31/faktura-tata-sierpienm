@@ -1,3 +1,4 @@
+import { fullFeatureAudit } from './full-feature-audit.mjs';
 import assert from 'node:assert/strict';
 import { backupDrill } from './backup/drill.mjs';
 import { browserChecks } from './browser-checks.mjs';
@@ -967,6 +968,7 @@ try {
   assert.ok(sharedCounters.some(counter=>counter.hits===8 && counter.expiresAt instanceof Date));
   assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
+  if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerCookie:a.cookie,companyId,otherCookie:b.cookie,otherUserId:b.data.user.id});
   if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
 finally {

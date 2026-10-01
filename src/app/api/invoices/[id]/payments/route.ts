@@ -1,7 +1,7 @@
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson, num, str } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson, num, str } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { invoiceTotals, round2 } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
@@ -46,6 +46,7 @@ async function getInvoiceWithAccess(invoiceId: string, userId: string) {
 export async function GET(_req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const result = await getInvoiceWithAccess((await params).id, user.id);
@@ -70,6 +71,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 export async function POST(req: Request, { params }: Ctx) {
   try {
     const user = await getSessionUser();
+    assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
     const result = await getInvoiceWithAccess((await params).id, user.id);
