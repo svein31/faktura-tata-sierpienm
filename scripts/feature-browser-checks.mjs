@@ -6,6 +6,12 @@ export async function auditFeatureControls(page, context, db, fixture) {
   const originalViewport=page.viewportSize(),errors=[],checks=[];
   const listener=error=>errors.push(error.message);
   page.on('pageerror',listener);
+  async function diagnosticWithin(promise, fallback) {
+    let timer;
+    try { return await Promise.race([promise,new Promise(resolve=>{timer=setTimeout(()=>resolve(fallback),2000);})]); }
+    catch { return fallback; }
+    finally { clearTimeout(timer); }
+  }
   const field=(root,label)=>root.locator('label').filter({hasText:label}).first().locator('..').locator('input').first();
   async function submit(button,endpoint) {
     console.log('[feature-controls-stage] submit '+endpoint);
@@ -120,7 +126,8 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
     console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
   } catch(error) {
-    const diagnostic=await page.evaluate(()=>({
+    console.log('[feature-controls-error] '+JSON.stringify({checks,error:error.stack||error.message}));
+    const diagnostic=await diagnosticWithin(page.evaluate(()=>({
       url:location.pathname,
       headings:Array.from(document.querySelectorAll('h1,h2')).map(el=>el.textContent),
       dialogs:Array.from(document.querySelectorAll('[role="dialog"]')).map(el=>({
@@ -128,11 +135,11 @@ export async function auditFeatureControls(page, context, db, fixture) {
         buttons:Array.from(el.querySelectorAll('button')).map(button=>({text:button.textContent,disabled:button.disabled,type:button.type})),
         inputs:Array.from(el.querySelectorAll('input')).map(input=>({placeholder:input.placeholder,type:input.type,valid:input.validity.valid,message:input.validationMessage})),
       })),
-    })).catch(()=>({}));
+    })),{unavailable:true});
     console.log('[feature-controls-failure] '+JSON.stringify({checks,error:error.message,diagnostic}));
     throw error;
   } finally {
     page.off('pageerror',listener);
-    await page.setViewportSize(originalViewport);
+    await diagnosticWithin(page.setViewportSize(originalViewport),null);
   }
 }

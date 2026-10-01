@@ -261,5 +261,5 @@ export async function browserChecks(base, db) {
     }
     assert.deepEqual(mobileFailures,[],'Basic mobile pages must fit after loading');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');
-  } finally { await context.close(); await browser.close(); }
+  } finally { await browser.close(); }
 }
