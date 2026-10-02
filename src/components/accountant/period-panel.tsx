@@ -1,4 +1,5 @@
 "use client";
+import { SensitiveDownload } from "./sensitive-download";
 import Link from "next/link";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,7 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
           {count > (state.readiness.details[key]?.length || 0) && <p className="mt-2 text-xs text-muted-foreground">Lista pokazuje pierwsze 10 dokumentów. Po poprawieniu sprawdź stan ponownie.</p>}
         </li>)}</ul>
       </div>}
-      <div className="flex flex-wrap gap-3 text-sm"><Link href="/documents" className="text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link href="/finances" className="text-primary underline">Rozlicz płatności →</Link><a href={`/api/accountant/package?companyId=${companyId}&month=${month}`} className="text-primary underline">Pobierz paczkę miesiąca →</a></div>
+      <div className="flex flex-wrap gap-3 text-sm"><Link href="/documents" className="text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link href="/finances" className="text-primary underline">Rozlicz płatności →</Link><SensitiveDownload url={`/api/accountant/package?companyId=${companyId}&month=${month}`} scope={companyId + "-" + month} /></div>
       <p className="text-xs text-muted-foreground">Niezatwierdzone pliki w skrzynce dokumentów nie są jeszcze kosztami. Przed zamknięciem sprawdź kompletność dokumentów; późniejsza akceptacja pliku z tego miesiąca będzie wymagać jego ponownego otwarcia.</p>
       {((closed && state.canReopen) || (!closed && state.canClose)) && <form onSubmit={e => { e.preventDefault(); void change(); }} className="flex flex-wrap items-end gap-2">
         <label className="text-sm grow">Uzasadnienie<Input required maxLength={1000} disabled={busy} value={reason} onChange={e => setReason(e.target.value)} /></label>

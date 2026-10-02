@@ -10,8 +10,17 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
-    const body = await readJson(req);
-    const { company } = await companyAccess(prisma, user.id, body.companyId, "canIssueInvoices");
+    let body = await readJson(req);
+    let access;
+    try { access = await companyAccess(prisma, user.id, body.companyId, "canIssueInvoices"); }
+    catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 403 || !objectId(body.invoiceId)) throw error;
+      access = await companyAccess(prisma, user.id, body.companyId, "canSendKsef");
+      const stored = await prisma.invoice.findFirst({ where: { id: body.invoiceId, sellerCompanyId: access.company.id } });
+      if (!stored) throw new ApiError(404, "Nie znaleziono dokumentu.");
+      body = { ...stored, companyId: access.company.id, invoiceId: stored.id };
+    }
+    const { company } = access;
     const seller = await prisma.companyProfile.findUniqueOrThrow({ where: { id: company.id } });
     let buyer: PreflightInput["buyer"];
     if (body.useNewContractor === true) {

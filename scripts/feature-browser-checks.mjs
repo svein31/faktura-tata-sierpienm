@@ -50,6 +50,8 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.equal(fractional.invoice.lines[0].quantity,0.004);assert.equal(fractional.invoice.totalNet,4);
     await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity');
     await page.goto('/invoices/' + fractional.invoice.id);
+    await page.getByRole('button',{name:'Edytuj',exact:true}).click();
+    await expect(page).toHaveURL(/invoices\/new$/);
     const beforeIssue = await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}});
     await page.getByRole('button',{name:/^Zapisz fakturę/}).first().click();
     let assistant = page.getByRole('dialog');

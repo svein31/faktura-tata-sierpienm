@@ -1,8 +1,11 @@
 name: Read-only SEO and source audit
 on:
   push:
-    branches: [codex/seo-geo-audit-20260930]
+    branches: [main, codex/product-security-seo-20261002]
     paths: [scripts/seo-public-audit.mjs, .github/workflows/seo-public-audit.yml]
+  workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * 1"
 permissions:
   contents: read
 jobs:

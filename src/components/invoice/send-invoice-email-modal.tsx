@@ -49,6 +49,8 @@ export function SendInvoiceEmailModal({
 
   const [activeTab, setActiveTab] = React.useState<"compose" | "history">("compose");
   const [submitting, setSubmitting] = React.useState(false);
+  const sendBusy=React.useRef(false);
+  const [reviewed,setReviewed]=React.useState(false);
 
   // Status konfiguracji serwera pocztowego z backendu
   const [configStatus, setConfigStatus] = React.useState<{
@@ -71,7 +73,7 @@ export function SendInvoiceEmailModal({
   const [subject, setSubject] = React.useState(`Faktura VAT nr ${invoice.number} od ${companyName}`);
 
   const totals = invoiceTotals(invoice);
-  const formattedGross = formatMoney(totals.gross, invoice.currency);
+  const formattedGross = formatMoney(Math.max(0, Math.round((totals.gross - (invoice.paidAmount || 0)) * 100) / 100), invoice.currency);
 
   const defaultMessage = React.useMemo(() => {
     return (
@@ -101,7 +103,7 @@ export function SendInvoiceEmailModal({
   // Załączniki
   const [attachPdf, setAttachPdf] = React.useState(true);
   const [attachXml, setAttachXml] = React.useState(Boolean(invoice.ksef?.number || invoice.ksefNumber));
-  const hasUpo = Boolean(invoice.upoXml || (invoice.ksef?.number && invoice.status === "ksef_active"));
+  const hasUpo = Boolean(invoice.upoXml);
   const [attachUpo, setAttachUpo] = React.useState(hasUpo);
 
   // Opcja auto-wysyłki po KSeF
@@ -146,10 +148,12 @@ export function SendInvoiceEmailModal({
     }
   }, [open, invoice.id, contractor?.email]);
 
+  React.useEffect(() => { setReviewed(false); }, [open, invoice.id, recipientEmail, cc, bcc, attachPdf, attachXml, attachUpo, subject, messageBody]);
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (submitting) return;
+    if (submitting || sendBusy.current) return;
+    if (!reviewed) { toast("warning", "Sprawdź wysyłkę", "Potwierdź odbiorcę i załączniki przed wysłaniem."); return; }
 
     if (!recipientEmail || !isValidEmail(recipientEmail)) {
       toast("error", "Nieprawidłowy e-mail odbiorcy", "Podaj poprawny adres e-mail kontrahenta.");
@@ -186,7 +190,7 @@ export function SendInvoiceEmailModal({
       return;
     }
 
-    setSubmitting(true);
+    sendBusy.current=true; setSubmitting(true);
     const idempotencyKey = `${invoice.id}_${Date.now()}`;
 
     try {
@@ -220,7 +224,7 @@ export function SendInvoiceEmailModal({
           );
           return;
         }
-        throw new Error(data.message || data.details || "Wystąpił błąd podczas wysyłki.");
+        throw new Error(data.message || data.error || "Wystąpił błąd podczas wysyłki.");
       }
 
       toast(
@@ -241,7 +245,7 @@ export function SendInvoiceEmailModal({
     } catch (err: any) {
       toast("error", "Błąd wysyłki e-mail", err.message || "Nie udało się przesłać wiadomości.");
     } finally {
-      setSubmitting(false);
+      sendBusy.current=false; setSubmitting(false);
     }
   };
 
@@ -400,6 +404,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
         {/* ── ZAKŁADKA 1: FORMULARZ WYSYŁKI ── */}
         {activeTab === "compose" && (
           <form onSubmit={handleSend} className="space-y-4">
+            <section className="rounded-xl border p-3 text-sm space-y-2"><h3 className="font-semibold">Asystent przed wysyłką e-maila</h3><p>Dokument: {invoice.number} · pozostało do zapłaty {formattedGross}.</p><p>KSeF: {invoice.ksefNumber || invoice.ksef?.number || "brak numeru"} · UPO: {hasUpo ? "dostępne" : "brak potwierdzenia do załączenia"}.</p>{lastSentAt && <p className="text-amber-700 dark:text-amber-300">Wiadomość była już wysłana. Sprawdź historię przed ponowną wysyłką.</p>}<label className="flex items-start gap-2"><input type="checkbox" checked={reviewed} onChange={e=>setReviewed(e.target.checked)} className="mt-1" />Potwierdzam odbiorcę, treść i wybrane załączniki.</label></section>
             {/* Odbiorca (To) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
