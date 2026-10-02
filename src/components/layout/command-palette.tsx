@@ -117,6 +117,7 @@ export function CommandPalette() {
         subtitle: "Otwórz kreator faktury ze schematem KSeF FA(3)",
         icon: Plus,
         onSelect: () => {
+          useAppStore.getState().setDraft(null, true);
           router.push("/invoices/new");
           setOpen(false);
         },

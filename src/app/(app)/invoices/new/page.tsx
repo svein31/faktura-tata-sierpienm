@@ -11,6 +11,7 @@ import { InvoiceDetailSkeleton } from "@/components/ui/skeleton";
 export default function NewInvoicePage() {
   const router = useRouter();
   const draft = useAppStore((s) => s.draftInvoice);
+  const editorSession = useAppStore(s => s.invoiceEditorSession);
   const companyId = useAppStore((s) => s.selectedCompanyId);
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState("");
@@ -55,7 +56,7 @@ export default function NewInvoicePage() {
         {uploadError && <p className="mt-2 text-sm text-rose-600" role="alert">{uploadError}</p>}
       </section>
       <React.Suspense fallback={<InvoiceDetailSkeleton />}>
-        <InvoiceCreator />
+        <InvoiceCreator key={`${companyId}:${editorSession}`} />
       </React.Suspense>
     </div>
   );

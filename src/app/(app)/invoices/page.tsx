@@ -3,6 +3,7 @@ import { csvCell } from "@/lib/accountant-summary";
 import { useInvoiceSearch } from "@/lib/use-invoice-search";
 
 import * as React from "react";
+import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -83,6 +84,7 @@ export default function InvoicesPage() {
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter });
   const invoices = results.invoices, filtered = invoices;
+  useKsefStatusPolling(invoices, results.reload);
   const permissions = company?.currentUserPermissions;
   const canSendKsef = !!selectedCompanyId && !showUnassigned && permissions?.canSendKsef === true;
   const canRecordPayments = !!selectedCompanyId && !showUnassigned && permissions?.canRecordPayments === true;
@@ -418,7 +420,7 @@ export default function InvoicesPage() {
               {!syncingIncoming && <CloudDownload className="h-4 w-4 text-primary" />}
               {syncingIncoming ? "Pobieranie z KSeF..." : "Pobierz z KSeF (FZ)"}
             </Button>
-            <Button onClick={() => router.push("/invoices/new")} className="rounded-xl gap-2 font-semibold shadow-xs">
+            <Button onClick={() => { setDraft(null, true); router.push("/invoices/new"); }} className="rounded-xl gap-2 font-semibold shadow-xs">
               <Plus className="h-4 w-4" /> Wystaw fakturę
             </Button>
           </div>
@@ -985,7 +987,7 @@ export default function InvoicesPage() {
               title="Brak faktur spełniających kryteria"
               description="Wystaw nową e-Fakturę lub zmień ustawienia filtrów wyszukiwania dokumentów."
               action={
-                <Button size="sm" onClick={() => router.push("/invoices/new")} className="rounded-xl gap-1.5 font-medium shadow-xs">
+                <Button size="sm" onClick={() => { setDraft(null, true); router.push("/invoices/new"); }} className="rounded-xl gap-1.5 font-medium shadow-xs">
                   <Plus className="h-4 w-4" /> Wystaw fakturę
                 </Button>
               }

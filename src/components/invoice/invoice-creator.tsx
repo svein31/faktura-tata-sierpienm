@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -32,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
-import { normalizedBankAccount } from "@/lib/company-bank-account-scope";
+import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
 import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
@@ -213,6 +214,7 @@ export function InvoiceCreator() {
   const ksefEnv = ksef?.environment ?? "demo";
 
   const defaultCompany =
+    (draftInvoice && !draftInvoiceIsNew ? companies.find(c => c.id === draftInvoice.sellerCompanyId) : undefined) ??
     companies.find((c) => c.id === store.selectedCompanyId) ??
     companies.find((c) => c.isDefault) ??
     companies[0] ??
@@ -345,7 +347,7 @@ export function InvoiceCreator() {
 
   React.useEffect(() => {
     const isKsef = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
-    if (isKsef || hasRecoverableDraft) return;
+    if (isKsef || hasRecoverableDraft || (draftInvoice && !draftInvoiceIsNew)) return;
     setAutosaveStatus("saving");
     const t = setTimeout(() => {
       try {
@@ -431,13 +433,15 @@ export function InvoiceCreator() {
 
   const effectiveSellerCompany: CompanyProfile = defaultCompany ?? EMPTY_COMPANY;
   const companyAccounts = React.useMemo(() => (effectiveSellerCompany.bankAccounts || []).filter(
-    account => account.companyId === effectiveSellerCompany.id,
-  ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.id]);
+    account => account.companyId === effectiveSellerCompany.id && !accountConflictsWithAnotherCompany(effectiveSellerCompany.id, account.accountNumber, companies, account.beneficiaryName),
+  ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.id, companies]);
   const defaultBankAccount = defaultCompanyBankAccount(effectiveSellerCompany.id, companyAccounts, form.currency, Boolean(effectiveSellerCompany.bankAccount));
   const savedBankAccount = draftInvoice?.sellerCompanyId === effectiveSellerCompany.id ? draftInvoice.bankAccountSnapshot : null;
+  const primaryBankAccount = effectiveSellerCompany.bankAccount ? { companyId: effectiveSellerCompany.id, accountNumber: effectiveSellerCompany.bankAccount, accountName: "Główny rachunek profilu firmy", beneficiaryName: effectiveSellerCompany.companyName, currency: "PLN", bankName: effectiveSellerCompany.bankName || "" } : null;
   const chosenBankAccount = selectedBankAccountId === "saved" ? savedBankAccount
-    : selectedBankAccountId === "auto" ? defaultBankAccount : companyAccounts.find(account => account.id === selectedBankAccountId);
-  const effectiveBankAccountId = selectedBankAccountId === "saved" ? draftInvoice?.bankAccountId || null : chosenBankAccount?.id || null;
+    : selectedBankAccountId === "auto" ? defaultBankAccount || primaryBankAccount
+    : selectedBankAccountId === "primary" ? primaryBankAccount : companyAccounts.find(account => account.id === selectedBankAccountId);
+  const effectiveBankAccountId = selectedBankAccountId === "saved" ? draftInvoice?.bankAccountId || null : (chosenBankAccount && "id" in chosenBankAccount ? chosenBankAccount.id : null) || null;
 
   React.useEffect(() => {
     setNumberPatternInput(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN);
@@ -522,7 +526,7 @@ export function InvoiceCreator() {
     language: form.language,
     paymentMethod: form.paymentMethod,
     bankAccountId: effectiveBankAccountId,
-    bankAccountSnapshot: chosenBankAccount || null,
+    bankAccountSnapshot: chosenBankAccount as Invoice["bankAccountSnapshot"] || null,
     paymentTermDays: form.paymentTermDays,
     notes: form.notes,
     isSplitPayment: form.isSplitPayment,
@@ -541,7 +545,7 @@ export function InvoiceCreator() {
     recurringAutoSend: form.recurringAutoSend,
   };
 
-  const exports = useInvoiceExports(previewInvoice, effectiveContractor, effectiveSellerCompany);
+  const exports = useInvoiceExports(previewInvoice, effectiveContractor, effectiveSellerCompany, "preview");
   const totals = invoiceTotals(previewInvoice);
 
   const onTermChange = (days: number) => {
@@ -794,7 +798,7 @@ export function InvoiceCreator() {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
       // Keep the persisted identity if transport fails, so retries update this document instead of creating a duplicate.
-      store.setDraft(saved, false);
+      store.setDraft(saved, false, true);
       setForm(previous => ({ ...previous, number: saved.number, contractorId: saved.contractorId, useNewContractor: false }));
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
       const xmlRes = await import("@/lib/xml");
@@ -832,6 +836,7 @@ export function InvoiceCreator() {
   // ── Globalne skróty klawiszowe w kreatorze faktury ──
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isKsefRegistered) return;
       // Ctrl/Cmd + S -> Zapisz wersję roboczą (szkic)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -874,6 +879,13 @@ export function InvoiceCreator() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [form, handleSave, handleSaveDraft, handleSendKsef, exports, shortcutsModalOpen, isPurchase, isKsefRegistered, toast]);
+
+  if (isKsefRegistered && draftInvoice) return <div className="space-y-5">
+    <div role="status" className="rounded-xl border bg-muted/30 p-4 text-sm">Faktura ma numer KSeF. Daty, pozycje, numer i rachunek są zablokowane. Zmiana danych dokumentu wymaga faktury korygującej. Możesz zmienić notatki.</div>
+    <label className="block space-y-2 text-sm">Notatki<Textarea value={form.notes} onChange={e => set({ notes: e.target.value })} /></label>
+    <Button loading={saving === "save"} onClick={async () => { if (mutationBusy.current) return; mutationBusy.current = true; setSaving("save"); try { await store.updateInvoice(draftInvoice.id, { notes: form.notes }); store.setDraft(null, true); toast("success", "Zapisano notatki"); router.push(`/invoices/${draftInvoice.id}`); } catch (error) { toast("error", "Nie zapisano notatek", error instanceof Error ? error.message : undefined); } finally { mutationBusy.current = false; setSaving(null); } }}>Zapisz notatki</Button>
+    <InvoicePreview invoice={{ ...draftInvoice, notes: form.notes }} contractor={effectiveContractor} company={effectiveSellerCompany} />
+  </div>;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
@@ -1400,7 +1412,7 @@ export function InvoiceCreator() {
             <CardDescription>Daty, sposób uregulowania płatności, faktury cykliczne oraz uwagi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label>Data wystawienia *</Label>
                 <Input id="invoice-issueDate" type="date" value={form.issueDate} aria-invalid={Boolean(fieldErrors.issueDate)} aria-describedby={fieldErrors.issueDate ? "invoice-issueDate-error" : undefined} onChange={(e) => set({ issueDate: e.target.value })} />
@@ -1445,7 +1457,7 @@ export function InvoiceCreator() {
                 </>}
               </div>
             </details>}
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label>Metoda płatności</Label>
                 <Select
@@ -1482,7 +1494,7 @@ export function InvoiceCreator() {
 
               {/* Wybór rachunku bankowego firmy */}
               {(effectiveSellerCompany.bankAccount || companyAccounts.length > 0) && (
-                <div className="space-y-1.5 sm:col-span-3">
+                <div className="min-w-0 space-y-1.5 sm:col-span-3">
                   <Label htmlFor="invoice-bank-account">Rachunek bankowy firmy dla tej faktury</Label>
                   <Select
                     id="invoice-bank-account"
@@ -1499,6 +1511,13 @@ export function InvoiceCreator() {
                       </option>
                     ))}
                   </Select>
+                  <div className="min-w-0 break-words rounded-lg border bg-muted/30 p-3 text-xs space-y-1" aria-label="Wybrany rachunek do płatności">
+                    <p>Odbiorca: <b>{chosenBankAccount?.beneficiaryName || effectiveSellerCompany.companyName}</b></p>
+                    <p className="break-all">IBAN / numer konta: <b className="font-mono">{chosenBankAccount?.accountNumber || "Brak rachunku"}</b></p>
+                    <p>Waluta rachunku: <b>{chosenBankAccount?.currency || "—"}</b> · Bank: <b>{chosenBankAccount?.bankName || "Nie podano nazwy banku"}</b></p>
+                    <p>{selectedBankAccountId === "saved" ? "Rachunek zapisany podczas wystawienia tej faktury." : chosenBankAccount === primaryBankAccount ? "Źródło: główny rachunek w profilu firmy." : "Źródło: rachunki wybranej firmy."}</p>
+                    <Link className="inline-block text-primary underline" href="/settings/currencies">Zarządzaj rachunkami i nazwą banku</Link>
+                  </div>
                   {form.currency !== "PLN" && !companyAccounts.some((b) => b.currency === form.currency || b.currency === "MULTI") && (
                     <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
@@ -1733,8 +1752,8 @@ export function InvoiceCreator() {
             <Badge tone="outline">{form.language === "PL" ? "PL" : "EN"} · {form.currency}</Badge>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <Button variant="ghost" size="sm" onClick={exports.exportPdf} title="PDF (drukuj / zapisz jako PDF)">
-              <Printer className="h-3.5 w-3.5" /> PDF
+            <Button variant="ghost" size="sm" onClick={exports.exportPdf} title="Podgląd aktualnych danych formularza (drukuj / zapisz jako PDF)">
+              <Printer className="h-3.5 w-3.5" /> Podgląd PDF
             </Button>
             <Button variant="ghost" size="sm" onClick={exports.exportXml} title="Eksport XML FA(3)">
               <FileCode2 className="h-3.5 w-3.5" /> XML FA(3)

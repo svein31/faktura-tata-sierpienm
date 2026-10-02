@@ -1,4 +1,5 @@
 "use client";
+import { useAppStore } from "@/lib/store";
 
 import * as React from "react";
 import Link from "next/link";
@@ -681,7 +682,7 @@ export default function HelpPage() {
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               <span>Samouczek onboardingowy</span>
             </Button>
-            <Link href="/invoices/new">
+            <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
               <Button size="sm" className="gap-1.5 shadow-sm">
                 <span>+ Wystaw fakturę</span>
               </Button>
@@ -889,7 +890,7 @@ export default function HelpPage() {
 
                 {section.quickAction && (
                   <div className="pt-4 mt-3 border-t border-border/40">
-                    <Link href={section.quickAction.href}>
+                    <Link href={section.quickAction.href} onClick={() => { if (section.quickAction?.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}>
                       <button
                         type="button"
                         className="flex w-full items-center justify-between rounded-xl bg-muted/50 px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground transition-all group"

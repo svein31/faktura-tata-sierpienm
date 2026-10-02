@@ -186,7 +186,7 @@ export function buildInvoiceHtmlString(
     <b>${esc(L.paymentMethod)}:</b> ${esc(paymentMethodLabel(invoice.paymentMethod, lang))}<br/>
     ${bankSnapshot ? `
       <b>Bank:</b> ${esc(bankSnapshot.bankName || "—")}<br/>
-      <b>Beneficiary / Odbiorca:</b> ${esc((bankSnapshot as any).beneficiary || sellerName)}<br/>
+      <b>Beneficiary / Odbiorca:</b> ${esc(bankSnapshot.beneficiaryName || sellerName)}<br/>
       <b>IBAN / Account:</b> <b>${esc(bankSnapshot.accountNumber)}</b><br/>
       ${bankSnapshot.swiftBic ? `<b>SWIFT / BIC:</b> <b>${esc(bankSnapshot.swiftBic)}</b><br/>` : ""}
       <b>Currency / Waluta konta:</b> ${esc(bankSnapshot.currency)}

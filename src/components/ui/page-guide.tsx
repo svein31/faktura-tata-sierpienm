@@ -1,4 +1,5 @@
 "use client";
+import { useAppStore } from "@/lib/store";
 
 import * as React from "react";
 import Link from "next/link";
@@ -110,7 +111,7 @@ export function PageGuide({
                 </div>
                 {step.action && (
                   <Link
-                    href={step.action.href}
+                    href={step.action.href} onClick={() => { if (step.action?.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}
                     className="shrink-0 text-[11px] font-medium text-primary hover:underline flex items-center gap-1"
                   >
                     <span>{step.action.label}</span>
@@ -212,7 +213,7 @@ export function OnboardingBanner({
         {checklist.map((item, idx) => (
           <Link
             key={idx}
-            href={item.href}
+            href={item.href} onClick={() => { if (item.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}
             className={cn(
               "flex items-center justify-between rounded-lg border p-2 text-xs transition-colors",
               item.done

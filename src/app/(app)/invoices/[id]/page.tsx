@@ -33,6 +33,8 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PrintVersions } from "@/components/invoice/print-versions";
+import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
+import { ksefProgress } from "@/lib/ksef/progress";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
@@ -67,6 +69,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const router = useRouter();
   const toast = useToast();
+  useKsefStatusPolling([invoice]);
   const { contractors, company, setDraft, deleteInvoice, updateInvoice, setInvoiceKsef, ksef } =
     useAppStore();
 
@@ -111,7 +114,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     ? companies.find((c) => c.id === invoice.sellerCompanyId)
     : null;
   const companySafe = matchedCompany ?? company ?? EMPTY_COMPANY;
-  const ksefEnv = ksef?.environment ?? "demo";
+  const ksefEnv = invoice.ksef?.environment || ksef?.environment || "demo";
   const contractor = getContractor(contractors, invoice.contractorId);
   const exports = useInvoiceExports(invoice, contractor, companySafe);
   const status = effectiveStatus(invoice);
@@ -123,7 +126,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const handleCopyTransfer = async () => {
     if (!transferAccount) return;
     const text = [
-      `Odbiorca: ${companySafe.companyName || companySafe.name}`,
+      `Odbiorca: ${invoice.bankAccountSnapshot?.beneficiaryName || companySafe.companyName || companySafe.name}`,
       `Rachunek: ${transferAccount}`,
       `Kwota do zapłaty: ${formatMoney(amountDue, invoice.currency)}`,
       `Tytuł przelewu: ${invoice.number}`,
@@ -165,7 +168,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         } else {
           setInvoiceKsef(invoice.id, {
             number: data.ksefNumber,
-            status: data.status ?? "ACTIVE",
+            status: data.status ?? "SENT",
             sentAt: data.timestamp ?? new Date().toISOString(),
             environment: ksefEnv,
           });
@@ -202,7 +205,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       const data = await res.json();
       if (res.ok && data.success) {
         await useAppStore.getState().revalidate();
-        toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription}`);
+        toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription || data.message || "Pobrano wynik przetwarzania"}`);
       } else {
         toast("error", "Nie udało się pobrać statusu", data.error || data.message);
       }
@@ -316,7 +319,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             )
           )}
 
-          {!ksefNum && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
+          {!ksefNum && !invoice.isProforma && !ksefProgress(invoice).polling && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
             <Button
               variant="subtle"
               size="sm"

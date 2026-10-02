@@ -221,3 +221,11 @@ iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]),
   [role="combobox"] { min-height: 44px; }
 }
+
+/* Line inputs follow available form width, including the split desktop preview. */
+.invoice-line-editor { container: invoice-lines / inline-size; }
+.invoice-line-table { display: none; }
+@container invoice-lines (min-width: 1000px) {
+  .invoice-line-table { display: block; }
+  .invoice-line-cards { display: none; }
+}

@@ -65,7 +65,7 @@ export default function DashboardPage() {
           <span className="relative">Kup Pro</span>
         </Link>}
         <button onClick={reload} aria-label="Odśwież przegląd" className="rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"><RefreshCw className="size-4" /></button>
-        <Link href="/invoices/new" className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link>
+        <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link>
       </div>
     </header>
     {data && <OnboardingBanner hasCompany={Boolean(company?.nip)} hasKsef={Boolean(ksef?.tokenSet || ksef?.certName)} hasInvoices={Boolean(data.recent.length)} />}

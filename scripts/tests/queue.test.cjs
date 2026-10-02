@@ -14,7 +14,7 @@ function setup(status = 'PROCESSING', token = 'own-token') {
   const task = {id:'task',userId:'actor',invoiceId:invoice.id,invoice,attempts:0,maxAttempts:5,environment:'test'};
   const db = {
     ksefQueueTask: {findMany:async q=>q.where.status==='processing'?[]:[task],updateMany:async()=>({count:1}),update:async q=>{writes.push(q.data);return q.data;}},
-    invoice:{update:async q=>{writes.push(q.data);return q.data;}},
+    invoice:{findMany:async()=>[],update:async q=>{writes.push(q.data);return q.data;}},
     ksefSession:{findFirst:async q=>{lookups.push(q.where);return token?{accessToken:token}:null;}},
     $transaction:async x=>Array.isArray(x)?Promise.all(x):x(db),
   };
@@ -44,4 +44,30 @@ test('worker rechecks permission after enqueue',async()=>{
   const route=require('../../src/app/api/ksef/queue/process/route.ts');
   assert.equal((await route.POST(request())).status,200); assert.equal(state.sends(),0); assert.equal(state.lookups.length,0);
   assert.ok(state.writes.some(w=>w.status==='failed' && w.errorDetails==='revoked'));
+});
+
+test('worker automatically verifies a known ambiguous reference without enqueueing another send',async()=>{
+  const state=setup();
+  const db=mocked['@/lib/db'].prisma;
+  const invoice={id:'123456789012345678901234',userId:'actor',sellerCompanyId:'company',updatedAt:new Date(0),referenceNumber:'existing-reference',ksefStatus:'verify_needed',ksefSession:null};
+  let confirmations=0;
+  db.invoice.findMany=async()=>[invoice];
+  db.invoice.updateMany=async()=>({count:1});
+  db.ksefQueueTask.findFirst=async()=>({userId:'actor'});
+  const previousFind=db.ksefQueueTask.findMany;
+  db.ksefQueueTask.findMany=async query=>query.where.status==='queued'?[]:previousFind(query);
+  mocked['@/lib/ksef/reconcile-status']={reconcileKsefInvoice:async(document,actor)=>{assert.equal(document.referenceNumber,'existing-reference');assert.equal(actor.id,'actor');confirmations++;}};
+  const route=require('../../src/app/api/ksef/queue/process/route.ts');
+  assert.equal((await route.POST(request())).status,200);
+  assert.equal(confirmations,1);assert.equal(state.sends(),0);assert.equal(state.writes.length,0);
+});
+test('worker does not reuse revoked sender access when verifying an old transmission',async()=>{
+  const state=setup();const db=mocked['@/lib/db'].prisma;
+  db.invoice.findMany=async()=>[{id:'invoice',userId:'owner',sellerCompanyId:'company',updatedAt:new Date(0),referenceNumber:'existing'}];
+  db.invoice.updateMany=async()=>({count:1});db.ksefQueueTask.findFirst=async()=>({userId:'revoked-actor'});
+  db.ksefQueueTask.findMany=async()=>[];
+  mocked['@/lib/permissions']={requireCompanyAccess:async()=>({ok:false,error:'revoked',status:403})};
+  mocked['@/lib/ksef/reconcile-status']={reconcileKsefInvoice:async()=>{throw new Error('Revoked sender must not verify');}};
+  const route=require('../../src/app/api/ksef/queue/process/route.ts');
+  assert.equal((await route.POST(request())).status,200);assert.equal(state.sends(),0);
 });

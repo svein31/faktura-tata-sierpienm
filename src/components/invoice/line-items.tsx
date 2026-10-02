@@ -153,8 +153,8 @@ export function LineItemsEditor({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3 md:hidden" data-mobile-line-editor>
+    <div className="space-y-4 invoice-line-editor">
+      <div className="space-y-3 invoice-line-cards" data-mobile-line-editor>
         {lines.map((item, index) => (
           <div key={item.id} className="min-w-0 space-y-3 rounded-xl border bg-card p-3">
             <div className="flex items-center justify-between gap-2">
@@ -181,18 +181,18 @@ export function LineItemsEditor({
       </div>
 
       {/* ── Tabela pozycji ── */}
-      <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card/70 md:block backdrop-blur-md shadow-sm">
+      <div className="invoice-line-table overflow-x-auto rounded-2xl border border-border/60 bg-card/70 shadow-sm">
         <table className="w-full min-w-[940px] table-fixed text-[13px]">
           <colgroup>
             <col className="w-9" />
-            <col className="w-[25%]" />
-            <col className="w-[8%]" />
-            <col className="w-[8%]" />
-            <col className="w-[12%]" />
-            <col className="w-[8%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
+            <col />
+            <col className="w-20" />
+            <col className="w-20" />
+            <col className="w-28" />
+            <col className="w-20" />
+            <col className="w-28" />
+            <col className="w-28" />
+            <col className="w-28" />
             <col className="w-9" />
           </colgroup>
           <thead>

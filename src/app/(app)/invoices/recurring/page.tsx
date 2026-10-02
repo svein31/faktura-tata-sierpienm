@@ -187,7 +187,7 @@ export default function RecurringInvoicesPage() {
                 <span>Wszystkie faktury</span>
               </Button>
             </Link>
-            <Link href="/invoices/new">
+            <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
               <Button size="sm" className="gap-1.5 text-xs shadow-sm">
                 <Plus className="h-4 w-4" />
                 <span>Nowy szablon cykliczny</span>
@@ -280,7 +280,7 @@ export default function RecurringInvoicesPage() {
             title="Brak zdefiniowanych faktur cyklicznych"
             description="Faktury cykliczne pozwalają automatycznie wystawiać dokumenty dla stałych klientów (np. abonamenty, hosting, opieka IT, wynajem)."
             action={
-              <Link href="/invoices/new">
+              <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
                 <Button size="sm" className="gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Stwórz pierwszy szablon</span>
