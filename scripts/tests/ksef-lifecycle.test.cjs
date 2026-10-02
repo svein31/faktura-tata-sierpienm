@@ -6,7 +6,10 @@ const { KsefClient, generateDemoUpoXml } = require('../../src/lib/ksef/client.ts
 const { FA3_NAMESPACE, KSEF_V2_URLS } = require('../../src/lib/ksef/constants.ts');
 const { claimKsefTransmission } = require('../../src/lib/ksef/transmission-claim.ts');
 
-test('Punkt 2: KSeF od poczatku do konca - FA(3), auth, send, reject, retry lock, UPO i download', async () => {
+test('Punkt 2: KSeF od poczatku do konca - FA(3), auth, send, reject, retry lock, UPO i download', async (t) => {
+  const originalFetch=global.fetch;
+  t.after(()=>{global.fetch=originalFetch;});
+  global.fetch=async (url,options)=>String(url).includes('api-demo.ksef.mf.gov.pl/v2/auth/challenge')?new Response(JSON.stringify({challenge:'test-challenge',timestamp:new Date().toISOString(),timestampMs:Date.now()}),{status:200,headers:{'Content-Type':'application/json'}}):originalFetch(url,options);
   // 1. Walidacja FA(3) i odseparowanie srodowisk
   assert.equal(KSEF_V2_URLS.test, 'https://api-test.ksef.mf.gov.pl/v2');
   assert.equal(KSEF_V2_URLS.production, 'https://api.ksef.mf.gov.pl/v2');

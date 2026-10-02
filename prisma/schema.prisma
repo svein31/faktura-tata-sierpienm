@@ -779,6 +779,8 @@ model Expense {
 }
 
 model BankStatementImport {
+  companyId String? @db.ObjectId
+  accountNumber String?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   userId       String   @db.ObjectId
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -1862,4 +1864,35 @@ model InvoiceSettlement {
  finalKey String @unique
  createdAt DateTime @default(now())
  @@index([sourceId])
+}
+
+model BankImportEntry {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ fingerprint String @unique
+ companyId String @db.ObjectId
+ importId String @db.ObjectId
+ sourceAccount String
+ date String
+ amount Float
+ currency String
+ title String
+ reference String?
+ invoiceId String? @db.ObjectId
+ expenseId String? @db.ObjectId
+ createdAt DateTime @default(now())
+ @@index([companyId,createdAt])
+}
+model AccountingDocumentReview {
+ id String @id @default(auto()) @map("_id") @db.ObjectId
+ companyId String @db.ObjectId
+ documentType String
+ documentId String @db.ObjectId
+ sourceRevision String
+ status String @default("to_verify")
+ version Int @default(1)
+ updatedBy String @db.ObjectId
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([companyId,documentType,documentId])
+ @@index([companyId,status])
 }

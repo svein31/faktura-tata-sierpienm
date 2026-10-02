@@ -127,6 +127,7 @@ try {
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   await migrateData(mongoClient.db('fakturo_integration'),'up','015-auth-rate-limit');
+  await migrateData(mongoClient.db('fakturo_integration'),'up','016-saas-workflows');
   console.log('[integration] Starting application');
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '', WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
@@ -513,7 +514,7 @@ try {
   assert.equal((await api('PUT',`/api/expenses/${sourceExpense.id}`,{totalGross:1},a.cookie)).res.status,403);
   assert.equal((await api('DELETE',`/api/expenses/${sourceExpense.id}`,undefined,a.cookie)).res.status,403);
   await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'SALES/WORKSPACE',type:'sale',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines,totalNet:100,totalVat:0,totalGross:100}});
-  await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'PURCHASE/WORKSPACE',type:'purchase',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines,totalNet:30,totalVat:0,totalGross:30}});
+  await db.invoice.create({data:{userId:a.data.user.id,sellerCompanyId:companyId,contractorId:sharedContact.data.contractor.id,number:'PURCHASE/WORKSPACE',type:'purchase',status:'issued',documentStatus:'issued',issueDate:'2030-01-10',saleDate:'2030-01-10',dueDate:'2030-01-20',currency:'PLN',lines:offerBody.lines.map(line=>({...line,netPrice:30})),totalNet:30,totalVat:0,totalGross:30}});
   const monthly = await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,a.cookie);
   assert.equal(monthly.res.status,200,JSON.stringify(monthly.data)); assert.equal(monthly.data.summary.salesNet,100); assert.equal(monthly.data.summary.expenseNet,50);
   assert.equal((await api('GET',`/api/accountant/export-pack?month=2030-01&companyId=${companyId}`,undefined,b.cookie)).res.status,403);
@@ -861,7 +862,7 @@ try {
   assert.equal((await fetch(`${base}/api/invoices/${nextInvoice.data.invoice.id}/pdf?version=${firstVersion}`,{headers:{Cookie:a.cookie}})).status,404,'A version cannot be fetched through another invoice');
   console.log('PASS: immutable PDF bytes, issued party/template snapshots, source revisions, history, ownership and template CAS');
   const bankCsv = 'Data;Kwota;Tytuł;Nadawca\n2026-09-23;123,00;PDF/ARCHIVE/2;Client';
-  const bankBody = { csvContent: bankCsv, bankFormat: 'generic' };
+  const bankBody = { companyId: nextInvoice.data.invoice.sellerCompanyId, csvContent: bankCsv, format: 'csv' };
   assert.equal((await api('POST','/api/banking/import',{...bankBody,applyPayments:false},a.cookie)).res.status,200);
   assert.equal(await db.bankStatementImport.count({where:{userId:a.data.user.id}}),0,'Preview must not consume import key');
   const doubled = await api('POST','/api/banking/import',{...bankBody,csvContent:`${bankCsv}\n2026-09-23;123,00;PDF/ARCHIVE/2;Client`,applyPayments:true},a.cookie);
