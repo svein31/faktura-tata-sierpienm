@@ -74,3 +74,17 @@ test('ZIP preserves Unicode and rejects traversal and duplicate paths',()=>{
 test('XLSX encodes strings without formulas and preserves leading zero tax IDs',()=>{
  const files=unzip(spreadsheet([['NIP','Nazwa','Kwota'],['0012345678','=1+1',123.45]]));assert.equal(Object.keys(files).length,5);assert.equal(XMLValidator.validate(files['xl/worksheets/sheet1.xml']),true);assert.match(files['xl/worksheets/sheet1.xml'],/0012345678/);assert.match(files['xl/worksheets/sheet1.xml'],/=1\+1/);assert.doesNotMatch(files['xl/worksheets/sheet1.xml'],/<f>/);assert.match(files['xl/worksheets/sheet1.xml'],/<v>123.45<\/v>/);
 });
+
+test('reversal entries remain visible but never create a payment match',()=>{
+ const mt=parseMt940(':20:REVERSAL\n:25:'+iban+'\n:60F:C261002PLN0,00\n:61:261002RD123,00NTRF//REV1\n:86:FV/1');assert.equal(mt[0].reversal,true);assert.equal(reconcile(mt,[candidate])[0].matchedInvoiceId,undefined);
+ for(const flag of ['true','1']){const rows=parseCamt053(camt('<Ntry><Amt Ccy="PLN">123.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><RvslInd>'+flag+'</RvslInd><BookgDt><Dt>2026-10-02</Dt></BookgDt><AddtlNtryInf>FV/1</AddtlNtryInf></Ntry>'));assert.equal(rows[0].reversal,true);assert.equal(reconcile(rows,[candidate])[0].matchedInvoiceId,undefined);}
+});
+test('longer invoice identifiers and embedded NIP digits cannot identify another document',()=>{
+ for(const title of ['FV/1/2','FV/1-2','FV/1.2','FV/1_2','NIP 152603017069'])assert.equal(reconcile([{...transaction,title}],[candidate])[0].matchedInvoiceId,undefined,title);
+ assert.equal(reconcile([{...transaction,amount:124}],[candidate])[0].matchedInvoiceId,undefined);
+ assert.equal(reconcile([{...transaction,amount:-100}],[{...candidate,type:'purchase',kind:'expense'}])[0].matchedExpenseId,undefined);
+});
+test('bank export rejects fractions of a cent and preserves input data',()=>{
+ assert.throws(()=>paymentExport({...pack,transfers:[{...pack.transfers[0],amount:1.001}]}),/kwoty/);
+ const original={...pack,transfers:[{...pack.transfers[0],iban:'PL61 1090 1014 0000 0712 1981 2874'}]},snapshot=structuredClone(original);paymentExport(original);assert.deepEqual(original,snapshot);
+});

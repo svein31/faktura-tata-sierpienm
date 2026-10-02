@@ -8,7 +8,7 @@ function iban(raw: string) {
   return result.normalized;
 }
 export function paymentExport(input: { debtor: string; debtorIban: string; executionDate: string; transfers: Transfer[]; format: "pain001" | "csv" | "elixir"; messageId: string }) {
-  const account = iban(input.debtorIban), transfers = input.transfers;
+  const account = iban(input.debtorIban), transfers = input.transfers.map(t => ({ ...t, iban: iban(t.iban) }));
   const parsedDate = new Date(input.executionDate + "T00:00:00Z");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.executionDate) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== input.executionDate) throw new Error("Podaj poprawną datę realizacji.");
   if (!transfers.length || transfers.length > 100 || !input.debtor.trim()) throw new Error("Wybierz od 1 do 100 przelewów i nazwę płatnika.");
@@ -16,8 +16,7 @@ export function paymentExport(input: { debtor: string; debtorIban: string; execu
   const currencies = new Set(transfers.map(t => t.currency));
   if (currencies.size !== 1) throw new Error("Jedna paczka musi zawierać jedną walutę.");
   for (const t of transfers) {
-    t.iban = iban(t.iban);
-    if (!t.recipient.trim() || !t.title.trim() || t.title.length > 140 || !/^[A-Z]{3}$/.test(t.currency) || !Number.isFinite(t.amount) || t.amount <= 0 || !Number.isSafeInteger(Math.round(t.amount * 100))) throw new Error("Nieprawidłowe dane odbiorcy, tytułu lub kwoty.");
+    if (!t.recipient.trim() || !t.title.trim() || t.title.length > 140 || !/^[A-Z]{3}$/.test(t.currency) || !Number.isFinite(t.amount) || t.amount <= 0 || !Number.isSafeInteger(Math.round(t.amount * 100)) || Math.abs(t.amount * 100 - Math.round(t.amount * 100)) > 0.00001) throw new Error("Nieprawidłowe dane odbiorcy, tytułu lub kwoty.");
   }
   if (input.format === "csv") return { extension: "csv", mime: "text/csv; charset=utf-8", content: "\uFEFF" + [["Data", "Odbiorca", "IBAN", "Kwota", "Waluta", "Tytuł"], ...transfers.map(t => [input.executionDate, t.recipient, t.iban, t.amount.toFixed(2), t.currency, t.title])].map(row => row.map(csvCell).join(";")).join("\r\n") };
   if (input.format === "elixir") {
