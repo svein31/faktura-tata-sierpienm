@@ -32,7 +32,8 @@ export async function POST(req: Request) {
     if (!isValidNipFormat(nip) || requestedNip && requestedNip !== nip) throw new ApiError(400, "NIP musi odpowiadać wybranej firmie.");
     // 2. Ustalenie środowiska
     const envInput = str(body.environment).toLowerCase() || process.env.KSEF_ENV || process.env.KSEF_ENVIRONMENT || "test";
-    const environment: KsefEnvironment = envInput === "production" ? "production" : envInput === "demo" ? "demo" : "test";
+    if (!["demo", "test", "production"].includes(envInput)) throw new ApiError(400, "Wybierz środowisko demo, test lub production.");
+    const environment = envInput as KsefEnvironment;
 
     let token = str(body.token).trim() || profile.ksefToken?.trim() || "";
     if (token.length > 10000) throw new ApiError(400, "Token jest za długi.");
@@ -45,37 +46,23 @@ export async function POST(req: Request) {
     // 5. Zapisanie lub aktualizacja sesji w bazie Prisma
     const validUntilDate = authResult.validUntil ? new Date(authResult.validUntil) : new Date(Date.now() + 8 * 3600 * 1000);
 
-    const ksefSession = await prisma.ksefSession.upsert({
-      where: { referenceNumber: authResult.referenceNumber },
-      update: {
-        accessToken: authResult.accessToken,
-        authenticationToken: authResult.authenticationToken,
-        refreshToken: authResult.refreshToken,
-        validUntil: validUntilDate,
-        status: "ACTIVE",
-        nip,
-        environment,
-        userId: profile.userId,
-      },
-      create: {
-        referenceNumber: authResult.referenceNumber,
-        accessToken: authResult.accessToken,
-        authenticationToken: authResult.authenticationToken,
-        refreshToken: authResult.refreshToken,
-        validUntil: validUntilDate,
-        status: "ACTIVE",
-        nip,
-        environment,
-        userId: profile.userId,
-      },
-    });
-
-    if (str(body.token).trim() && environment !== "demo") {
-      await prisma.$transaction(async tx => {
-        await companyAccess(tx, user.id, profile.id, "canManageIntegrations");
-        await tx.companyProfile.update({ where: { id: profile.id }, data: { ksefToken: token } });
+    const ksefSession = await prisma.$transaction(async tx => {
+      await tx.companyProfile.update({ where: { id: profile.id }, data: { updatedAt: new Date() } });
+      await companyAccess(tx, user.id, profile.id, "canManageIntegrations");
+      const existing = await tx.ksefSession.findUnique({ where: { referenceNumber: authResult.referenceNumber } });
+      if (existing && (existing.userId !== profile.userId || existing.nip !== nip || existing.environment !== environment)) throw new ApiError(409, "Otrzymano identyfikator sesji należący do innej konfiguracji.");
+      const data = {
+        accessToken: authResult.accessToken, authenticationToken: authResult.authenticationToken,
+        refreshToken: authResult.refreshToken, validUntil: validUntilDate,
+        status: "ACTIVE", nip, environment, userId: profile.userId,
+      };
+      const saved = await tx.ksefSession.upsert({
+        where: { referenceNumber: authResult.referenceNumber },
+        update: data, create: { referenceNumber: authResult.referenceNumber, ...data },
       });
-    }
+      if (str(body.token).trim() && environment !== "demo") await tx.companyProfile.update({ where: { id: profile.id }, data: { ksefToken: token } });
+      return saved;
+    });
 
     return json({
       success: true,

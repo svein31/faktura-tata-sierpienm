@@ -20,6 +20,9 @@ export async function auditProductSecurity(base, db) {
   await request('POST', '/api/auth/logout', {}, owner.cookie, 403, null);
   await request('POST', '/api/ksef/auth/login', { nip: '5260301706', environment: 'demo' }, undefined, 401);
   const company = (await request('POST', '/api/companies', { companyName: 'Security audit company', nip: '5260301706' }, owner.cookie, 201)).data.company;
+  await request('POST', '/api/ksef/auth/login', { companyId: company.id, nip: '5260301706', environment: 'typo-production' }, owner.cookie, 400);
+  await request('POST', '/api/ksef/auth/login', { companyId: company.id, nip: '5250001003', environment: 'demo' }, owner.cookie, 400);
+  await request('POST', '/api/ksef/auth/login', { companyId: company.id, environment: 'demo' }, other.cookie, 403);
   const contact = (await request('POST', '/api/contractors', { companyId: company.id, name: 'Security customer', nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } }, owner.cookie, 201)).data.contractor;
   const date = new Date().toISOString().slice(0, 10), month = date.slice(0, 7);
   const invoiceBody = { number: 'SECURITY/1', sellerCompanyId: company.id, type: 'sale', status: 'issued', contractorId: contact.id, issueDate: date, saleDate: date, dueDate: date, currency: 'PLN', paymentMethod: 'transfer', language: 'PL', paymentTermDays: 0, lines: [{ id: 'line', name: 'Service', quantity: 1, unit: 'szt.', netPrice: 100, vatRate: '23' }] };
