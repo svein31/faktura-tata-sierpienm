@@ -626,6 +626,8 @@ export function InvoiceCreator() {
         notes: undefined,
       });
       contractorId = c.id;
+      // Reuse the created buyer when an invoice write fails and the user retries.
+      setForm(previous => ({ ...previous, contractorId: c.id, useNewContractor: false }));
     }
 
     const effectiveRate = form.currency !== "PLN"

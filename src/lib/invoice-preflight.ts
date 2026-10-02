@@ -6,7 +6,7 @@ export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   const issues: PreflightIssue[] = [];
   const add = (code: string, severity: PreflightIssue["severity"], message: string) => issues.push({ code, severity, message });
   if (!input.number.trim()) add("number", "error", "Uzupełnij numer faktury.");
-  for (const [key, value] of [["issueDate", input.issueDate], ["saleDate", input.saleDate], ["dueDate", input.dueDate]]) if (!isIsoCalendarDate(value)) add(key, "error", "Sprawdź datę: " + key + ".");
+  for (const [key, value, label] of [["issueDate", input.issueDate, "wystawienia"], ["saleDate", input.saleDate, "sprzedaży"], ["dueDate", input.dueDate, "płatności"]]) if (!isIsoCalendarDate(value)) add(key, "error", "Sprawdź datę " + label + ".");
   if (isIsoCalendarDate(input.dueDate) && input.dueDate < input.issueDate) add("dueDate.order", "warning", "Termin płatności przypada przed wystawieniem. Upewnij się, że tak uzgodniono.");
   if (!input.seller.companyName.trim() || !isValidNipFormat(input.seller.nip)) add("seller", "error", "Sprawdź nazwę i poprawny NIP sprzedawcy.");
   if (!input.buyer.name.trim()) add("buyer", "error", "Uzupełnij nazwę nabywcy.");

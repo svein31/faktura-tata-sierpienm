@@ -35,7 +35,7 @@ Bez dostawcy aplikacja pokazuje **niezweryfikowany**, a nie wynik antywirusa. Ta
 
 Serwer aplikacji: BACKUP_MONITOR_SECRET, co najmniej 32 znaki.
 Operator: BACKUP_MONITOR_URL wskazujący HTTPS /api/ops/backup-receipt i ten sam sekret.
-Kopia szyfrowana: dotychczasowe BACKUP_DATABASE_URL/BACKUP_KEY/BACKUP_DIR zgodnie ze skryptem run.mjs.
+Kopia szyfrowana: BACKUP_DATABASE_URL/BACKUP_KEY oraz docelowy plik przekazany do skryptu: node scripts/backup/run.mjs create /BEZPIECZNA_SCIEZKA/kopia.enc. Plik i katalog muszą należeć do operatora.
 Kopia poza serwerem: BACKUP_COPY_SOURCE/BACKUP_COPY_TARGET i rclone skonfigurowany poza repozytorium.
 
 Potwierdzenie backup jest wysyłane dopiero po ukończeniu archiwum. Offsite dopiero po skopiowaniu zamrożonej listy plików. Stan poprawny wymaga świeżej kopii, identycznego SHA kopii offsite oraz świeżego potwierdzenia udanego restore. Brak konfiguracji lub dowodu jest widoczny jako brak potwierdzenia.

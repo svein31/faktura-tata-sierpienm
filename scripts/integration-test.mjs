@@ -972,7 +972,7 @@ try {
   assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
   await auditProductSecurity(base, db);
-  if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerOrigin: base, Cookie:a.cookie,companyId,otherOrigin: base, Cookie:b.cookie,otherUserId:b.data.user.id});
+  if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerCookie:a.cookie,companyId,otherCookie:b.cookie,otherUserId:b.data.user.id});
   if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
 finally {
