@@ -1,3 +1,4 @@
+import { effectiveDocumentStatus } from "@/lib/accountant-summary";
 /**
  * Mapowanie rekordów Prisma → DTO używane przez frontend.
  * JSON-owe pola (address, lines, ksef) są rzutowane na typy aplikacji.
@@ -258,7 +259,7 @@ export function invoiceToDto(
     approvedAt: i.approvedAt ? i.approvedAt.toISOString() : null,
     approvedBy: i.approvedBy ?? null,
     // Rozszerzone pola
-    documentStatus: (i.documentStatus as any) ?? "draft",
+    documentStatus: effectiveDocumentStatus(i) as any,
     ksefStatus: (i.ksefStatus as any) ?? (i.ksefNumber ? "accepted" : "none"),
     paymentStatus: (i.paymentStatus as any) ?? (i.status === "paid" ? "paid" : "unpaid"),
     paidAmount: i.paidAmount ?? (i.status === "paid" ? (i.totalGross ?? 0) : 0),

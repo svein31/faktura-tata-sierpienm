@@ -33,7 +33,7 @@ export async function auditProductSecurity(base, db) {
   const reviewed = await request('POST', '/api/invoices/preflight', { ...preflightBody, invoiceId: invoice.id }, owner.cookie, 200);
   assert.equal(reviewed.data.canProceed, true);
   await request('POST', '/api/invoices/preflight', preflightBody, other.cookie, 403);
-  await db.invoice.update({ where: { id: invoice.id }, data: { ksefStatus: 'accepted', ksefNumber: 'SYNTHETIC-KSEF-AUDIT', upoXml: null } });
+  await db.invoice.update({ where: { id: invoice.id }, data: { documentStatus: 'draft', ksefStatus: 'accepted', ksefNumber: 'SYNTHETIC-KSEF-AUDIT', upoXml: null } });
   await db.invoice.createMany({data:[
     {...invoiceBody,userId:owner.data.user.id,number:'CANCELLED/OVERVIEW',status:'cancelled',documentStatus:'cancelled',totalNet:1000,totalVat:230,totalGross:1230,dueDate:'2020-01-01'},
     {...invoiceBody,userId:owner.data.user.id,number:'PROFORMA/OVERVIEW',documentStatus:'issued',isProforma:true,totalNet:1000,totalVat:230,totalGross:1230,dueDate:'2020-01-01'},
@@ -43,6 +43,7 @@ export async function auditProductSecurity(base, db) {
   assert.equal(overview.counts.overdue,0,'Cancelled documents and proformas cannot create overdue invoice actions');checks+=2;
   assert.equal(overview.counts.missingUpo, 1); assert.ok(overview.actions.some(a => a.kind === 'UPO'));
   const readiness = (await request('GET', '/api/accountant/period?companyId=' + company.id + '&month=' + month, undefined, owner.cookie, 200)).data.readiness;
+  assert.equal(readiness.blockers.drafts,0,'A legacy stale draft with issuedAt is an issued invoice');
   assert.equal(readiness.blockers.upo, 1); assert.equal(readiness.canClose, false);
   assert.equal(readiness.details.upo[0].href, '/invoices/' + invoice.id);
   const bank = await db.bankTransaction.create({ data: { userId: owner.data.user.id, accountId: company.id, externalId: 'security-bank-transaction', bookingDate: date, amount: 123, currency: 'PLN', direction: 'in', description: 'Audit transfer' } });
@@ -54,7 +55,8 @@ export async function auditProductSecurity(base, db) {
     const response = await fetch(base + '/api/banking/transactions', { method: 'PATCH', headers: { Origin: base, Cookie: owner.cookie, 'Content-Type': 'application/json' }, body: JSON.stringify(match) }); await response.text(); return response.status;
   }));
   assert.deepEqual(race.sort(), [200, 409]); checks += 2;
-  assert.equal((await db.invoice.findUniqueOrThrow({ where: { id: invoice.id } })).paymentStatus, 'paid');
+  const matchedInvoice=await db.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
+  assert.equal(matchedInvoice.paymentStatus, 'paid');assert.equal(matchedInvoice.documentStatus,'issued');
   assert.equal(await db.paymentRecord.count({ where: { invoiceId: invoice.id } }), 1);
   await db.session.update({ where: { id: session.id }, data: { authenticatedAt: new Date(Date.now() - 11 * 60000) } });
   await request('POST', '/api/invoices/export', { companyId: company.id, format: 'json' }, owner.cookie, 428);

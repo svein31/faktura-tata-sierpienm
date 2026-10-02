@@ -17,7 +17,10 @@ const lineValues = {
   },
 };
 const valued = [
-  { $set: { lineValues } },
+  { $set: { lineValues, documentStatus: { $cond: [
+    { $and: [{ $eq: ["$documentStatus", "draft"] }, { $ne: ["$status", "draft"] }, { $ne: [{ $ifNull: ["$issuedAt", null] }, null] }] },
+    "issued", { $ifNull: ["$documentStatus", "$status"] },
+  ] } } },
   { $set: {
     net: { $cond: [{ $ne: [num("$totalNet"), 0] }, num("$totalNet"), { $sum: "$lineValues.net" }] },
     vat: { $cond: [{ $ne: [num("$totalVat"), 0] }, num("$totalVat"), { $sum: "$lineValues.vat" }] },

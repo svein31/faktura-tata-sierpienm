@@ -5,6 +5,7 @@ Data opracowania: 2 października 2026 r. Zmiany w PR #25.
 ## Funkcje użytkownika
 
 - Pulpit: priorytety KSeF, nieznany wynik wysyłki, offline, brak UPO, zaległości, szkice, akceptacje i niedopasowane transakcje. Obliczenia na serwerze, zakres wybranej firmy.
+- Starszy niespójny szkic jest rozpoznawany jako wystawiony tylko przy zachowanym issuedAt oraz statusie innym niż szkic; anulowanie ma pierwszeństwo. Ta sama klasyfikacja obowiązuje w DTO, rozliczeniach, pulpicie i kontroli miesiąca. Nie wykonano masowej mutacji historycznych dokumentów.
 - Pulpit nie dolicza anulowanych dokumentów ani proform do przychodu i zaległości. Wystawienie szkicu ustawia spójny stan dokumentu na serwerze, także przy starym stanie przysłanym przez przeglądarkę.
 - Finanse: zapisane transakcje, paginacja, kandydaci według waluty, kierunku i salda; ręczne przypisanie lub pominięcie. Transakcja bazodanowa i kontrola wersji zapobiegają podwójnemu zapisowi płatności.
 - Asystent: kontrola danych i numeracji przed zatwierdzeniem w kreatorze, wysyłką istniejącej faktury do KSeF oraz wystawieniem offline. Ostrzeżenia nie zmieniają automatycznie stawki ani danych. Zapis szkicu pozostaje dostępny.

@@ -3,7 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, assertObjectId, handleApiError, json, readJson } from "@/lib/api";
 import { companyAccess } from "@/lib/company-write";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
-import { isAccountingInvoice } from "@/lib/accountant-summary";
+import { effectiveDocumentStatus, isAccountingInvoice } from "@/lib/accountant-summary";
 import { recordAuditLog } from "@/lib/audit";
 export const runtime = "nodejs";
 const scope = (companyId: string) => ({ OR: [{ accountId: companyId }, { connection: { companyId } }] });
@@ -57,7 +57,7 @@ export async function PATCH(req: Request) {
         if (paidCents > totalCents) throw new ApiError(409, "Kwota przekracza saldo dokumentu.");
         await assertAccountingPeriodsOpen(tx, [{ companyId: company.id, issueDate: invoice.issueDate }]);
         const full = paidCents === totalCents;
-        await tx.invoice.update({ where: { id: invoice.id, version: invoice.version }, data: { paidAmount: paidCents / 100, paymentStatus: full ? "paid" : "partially_paid", status: full ? "paid" : invoice.status, version: (invoice.version || 1) + 1 } });
+        await tx.invoice.update({ where: { id: invoice.id, version: invoice.version }, data: { documentStatus: effectiveDocumentStatus(invoice), paidAmount: paidCents / 100, paymentStatus: full ? "paid" : "partially_paid", status: full ? "paid" : invoice.status, version: (invoice.version || 1) + 1 } });
         const payment = await tx.paymentRecord.create({ data: { userId: user.id, invoiceId: invoice.id, amount, method: "transfer", paidAt: new Date(transaction.bookingDate + "T12:00:00Z"), note: "Rozliczenie bankowe: " + transaction.description.slice(0, 200) } });
         paymentRecordId = payment.id; number = invoice.number;
       } else if (body.action === "match") {

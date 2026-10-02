@@ -4,7 +4,7 @@ import { ApiError, cleanStr } from "@/lib/api";
 import { companyAccess } from "@/lib/company-write";
 import { periodKeys } from "@/lib/accounting-period";
 import { accountingWorkspaceId, type AccountingTask } from "@/lib/accounting-workspace";
-import { isAccountingInvoice, monthlySummary } from "@/lib/accountant-summary";
+import { effectiveDocumentStatus, isAccountingInvoice, monthlySummary } from "@/lib/accountant-summary";
 import { recordAuditLog } from "@/lib/audit";
 
 export function accountingPeriodKey(companyId: string, month: unknown) {
@@ -14,12 +14,12 @@ export function accountingPeriodKey(companyId: string, month: unknown) {
 
 export async function accountingReadiness(tx: Prisma.TransactionClient, companyId: string, month: string) {
   const [invoices, expenses, workspace, stocktakings] = await Promise.all([
-    tx.invoice.findMany({ where: { sellerCompanyId: companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, number: true, upoXml: true, type: true, status: true, documentStatus: true, isProforma: true, approvalStatus: true, ksefStatus: true, referenceNumber: true, ksefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
+    tx.invoice.findMany({ where: { sellerCompanyId: companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, number: true, issuedAt: true, upoXml: true, type: true, status: true, documentStatus: true, isProforma: true, approvalStatus: true, ksefStatus: true, referenceNumber: true, ksefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
     tx.expense.findMany({ where: { companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, number: true, workflowStatus: true, ksefRefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
     tx.accountingWorkspace.findUnique({ where: { id: accountingWorkspaceId(companyId, month) }, select: { items: true } }),
     tx.stocktaking.count({ where: { warehouse: { companyId }, countDate: { startsWith: `${month}-` }, status: { in: ["open", "counting"] } } }),
   ]);
-  const active = invoices.filter(i => !i.isProforma && (i.documentStatus || i.status) !== "cancelled");
+  const active = invoices.map(i => ({ ...i, documentStatus: effectiveDocumentStatus(i) })).filter(i => !i.isProforma && (i.documentStatus || i.status) !== "cancelled");
   const posted = active.filter(isAccountingInvoice);
   const purchases = posted.filter(i => i.type === "purchase");
   const refs = new Set(purchases.map(i => i.ksefNumber).filter(Boolean));
