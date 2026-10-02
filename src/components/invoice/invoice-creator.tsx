@@ -703,6 +703,7 @@ export function InvoiceCreator() {
   const [assistant, setAssistant] = React.useState<{ issues: PreflightIssue[]; canProceed: boolean; action: "save" | "ksef"; snapshot: string } | null>(null);
   const [checkingInvoice, setCheckingInvoice] = React.useState(false);
   const assistantBusy = React.useRef(false);
+  const mutationBusy = React.useRef(false);
   const invoiceSnapshot = JSON.stringify({ form, invoiceNumber, seller: effectiveSellerCompany.id, numberMode });
   const checkBeforeAction = async (action: "save" | "ksef") => {
     if (assistantBusy.current || saving) return;
@@ -718,6 +719,7 @@ export function InvoiceCreator() {
     finally { assistantBusy.current = false; setCheckingInvoice(false); }
   };
   const handleSave = async () => {
+    if (mutationBusy.current) return;
     const errs = validate();
     showValidation(errs);
     if (errs.length) {
@@ -725,6 +727,7 @@ export function InvoiceCreator() {
       return;
     }
     setSaving("save");
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
@@ -737,16 +740,18 @@ export function InvoiceCreator() {
       if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać", e instanceof Error ? e.message : undefined);
       setSaving(null);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   const handleSaveDraft = async () => {
+    if (mutationBusy.current) return;
     const errs = validate();
     if (errs.length) {
       showValidation(errs);
       toast("error", "Popraw błędy", errs[0]);
       return;
     }
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("draft");
       const saved = await persist(inv);
@@ -758,10 +763,11 @@ export function InvoiceCreator() {
       const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
       if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać szkicu", e instanceof Error ? e.message : undefined);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   const handleSendKsef = async () => {
+    if (mutationBusy.current) return;
     if (form.isProforma) {
       toast("error", "KSeF: Błąd dokumentu", "Faktura proforma nie jest dokumentem księgowym i nie podlega rejestracji w KSeF.");
       return;
@@ -781,6 +787,7 @@ export function InvoiceCreator() {
       return;
     }
     setSaving("ksef");
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
@@ -817,7 +824,7 @@ export function InvoiceCreator() {
     } catch (e) {
       setSaving(null);
       toast("error", "Nie udało się wysłać do KSeF", e instanceof Error ? e.message : undefined);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   // ── Globalne skróty klawiszowe w kreatorze faktury ──

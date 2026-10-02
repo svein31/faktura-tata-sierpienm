@@ -35,6 +35,8 @@ export async function PUT(req: Request, context: Context) {
       if (company.userId !== user.id && member?.role !== "owner") throw new ApiError(403, "Uprawnienia zostały zmienione.");
       const mfa = await tx.userMfa.findUnique({ where: { userId: user.id } });
       if (body.requireMfa && !mfa?.enabledAt) throw new ApiError(409, "Najpierw włącz 2FA na swoim koncie.");
+      // Contend on the same row as MFA disabling; a policy cannot race its proof.
+      if (body.requireMfa && mfa) await tx.userMfa.update({ where: { id: mfa.id }, data: { encryptedSecret: mfa.encryptedSecret } });
       const changed = await tx.companySecurityPolicy.upsert({ where: { id }, create: { id, requireMfa: body.requireMfa as boolean }, update: { requireMfa: body.requireMfa as boolean } });
       await recordAuditLog({ client: tx, companyId: id, userId: user.id, action: "company.security.changed", entityType: "company", entityId: id, details: { requireMfa: body.requireMfa } });
       return changed;

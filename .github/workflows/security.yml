@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p artifacts/security
           scan_exit=0
-          docker run --rm -v "$GITHUB_WORKSPACE:/repo" zricethezav/gitleaks@sha256:e1b35e12a8c6fa8901f060459cfb6b2fc4c484d3afbe3b029733a3bbfab07055 git /repo --redact=100 --no-banner --config /repo/.gitleaks.toml --report-format json --report-path /repo/artifacts/security/gitleaks.json || scan_exit=$?
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" zricethezav/gitleaks@sha256:e1b35e12a8c6fa8901f060459cfb6b2fc4c484d3afbe3b029733a3bbfab07055 git /repo --redact=100 --no-banner --config /repo/.gitleaks.toml --gitleaks-ignore-path /repo/.gitleaksignore --report-format json --report-path /repo/artifacts/security/gitleaks.json || scan_exit=$?
           node <<'NODE'
           const fs = require("node:fs");
           const findings = JSON.parse(fs.readFileSync("artifacts/security/gitleaks.json", "utf8"));

@@ -66,8 +66,13 @@ export async function processOcrJob(scope: { companyId?: string; id?: string } =
   } catch (e) { if (["P2034", "P2025"].includes(String((e as { code?: string }).code))) return { status: "contended" }; throw e; }
   if (!claimed) return { status: "skipped" };
   let output: Awaited<ReturnType<OcrProvider>> | null = null, failure: OcrProviderError | null = null;
-  try { output = await provider(claimed.imageData); }
-  catch (e) { failure = e instanceof OcrProviderError ? e : new OcrProviderError("Rozpoznawanie nie powiodło się. Zaplanowano ponowienie.", true); }
+  try {
+    const original = await prisma.expenseScan.findUnique({ where: { id: claimed.id } });
+    if (!original) throw new ApiError(404, "Brak oryginału.");
+    await ensureDocumentSafety(original);
+    output = await provider(claimed.imageData);
+  }
+  catch (e) { failure = e instanceof OcrProviderError ? e : e instanceof ApiError ? new OcrProviderError(e.message, false) : new OcrProviderError("Rozpoznawanie nie powiodło się. Zaplanowano ponowienie.", true); }
   return prisma.$transaction(async tx => {
     const job = await tx.ocrJob.findFirst({ where: { id: claimed.id, status: "processing", leaseToken: token } });
     if (!job) return { status: "superseded" };

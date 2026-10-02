@@ -16,12 +16,17 @@ export function PendingTransactions() {
     const ticket = ++generation.current; if (!companyId) return;
     try { const res = await fetch("/api/banking/transactions?companyId=" + companyId + (cursor ? "&cursor=" + cursor : "")), data = await res.json(); if (ticket !== generation.current) return; if (!res.ok) throw new Error(data.error); setRows(old => cursor ? [...old, ...data.transactions] : data.transactions); setTotal(data.total); setNext(data.nextCursor); setError(""); } catch (e) { if (ticket === generation.current) setError(e instanceof Error ? e.message : "Błąd odczytu transakcji."); }
   }, [companyId]);
-  React.useEffect(() => { setRows([]); setSelected(null); setCandidates([]); setError(""); void load(); return () => { ++generation.current; }; }, [load, revision]);
+  React.useEffect(() => { setRows([]); setSelected(null); setCandidates([]); setChoice(""); setSearch(""); setBusy(false); setError(""); void load(); return () => { ++generation.current; }; }, [load, revision]);
   React.useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("transactionId");
-    const found = rows.find(row => row.id === id);
-    if (found) setSelected(found);
-  }, [rows]);
+    if (!id || !companyId) return;
+    const controller = new AbortController();
+    fetch("/api/banking/transactions?companyId=" + companyId + "&transactionId=" + encodeURIComponent(id), { signal: controller.signal })
+      .then(async res => { const data = await res.json(); if (!res.ok) throw new Error(data.error); return data; })
+      .then(data => { if (!controller.signal.aborted && ["unmatched", "ambiguous"].includes(data.transaction.matchStatus)) setSelected(data.transaction); })
+      .catch(e => { if (!controller.signal.aborted) setError(e.message); });
+    return () => controller.abort();
+  }, [companyId]);
   React.useEffect(() => {
     const controller = new AbortController(); setCandidates([]); setChoice("");
     if (!selected || !companyId) return;

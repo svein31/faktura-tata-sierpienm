@@ -19,3 +19,9 @@ test('cookie writes require same-origin evidence; forged and null origins are re
   assert.equal(isUnsafeCrossOrigin(req({ authorization: 'Bearer service-token' })), false);
   assert.equal(isUnsafeCrossOrigin(new Request('https://fakturaprosto.pl/api/data', { headers: { origin: 'https://evil.example' } })), false);
 });
+
+test('same-origin proxy requests use the actual host, not Next internal localhost', () => {
+  const req = headers => new Request('http://localhost:3000/api/invoices', { method: 'POST', headers });
+  assert.equal(isUnsafeCrossOrigin(req({ host: 'fakturaprosto.pl', 'x-forwarded-proto': 'https', origin: 'https://fakturaprosto.pl' })), false);
+  assert.equal(isUnsafeCrossOrigin(req({ host: 'fakturaprosto.pl', 'x-forwarded-proto': 'https', origin: 'https://evil.example', 'x-forwarded-host': 'evil.example' })), true);
+});

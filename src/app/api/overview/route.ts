@@ -45,8 +45,8 @@ export async function GET(req: Request) {
         environment: true, updatedAt: true, nextAttemptAt: true,
         invoice: { select: { number: true } },
       }, orderBy: { updatedAt: "desc" }, take: 20 }) : Promise.resolve([]),
-      prisma.bankTransaction.count({ where: { accountId: company.id, matchStatus: { in: ["unmatched", "ambiguous"] } } }),
-      prisma.bankTransaction.findMany({ where: { accountId: company.id, matchStatus: { in: ["unmatched", "ambiguous"] } }, select: { id: true, description: true, amount: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 }),
+      prisma.bankTransaction.count({ where: { OR: [{ accountId: company.id }, { connection: { companyId: company.id } }], matchStatus: { in: ["unmatched", "ambiguous"] } } }),
+      prisma.bankTransaction.findMany({ where: { OR: [{ accountId: company.id }, { connection: { companyId: company.id } }], matchStatus: { in: ["unmatched", "ambiguous"] } }, select: { id: true, description: true, amount: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 }),
     ]);
     const data = raw[0];
     const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0, missingUpo: 0 };
