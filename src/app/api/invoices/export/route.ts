@@ -1,3 +1,4 @@
+import { requireRecentAuth } from "@/lib/security-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    await requireRecentAuth(user.id);
     const body = await readJson(req), format = (str(body.format) || "csv").toLowerCase(), typeFilter = str(body.type) || "all", dateFrom = str(body.dateFrom), dateTo = str(body.dateTo);
     if (!["csv", "json", "xlsx"].includes(format) || !["sale", "purchase", "all"].includes(typeFilter)) throw new ApiError(400, "Nieprawidłowy format lub rodzaj eksportu.");
     for (const d of [dateFrom, dateTo].filter(Boolean)) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isUnsafeCrossOrigin } from "@/lib/csrf";
 
 export const COOKIE_NAMES = [
   "fakturaprosto_session",
@@ -11,6 +12,9 @@ export const COOKIE_NAMES = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/api/") && isUnsafeCrossOrigin(request)) {
+    return NextResponse.json({ error: "Żądanie pochodzi z niedozwolonej strony.", code: "CSRF_REJECTED" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
 
   // 1. Zezwól na dostęp do plików statycznych, zasobów Next.js, ikon i endpointów API
   if (
@@ -74,5 +78,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

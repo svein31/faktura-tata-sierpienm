@@ -1,14 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { OPERATOR_CONFIG } from "@/lib/legal/config";
 
-export const metadata: Metadata = {
-  title: "Pomoc i kontakt",
-  description: "Krótka pomoc dotycząca faktur, demonstracji i statusu dokumentów KSeF.",
-  openGraph: { title: "Pomoc FakturaProsto", description: "Odpowiedzi na pytania i kontakt z pomocą.", url: "/pomoc" },
-  alternates: { canonical: "/pomoc" },
-};
+export const metadata = pageMetadata("/pomoc", "Pomoc i kontakt", "Krótka pomoc dotycząca faktur, demonstracji i statusu dokumentów KSeF.");
 
 const questions = [
   {
@@ -39,7 +34,7 @@ export default function PublicHelpPage() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
-        <h1 className="text-3xl font-bold tracking-tight">Pomoc i kontakt</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Pomoc FakturaProsto: faktury i KSeF</h1>
         <p className="mt-2 text-sm text-muted-foreground">Odpowiedzi na najczęstsze pytania. Rozwiń temat, który Cię interesuje.</p>
         <div className="mt-8 space-y-2">
           {questions.map(({ question, answer }) => (

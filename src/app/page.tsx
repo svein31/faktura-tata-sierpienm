@@ -1,6 +1,6 @@
 import { WorkspacePreview } from "@/components/landing/workspace-preview";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -26,17 +26,7 @@ import { LandingHeaderActions, LandingPrimaryAction, LandingFooterActions } from
 import { JsonLd } from "@/components/seo/public-pages";
 import { PUBLIC_ORIGIN } from "@/lib/seo/content";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-  openGraph: { title: "FakturaProsto — faktury online i KSeF", description: "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.", url: "/" },
-  title: "FakturaProsto — faktury online i KSeF dla firm",
-  description:
-    "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez rejestracji, poznaj KSeF i oblicz kwoty faktury w darmowych narzędziach.",
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+export const metadata = pageMetadata("/", "FakturaProsto — faktury online i KSeF", "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.");
 
 export default function LandingPage() {
 
@@ -90,9 +80,7 @@ export default function LandingPage() {
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.12]">
-              Niezawodne fakturowanie VAT i bezpośrednia integracja z KSeF
-            </h1>
+            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.12]">Faktury VAT online z KSeF 2.0 dla małych firm</h1>
 
             <p className="mt-5 text-base sm:text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
               Zaprojektowany dla polskich przedsiębiorców i biur rachunkowych. Wystawiaj faktury

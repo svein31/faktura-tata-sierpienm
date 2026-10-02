@@ -1,3 +1,4 @@
+import { assertCompanyMfa } from "./security-policy";
 import { prisma } from "@/lib/db";
 import type { CompanyPermissions, CompanyRole } from "@/lib/types";
 
@@ -32,6 +33,7 @@ export async function getCompanyMembership(
   });
 
   if (!company) return null;
+  await assertCompanyMfa(prisma, userId, companyId);
 
   // 1. Sprawdź rekord w CompanyMember
   const member = await prisma.companyMember.findUnique({

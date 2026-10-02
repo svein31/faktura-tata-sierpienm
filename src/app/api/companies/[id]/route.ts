@@ -1,3 +1,4 @@
+import { requireRecentAuth } from "@/lib/security-policy";
 import { recordAuditLog, buildFieldDiff } from "@/lib/audit";
 import { getCompanyMembership } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
@@ -64,6 +65,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     }
 
     const body = await readJson(req);
+    if (Object.hasOwn(body, "ksefToken")) await requireRecentAuth(user.id);
     const data = parseCompanyProfileBody(body);
     if (data.bankAccount && normalizedBankAccount(data.bankAccount) !== normalizedBankAccount(existing.bankAccount)) {
       const profiles = await prisma.companyProfile.findMany({

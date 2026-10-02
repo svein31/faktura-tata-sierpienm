@@ -2,6 +2,7 @@ export const PUBLIC_ORIGIN = "https://fakturaprosto.pl";
 export const REVIEW_DATE = "2026-09-24";
 
 export type Topic = {
+  modifiedAt?: string;
   path: string;
   title: string;
   description: string;
@@ -107,9 +108,10 @@ export const topics: Topic[] = [
   },
   {
     path: "/poradnik-ksef/jdg",
+    modifiedAt: "2026-10-02",
     title: "KSeF dla JDG w 2026 roku: od kiedy obowiązek?",
     description: "Terminy wdrożenia KSeF dla JDG, wyjątek do 10 000 zł i faktury dla konsumentów. Odpowiedź oparta na źródłach MF.",
-    answer: "Od 1 kwietnia 2026 r. obowiązek wystawiania faktur w KSeF obejmuje co do zasady pozostałych podatników, w tym JDG. Do końca 2026 r. obowiązuje szczególna zasada dla sprzedaży udokumentowanej fakturami nieprzekraczającej 10 000 zł brutto miesięcznie. Sprawdź też rodzaj transakcji i wyłączenia.",
+    answer: "KSeF obejmuje co do zasady JDG od 1 kwietnia 2026 r., z uwzględnieniem ustawowych wyłączeń i przepisów przejściowych. Do końca 2026 r. możliwe jest wystawianie określonych faktur poza KSeF przy miesięcznej wartości sprzedaży do 10 000 zł brutto. Otrzymywanie faktur w KSeF podlega odrębnym zasadom; sam brak obowiązku wystawiania nie wyłącza odbioru.",
     sections: [
       { title: "Sprawdź datę i rodzaj faktury", body: "Etap dla firm o sprzedaży powyżej 200 mln zł w 2024 r. rozpoczął się 1 lutego 2026 r. Dla pozostałych podatników rozpoczął się 1 kwietnia 2026 r. Odbiór faktur przez KSeF podlega odrębnym terminom." },
       { title: "Sprawdź wyjątek przejściowy", body: "Do końca 2026 r. część podatników może wystawiać faktury poza KSeF, jeżeli suma określonej sprzedaży udokumentowanej fakturami w miesiącu nie przekroczy 10 000 zł brutto. Faktura przekraczająca próg zmienia dalsze obowiązki." },
@@ -122,9 +124,10 @@ export const topics: Topic[] = [
   },
   {
     path: "/poradnik-ksef/limit-10000-zl",
+    modifiedAt: "2026-10-02",
     title: "Limit 10 000 zł w KSeF: która faktura go przekracza?",
     description: "Próg KSeF w 2026 r. na przykładach. Sprawdź, którą fakturę trzeba wystawić w KSeF i jak liczyć kolejne dokumenty.",
-    answer: "Do końca 2026 r. przejściowy próg dotyczy określonych faktur wystawionych w danym miesiącu, a nie całego obrotu firmy. Jeżeli faktura przekracza sumę 10 000 zł brutto, już tę fakturę oraz kolejne faktury objęte obowiązkiem wystawia się w KSeF. Spadek wartości w następnym miesiącu nie przywraca tego wyjątku.",
+    answer: "Limit 10 000 zł brutto to przejściowe ułatwienie dotyczące określonych faktur w 2026 r., a nie całego obrotu firmy. Faktura, która zwiększa właściwą miesięczną sumę powyżej limitu, musi już trafić do KSeF. Po przekroczeniu również kolejne faktury objęte obowiązkiem wystawia się w KSeF; niższa suma w następnym miesiącu nie przywraca wyjątku.",
     sections: [
       { title: "Policz właściwe faktury", body: "Uwzględnij datę wystawienia i tylko faktury wchodzące w zakres obowiązku KSeF. Faktury konsumenckie i sprzedaż udokumentowana wyłącznie kasą, bez faktury, nie zwiększają tej kwoty." },
       { title: "Sprawdź moment przekroczenia", body: "Kwota równa dokładnie 10 000 zł brutto nie przekracza progu. Dokument, który zwiększa sumę powyżej 10 000 zł, jest dokumentem, od którego stosuje się KSeF." },
@@ -137,9 +140,10 @@ export const topics: Topic[] = [
   },
   {
     path: "/poradnik-ksef/numer-faktury",
+    modifiedAt: "2026-10-02",
     title: "Numer KSeF: gdzie go znaleźć i kiedy powstaje?",
     description: "Numer faktury a numer KSeF to dwa różne identyfikatory. Sprawdź UPO i status przyjęcia dokumentu.",
-    answer: "Numer KSeF jest nadawany przez system po przyjęciu faktury. Nie jest tym samym co numer faktury nadany przez wystawcę i nie znajduje się w treści XML faktury; można go odczytać z odpowiedzi KSeF lub UPO.",
+    answer: "Numer KSeF to unikalny identyfikator nadawany fakturze po jej przyjęciu przez Krajowy System e-Faktur. Różni się od numeru nadanego przez wystawcę, który pozostaje w polu P_2 struktury FA(3). Nadany tej fakturze numer KSeF odczytasz z odpowiedzi systemu lub UPO. Rozpoczęcie wysyłki i numer referencyjny sesji nie potwierdzają przyjęcia dokumentu.",
     sections: [
       { title: "Odróżnij dwa numery", body: "Numer własny faktury służy do numeracji dokumentów sprzedawcy. Numer KSeF identyfikuje dokument w systemie KSeF i jest nadawany po jego przyjęciu." },
       { title: "Sprawdź status", body: "Nie uznawaj dokumentu za przyjęty wyłącznie dlatego, że wysyłka została rozpoczęta. Sprawdź wynik przetwarzania i przypisany numer KSeF w statusie lub UPO." },
@@ -151,9 +155,10 @@ export const topics: Topic[] = [
   },
   {
     path: "/poradnik-ksef/offline24",
+    modifiedAt: "2026-10-02",
     title: "KSeF offline24: co zrobić, gdy wystawiasz offline?",
     description: "Tryb offline24, data faktury i dalsza wysyłka do KSeF. Najważniejsze rozróżnienia z oficjalnym źródłem.",
-    answer: "Tryb offline24 pozwala wystawić fakturę poza bieżącą sesją online, a następnie przesłać ją do KSeF zgodnie z właściwymi terminami. Nie należy utożsamiać go z awarią całkowitą systemu ani zakładać, że sam lokalny dokument ma już numer KSeF.",
+    answer: "Offline24 pozwala wystawić elektroniczną fakturę zgodną z FA(3) i przesłać ją do KSeF niezwłocznie, najpóźniej w następnym dniu roboczym po wystawieniu. Udostępnienie jej poza KSeF przed wysyłką określonym nabywcom wymaga dwóch kodów QR; drugi korzysta z certyfikatu KSeF typu 2. Ogłoszona awaria systemu może zmienić zasady dalszego postępowania.",
     sections: [
       { title: "Zachowaj datę i dokument", body: "W trybie offline24 data wystawienia wynika z daty wskazanej na fakturze w polu P_1. Potrzebujesz też poprawnego dokumentu zgodnego z aktualną strukturą FA(3)." },
       { title: "Dosyłka i wynik", body: "Przed przekazaniem dokumentu nabywcy sprawdź wymagania dotyczące kodów weryfikacyjnych. Po przesłaniu do KSeF śledź wynik; numer KSeF pojawia się po przyjęciu." },

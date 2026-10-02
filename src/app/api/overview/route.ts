@@ -36,7 +36,7 @@ export async function GET(req: Request) {
       date.setUTCMonth(date.getUTCMonth() - (selectedMonths - 1 - index));
       return date.toISOString().slice(0, 7);
     });
-    const [raw, reviews, workspaces, queue] = await Promise.all([
+    const [raw, reviews, workspaces, queue, unmatchedCount, unmatched] = await Promise.all([
       prisma.invoice.aggregateRaw({ pipeline: overviewPipeline(company.id, today, months) }) as unknown as Promise<OverviewRaw[]>,
       canExport ? prisma.costReview.findMany({ where: { companyId: company.id, status: "pending" }, select: { id: true, number: true, steps: true, currentStep: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 50 }) : Promise.resolve([]),
       canExport ? prisma.accountingWorkspace.findMany({ where: { companyId: company.id }, select: { id: true, month: true, items: true }, orderBy: { month: "desc" }, take: 3 }) : Promise.resolve([]),
@@ -45,11 +45,14 @@ export async function GET(req: Request) {
         environment: true, updatedAt: true, nextAttemptAt: true,
         invoice: { select: { number: true } },
       }, orderBy: { updatedAt: "desc" }, take: 20 }) : Promise.resolve([]),
+      prisma.bankTransaction.count({ where: { accountId: company.id, matchStatus: { in: ["unmatched", "ambiguous"] } } }),
+      prisma.bankTransaction.findMany({ where: { accountId: company.id, matchStatus: { in: ["unmatched", "ambiguous"] } }, select: { id: true, description: true, amount: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 }),
     ]);
     const data = raw[0];
-    const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0 };
-    const counts = { ...(data?.counts[0] || zero), reviews: 0, tasks: 0 };
+    const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0, missingUpo: 0 };
+    const counts = { ...(data?.counts[0] || zero), reviews: 0, tasks: 0, unmatched: unmatchedCount };
     const actions: Action[] = [...(data?.actions || [])];
+    for (const transaction of unmatched) actions.push({ id: "bank:" + transaction.id, kind: "Bank", label: transaction.description || "Transakcja bankowa", detail: transaction.bookingDate + " · " + transaction.amount.toFixed(2) + " " + transaction.currency, href: "/finances?transactionId=" + transaction.id, priority: 2 });
     for (const review of reviews) {
       const steps = Array.isArray(review.steps) ? review.steps as { userId?: string }[] : [];
       if (steps[review.currentStep]?.userId !== user.id) continue;
@@ -82,7 +85,7 @@ export async function GET(req: Request) {
       list.push({ id: row._id.contractorId, count: row.count, gross: round2(row.gross) });
       contractors.set(row._id.currency, list);
     }
-    const totalActions = counts.rejected + counts.uncertain + counts.overdue + counts.drafts + counts.offline + counts.reviews + counts.tasks;
+    const totalActions = counts.rejected + counts.uncertain + counts.overdue + counts.drafts + counts.offline + counts.missingUpo + counts.unmatched + counts.reviews + counts.tasks;
     const previousMonth = months.at(-2)!;
     const totals = (data?.totals || []).map(row => normalizeMoney(row, row._id)).sort((a, b) => a.currency.localeCompare(b.currency));
     return json({

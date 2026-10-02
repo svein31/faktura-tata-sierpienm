@@ -55,6 +55,10 @@ export async function POST(req: Request) {
     if (!["enable", "disable", "recovery"].includes(action)) throw new ApiError(400, "Nieprawidłowa operacja 2FA.");
     const proof = code.length <= 128 ? await consumeMfaCode(user.id, code, action === "enable") : null;
     if (!proof) throw new ApiError(401, "Nieprawidłowy, wygasły lub już użyty kod 2FA.");
+    if (action === "disable") {
+      const companies = await prisma.companyProfile.findMany({ where: { OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }] }, select: { id: true } });
+      if (await prisma.companySecurityPolicy.count({ where: { id: { in: companies.map(c => c.id) }, requireMfa: true } })) throw new ApiError(409, "Firma wymaga 2FA. Najpierw zmień politykę firmy lub zakończ członkostwo.");
+    }
     const recoveryCodes = action === "disable" ? [] : generateRecoveryCodes();
     const now = new Date();
     await prisma.$transaction(async tx => {
