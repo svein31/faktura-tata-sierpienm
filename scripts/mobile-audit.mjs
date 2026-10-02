@@ -273,7 +273,23 @@ export async function auditPublicMobileSite(origin) {
       for(const width of engine.widths) {
         await page.setViewportSize({width,height:812});
         for(const route of publicRoutes) {
-          page=await navigate(page,route,{timeout:60000}); const response=responses.get(page);
+          // A full browser fetches page assets and prefetches links too. Pace this
+          // read-only audit instead of sending a burst to the production edge.
+          await new Promise(resolve=>setTimeout(resolve,1200));
+          let response;
+          for(let attempt=0;attempt<4;attempt++) {
+            page=await navigate(page,route,{timeout:60000});response=responses.get(page);
+            if(response?.ok())break;
+            const headers=response?.headers() || {};
+            const body=await response?.text().catch(()=> '') || '';
+            const message=body.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,' ').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,' ').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,1400);
+            console.log('[production-http] '+JSON.stringify({engine:engine.name,width,route,attempt:attempt+1,status:response?.status(),message,headers:Object.fromEntries(['server','retry-after','x-nf-request-id','x-nf-error','x-netlify-error','content-type'].filter(key=>headers[key]).map(key=>[key,headers[key]]))}));
+            if(attempt===3 || ![403,429,503].includes(response?.status()))break;
+            const retrySeconds=Number(headers['retry-after']);
+            if(Number.isFinite(retrySeconds) && retrySeconds>30)break;
+            await new Promise(resolve=>setTimeout(resolve,Math.max([2000,5000,10000][attempt],Number.isFinite(retrySeconds)?retrySeconds*1000:0)));
+          }
+          if(!response?.ok())await page.screenshot({path:'artifacts/mobile/production-http-'+engine.name+'-'+width+'-'+route.replace(/[^a-z0-9]/gi,'_')+'.png',fullPage:true}).catch(()=>{});
           assert.ok(response?.ok(),engine.name+' '+route+' HTTP '+response?.status());
           await expect(page.locator('h1').first()).toBeVisible({timeout:30000});
           await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
