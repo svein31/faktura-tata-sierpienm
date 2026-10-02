@@ -10,7 +10,7 @@ Osiem sekcji, RBAC/portal księgowy, bankowość, motywy, landing, OCR, przypomn
 
 ## Poprawione przypadki brzegowe
 
-- MT940 RC/RD oraz camt.053 RvslInd są rozpoznawane jako storno. Operacja pozostaje w historii bankowej z `matchSignals: ["reversal"]`; nie tworzy nowej płatności, zarówno przy imporcie, jak i ręcznym przypisaniu. Widok pokazuje wyjaśnienie. Pominięcie po sprawdzeniu pozostaje dostępne; cofnięcie wcześniejszej płatności wymaga osobnego rozliczenia.
+- MT940 RC/RD oraz camt.053 RvslInd są rozpoznawane jako storno. Storno nie jest deduplikowane z operacją pierwotną, gdy bank ponownie wykorzysta jej referencję. Operacja pozostaje w historii bankowej z `matchSignals: ["reversal"]`; nie tworzy nowej płatności, zarówno przy imporcie, jak i ręcznym przypisaniu. Widok pokazuje wyjaśnienie. Pominięcie po sprawdzeniu pozostaje dostępne; cofnięcie wcześniejszej płatności wymaga osobnego rozliczenia.
 - Numer FV/1 nie identyfikuje FV/1/2, FV/1-2, FV/1.2 ani FV/1_2. NIP nie jest dopasowywany jako fragment dłuższego ciągu cyfr.
 - Podgląd nie dopasowuje nadpłaty ani częściowej wypłaty do wydatku, którego rejestr obsługuje pełną zapłatę. Faktury nadal mogą otrzymywać częściowe płatności.
 - Eksport przelewów odrzuca ułamki grosza i nie zmienia przekazanego obiektu z danymi przelewu.

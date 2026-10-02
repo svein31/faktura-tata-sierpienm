@@ -64,7 +64,7 @@ export async function POST(req: Request) {
           await tx.bankStatementImport.create({ data: { userId: user.id, filename: String(body.filename || "wyciag").slice(0, 200), bankFormat: parsed.format, rowCount: matched.length, matchedCount, totalAmount: Math.round(matched.reduce((s, t) => s + t.amount, 0) * 100) / 100, fileHash } });
           const duplicates = new Map<string, number>();
           for (const item of matched) {
-            const identity = hash(JSON.stringify(item.externalReference ? [companyId || user.id, item.accountIban || "", item.externalReference] : [companyId || user.id, item.accountIban || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
+            const identity = hash(JSON.stringify(item.externalReference ? [companyId || user.id, item.accountIban || "", item.externalReference, ...(item.reversal ? ["reversal"] : [])] : [companyId || user.id, item.accountIban || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
             const occurrence = duplicates.get(identity) || 0; duplicates.set(identity, occurrence + 1);
             const externalId = item.externalReference ? identity : identity + ":" + occurrence;
             if (await tx.bankTransaction.findUnique({ where: { userId_externalId: { userId: ownerId, externalId } } })) { skippedCount++; continue; }
