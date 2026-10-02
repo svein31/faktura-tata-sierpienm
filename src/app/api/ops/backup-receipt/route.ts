@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const secret = process.env.BACKUP_MONITOR_SECRET || "";
-    if (secret.length < 32) throw new ApiError(503, "Monitor kopii nie został skonfigurowany.");
+    if (secret.length < 32) throw new ApiError(401, "Nieprawidłowy podpis.");
     const reader = req.body?.getReader(); if (!reader) throw new ApiError(400, "Brak potwierdzenia.");
     let size = 0; const chunks: Uint8Array[] = [];
     while (true) { const next = await reader.read(); if (next.done) break; size += next.value.length; if (size > 4096) { await reader.cancel(); throw new ApiError(413, "Potwierdzenie jest za duże."); } chunks.push(next.value); }
