@@ -66,6 +66,7 @@ export default function LandingPage() {
         </div>
       </header>
 
+      <main id="main-content">
       {/* ── HERO SECTION ── */}
       <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
         {/* Delikatne tło gradientowe Apple/Stripe */}
@@ -361,6 +362,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      </main>
       {/* ── STOPKA ── */}
       <footer className="border-t border-border/60 py-10 bg-background">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
