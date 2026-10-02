@@ -89,20 +89,20 @@ export function TopicPage({ topic }: { topic: Topic }) {
       ...(topic.path === "/faktury/jak-wystawic" ? [{ "@type": "HowTo", "@id": `${canonical}#howto`, name: topic.title, description: topic.answer, step: topic.sections.map((section, index) => ({ "@type": "HowToStep", position: index + 1, name: section.title, text: section.body })) }] : []),
     ] }} />
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
-      <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground"><Link href="/" className="hover:text-primary">Start</Link> / <Link href={`/${category}`} className="hover:text-primary">{category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : "Faktury"}</Link> / Poradnik</nav>
+      <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground"><Link href="/" className="hover:text-primary">Start</Link> / <Link href={`/${category}`} className="hover:text-primary">{category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury"}</Link> / Poradnik</nav>
       <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Odpowiedź · Aktualizacja {topic.modifiedAt || REVIEW_DATE}</p>
       <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{topic.title}</h1>
       <div className="mt-7 rounded-2xl border border-primary/30 bg-primary/5 p-5 sm:p-6">
         <h2 className="text-sm font-bold text-primary">Krótka odpowiedź</h2>
         <p className="mt-2 text-base leading-relaxed">{topic.answer}</p>
       </div>
-      <div className="mt-10 grid gap-9 lg:grid-cols-[minmax(0,1fr)_240px]">
-        <div className="space-y-8">
+      <div className="mt-10 grid min-w-0 grid-cols-1 gap-9 lg:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="min-w-0 space-y-8">
           {topic.sections.map(section => <section key={section.title}>
             <h2 className="text-xl font-semibold">{section.title}</h2>
             <p className="mt-3 leading-relaxed text-muted-foreground">{section.body}</p>
           </section>)}
-          {topic.comparison && <section><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
+          {topic.comparison && <section className="min-w-0"><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><p className="mt-2 text-xs text-muted-foreground sm:hidden">Przewiń tabelę w bok, aby zobaczyć wszystkie kryteria.</p><div role="region" aria-label="Porównanie kryteriów wyboru" tabIndex={0} className="mt-3 max-w-full overflow-x-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
           <section className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-semibold">Przykład z wynikiem</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground">{topic.example}</p>
@@ -117,7 +117,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <p className="mt-3 text-xs text-muted-foreground">Autor: Redakcja FakturaProsto. Opracowujemy instrukcje produktu i poradniki na podstawie podanych źródeł urzędowych. <Link href="/pomoc" className="text-primary underline">Kontakt i zgłoszenie poprawki</Link>. W złożonej sytuacji sprawdź aktualne przepisy i szczegóły własnej transakcji.</p>
           </section>
         </div>
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <div className="rounded-2xl border border-border/70 bg-card p-5">
             <h2 className="font-semibold">Przejdź do działania</h2>
             <p className="mt-2 text-sm text-muted-foreground">Zobacz formularz przykładowej faktury bez rejestracji. Demo nie wysyła dokumentów do KSeF.</p>
