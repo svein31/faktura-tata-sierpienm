@@ -1,10 +1,10 @@
+import {WorkspacePreview} from "@/components/landing/workspace-preview";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
   FileCheck2,
-  FileCode2,
   FileText,
   Lock,
   Play,
@@ -123,106 +123,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* ── WIZUALIZACJA INTERFEJSU (PRAWDZIWY PODGLĄD FAKTURO) ── */}
-          <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl sm:backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4 mb-6">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-base font-bold text-foreground">FV/2026/09/0001</span>
-                    <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400">
-                      KSeF: Przyjęta (200 OK)
-                    </span>
-                  </div>
-                  <p className="break-all text-xs text-muted-foreground">Numer KSeF: 5260301706-20260912-A1B2C3D4E5F6-11</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground rounded-lg border border-border px-2.5 py-1">
-                  <QrCode className="h-3.5 w-3.5 text-foreground" />
-                  <span>KOD I (KSeF)</span>
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground rounded-lg border border-border px-2.5 py-1">
-                  <FileCode2 className="h-3.5 w-3.5 text-foreground" />
-                  <span>UPO pobrane</span>
-                </span>
-              </div>
-            </div>
-
-            <p className="mb-3 text-xs text-muted-foreground">Przykładowy dokument demonstracyjny. Widoczne dane i statusy są ilustracją.</p>
-            {/* Dane kontrahentów */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
-              <div>
-                <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Sprzedawca</p>
-                <p className="mt-1 font-bold text-foreground text-sm">Przykładowa Firma Sp. z o.o.</p>
-                <p className="text-muted-foreground">NIP: 5260301706 · ul. Przykładowa 10, 00-001 Warszawa</p>
-                <p className="text-muted-foreground mt-0.5">Rachunek: 12 1050 0099 6711 1111 1111 1111</p>
-              </div>
-              <div>
-                <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Nabywca (Kontrahent)</p>
-                <p className="mt-1 font-bold text-foreground text-sm">Przykładowy Kontrahent S.A.</p>
-                <p className="text-muted-foreground">NIP: 5270000024 · ul. Biznesowa 25, 00-950 Warszawa</p>
-                <p className="text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
-              </div>
-            </div>
-
-            {/* Pozycje */}
-            <p className="mb-1 text-[11px] text-muted-foreground sm:hidden">Przesuń tabelę w bok, aby zobaczyć wszystkie kolumny.</p>
-            <div className="overflow-x-auto" role="region" aria-label="Pozycje przykładowej faktury" tabIndex={0}>
-              <table className="w-full min-w-[640px] text-left text-xs">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground">
-                    <th className="py-2 px-3">Lp.</th>
-                    <th className="py-2 px-3">Nazwa towaru / usługi</th>
-                    <th className="py-2 px-3">Ilość</th>
-                    <th className="py-2 px-3">Cena netto</th>
-                    <th className="py-2 px-3">Stawka VAT</th>
-                    <th className="py-2 px-3 text-right">Wartość brutto</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50 text-foreground">
-                  <tr>
-                    <td className="py-2.5 px-3 font-mono text-muted-foreground">1</td>
-                    <td className="py-2.5 px-3 font-medium">Usługi programistyczne i wdrożenie integracji KSeF 2.0</td>
-                    <td className="py-2.5 px-3">1 szt.</td>
-                    <td className="py-2.5 px-3">5 000,00 PLN</td>
-                    <td className="py-2.5 px-3">23%</td>
-                    <td className="py-2.5 px-3 text-right font-bold">6 150,00 PLN</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 px-3 font-mono text-muted-foreground">2</td>
-                    <td className="py-2.5 px-3 font-medium">Konsultacje księgowo-techniczne i konfiguracja uprawnień</td>
-                    <td className="py-2.5 px-3">2 godz.</td>
-                    <td className="py-2.5 px-3">500,00 PLN</td>
-                    <td className="py-2.5 px-3">23%</td>
-                    <td className="py-2.5 px-3 text-right font-bold">1 230,00 PLN</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Podsumowanie */}
-            <div className="mt-4 flex justify-end border-t border-border pt-4">
-              <div className="w-full max-w-xs space-y-1.5 text-xs text-right">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Razem netto:</span>
-                  <span className="font-semibold text-foreground">6 000,00 PLN</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>VAT 23%:</span>
-                  <span className="font-semibold text-foreground">1 380,00 PLN</span>
-                </div>
-                <div className="flex justify-between text-sm font-bold text-foreground border-t border-border/60 pt-1.5">
-                  <span>Do zapłaty (brutto):</span>
-                  <span className="text-primary text-base">7 380,00 PLN</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <WorkspacePreview/>
         </div>
       </section>
 

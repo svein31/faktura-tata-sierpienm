@@ -105,6 +105,8 @@ export interface TaxCalculationInput {
 
   /** Zapłacone składki zdrowotne narastająco od początku roku. */
   healthPaidYtd?: number;
+  /** Faktycznie zapłacone składki społeczne bez FP/FS; brak = symulacja nominalna. */
+  socialPaidYtd?: number;
 
   /** Kwota VAT do zapłaty za okres (P_51 z JPK_V7). */
   vatDue?: number;
@@ -639,7 +641,7 @@ export function calculateTaxes(input: TaxCalculationInput): TaxCalculationResult
    * składki na ubezpieczenia społeczne. Składka na FP/FS nie jest odliczana
    * od dochodu — stanowi wyłącznie koszt uzyskania przychodu (art. 22 ust. 1 updof).
    */
-  const socialInsuranceYtd = round2(nominalSocial.insuranceTotal * contributionMonths);
+  const socialInsuranceYtd = round2(input.socialPaidYtd === undefined ? nominalSocial.insuranceTotal * contributionMonths : Math.max(0,input.socialPaidYtd));
   const healthPaidYtd = round2(Math.max(0, input.healthPaidYtd ?? 0));
 
   const lossCarryForward = round2(Math.max(0, input.lossCarryForward));

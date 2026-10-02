@@ -6,9 +6,10 @@ import { dueReminderContent } from "./reminder-content";
 import { warsawDate } from "./scheduling";
 import { getEmailConfigStatus, isValidEmail, sendEmail } from "./email/sender";
 import { recordAuditLog } from "./audit";
+import {smsConfigured,normalizeSmsPhone,sendSms} from "./sms";
 import { ApiError } from "./api";
 export async function processDueReminders() {
-  if (!getEmailConfigStatus().configured) throw new ApiError(503,"Skonfiguruj SMTP lub Resend przed uruchomieniem przypomnień.");
+  if (!getEmailConfigStatus().configured && !smsConfigured()) throw new ApiError(503,"Skonfiguruj pocztę lub SMSAPI przed uruchomieniem przypomnień.");
   const now = new Date(), today = warsawDate(now), start = Date.now();
   await prisma.dueReminderDelivery.updateMany({ where: { status: "sending", startedAt: { lt: new Date(now.getTime() - 600000) } }, data: { status: "verify_needed", error: "Przerwane wysyłanie — sprawdź u dostawcy poczty przed ponowieniem." } });
   const settings = await prisma.dueReminderSetting.findMany({ where: { enabled: true, nextCheckAt: { lte: now } }, orderBy: { nextCheckAt: "asc" }, take: 30 });
@@ -21,8 +22,9 @@ export async function processDueReminders() {
     if (!invoice) continue;
     const content = dueReminderContent(invoiceToDto(invoice),today,invoice.sellerCompany?.companyName || "");
     if (!content) continue;
-    const eventKey = `${invoice.id}:${invoice.dueDate}:${content.stage}`;
-    await prisma.dueReminderDelivery.upsert({ where: { eventKey }, update: {}, create: { settingId: setting.id, companyId: setting.companyId, eventKey, dueDate: invoice.dueDate, stage: content.stage } });
+    for(const channel of setting.channels?.length?setting.channels:["email"]){if(!["email","sms"].includes(channel))continue;const eventKey=`${invoice.id}:${invoice.dueDate}:${content.stage}${channel==="sms"?":sms":""}`;
+    await prisma.dueReminderDelivery.upsert({where:{eventKey},update:{},create:{settingId:setting.id,companyId:setting.companyId,eventKey,dueDate:invoice.dueDate,stage:content.stage,channel}});}
+
   }
   let sent = 0;
   const pending = await prisma.dueReminderDelivery.findMany({ where: { status: "pending" }, orderBy: { createdAt: "asc" }, take: 5 });
@@ -39,19 +41,21 @@ export async function processDueReminders() {
       if (!content || !invoice || invoice.dueDate !== delivery.dueDate || content.stage !== delivery.stage) {
         await prisma.dueReminderDelivery.update({ where: { id: delivery.id }, data: { status: "cancelled" } }); continue;
       }
-      const contractor = await prisma.contractor.findUnique({ where: { id: invoice.contractorId } });
-      if (!contractor?.email || !isValidEmail(contractor.email) || (contractor.companyId && contractor.companyId !== setting.companyId)) throw new Error("Brak poprawnego adresu e-mail kontrahenta tej firmy.");
-      await prisma.dueReminderDelivery.update({ where: { id: delivery.id }, data: { recipient: contractor.email } });
-      attempted = true;
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      const result = await Promise.race([
-        sendEmail({ to: contractor.email, subject: content.subject, text: content.text, singleAttempt: true, signal: AbortSignal.timeout(15000) }),
-        new Promise<never>((_,reject) => { timer = setTimeout(() => reject(new Error("Limit czasu wysyłki — sprawdź status u dostawcy poczty.")),17000); }),
-      ]).finally(() => { if (timer) clearTimeout(timer); });
-      if (!result.success) throw new Error("Dostawca nie potwierdził przyjęcia wiadomości.");
+      const channel=delivery.channel||"email";if(!(setting.channels?.length?setting.channels:["email"]).includes(channel))throw new Error("Kanał przypomnienia wyłączony.");
+      let recipient:string,result:{success:boolean;messageId?:string};
+      if(channel==="sms"){
+        if(!smsConfigured())throw new Error("Brak konfiguracji SMSAPI.");recipient=normalizeSmsPhone(setting.smsPhone);await prisma.dueReminderDelivery.update({where:{id:delivery.id},data:{recipient}});
+        const sms=`Przypomnienie: FV ${invoice.number.slice(0,45)}, termin ${invoice.dueDate}, saldo ${content.remaining.toFixed(2)} ${invoice.currency}. Jeśli opłacono, pomiń. ${(invoice.sellerCompany?.companyName||"").slice(0,35)}`;
+        attempted=true;result=await sendSms(recipient,sms,delivery.eventKey);
+      }else{
+        if(!getEmailConfigStatus().configured)throw new Error("Brak konfiguracji poczty.");const contractor=await prisma.contractor.findUnique({where:{id:invoice.contractorId}});if(!contractor?.email||!isValidEmail(contractor.email)||(contractor.companyId&&contractor.companyId!==setting.companyId))throw new Error("Brak poprawnego e-mail kontrahenta firmy.");recipient=contractor.email;
+        await prisma.dueReminderDelivery.update({where:{id:delivery.id},data:{recipient}});attempted=true;let timer:ReturnType<typeof setTimeout>|undefined;
+        result=await Promise.race([sendEmail({to:recipient,subject:content.subject,text:content.text,singleAttempt:true,signal:AbortSignal.timeout(15000)}),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error("Limit czasu wysyłki — sprawdź historię dostawcy.")),17000);})]).finally(()=>{if(timer)clearTimeout(timer);});
+      }
+      if(!result.success)throw new Error("Dostawca nie potwierdził przyjęcia wiadomości.");
       await prisma.$transaction(async tx => {
         await tx.dueReminderDelivery.update({ where: { id: delivery.id }, data: { status: "sent", sentAt: new Date(), messageId: result.messageId || null, error: null } });
-        await recordAuditLog({ client: tx, companyId: setting.companyId, userId: setting.userId, entityType: "invoice", entityId: invoice.id, documentId: invoice.id, action: "due_reminder_sent", details: { deliveryId: delivery.id, stage: delivery.stage } });
+        await recordAuditLog({ client: tx, companyId: setting.companyId, userId: setting.userId, entityType: "invoice", entityId: invoice.id, documentId: invoice.id, action: "due_reminder_sent", details: { deliveryId: delivery.id, stage: delivery.stage, channel } });
       }); sent++;
     } catch (error) {
       await prisma.dueReminderDelivery.update({ where: { id: delivery.id }, data: { status: attempted ? "verify_needed" : "failed", error: (error instanceof Error ? error.message : "Błąd").slice(0,500) } });

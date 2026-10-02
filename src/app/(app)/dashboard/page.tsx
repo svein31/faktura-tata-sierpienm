@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import {AccountantPortal} from "@/components/accountant/document-portal";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowRight, Crown, Plus, RefreshCw } from "lucide-react";
@@ -12,7 +13,9 @@ import { OnboardingBanner } from "@/components/ui/page-guide";
 const RevenueAreaChart = dynamic(() => import("@/components/charts").then(m => m.RevenueAreaChart), { ssr: false });
 const money = (amount: number, currency: string) => formatMoney(amount, currency as Parameters<typeof formatMoney>[1]);
 
-export default function DashboardPage() {
+export default function DashboardPage(){const company=useAppStore(s=>s.company);return company?.currentUserRole==="accountant"?<AccountantPortal/>:<NormalDashboard/>;}
+
+function NormalDashboard() {
   const { data, error, companyId, reload } = useOverview();
   const company = useAppStore(s => s.company);
   const ksef = useAppStore(s => s.ksef);

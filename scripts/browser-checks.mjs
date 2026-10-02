@@ -176,6 +176,13 @@ export async function browserChecks(base) {
       await expect(page.getByRole('heading').first()).toBeVisible();
       assert.equal(await page.getByText('Nie udało się wyświetlić strony', { exact: true }).count(), 0, heading);
     }
+    await page.goto('/settings/appearance');
+    await page.getByRole('button',{name:'Systemowy',exact:true}).click();
+    await page.emulateMedia({colorScheme:'light'});await expect(page.locator('html')).not.toHaveClass(/dark/);
+    await page.emulateMedia({colorScheme:'dark'});await expect(page.locator('html')).toHaveClass(/dark/);
+    await page.getByLabel('Kolor przewodni').fill('#225588');
+    await page.reload();await expect(page.getByLabel('Kolor przewodni')).toHaveValue('#225588');
+    await page.getByRole('button',{name:'Przywróć domyślne kolory'}).click();
     await page.setViewportSize({ width: 390, height: 844 });
     const mobileRoutes = ['/dashboard', '/analytics', '/ksef', '/settings/health', '/invoices', '/warehouse', '/projects', '/documents', '/settings/pdf-templates'];
     // Rozszerzony audyt po wdrożeniu; podstawowy zestaw pozostaje bramką CI.
@@ -183,7 +190,7 @@ export async function browserChecks(base) {
       '/invoices/new', '/invoices/recurring', '/advances', '/recurring', '/offers', '/orders', '/expenses',
       '/finances', '/calendar', '/jpk', '/audit', '/contractors', '/products', '/accountant', '/cost-reviews',
       '/reminders', '/settings/account', '/settings/companies', '/settings/currencies', '/settings/integrations',
-      '/settings/ksef', '/settings/team', '/help',
+      '/settings/ksef', '/settings/team', '/help', '/settings/appearance', '/accountant/portal', '/tax-estimate',
     );
     for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();

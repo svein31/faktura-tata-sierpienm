@@ -21,7 +21,7 @@ function csvRows(text:string,delimiter:string){const rows:string[][]=[];let row:
 export function parseBankStatementCsv(text:string,defaultCurrency="PLN"):ParsedRawTransaction[]{
  if(text.length>2_000_000)throw new ApiError(413,"Wyciąg jest zbyt duży.");
  let rows:string[][]=[],headers:string[]=[],index=-1;
- for(const delimiter of [";",",","\t","|"]){const candidate=csvRows(text.replace(/^\uFEFF/,""),delimiter);const found=candidate.slice(0,25).findIndex(row=>{const h=row.map(header);return h.some(c=>/data|date/.test(c))&&h.some(c=>/kwota|wartosc|amount|debit|credit|obciazeni|uznani/.test(c));});if(found>=0){rows=candidate;headers=rows[found].map(header);index=found;break;}}
+ for(const delimiter of [";",",","\t","|"]){const candidate=csvRows(text.replace(/^\uFEFF/,""),delimiter);const found=candidate.slice(0,25).findIndex(row=>{const h=row.map(header);const date=h.findIndex(c=>/data|date/.test(c)),amount=h.findIndex(c=>/kwota|wartosc|amount|debit|credit|obciazeni|uznani/.test(c));return date>=0&&amount>=0&&date!==amount;});if(found>=0){rows=candidate;headers=rows[found].map(header);index=found;break;}}
  if(index<0)throw new ApiError(400,"Brak rozpoznanych nagłówków CSV: data i kwota (lub obciążenie/uznanie).");
  const col=(pattern:RegExp)=>headers.findIndex(h=>pattern.test(h)),dateCol=col(/data|date/),amountCol=col(/kwota|wartosc|amount/),debit=col(/debit|obciazeni/),credit=col(/credit|uznani/),title=col(/tytul|opis|szczegol|title|description/),party=col(/nadawca|odbiorca|kontrahent|nazwa|name/),account=col(/rachunek|konto|iban|account/),currency=col(/walut|currency/),reference=col(/referenc|identyfikator|reference|transaction id/);
  const transactions:ParsedRawTransaction[]=[];
