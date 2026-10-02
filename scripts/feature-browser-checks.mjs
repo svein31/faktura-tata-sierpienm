@@ -122,16 +122,21 @@ export async function auditFeatureControls(page, context, db, fixture) {
     checks.push('Phone new invoice starts a clean form without re-login');
     // Simulate only a returned MF status; no real tax document is transmitted.
     const pendingInvoice = await db.invoice.create({data:{userId:issuedState.userId,sellerCompanyId:fixture.companyId,contractorId:fixture.contractorId,number:'UI/KSEF/PENDING',type:'sale',status:'ksef_sent',documentStatus:'ready',ksefStatus:'verify_needed',referenceNumber:'UI-EXISTING-REFERENCE',issueDate:'2032-01-03',saleDate:'2032-01-03',dueDate:'2032-01-17',currency:'PLN',lines:issuedState.lines,ksef:{environment:'demo'}}});
-    let statusReads=0;
+    let statusReads=0,acceptKsef=false;
     await page.route('**/api/ksef/status/'+pendingInvoice.id,async route=>{
       statusReads++;
+      if (!acceptKsef) { await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,status:'PENDING',hasUpo:false})}); return; }
       await db.invoice.update({where:{id:pendingInvoice.id},data:{status:'ksef_active',documentStatus:'accepted',ksefStatus:'accepted',ksefNumber:'UI-ACCEPTED-KSEF'}});
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,status:'ACCEPTED',ksefReferenceNumber:'UI-ACCEPTED-KSEF',hasUpo:false})});
     });
     await page.goto('/invoices/'+pendingInvoice.id);
+    await expect(page.getByText('Faktura przekazana do KSeF · oczekuje na wynik',{exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Oczekiwanie na wynik KSeF',exact:true})).toBeDisabled();
+    acceptKsef=true;
     await expect(page.getByText('Przyjęta · oczekuje na UPO',{exact:true})).toBeVisible();
     assert.ok(statusReads>0,'Pending invoice status is read without a manual click');
     assert.equal(await page.getByText('Przyjęta · UPO pobrane',{exact:true}).count(),0);
+    await expect(page.getByText('Przyjęta · UPO w przygotowaniu',{exact:true})).toBeVisible();
     await db.invoice.update({where:{id:pendingInvoice.id},data:{upoXml:'<UPO/>'}});
     await expect(page.getByText('Przyjęta · UPO pobrane',{exact:true})).toBeVisible({timeout:15000});
     await page.unroute('**/api/ksef/status/'+pendingInvoice.id);
