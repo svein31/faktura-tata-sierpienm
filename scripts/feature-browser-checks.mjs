@@ -64,7 +64,8 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assistant = page.getByRole('dialog');
     await submit(assistant.getByRole('button',{name:'Zatwierdzam i kontynuuję',exact:true}),'/api/invoices/'+fractional.invoice.id);
     await expect(page).toHaveURL(/invoices$/);
-    assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).status,'issued');
+    const issuedState=await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}});
+    assert.equal(issuedState.status,'issued');assert.equal(issuedState.documentStatus,'issued');
     checks.push('Phone invoice assistant cancel, no side effects and explicit issue confirmation');
 
     await page.setViewportSize({width:1280,height:900});

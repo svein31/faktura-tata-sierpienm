@@ -36,15 +36,15 @@ const action = (condition: unknown, kind: string, label: unknown, detail: unknow
  * The database groups rows before crossing the API boundary; no client-visible invoice scan.
  */
 export function overviewPipeline(companyId: string, today: string, months: string[]): Prisma.InputJsonObject[] {
-  const financeMatch = { $match: { type: "sale", status: { $ne: "draft" }, isProforma: { $ne: true } } };
+  const financeMatch = { $match: { type: "sale", status: { $ne: "draft" }, documentStatus: { $ne: "draft" }, isProforma: { $ne: true } } };
   const rejected = { $or: [{ $eq: ["$ksefStatus", "rejected"] }, { $eq: ["$status", "ksef_rejected"] }] };
   const uncertain = { $eq: ["$ksefStatus", "verify_needed"] };
   const offline = { $and: [{ $eq: ["$isOffline", true] }, { $eq: [{ $ifNull: ["$ksefNumber", ""] }, ""] }, { $ne: ["$ksefStatus", "accepted"] }] };
   const missingUpo = { $and: [{ $eq: ["$ksefStatus", "accepted"] }, { $gt: [{ $ifNull: ["$ksefNumber", ""] }, ""] }, { $eq: [{ $ifNull: ["$upoXml", ""] }, ""] }] };
   const draft = { $or: [{ $eq: ["$status", "draft"] }, { $eq: ["$documentStatus", "draft"] }] };
-  const overdue = { $and: [{ $eq: ["$type", "sale"] }, { $ne: ["$status", "draft"] }, { $ne: ["$status", "paid"] }, { $ne: ["$paymentStatus", "paid"] }, { $gt: ["$dueDate", ""] }, { $lt: ["$dueDate", today] }] };
+  const overdue = { $and: [{ $eq: ["$type", "sale"] }, { $ne: ["$isProforma", true] }, { $ne: ["$documentStatus", "draft"] }, { $ne: ["$status", "draft"] }, { $ne: ["$status", "paid"] }, { $ne: ["$paymentStatus", "paid"] }, { $gt: ["$dueDate", ""] }, { $lt: ["$dueDate", today] }] };
   return [
-    { $match: { sellerCompanyId: { $oid: companyId } } },
+    { $match: { sellerCompanyId: { $oid: companyId }, status: { $ne: "cancelled" }, documentStatus: { $ne: "cancelled" } } },
     ...valued,
     { $facet: {
       counts: [{ $group: { _id: null, rejected: yes(rejected), uncertain: yes(uncertain), overdue: yes(overdue), drafts: yes(draft), offline: yes(offline), missingUpo: yes(missingUpo) } }],
