@@ -14,6 +14,7 @@ export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   if (!input.seller.street || !input.seller.city || !input.seller.postalCode) add("seller.address", "warning", "Uzupełnij adres sprzedawcy w profilu firmy przed wysyłką do KSeF.");
   if (!input.buyer.street || !input.buyer.city || !input.buyer.postal) add("buyer.address", "warning", "Sprawdź kompletność adresu nabywcy.");
   if (!/^[A-Z]{3}$/.test(input.currency)) add("currency", "error", "Wybierz poprawny kod waluty.");
+  if (!Number.isFinite(input.gross)) add("totals", "error", "Kwoty przekraczają obsługiwany zakres. Sprawdź ceny i ilości.");
   if (!input.lines.length || input.lines.length > 200) add("lines", "error", "Faktura wymaga od 1 do 200 pozycji.");
   if (input.lines.some(l => !l.name.trim() || !Number.isFinite(l.quantity) || l.quantity <= 0 || !Number.isFinite(l.netPrice) || l.netPrice < 0 || !["23", "8", "5", "0", "zw", "np", "oo"].includes(l.vatRate))) add("lines.values", "error", "Sprawdź nazwy, ilości, ceny i stawki wszystkich pozycji.");
   if (input.lines.some(l => l.vatRate === "zw") && !input.exemptionBasis?.trim()) add("vat.exemption", "warning", "Sprawdź podstawę zwolnienia VAT i uzupełnij ją, jeśli jest wymagana.");

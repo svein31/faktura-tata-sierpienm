@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       buyer = { name: contact.name, nip: contact.nip, country: contact.country || str(address.country), taxIdType: contact.taxIdType || "nip", street: str(address.street), city: str(address.city), postal: str(address.postal) };
     }
     if (!Array.isArray(body.lines) || body.lines.length > 200 || body.lines.some(l => !l || typeof l !== "object" || Array.isArray(l))) throw new ApiError(400, "Sprawdź pozycje faktury.");
-    const lines = body.lines.map(l => ({ name: str(l.name), quantity: l.quantity, netPrice: l.netPrice, vatRate: str(l.vatRate) }));
+    const lines = body.lines.map(l => ({ name: str(l.name), quantity: l.quantity, netPrice: l.netPrice, vatRate: str(l.vatRate), discount: typeof l.discount === "number" ? l.discount : 0 }));
     const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
     const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
     const issues = assessInvoice(input);
