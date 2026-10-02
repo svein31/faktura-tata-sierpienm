@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
   return <div className="space-y-5">
     <header className="flex flex-wrap items-center justify-between gap-3">
-      <div><h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1><p className="text-xs text-muted-foreground">Najważniejsze sprawy wybranej firmy</p></div>
+      <div><h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1><p className="text-xs text-muted-foreground">Dokumenty, potwierdzenia i płatności wymagające działania</p></div>
       <div className="flex flex-wrap items-center gap-2">
         {showUpgrade && <Link
           href="/settings/account?tab=billing"
@@ -76,7 +76,7 @@ export default function DashboardPage() {
       <section aria-label="Sprawy wymagające działania" className="rounded-xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3"><h2 className="text-sm font-semibold">Do załatwienia <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{data.actionTotal}</span></h2><span className="text-xs text-muted-foreground">{data.actionTotal > 8 ? "8 najpilniejszych" : "Bieżące zadania"}</span></div>
         {data.actions.length ? <div className="divide-y">{data.actions.map(action => <Link key={action.id} href={action.href} className="flex min-h-12 items-center gap-3 px-4 py-2 hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-primary"><span className="hidden w-28 shrink-0 text-[11px] font-medium text-muted-foreground sm:block">{action.kind}</span><span className="min-w-0 flex-1 space-y-0.5 break-words text-sm"><span className="block text-[11px] text-muted-foreground sm:hidden">{action.kind}</span><span className="block font-medium">{action.label}</span><span className="block text-xs text-muted-foreground">{action.detail}</span></span><ArrowRight className="size-4 shrink-0 text-muted-foreground" /></Link>)}</div> : <p className="px-4 py-5 text-sm text-muted-foreground">Brak pilnych spraw dla tej firmy.</p>}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground"><Link href="/cost-reviews" className="hover:text-primary">Akceptacje: {data.counts.reviews}</Link><Link href="/accountant" className="hover:text-primary">Zadania: {data.counts.tasks}</Link><Link href="/invoices" className="hover:text-primary">Po terminie: {data.counts.overdue}</Link><Link href="/ksef" className="hover:text-primary">KSeF: {data.counts.rejected + data.counts.uncertain}</Link></div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t px-4 py-2 text-xs text-muted-foreground"><Link href="/finances" className="hover:text-primary">Niedopasowane wpłaty: {data.counts.unmatched}</Link><Link href="/ksef" className="hover:text-primary">Brak UPO: {data.counts.missingUpo}</Link><Link href="/cost-reviews" className="hover:text-primary">Akceptacje: {data.counts.reviews}</Link><Link href="/accountant" className="hover:text-primary">Zadania: {data.counts.tasks}</Link><Link href="/invoices" className="hover:text-primary">Po terminie: {data.counts.overdue}</Link><Link href="/ksef" className="hover:text-primary">KSeF: {data.counts.rejected + data.counts.uncertain}</Link></div>
       </section>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section aria-label="Przychody" className="min-w-0 rounded-xl border bg-card p-4 shadow-sm">

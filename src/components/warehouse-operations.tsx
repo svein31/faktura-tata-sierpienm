@@ -16,6 +16,8 @@ export function WarehouseOperations({ companyId, onChange }: { companyId: string
   const [type, setType] = React.useState("PZ"), [issueDate, setIssueDate] = React.useState(today);
   const [lines, setLines] = React.useState([newLine()]);
   const [name, setName] = React.useState(""), [code, setCode] = React.useState(""), [currency, setCurrency] = React.useState("PLN");
+  const stocktakingPanel = React.useRef<HTMLDetailsElement>(null);
+  React.useEffect(() => { if (new URLSearchParams(window.location.search).get("tab") === "stocktakings" && stocktakingPanel.current) { stocktakingPanel.current.open = true; stocktakingPanel.current.scrollIntoView({ block: "start" }); } }, [state]);
   const retry = React.useRef<{ json: string; requestId: string } | null>(null);
   const mounted = React.useRef(true);
   const loading = React.useRef(0);
@@ -76,7 +78,7 @@ export function WarehouseOperations({ companyId, onChange }: { companyId: string
           <div className="flex gap-2 flex-wrap"><Button type="button" variant="ghost" disabled={busy || lines.length >= 200} onClick={() => setLines(previous => [...previous, newLine()])}>Dodaj pozycję</Button><Button disabled={busy || !warehouseId}>Zapisz dokument</Button></div>
         </form>
       </details>
-      <details><summary className="cursor-pointer text-sm">Remanenty</summary><div className="mt-3 space-y-4">
+      <details ref={stocktakingPanel} id="stocktakings"><summary className="cursor-pointer text-sm">Remanenty</summary><div className="mt-3 space-y-4">
         <form className="flex flex-wrap gap-3 items-end" onSubmit={e => { e.preventDefault(); void command({ action: "openStocktaking", warehouseId, countDate: issueDate }); }}>
           <label className="text-sm">Magazyn<Select required value={warehouseId} onChange={e => setWarehouseId(e.target.value)} disabled={busy}><option value="">Wybierz magazyn</option>{active.map(w => <option key={w.id} value={w.id}>{w.code}</option>)}</Select></label>
           <label className="text-sm">Data spisu<Input type="date" required value={issueDate} onChange={e => setIssueDate(e.target.value)} disabled={busy} /></label><Button disabled={busy || !warehouseId}>Otwórz remanent</Button>

@@ -1,4 +1,5 @@
 "use client";
+import { StoredInvoiceAssistant } from "@/components/invoice/stored-invoice-assistant";
 
 import * as React from "react";
 import Link from "next/link";
@@ -71,6 +72,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
 
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [sending, setSending] = React.useState(false);
+  const [pendingAction,setPendingAction]=React.useState<"ksef"|"offline"|null>(null);
+  const actionBusy=React.useRef(false);
   const [issuingOffline, setIssuingOffline] = React.useState(false);
   const [checkingStatus, setCheckingStatus] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
@@ -141,6 +144,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   };
 
   const handleSendKsef = async () => {
+    if(actionBusy.current)return; actionBusy.current=true;
     setSending(true);
     try {
       const xml = invoice.isOffline ? invoice.ksefXml || "" : buildFa3Xml({ invoice, seller: companySafe, buyer: contractor });
@@ -155,7 +159,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         }),
       });
       const data = await res.json();
-      if (res.ok && data.success && data.ksefNumber) {
+      if (res.ok && data.success) {
         if (data.invoice) {
           useAppStore.getState().applyInvoice(data.invoice);
         } else {
@@ -166,18 +170,19 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             environment: ksefEnv,
           });
         }
-        toast("success", "Faktura wysłana do KSeF (FA(3))!", `${invoice.number} → ${data.ksefNumber}`);
+        toast("success", "Przekazano do KSeF", data.message || "Przyjęto zlecenie wysyłki. Sprawdź wynik przetwarzania i UPO.");
       } else {
-        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
+        toast("error", "KSeF: odrzucono dokument", data.message ?? data.error ?? "Błąd wysyłki do KSeF.");
       }
     } catch {
       toast("error", "Błąd sieci", "Nie udało się przesłać dokumentu do KSeF.");
     } finally {
-      setSending(false);
+      actionBusy.current=false; setSending(false);
     }
   };
 
   const handleIssueOffline = async () => {
+    if(actionBusy.current)return; actionBusy.current=true;
     setIssuingOffline(true);
     try {
       const response = await fetch("/api/ksef/offline/issue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ invoiceId: invoice.id }) });
@@ -186,7 +191,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       useAppStore.getState().applyInvoice(body.invoice);
       toast("success", "Wystawiono offline", "Kod I i podpisany Kod II są gotowe w PDF.");
     } catch (error) { toast("error", "Wystawienie offline", error instanceof Error ? error.message : "Błąd połączenia."); }
-    finally { setIssuingOffline(false); }
+    finally { actionBusy.current=false; setIssuingOffline(false); }
   };
 
   const handleCheckKsefStatus = async () => {
@@ -227,11 +232,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
 
   return (
     <div className="space-y-6">
+      <StoredInvoiceAssistant invoice={invoice} action={pendingAction} onClose={() => setPendingAction(null)} onApprove={() => { const action=pendingAction; setPendingAction(null); if(action==="offline") void handleIssueOffline(); else if(action==="ksef") void handleSendKsef(); }} />
       {/* Pasek nawigacji i akcji */}
       <div className="no-print flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {invoice.isOffline && <span className="rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">{invoice.qrCodeII ? "Offline · wystawiona" : "Offline · szkic"}{invoice.offlineDeadline ? ` · termin ${new Date(invoice.offlineDeadline).toLocaleDateString("pl-PL")}` : ""}</span>}
-          {invoice.isOffline && invoice.status === "draft" && <Button variant="subtle" size="sm" loading={issuingOffline} onClick={handleIssueOffline}>Wystaw offline z Kodem II</Button>}
+          {invoice.isOffline && invoice.status === "draft" && <Button variant="subtle" size="sm" loading={issuingOffline} onClick={() => setPendingAction("offline")}>Wystaw offline z Kodem II</Button>}
           <Button
             variant="ghost"
             size="icon"
@@ -314,7 +320,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             <Button
               variant="subtle"
               size="sm"
-              onClick={handleSendKsef}
+              onClick={() => setPendingAction("ksef")}
               loading={sending}
               className="rounded-xl gap-1.5 text-xs font-semibold"
             >
@@ -519,7 +525,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             </div>
           </div>
           <Button
-            onClick={handleSendKsef}
+            onClick={() => setPendingAction("ksef")}
             loading={sending}
             size="sm"
             className="rounded-xl gap-1.5 text-xs font-semibold shrink-0"

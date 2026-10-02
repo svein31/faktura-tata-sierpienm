@@ -1,0 +1,40 @@
+name: Security checks
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  schedule:
+    - cron: '20 5 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: security-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm audit --omit=dev --audit-level=high
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan Git history with redacted findings
+        run: |
+          mkdir -p artifacts/security
+          scan_exit=0
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" zricethezav/gitleaks@sha256:e1b35e12a8c6fa8901f060459cfb6b2fc4c484d3afbe3b029733a3bbfab07055 git /repo --redact=100 --no-banner --config /repo/.gitleaks.toml --gitleaks-ignore-path /repo/.gitleaksignore --report-format json --report-path /repo/artifacts/security/gitleaks.json || scan_exit=$?
+          node <<'NODE'
+          const fs = require("node:fs");
+          const findings = JSON.parse(fs.readFileSync("artifacts/security/gitleaks.json", "utf8"));
+          for (const f of findings) console.log(JSON.stringify({ rule: f.RuleID, file: f.File, line: f.StartLine, commit: f.Commit, fingerprint: f.Fingerprint }));
+          NODE
+          exit "$scan_exit"

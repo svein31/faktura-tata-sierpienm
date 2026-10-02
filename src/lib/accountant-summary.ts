@@ -1,9 +1,15 @@
 import { round2 } from "@/lib/format";
 
 type Amounts = { currency: string; totalNet?: number | null; totalVat?: number | null; totalGross?: number | null };
-export type AccountingInvoice = Amounts & { type: string; status: string; documentStatus?: string | null; isProforma?: boolean | null };
+export type AccountingInvoice = Amounts & { type: string; status: string; documentStatus?: string | null; issuedAt?: Date | string | null; isProforma?: boolean | null };
+/** Recover only the known stale draft state when persisted issuance is proven. */
+export function effectiveDocumentStatus(invoice: Pick<AccountingInvoice, "status" | "documentStatus" | "issuedAt">) {
+  if (invoice.status === "cancelled" || invoice.documentStatus === "cancelled") return "cancelled";
+  if (invoice.documentStatus === "draft" && invoice.status !== "draft" && invoice.issuedAt) return "issued";
+  return invoice.documentStatus || invoice.status;
+}
 export function isAccountingInvoice(invoice: AccountingInvoice) {
-  return !invoice.isProforma && !["draft", "cancelled"].includes(invoice.documentStatus || invoice.status);
+  return !invoice.isProforma && !["draft", "cancelled"].includes(effectiveDocumentStatus(invoice));
 }
 export function monthlySummary(sales: Amounts[], costs: Amounts[], currency: string) {
   const invoices = sales.filter(i => i.currency === currency), expenses = costs.filter(i => i.currency === currency);

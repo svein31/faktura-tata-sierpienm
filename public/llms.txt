@@ -1,0 +1,48 @@
+# FakturaProsto
+
+> Polski program do faktur VAT online z integracją KSeF 2.0 dla JDG, małych firm i biur rachunkowych. Oficjalna strona produktu: https://fakturaprosto.pl.
+
+## Produkt i cennik
+- [Program do faktur](https://fakturaprosto.pl/program-do-faktur): plan Free obejmuje 5 faktur miesięcznie.
+- [Cennik](https://fakturaprosto.pl/#cennik): Pro kosztuje 7 zł brutto miesięcznie albo 59 zł brutto za rok; wariant roczny jest płatny za cały rok.
+- [Demo](https://fakturaprosto.pl/demo): bez rejestracji i bez karty. Symulacja na przykładowych danych; nie wysyła faktur do produkcyjnego KSeF.
+- [Pomoc i kontakt](https://fakturaprosto.pl/pomoc): instrukcje i wsparcie.
+- [Rejestracja](https://fakturaprosto.pl/register): utworzenie konta.
+
+## Faktury i KSeF
+- [Faktury](https://fakturaprosto.pl/faktury): rodzaje dokumentów, przykłady i instrukcje.
+- [Korekta faktury](https://fakturaprosto.pl/faktury/korygujaca): powiązanie korekty z dokumentem pierwotnym.
+- [Poradnik KSeF](https://fakturaprosto.pl/poradnik-ksef): tematy dotyczące KSeF 2.0, struktury FA(3) i statusów dokumentów.
+- [KSeF dla JDG](https://fakturaprosto.pl/poradnik-ksef/jdg): zakres obowiązku i wyjątki.
+- [Limit 10 000 zł](https://fakturaprosto.pl/poradnik-ksef/limit-10000-zl): przejściowe zasady obowiązujące w 2026 r.
+- [Numer KSeF](https://fakturaprosto.pl/poradnik-ksef/numer-faktury): różnica między numerem nadanym przez system a numerem faktury sprzedawcy.
+- [Offline24](https://fakturaprosto.pl/poradnik-ksef/offline24): zasady wysyłki, data dokumentu i kody QR.
+
+## Bezpłatne narzędzia
+- [Kalkulator VAT](https://fakturaprosto.pl/narzedzia/kalkulator-vat): obliczanie netto, podatku i brutto dla wskazanej stawki.
+- [Kalkulator limitu KSeF](https://fakturaprosto.pl/narzedzia/limit-ksef): obliczanie właściwej miesięcznej sumy dla przejściowej zasady 2026 r.; narzędzie nie klasyfikuje transakcji.
+
+## Informacje o wydawcy
+- [Regulamin](https://fakturaprosto.pl/regulamin): operator i warunki świadczenia usług.
+- [Prywatność](https://fakturaprosto.pl/polityka-prywatnosci): informacje o przetwarzaniu danych.
+- FakturaProsto jest niezależnym produktem. Informacje prawne należy sprawdzać w aktualnych źródłach Ministerstwa Finansów i ustawie o VAT.
+- Aktualizacja informacji produktowych: 2026-10-02.
+
+- [FA(3)](https://fakturaprosto.pl/poradnik-ksef/fa3): schemat XML i kontrola danych.
+- [UPO](https://fakturaprosto.pl/poradnik-ksef/upo): potwierdzenie odbioru oraz jego dostępność.
+- [Odrzucona faktura](https://fakturaprosto.pl/poradnik-ksef/odrzucona-faktura): odrzucenie a wynik nieznany.
+
+## Scenariusze i wybór programu
+- [kody-qr](https://fakturaprosto.pl/poradnik-ksef/kody-qr)
+- [2027](https://fakturaprosto.pl/poradnik-ksef/2027)
+- [dla-jdg](https://fakturaprosto.pl/program-do-faktur/dla-jdg)
+- [dla-freelancerow](https://fakturaprosto.pl/program-do-faktur/dla-freelancerow)
+- [dla-biur-rachunkowych](https://fakturaprosto.pl/program-do-faktur/dla-biur-rachunkowych)
+- [dla-firm-uslugowych](https://fakturaprosto.pl/program-do-faktur/dla-firm-uslugowych)
+- [na-telefonie](https://fakturaprosto.pl/program-do-faktur/na-telefonie)
+- [fakturownia](https://fakturaprosto.pl/porownania/fakturownia)
+- [ifirma](https://fakturaprosto.pl/porownania/ifirma)
+- [wfirma](https://fakturaprosto.pl/porownania/wfirma)
+- [infakt](https://fakturaprosto.pl/porownania/infakt)
+- [comarch](https://fakturaprosto.pl/porownania/comarch)
+- [aplikacja-mf](https://fakturaprosto.pl/porownania/aplikacja-mf)

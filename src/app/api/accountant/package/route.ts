@@ -1,3 +1,4 @@
+import { requireRecentAuth } from "@/lib/security-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError } from "@/lib/api";
@@ -12,6 +13,7 @@ export const maxDuration = 60;
 export async function GET(req: Request) {
   try {
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
+    await requireRecentAuth(user.id);
     const q = new URL(req.url).searchParams, companyId = q.get("companyId"), month = q.get("month"), target = q.get("target") || "generic";
     if (!objectId(companyId) || !month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !["generic", "optima", "rachmistrz", "symfonia", "enova"].includes(target)) throw new ApiError(400, "Wybierz firmę, miesiąc i program.");
     const access = await requireCompanyAccess(user.id, companyId, "canExport"); if (!access.ok) throw new ApiError(access.status, access.error);

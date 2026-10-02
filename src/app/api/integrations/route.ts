@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { requireRecentAuth } from "@/lib/security-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
@@ -26,6 +27,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await readJson(req), { user, companyId } = await access(body.companyId);
+    await requireRecentAuth(user.id);
     const result = await prisma.$transaction(async tx => {
       let result: { id: string; secret?: string; token?: string };
       if (body.action === "createKey") {

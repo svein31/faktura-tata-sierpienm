@@ -8,7 +8,7 @@ export async function fullFeatureAudit(base, db, fixture) {
   async function check(label, method, path, body, cookie, expected) {
     try {
       const response=await fetch(base+path,{method,redirect:'manual',signal:AbortSignal.timeout(15000),
-        headers:{...(cookie?{Cookie:cookie}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
+        headers:{...(cookie?{Origin: base, Cookie:cookie}:{}),...(body===undefined?{}:{'Content-Type':'application/json'})},
         ...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
       const text=await response.text();
       const ok=expected?expected.includes(response.status):response.status<500;

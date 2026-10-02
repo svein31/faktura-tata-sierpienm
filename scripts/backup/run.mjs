@@ -1,3 +1,4 @@
+import { reportBackup } from './receipt.mjs';
 import { backupDatabase, restoreDatabase } from './archive.mjs';
 const [action, file, databaseName] = process.argv.slice(2);
 try {
@@ -5,6 +6,8 @@ try {
   const counts = action === 'create'
     ? await backupDatabase(process.env.BACKUP_DATABASE_URL, file, process.env.BACKUP_KEY)
     : await restoreDatabase(process.env.RESTORE_DATABASE_URL, file, process.env.BACKUP_KEY, databaseName);
+  if (action === 'create') await reportBackup('backup', file);
+  // A restore receipt is issued only by the verified drill, not any ad-hoc restore.
   console.log(JSON.stringify({ event: 'backup_' + action, success: true, collections: Object.keys(counts).length, documents: Object.values(counts).reduce((a,b) => a+b,0) }));
 } catch {
   // Driver errors can include credentials or business data. Report failure without dumping them to shared logs.

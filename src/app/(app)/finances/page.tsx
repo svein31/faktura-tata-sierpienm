@@ -1,4 +1,5 @@
 "use client";
+import { PendingTransactions } from "@/components/banking/pending-transactions";
 import { TransferPack } from "@/components/banking/transfer-pack";
 import { isAccountingInvoice } from "@/lib/accountant-summary";
 
@@ -346,6 +347,7 @@ export default function FinancesPage() {
       </Card>
 
       <TransferPack />
+      <PendingTransactions />
       {/* Modal importu wyciągu bankowego CSV */}
       <Dialog
         open={importModalOpen}

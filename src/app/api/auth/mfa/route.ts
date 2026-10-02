@@ -61,6 +61,10 @@ export async function POST(req: Request) {
       const updated = await tx.userMfa.updateMany({ where: { id: proof.record.id, encryptedSecret: proof.record.encryptedSecret, enabledAt: proof.record.enabledAt }, data: action === "disable"
         ? { enabledAt: null, encryptedSecret: "disabled", recoveryHashes: [], setupExpiresAt: null }
         : { enabledAt: proof.record.enabledAt || now, recoveryHashes: recoveryCodes.map(value => recoveryHash(user.id, value)), setupExpiresAt: null } });
+      if (action === "disable") {
+        const companies = await tx.companyProfile.findMany({ where: { OR: [{ userId: user.id }, { members: { some: { userId: user.id } } }] }, select: { id: true } });
+        if (await tx.companySecurityPolicy.count({ where: { id: { in: companies.map(c => c.id) }, requireMfa: true } })) throw new ApiError(409, "Firma wymaga 2FA. Najpierw zmień politykę firmy lub zakończ członkostwo.");
+      }
       if (!updated.count) throw new ApiError(409, "Konfiguracja 2FA została zmieniona. Odśwież stronę.");
       await tx.session.deleteMany({ where: { userId: user.id, id: { not: sessionId } } });
       await tx.session.update({ where: { id: sessionId }, data: { mfaVerifiedAt: proof.record.enabledAt || now } });

@@ -1,3 +1,4 @@
+import { ensureDocumentSafety } from "@/lib/document-safety";
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -14,6 +15,10 @@ async function access(tx: Prisma.TransactionClient, userId: string, companyId: u
 
 export async function enqueueOcr(userId: string, id: string) {
   if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
+  const original = await prisma.expenseScan.findUnique({ where: { id } });
+  if (!original) throw new ApiError(404, "Nie znaleziono oryginału.");
+  await access(prisma, userId, original.companyId);
+  await ensureDocumentSafety(original);
   return prisma.$transaction(async tx => {
     const record = await tx.expenseScan.findUnique({ where: { id } });
     if (!record?.imageData) throw new ApiError(404, "Nie znaleziono oryginału.");
@@ -61,8 +66,14 @@ export async function processOcrJob(scope: { companyId?: string; id?: string } =
   } catch (e) { if (["P2034", "P2025"].includes(String((e as { code?: string }).code))) return { status: "contended" }; throw e; }
   if (!claimed) return { status: "skipped" };
   let output: Awaited<ReturnType<OcrProvider>> | null = null, failure: OcrProviderError | null = null;
-  try { output = await provider(claimed.imageData); }
-  catch (e) { failure = e instanceof OcrProviderError ? e : new OcrProviderError("Rozpoznawanie nie powiodło się. Zaplanowano ponowienie.", true); }
+  try {
+    const original = await prisma.expenseScan.findUnique({ where: { id: claimed.id } });
+    if (!original) throw new ApiError(404, "Brak oryginału.");
+    await ensureDocumentSafety(original);
+    await access(prisma, claimed.userId, claimed.companyId);
+    output = await provider(claimed.imageData);
+  }
+  catch (e) { failure = e instanceof OcrProviderError ? e : e instanceof ApiError ? new OcrProviderError(e.message, false) : new OcrProviderError("Rozpoznawanie nie powiodło się. Zaplanowano ponowienie.", true); }
   return prisma.$transaction(async tx => {
     const job = await tx.ocrJob.findFirst({ where: { id: claimed.id, status: "processing", leaseToken: token } });
     if (!job) return { status: "superseded" };

@@ -1,11 +1,12 @@
 /**
- * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs, 12 rund), trwałe tokeny JWT i sesje DB (30 dni),
+ * Moduł Auth: Bezpieczne haszowanie haseł (bcryptjs, 12 rund), losowe tokeny sesji i sesje DB (30 dni),
  * bezpieczne ciasteczka HttpOnly/Secure/SameSite=Lax (auth_session) zgodne z Netlify i Next.js.
  */
 
 import "server-only";
 
 import { randomBytes } from "crypto";
+import { sessionTokenHash, isSessionBearer } from "./session-token";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
@@ -152,7 +153,7 @@ export interface CreateSessionMetadata {
 }
 
 /**
- * Tworzy nową trwałą sesję JWT (30 dni) oraz rejestruje sesję w bazie danych.
+ * Tworzy nową trwałą sesję (30 dni) oraz rejestruje sesję w bazie danych.
  */
 export async function createSession(
   userId: string,
@@ -164,7 +165,7 @@ export async function createSession(
   const token = generateSessionToken();
   const session = await prisma.session.create({
     data: {
-      sessionToken: token, userId, expiresAt,
+      sessionToken: sessionTokenHash(token), userId, expiresAt, authenticatedAt: new Date(),
       mfaVerifiedAt: metadata?.mfaVerifiedAt,
       userAgent: metadata?.userAgent || null,
       ipAddress: metadata?.ipAddress || null,
@@ -234,7 +235,7 @@ export function extractRequestMetadata(req: Request): CreateSessionMetadata {
 export type SessionUser = { user: FullUserWithRelations; sessionId: string } | null;
 
 /**
- * Odczyt sesji z ciasteczka (JWT / DB session) + weryfikacja w bazie Prisma.
+ * Odczyt sesji z ciasteczka (DB session) + weryfikacja w bazie Prisma.
  * Obsługuje nazwy ciasteczek standardowe: fakturaprosto_session, auth_session, fakturo_session, NextAuth.
  */
 export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
@@ -255,23 +256,20 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
     }
   }
 
-  if (!token) return null;
+  if (!token || !isSessionBearer(token)) return null;
 
   // 2. Fallback: wyszukaj w tabeli Session w bazie danych
   try {
-    const session = await prisma.session.findUnique({
-      where: { sessionToken: token },
-      include: {
-        user: {
-          include: {
-            mfa: { select: { enabledAt: true } },
-            company: true,
-            companyProfiles: true,
-            ksef: true,
-          },
-        },
-      },
-    });
+    const include = { user: { include: { mfa: { select: { enabledAt: true } }, company: true, companyProfiles: true, ksef: true } } } as const;
+    let session = await prisma.session.findUnique({ where: { sessionToken: sessionTokenHash(token) }, include });
+    // Upgrade old sessions once, without rotating the browser credential.
+    if (!session) {
+      const legacy = await prisma.session.findUnique({ where: { sessionToken: token }, include });
+      if (legacy) {
+        await prisma.session.updateMany({ where: { id: legacy.id, sessionToken: token }, data: { sessionToken: sessionTokenHash(token) } });
+        session = await prisma.session.findUnique({ where: { sessionToken: sessionTokenHash(token) }, include });
+      }
+    }
 
     if (session) {
       const mfaEnabledAt = session.user.mfa?.enabledAt;

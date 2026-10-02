@@ -1,3 +1,4 @@
+import { backupStatus } from "@/lib/backup-monitor";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
@@ -15,6 +16,7 @@ export async function GET(req: Request) {
       prisma.webhookDelivery.findMany({where:{webhookId:{in:hooks.map(h=>h.id)},status:{not:"delivered"}},select:{id:true,status:true,attempts:true,createdAt:true,nextAttemptAt:true},orderBy:{createdAt:"desc"},take:50}),
       prisma.invoice.findMany({where:{sellerCompanyId:companyId,isOffline:true,ksefNumber:null,offlineDeadline:{lte:new Date(Date.now()+24*3600000)}},select:{id:true,number:true,offlineDeadline:true},orderBy:{offlineDeadline:"asc"},take:10}),
     ]);
+    const backups = backupStatus(await prisma.backupReceipt.findMany(), Boolean(process.env.BACKUP_MONITOR_SECRET && process.env.BACKUP_MONITOR_SECRET.length >= 32));
     const now=Date.now();
     const alerts=[
       ...queue.filter(t=>t.status==="verify_needed").map(t=>({kind:"KSeF",message:`${t.invoice?.number||"Faktura"}: wynik wysyłki wymaga sprawdzenia.`,href:`/invoices/${t.invoiceId}`})),
@@ -22,6 +24,6 @@ export async function GET(req: Request) {
       ...offline.map(i=>({kind:"Offline",message:`${i.number}: termin przesłania ${i.offlineDeadline?.toLocaleDateString("pl-PL")||"do ustalenia"}.`,href:`/invoices/${i.id}`})),
       ...webhooks.filter(w=>w.status==="failed").map(()=>({kind:"Webhook",message:"Nieudane dostarczenie webhooka.",href:"/settings/integrations"})).slice(0,3),
     ];
-    return json({ checkedAt:new Date().toISOString(), queue,ocr,webhooks,alerts,ocrConfigured:Boolean(process.env.OCR_SPACE_API_KEY), note:"Do 50 ostatnich zadań w każdej grupie. Stan kopii zapasowych wymaga osobnego monitora operatora." });
+    return json({ backups, scannerConfigured: Boolean(process.env.DOCUMENT_SCAN_URL && process.env.DOCUMENT_SCAN_TOKEN), scanRequired: process.env.DOCUMENT_SCAN_REQUIRED === "true", checkedAt:new Date().toISOString(), queue,ocr,webhooks,alerts,ocrConfigured:Boolean(process.env.OCR_SPACE_API_KEY), note:"Do 50 ostatnich zadań w każdej grupie. Potwierdzenia kopii pochodzą od podpisanego monitora operatora; brak potwierdzenia nie oznacza działającej kopii." });
   } catch(e){return handleApiError(e);}
 }

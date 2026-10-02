@@ -1,3 +1,4 @@
+import { requireRecentAuth } from "@/lib/security-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess } from "@/lib/permissions";
@@ -9,6 +10,7 @@ import { recordAuditLog } from "@/lib/audit";
 export const runtime="nodejs";
 export async function POST(req:Request){try{
  const user=await getSessionUser();if(!user)throw new ApiError(401,"Nieautoryzowany.");
+ await requireRecentAuth(user.id);
  const body=await readJson(req);if(!objectId(body.companyId))throw new ApiError(400,"Wybierz firmę.");
  const access=await requireCompanyAccess(user.id,body.companyId,"canExport");if(!access.ok)throw new ApiError(access.status,access.error);
  const options=parseJpkOptions(body),company=await prisma.companyProfile.findUniqueOrThrow({where:{id:body.companyId}});

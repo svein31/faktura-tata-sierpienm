@@ -1,5 +1,6 @@
 "use client";
 
+import { CompanySecurity } from "@/components/security-controls";
 import * as React from "react";
 import {
   Users2,
@@ -264,6 +265,7 @@ export default function TeamSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
+      <CompanySecurity />
       <PageHeader
         title="Zespół i uprawnienia"
         description="Wielodostęp w firmie: role, granularne uprawnienia operacyjne, zaproszenia i natychmiastowe odcinanie sesji."

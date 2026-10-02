@@ -32,11 +32,18 @@ jobs:
                 if (health.status !== 200 || body.ok !== true || body.db !== 'ok') throw new Error('Application or database health check failed.');
                 const home = await get('/');
                 const html = await home.text();
-                if (home.status !== 200 || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
+                if (home.status !== 200 || !html.includes('Faktury VAT online z KSeF 2.0 dla małych firm') || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
                 for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers', '/api/ksef/invoices/download/AUDIT-MISSING-REFERENCE?format=upo']) {
                   const response = await get(path);
                   if (response.status !== 401) throw new Error('Unauthenticated API check failed for ' + path + ': HTTP ' + response.status);
                 }
+                const llms = await get('/llms.txt');
+                if (llms.status !== 200 || !(await llms.text()).includes('/poradnik-ksef/kody-qr')) throw new Error('New SEO release is not live.');
+                const preflight = await fetch(origin + '/api/invoices/preflight', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
+                if (preflight.status !== 401) throw new Error('Preflight authentication failed.');
+                const ksefAuth = await fetch(origin + '/api/ksef/auth/login', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ nip: '5260301706' }), signal: AbortSignal.timeout(15000) });
+                if (ksefAuth.status !== 401) throw new Error('KSeF authentication boundary failed.');
+                if (home.headers.get('x-content-type-options') !== 'nosniff') throw new Error('Security headers missing.');
                 core.info('Production public page, MongoDB and API authentication checks passed.');
                 await core.summary
                   .addHeading('Production deployment smoke check')

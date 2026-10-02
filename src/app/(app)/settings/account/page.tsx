@@ -1,4 +1,5 @@
 "use client";
+import { StepUpConfirmation, SessionDevices } from "@/components/security-controls";
 import { MfaSettings } from "@/components/mfa-settings";
 
 import * as React from "react";
@@ -284,7 +285,8 @@ export default function AccountSettingsPage() {
         ]}
       />
 
-      {activeTab === "security" && <MfaSettings />}
+      {activeTab === "security" && <><MfaSettings /><StepUpConfirmation /></>}
+      {activeTab === "sessions" && <SessionDevices />}
       {activeTab === "billing" && <SubscriptionCard />}
 
       <AnimatePresence mode="wait">

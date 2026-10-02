@@ -1,0 +1,6 @@
+title = "FakturaProsto repository secret protection"
+[extend]
+useDefault = true
+[[allowlists]]
+description = "Synthetic credentials inside automated fixtures; never real deployment secrets"
+paths = ['''scripts/tests/''', '''scripts/integration-test\.mjs''', '''scripts/browser-checks\.mjs''', '''scripts/test-auth-e2e\.mjs''', '''scripts/backup/drill\.mjs''']

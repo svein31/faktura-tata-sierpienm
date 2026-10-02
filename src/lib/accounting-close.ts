@@ -4,7 +4,7 @@ import { ApiError, cleanStr } from "@/lib/api";
 import { companyAccess } from "@/lib/company-write";
 import { periodKeys } from "@/lib/accounting-period";
 import { accountingWorkspaceId, type AccountingTask } from "@/lib/accounting-workspace";
-import { isAccountingInvoice, monthlySummary } from "@/lib/accountant-summary";
+import { effectiveDocumentStatus, isAccountingInvoice, monthlySummary } from "@/lib/accountant-summary";
 import { recordAuditLog } from "@/lib/audit";
 
 export function accountingPeriodKey(companyId: string, month: unknown) {
@@ -14,12 +14,12 @@ export function accountingPeriodKey(companyId: string, month: unknown) {
 
 export async function accountingReadiness(tx: Prisma.TransactionClient, companyId: string, month: string) {
   const [invoices, expenses, workspace, stocktakings] = await Promise.all([
-    tx.invoice.findMany({ where: { sellerCompanyId: companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, type: true, status: true, documentStatus: true, isProforma: true, approvalStatus: true, ksefStatus: true, referenceNumber: true, ksefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
-    tx.expense.findMany({ where: { companyId, issueDate: { startsWith: `${month}-` } }, select: { workflowStatus: true, ksefRefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
+    tx.invoice.findMany({ where: { sellerCompanyId: companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, number: true, issuedAt: true, upoXml: true, type: true, status: true, documentStatus: true, isProforma: true, approvalStatus: true, ksefStatus: true, referenceNumber: true, ksefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
+    tx.expense.findMany({ where: { companyId, issueDate: { startsWith: `${month}-` } }, select: { id: true, number: true, workflowStatus: true, ksefRefNumber: true, currency: true, totalNet: true, totalVat: true, totalGross: true } }),
     tx.accountingWorkspace.findUnique({ where: { id: accountingWorkspaceId(companyId, month) }, select: { items: true } }),
     tx.stocktaking.count({ where: { warehouse: { companyId }, countDate: { startsWith: `${month}-` }, status: { in: ["open", "counting"] } } }),
   ]);
-  const active = invoices.filter(i => !i.isProforma && (i.documentStatus || i.status) !== "cancelled");
+  const active = invoices.map(i => ({ ...i, documentStatus: effectiveDocumentStatus(i) })).filter(i => !i.isProforma && (i.documentStatus || i.status) !== "cancelled");
   const posted = active.filter(isAccountingInvoice);
   const purchases = posted.filter(i => i.type === "purchase");
   const refs = new Set(purchases.map(i => i.ksefNumber).filter(Boolean));
@@ -29,12 +29,24 @@ export async function accountingReadiness(tx: Prisma.TransactionClient, companyI
   const blockers = {
     drafts: active.filter(i => i.documentStatus === "draft" || i.status === "draft").length,
     ksef: active.filter(i => ["queued", "sending", "verify_needed", "rejected"].includes(i.ksefStatus || "") || i.documentStatus === "ready" || i.documentStatus === "rejected" || (!!i.referenceNumber && !i.ksefNumber)).length,
+    upo: active.filter(i => i.ksefStatus === "accepted" && i.ksefNumber && !i.upoXml).length,
     purchases: purchases.filter(i => i.approvalStatus !== "approved").length,
     expenses: expenses.filter(e => !["verified", "sent_to_accountant"].includes(e.workflowStatus)).length,
     tasks: ((workspace?.items || []) as unknown as AccountingTask[]).filter(i => !i.done).length,
     stocktakings,
   };
-  return { blockers, canClose: Object.values(blockers).every(n => n === 0), summary: currencies.map(currency => ({ currency, ...monthlySummary(sales, costs, currency) })) };
+  const invoiceItem = (i: { id: string; number: string }) => ({ id: i.id, label: i.number, href: "/invoices/" + i.id });
+  const details = {
+    drafts: active.filter(i => i.documentStatus === "draft" || i.status === "draft").slice(0, 10).map(invoiceItem),
+    ksef: active.filter(i => ["queued", "sending", "verify_needed", "rejected"].includes(i.ksefStatus || "") || ["ready", "rejected"].includes(i.documentStatus || "") || (!!i.referenceNumber && !i.ksefNumber)).slice(0, 10).map(invoiceItem),
+    upo: active.filter(i => i.ksefStatus === "accepted" && i.ksefNumber && !i.upoXml).slice(0, 10).map(invoiceItem),
+    purchases: purchases.filter(i => i.approvalStatus !== "approved").slice(0, 10).map(invoiceItem),
+    expenses: expenses.filter(e => !["verified", "sent_to_accountant"].includes(e.workflowStatus)).slice(0, 10).map(e => ({ id: e.id, label: e.number, href: "/expenses?expenseId=" + e.id })),
+    tasks: ((workspace?.items || []) as unknown as AccountingTask[]).filter(i => !i.done).slice(0, 10).map(i => ({ id: i.id, label: i.title, href: "/accountant?month=" + month })),
+    stocktakings: stocktakings ? [{ id: "stocktaking", label: "Sprawdź otwarte remanenty", href: "/warehouse?tab=stocktakings" }] : [],
+  };
+  const completedChecks = Object.values(blockers).filter(count => count === 0).length;
+  return { blockers, details, progress: { completed: completedChecks, total: Object.keys(blockers).length }, canClose: Object.values(blockers).every(n => n === 0), summary: currencies.map(currency => ({ currency, ...monthlySummary(sales, costs, currency) })) };
 }
 
 /** Caller supplies the same transaction used for the period mutex, readiness check and immutable event. */

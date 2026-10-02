@@ -25,6 +25,7 @@ function routeMocks(invoice, role = "owner") {
   let writes = 0;
   const db = {
     $transaction: async callback => callback(db),
+    companySecurityPolicy: { findUnique: async () => null, findMany: async () => [] },
     accountingPeriod: { upsert: async () => ({ status: "open" }) },
     invoice: {
       findUnique: async () => invoice,

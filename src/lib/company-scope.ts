@@ -10,7 +10,11 @@ export async function accessibleCompanyIds(userId: string): Promise<string[]> {
     prisma.companyProfile.findMany({ where: { userId }, select: { id: true } }),
     prisma.companyMember.findMany({ where: { userId }, select: { companyId: true, role: true } }),
   ]);
-  return [...new Set([...owned.map(c => c.id), ...memberships.filter(m => Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, m.role)).map(m => m.companyId)])];
+  const ids = [...new Set([...owned.map(c => c.id), ...memberships.filter(m => Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, m.role)).map(m => m.companyId)])];
+  const policies = await prisma.companySecurityPolicy.findMany({ where: { id: { in: ids }, requireMfa: true }, select: { id: true } });
+  if (!policies.length) return ids;
+  const mfa = await prisma.userMfa.findUnique({ where: { userId }, select: { enabledAt: true } });
+  return mfa?.enabledAt ? ids : ids.filter(id => !policies.some(p => p.id === id));
 }
 
 export function catalogWhere(userId: string, companyIds: string[]) {

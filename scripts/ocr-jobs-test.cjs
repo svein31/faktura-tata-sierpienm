@@ -10,7 +10,7 @@ async function run() {
   assert.match(process.env.DATABASE_URL || '', /^mongodb:\/\/127\.0\.0\.1:/);
   const user = await prisma.user.create({ data: { email: 'ocr-worker@example.test', password: 'unused-test-account' } });
   const company = await prisma.companyProfile.create({ data: { userId: user.id, nip: '5260301706', companyName: 'OCR tests' } });
-  const scan = await prisma.expenseScan.create({ data: { userId: user.id, companyId: company.id, imageData: 'data:image/png;base64,AA==', fileName: 'test.png', mimeType: 'image/png', sizeBytes: 1, parsed: { number: 'MANUAL' } } });
+  const scan = await prisma.expenseScan.create({ data: { userId: user.id, companyId: company.id, imageData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aE3cAAAAASUVORK5CYII=', fileName: 'test.png', mimeType: 'image/png', sizeBytes: 68, parsed: { number: 'MANUAL' } } });
   const scope = { id: scan.id, companyId: company.id };
   await enqueueOcr(user.id, scan.id);
   assert.equal((await enqueueOcr(user.id, scan.id)).alreadyQueued, true);
@@ -57,7 +57,12 @@ async function run() {
   await prisma.ocrJob.update({ where: { id: scan.id }, data: { userId: member.id } });
   assert.equal((await processOcrJob(scope, async () => { throw new Error('Unauthorized provider call'); })).status, 'skipped');
   assert.equal((await prisma.ocrJob.findUnique({ where: { id: scan.id } })).status, 'cancelled');
-  await prisma.expenseScan.update({ where: { id: scan.id }, data: { status: 'converted' } });
+  await enqueueOcr(user.id, scan.id);
+  await prisma.expenseScan.update({ where: { id: scan.id }, data: { safetyStatus: 'quarantined' } });
+  const callsBeforeQuarantine = calls;
+  assert.equal((await processOcrJob(scope, successful)).status, 'failed');
+  assert.equal(calls, callsBeforeQuarantine, 'A previously queued quarantined document must not reach OCR');
+  await prisma.expenseScan.update({ where: { id: scan.id }, data: { status: 'converted', safetyStatus: 'unverified' } });
   await assert.rejects(enqueueOcr(user.id, scan.id), /decyzję/);
   console.log('PASS: OCR durable queue, single claim, retries, manual-edit race, expired lease, stale worker and access revocation');
 }

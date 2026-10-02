@@ -1,0 +1,2 @@
+# Reviewed false positive: historical browser localStorage key fakturo_2fa_enabled, not an API credential.
+62fb44adc09a127cfa9f98e5e3bd286de71d3b49:src/components/security/two-factor-auth-card.tsx:generic-api-key:27

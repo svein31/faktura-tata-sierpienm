@@ -89,9 +89,22 @@
     ]
   },
   {
+    "path": "/api/auth/step-up",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
     "path": "/api/banking/import",
     "methods": [
       "POST"
+    ]
+  },
+  {
+    "path": "/api/banking/transactions",
+    "methods": [
+      "GET",
+      "PATCH"
     ]
   },
   {
@@ -99,6 +112,21 @@
     "methods": [
       "POST",
       "GET"
+    ]
+  },
+  {
+    "path": "/api/companies",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/companies/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "DELETE"
     ]
   },
   {
@@ -117,24 +145,16 @@
     ]
   },
   {
-    "path": "/api/companies/[id]",
+    "path": "/api/companies/[id]/security",
     "methods": [
       "GET",
-      "PUT",
-      "DELETE"
+      "PUT"
     ]
   },
   {
     "path": "/api/companies/[id]/set-default",
     "methods": [
       "PATCH"
-    ]
-  },
-  {
-    "path": "/api/companies",
-    "methods": [
-      "GET",
-      "POST"
     ]
   },
   {
@@ -151,9 +171,9 @@
     ]
   },
   {
-    "path": "/api/contractors/[id]/history",
+    "path": "/api/contractors",
     "methods": [
-      "GET"
+      "POST"
     ]
   },
   {
@@ -164,13 +184,13 @@
     ]
   },
   {
-    "path": "/api/contractors/import",
+    "path": "/api/contractors/[id]/history",
     "methods": [
-      "POST"
+      "GET"
     ]
   },
   {
-    "path": "/api/contractors",
+    "path": "/api/contractors/import",
     "methods": [
       "POST"
     ]
@@ -189,6 +209,20 @@
     ]
   },
   {
+    "path": "/api/documents",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/documents/[id]",
+    "methods": [
+      "GET",
+      "PATCH"
+    ]
+  },
+  {
     "path": "/api/documents/[id]/file",
     "methods": [
       "GET"
@@ -201,10 +235,9 @@
     ]
   },
   {
-    "path": "/api/documents/[id]",
+    "path": "/api/documents/[id]/safety",
     "methods": [
-      "GET",
-      "PATCH"
+      "POST"
     ]
   },
   {
@@ -214,7 +247,7 @@
     ]
   },
   {
-    "path": "/api/documents",
+    "path": "/api/due-reminders",
     "methods": [
       "GET",
       "POST"
@@ -227,7 +260,7 @@
     ]
   },
   {
-    "path": "/api/due-reminders",
+    "path": "/api/expenses",
     "methods": [
       "GET",
       "POST"
@@ -243,13 +276,6 @@
     ]
   },
   {
-    "path": "/api/expenses",
-    "methods": [
-      "GET",
-      "POST"
-    ]
-  },
-  {
     "path": "/api/gus/search",
     "methods": [
       "GET"
@@ -262,15 +288,15 @@
     ]
   },
   {
-    "path": "/api/integrations/process",
+    "path": "/api/integrations",
     "methods": [
+      "GET",
       "POST"
     ]
   },
   {
-    "path": "/api/integrations",
+    "path": "/api/integrations/process",
     "methods": [
-      "GET",
       "POST"
     ]
   },
@@ -286,6 +312,20 @@
     "methods": [
       "GET",
       "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/invoices/[id]",
+    "methods": [
+      "GET",
+      "PUT",
+      "DELETE"
     ]
   },
   {
@@ -321,14 +361,6 @@
     ]
   },
   {
-    "path": "/api/invoices/[id]",
-    "methods": [
-      "GET",
-      "PUT",
-      "DELETE"
-    ]
-  },
-  {
     "path": "/api/invoices/approve",
     "methods": [
       "POST"
@@ -348,7 +380,7 @@
     ]
   },
   {
-    "path": "/api/invoices",
+    "path": "/api/invoices/preflight",
     "methods": [
       "POST"
     ]
@@ -373,13 +405,19 @@
     ]
   },
   {
-    "path": "/api/ksef/auth/login",
+    "path": "/api/ksef",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "path": "/api/ksef/auth",
     "methods": [
       "POST"
     ]
   },
   {
-    "path": "/api/ksef/auth",
+    "path": "/api/ksef/auth/login",
     "methods": [
       "POST"
     ]
@@ -423,12 +461,6 @@
     ]
   },
   {
-    "path": "/api/ksef/queue/process",
-    "methods": [
-      "POST"
-    ]
-  },
-  {
     "path": "/api/ksef/queue",
     "methods": [
       "GET",
@@ -436,9 +468,9 @@
     ]
   },
   {
-    "path": "/api/ksef",
+    "path": "/api/ksef/queue/process",
     "methods": [
-      "PUT"
+      "POST"
     ]
   },
   {
@@ -478,6 +510,12 @@
     ]
   },
   {
+    "path": "/api/notifications",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "path": "/api/notifications/[id]",
     "methods": [
       "PUT"
@@ -490,14 +528,9 @@
     ]
   },
   {
-    "path": "/api/notifications",
+    "path": "/api/offers",
     "methods": [
-      "GET"
-    ]
-  },
-  {
-    "path": "/api/offers/[id]/convert",
-    "methods": [
+      "GET",
       "POST"
     ]
   },
@@ -511,15 +544,21 @@
     ]
   },
   {
-    "path": "/api/offers",
+    "path": "/api/offers/[id]/convert",
     "methods": [
-      "GET",
       "POST"
     ]
   },
   {
-    "path": "/api/orders/[id]/convert",
+    "path": "/api/ops/backup-receipt",
     "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/orders",
+    "methods": [
+      "GET",
       "POST"
     ]
   },
@@ -533,9 +572,8 @@
     ]
   },
   {
-    "path": "/api/orders",
+    "path": "/api/orders/[id]/convert",
     "methods": [
-      "GET",
       "POST"
     ]
   },
@@ -553,6 +591,12 @@
     ]
   },
   {
+    "path": "/api/portal/[token]",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "path": "/api/portal/[token]/decision",
     "methods": [
       "POST"
@@ -565,9 +609,9 @@
     ]
   },
   {
-    "path": "/api/portal/[token]",
+    "path": "/api/products",
     "methods": [
-      "GET"
+      "POST"
     ]
   },
   {
@@ -575,12 +619,6 @@
     "methods": [
       "PUT",
       "DELETE"
-    ]
-  },
-  {
-    "path": "/api/products",
-    "methods": [
-      "POST"
     ]
   },
   {
@@ -597,6 +635,12 @@
     ]
   },
   {
+    "path": "/api/subscription",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
     "path": "/api/subscription/checkout",
     "methods": [
       "POST"
@@ -609,15 +653,16 @@
     ]
   },
   {
-    "path": "/api/subscription",
+    "path": "/api/tax-estimate",
     "methods": [
       "GET"
     ]
   },
   {
-    "path": "/api/tax-estimate",
+    "path": "/api/team",
     "methods": [
-      "GET"
+      "GET",
+      "POST"
     ]
   },
   {
@@ -631,13 +676,6 @@
     "methods": [
       "PUT",
       "DELETE"
-    ]
-  },
-  {
-    "path": "/api/team",
-    "methods": [
-      "GET",
-      "POST"
     ]
   },
   {
@@ -691,6 +729,13 @@
     ]
   },
   {
+    "path": "/api/user/sessions",
+    "methods": [
+      "GET",
+      "DELETE"
+    ]
+  },
+  {
     "path": "/api/v1/catalogs",
     "methods": [
       "GET"
@@ -735,22 +780,15 @@
     ]
   },
   {
-    "path": "/api/warehouse/stock/[id]",
-    "methods": [
-      "PATCH"
-    ]
-  },
-  {
     "path": "/api/warehouse/stock",
     "methods": [
       "GET"
     ]
   },
   {
-    "path": "/api/warehouse/warehouses/[id]",
+    "path": "/api/warehouse/stock/[id]",
     "methods": [
-      "PATCH",
-      "DELETE"
+      "PATCH"
     ]
   },
   {
@@ -758,6 +796,13 @@
     "methods": [
       "GET",
       "POST"
+    ]
+  },
+  {
+    "path": "/api/warehouse/warehouses/[id]",
+    "methods": [
+      "PATCH",
+      "DELETE"
     ]
   },
   {

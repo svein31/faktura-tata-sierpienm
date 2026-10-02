@@ -1,3 +1,4 @@
+import { assertCompanyMfa } from "./security-policy";
 import type { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
@@ -15,5 +16,6 @@ export async function companyAccess(tx: Prisma.TransactionClient, userId: string
   const defaults = DEFAULT_ROLE_PERMISSIONS[role as CompanyRole];
   const allowed = !permission || role === "owner" || (member?.[permission] ?? defaults[permission]);
   if (!allowed) throw new ApiError(403, "Brak uprawnienia do tej operacji.");
+  await assertCompanyMfa(tx, userId, company.id);
   return { company, role };
 }

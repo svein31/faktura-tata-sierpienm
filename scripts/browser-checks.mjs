@@ -6,7 +6,7 @@ export async function browserChecks(base, db) {
   const invoiceDate = new Date().toISOString().slice(0, 10);
   const invoiceDueDate = new Date(Date.parse(invoiceDate + 'T00:00:00Z') + 7 * 86400000).toISOString().slice(0, 10);
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 }, extraHTTPHeaders: { Origin: base } });
   context.setDefaultTimeout(15000);
   context.setDefaultNavigationTimeout(30000);
   const page = await context.newPage(), errors = [];

@@ -62,6 +62,8 @@ export default function ExpensesPage() {
   scopeRef.current = scope;
   React.useEffect(() => { setModalOpen(false); setToDelete(null); }, [scope]);
 
+  const [linkedExpenseId, setLinkedExpenseId] = React.useState<string | null>(null);
+  const linkedOpened = React.useRef("");
   const [expenses, setExpenses] = React.useState<Expense[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
@@ -106,6 +108,16 @@ export default function ExpensesPage() {
   React.useEffect(() => {
     fetchExpenses();
   }, [fetchExpenses]);
+
+  React.useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("expenseId");
+    if (!id || !/^[a-f0-9]{24}$/i.test(id) || loading || linkedOpened.current === scope + ":" + id) return;
+    const record = expenses.find(e => e.id === id);
+    if (!record) return;
+    linkedOpened.current = scope + ":" + id; setLinkedExpenseId(id);
+    setSearch(record.number); setWorkflowFilter("all"); setCategoryFilter("all"); setPaymentFilter("all");
+    requestAnimationFrame(() => document.getElementById("expense-" + id)?.scrollIntoView({ block: "center", behavior: "smooth" }));
+  }, [expenses, loading, scope]);
 
   // Obliczenia netto / VAT
   const calculatedNet = React.useMemo(() => {
@@ -522,6 +534,8 @@ export default function ExpensesPage() {
                     return (
                       <motion.tr
                         key={item.id}
+                        id={"expense-" + item.id}
+                        className={linkedExpenseId === item.id ? "bg-primary/10" : undefined}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

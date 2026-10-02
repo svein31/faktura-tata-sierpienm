@@ -6,7 +6,7 @@ import { useAppStore } from "./store";
 export type OverviewMoney = { currency: string; net: number; vat: number; gross: number; count: number };
 export type Overview = {
   checkedAt: string;
-  counts: { rejected: number; uncertain: number; overdue: number; drafts: number; offline: number; reviews: number; tasks: number };
+  counts: { rejected: number; uncertain: number; overdue: number; drafts: number; offline: number; reviews: number; tasks: number; missingUpo: number; unmatched: number };
   actions: { id: string; kind: string; label: string; detail: string; href: string; priority: number }[];
   actionTotal: number;
   currencies: string[];

@@ -23,6 +23,8 @@ import {
   Copy,
   Keyboard,
 } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import type { PreflightIssue } from "@/lib/invoice-preflight";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
@@ -624,6 +626,8 @@ export function InvoiceCreator() {
         notes: undefined,
       });
       contractorId = c.id;
+      // Reuse the created buyer when an invoice write fails and the user retries.
+      setForm(previous => ({ ...previous, contractorId: c.id, useNewContractor: false }));
     }
 
     const effectiveRate = form.currency !== "PLN"
@@ -698,7 +702,26 @@ export function InvoiceCreator() {
     return store.addInvoice(inv);
   };
 
+  const [assistant, setAssistant] = React.useState<{ issues: PreflightIssue[]; canProceed: boolean; action: "save" | "ksef"; snapshot: string } | null>(null);
+  const [checkingInvoice, setCheckingInvoice] = React.useState(false);
+  const assistantBusy = React.useRef(false);
+  const mutationBusy = React.useRef(false);
+  const invoiceSnapshot = JSON.stringify({ form, invoiceNumber, seller: effectiveSellerCompany.id, numberMode });
+  const checkBeforeAction = async (action: "save" | "ksef") => {
+    if (assistantBusy.current || saving) return;
+    const errors = validate(); showValidation(errors);
+    if (errors.length) { toast("error", "Popraw dane faktury", errors[0]); return; }
+    assistantBusy.current = true; setCheckingInvoice(true);
+    try {
+      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: draftInvoiceIsNew ? undefined : draftInvoice?.id, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Nie udało się sprawdzić faktury.");
+      setAssistant({ ...result, action, snapshot: invoiceSnapshot });
+    } catch (e) { toast("error", "Asystent przed wysyłką", e instanceof Error ? e.message : "Sprawdź połączenie."); }
+    finally { assistantBusy.current = false; setCheckingInvoice(false); }
+  };
   const handleSave = async () => {
+    if (mutationBusy.current) return;
     const errs = validate();
     showValidation(errs);
     if (errs.length) {
@@ -706,6 +729,7 @@ export function InvoiceCreator() {
       return;
     }
     setSaving("save");
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
@@ -718,16 +742,18 @@ export function InvoiceCreator() {
       if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać", e instanceof Error ? e.message : undefined);
       setSaving(null);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   const handleSaveDraft = async () => {
+    if (mutationBusy.current) return;
     const errs = validate();
     if (errs.length) {
       showValidation(errs);
       toast("error", "Popraw błędy", errs[0]);
       return;
     }
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("draft");
       const saved = await persist(inv);
@@ -739,10 +765,11 @@ export function InvoiceCreator() {
       const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
       if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać szkicu", e instanceof Error ? e.message : undefined);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   const handleSendKsef = async () => {
+    if (mutationBusy.current) return;
     if (form.isProforma) {
       toast("error", "KSeF: Błąd dokumentu", "Faktura proforma nie jest dokumentem księgowym i nie podlega rejestracji w KSeF.");
       return;
@@ -762,9 +789,13 @@ export function InvoiceCreator() {
       return;
     }
     setSaving("ksef");
+    mutationBusy.current = true;
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
+      // Keep the persisted identity if transport fails, so retries update this document instead of creating a duplicate.
+      store.setDraft(saved, false);
+      setForm(previous => ({ ...previous, number: saved.number, contractorId: saved.contractorId, useNewContractor: false }));
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
       const xmlRes = await import("@/lib/xml");
       const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany);
@@ -789,13 +820,13 @@ export function InvoiceCreator() {
         store.setDraft(null, true);
         router.push("/invoices");
       } else {
-        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
+        toast("error", "KSeF: odrzucono dokument", data.message ?? data.error ?? "Błąd wysyłki do KSeF.");
         setSaving(null);
       }
     } catch (e) {
       setSaving(null);
       toast("error", "Nie udało się wysłać do KSeF", e instanceof Error ? e.message : undefined);
-    }
+    } finally { mutationBusy.current = false; }
   };
 
   // ── Globalne skróty klawiszowe w kreatorze faktury ──
@@ -812,9 +843,9 @@ export function InvoiceCreator() {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         if (!isPurchase && !isKsefRegistered && !form.isProforma) {
-          handleSendKsef();
+          void checkBeforeAction("ksef");
         } else {
-          handleSave();
+          void checkBeforeAction("save");
         }
         return;
       }
@@ -1681,11 +1712,11 @@ export function InvoiceCreator() {
               <Button onClick={handleSaveDraft} variant="outline">
                 <Save className="h-4 w-4" /> Szkic
               </Button>
-              {!form.isOffline && <Button onClick={handleSave} loading={saving === "save"}>
+              {!form.isOffline && <Button onClick={() => void checkBeforeAction("save")} loading={saving === "save"}>
                 <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
               </Button>}
               {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-                <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle">
+                <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} variant="subtle">
                   <Send className="h-4 w-4" /> Wyślij do KSeF
                 </Button>
               )}
@@ -1720,11 +1751,11 @@ export function InvoiceCreator() {
           <Button onClick={handleSaveDraft} variant="outline">
             <Save className="h-4 w-4" /> Szkic
           </Button>
-          {!form.isOffline && <Button onClick={handleSave} loading={saving === "save"} className="flex-1">
+          {!form.isOffline && <Button onClick={() => void checkBeforeAction("save")} loading={saving === "save"} className="flex-1">
             <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
           </Button>}
           {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-            <Button onClick={handleSendKsef} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
+            <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
               <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
             </Button>
           )}
@@ -1733,6 +1764,10 @@ export function InvoiceCreator() {
       </div>
 
       {/* Szybkie dodanie nowej firmy / NIP */}
+      <Dialog open={Boolean(assistant)} onClose={() => setAssistant(null)} title="Asystent przed wysyłką faktury" description="Sprawdź wskazówki i zatwierdź dokument. Asystent nie zmienia danych automatycznie." footer={<div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setAssistant(null)}>Wróć do edycji</Button><Button disabled={!assistant?.canProceed || assistant?.snapshot !== invoiceSnapshot || Boolean(saving)} onClick={() => { const action = assistant?.action; setAssistant(null); if (action === "ksef") void handleSendKsef(); else void handleSave(); }}>Zatwierdzam i kontynuuję</Button></div>}>
+        <div className="space-y-3 text-sm">{assistant?.issues.length ? assistant.issues.map(issue => <div key={issue.code} className="rounded-lg border p-3"><p className="font-medium">{issue.severity === "error" ? "Popraw przed zatwierdzeniem" : "Sprawdź"} · {issue.message}</p>{issue.href && <a href={issue.href} target="_blank" rel="noopener noreferrer" className="mt-2 block text-primary underline">Otwórz dokument →</a>}</div>) : <p>Nie znaleziono problemów w danych i numeracji. Zweryfikuj podgląd oraz właściwą stawkę VAT.</p>}{assistant?.snapshot !== invoiceSnapshot && <p role="alert">Dane zmieniły się. Zamknij asystenta i sprawdź fakturę ponownie.</p>}</div>
+      </Dialog>
+      {checkingInvoice && <p role="status" className="text-sm text-muted-foreground">Asystent sprawdza dane i duplikaty…</p>}
       <CompanyModal
         open={companyModalOpen}
         onClose={() => setCompanyModalOpen(false)}

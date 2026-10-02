@@ -1,3 +1,5 @@
+import { auditSeoContracts } from "./seo-contract-audit.mjs";
+import { auditProductSecurity } from './product-security-audit.mjs';
 import { fullFeatureAudit } from './full-feature-audit.mjs';
 import assert from 'node:assert/strict';
 import { backupDrill } from './backup/drill.mjs';
@@ -44,7 +46,7 @@ const smtp = createServer(socket => {
 });
 async function api(method, path, body, cookie, extraHeaders = {}) {
   console.log(`[integration] ${method} ${path}`);
-  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...extraHeaders, ...(cookie ? { Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+  const res = await fetch(base + path, { signal: AbortSignal.timeout(15000), method, headers: { 'Content-Type': 'application/json', ...extraHeaders, ...(cookie ? { Origin: base, Cookie: cookie } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   return { res, data: await res.json(), cookie: res.headers.getSetCookie().find(c => c.startsWith('auth_session='))?.split(';')[0] };
 }
 try {
@@ -140,13 +142,14 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   assert.ok(ready, 'Application must start');
+  await auditSeoContracts(base);
   // An expired session cookie must never bounce /login -> /dashboard -> /login.
   const staleCookie = 'auth_session=expired-session-token';
   for (const path of ['/login', '/register']) {
-    const page = await fetch(base + path, { headers: { Cookie: staleCookie }, redirect: 'manual' });
+    const page = await fetch(base + path, { headers: { Origin: base, Cookie: staleCookie }, redirect: 'manual' });
     assert.equal(page.status, 200, path + ' must remain accessible with a stale cookie');
   }
-  const protectedPage = await fetch(base + '/dashboard', { headers: { Cookie: staleCookie }, redirect: 'manual' });
+  const protectedPage = await fetch(base + '/dashboard', { headers: { Origin: base, Cookie: staleCookie }, redirect: 'manual' });
   assert.ok([307, 308].includes(protectedPage.status), 'protected page must reject stale cookie');
   assert.equal(new URL(protectedPage.headers.get('location'), base).pathname, '/login');
   console.log('[integration] PASS stale cookie cannot trigger login redirect loop');
@@ -434,7 +437,7 @@ try {
   assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:false},a.cookie)).res.status,200);
   const jpkBody={companyId,format:'fa',dateFrom:'2026-09-01',dateTo:'2026-09-30',office:'1471',currency:'PLN',normalDomestic:true,address:{Wojewodztwo:'mazowieckie',Powiat:'Warszawa',Gmina:'Warszawa',NrDomu:'1',Miejscowosc:'Warszawa',KodPocztowy:'00-001'}};
   assert.equal((await api('POST','/api/jpk',jpkBody,b.cookie)).res.status,403);
-  const jpkResponse=await fetch(base+'/api/jpk',{method:'POST',headers:{'Content-Type':'application/json',Cookie:a.cookie},body:JSON.stringify(jpkBody)});
+  const jpkResponse=await fetch(base+'/api/jpk',{method:'POST',headers:{'Content-Type':'application/json',Origin: base, Cookie:a.cookie},body:JSON.stringify(jpkBody)});
   const jpkXml=await jpkResponse.text();assert.equal(jpkResponse.status,200,jpkXml);assert.match(jpkXml,/<JPK /);assert.match(jpkXml,/<P_2A>REM\/1<\/P_2A>/);
   assert.ok(await db.auditLog.count({where:{companyId,action:'jpk_exported'}})>0);
   const credentials = { email: 'a@example.com', password: 'Integration123!' };
@@ -512,13 +515,13 @@ try {
   assert.equal((await api('POST','/api/ksef/test-connection',{companyId})).res.status,401);
   assert.equal((await api('POST','/api/ksef/test-connection',{companyId},b.cookie)).res.status,403);
   const source = new Blob([Buffer.from('%PDF-1.4\n%%EOF')],{type:'application/pdf'});
-  async function uploadDoc(cookie, scopeId=companyId){const form=new FormData();form.set('file',source,'source.pdf');const res=await fetch(`${base}/api/documents?companyId=${scopeId}`,{method:'POST',headers:{Cookie:cookie},body:form});return {res,data:await res.json()};}
+  async function uploadDoc(cookie, scopeId=companyId){const form=new FormData();form.set('file',source,'source.pdf');const res=await fetch(`${base}/api/documents?companyId=${scopeId}`,{method:'POST',headers:{Origin: base, Cookie:cookie},body:form});return {res,data:await res.json()};}
   assert.equal((await uploadDoc(b.cookie)).res.status,403);
   const uploaded = await uploadDoc(a.cookie); assert.equal(uploaded.res.status,201,JSON.stringify(uploaded.data));
   assert.equal((await uploadDoc(a.cookie)).data.duplicate,true);
   const scanId = uploaded.data.id;
   assert.equal((await api('GET',`/api/documents/${scanId}`,undefined,b.cookie)).res.status,403);
-  assert.equal((await fetch(`${base}/api/documents/${scanId}/file`,{headers:{Cookie:b.cookie}})).status,403);
+  assert.equal((await fetch(`${base}/api/documents/${scanId}/file`,{headers:{Origin: base, Cookie:b.cookie}})).status,403);
   const review = {action:'approve',version:1,number:'COST/WORKSPACE',contractorName:'Supplier',nip:'5250001003',issueDate:'2030-01-10',currency:'PLN',totalNet:20,totalVat:0,totalGross:20};
   await db.expenseScan.update({where:{id:scanId},data:{ocrResult:{fields:{},lines:[],warnings:[],confidence:null}}});
   assert.equal((await api('PATCH',`/api/documents/${scanId}`,review,a.cookie)).res.status,400,'OCR approval requires explicit human review');
@@ -855,19 +858,19 @@ try {
   const templateTwo=await api('POST','/api/pdf-templates',{...templateBody,version:1,name:'New template',accentColor:'#990000',footerText:'Changed footer',layout:'compact'},a.cookie);
   assert.equal(templateTwo.res.status,200,JSON.stringify(templateTwo.data));
   const pdfUrl=`${base}/api/invoices/${pdfInvoiceId}/pdf`;
-  const pdfOne=await fetch(pdfUrl,{headers:{Cookie:a.cookie}}); assert.equal(pdfOne.status,200);
+  const pdfOne=await fetch(pdfUrl,{headers:{Origin: base, Cookie:a.cookie}}); assert.equal(pdfOne.status,200);
   const firstBytes=Buffer.from(await pdfOne.arrayBuffer()),firstVersion=pdfOne.headers.get('x-pdf-version');
   assert.ok(firstVersion); assert.equal(firstBytes.subarray(0,5).toString(),'%PDF-');
-  const pdfAgain=await fetch(pdfUrl,{headers:{Cookie:a.cookie}}); assert.equal(pdfAgain.status,200);
+  const pdfAgain=await fetch(pdfUrl,{headers:{Origin: base, Cookie:a.cookie}}); assert.equal(pdfAgain.status,200);
   assert.deepEqual(Buffer.from(await pdfAgain.arrayBuffer()),firstBytes,'Repeated PDF returns identical persisted bytes');
   assert.deepEqual((await db.invoicePrintContext.findUniqueOrThrow({where:{id:pdfInvoiceId}})).data,originalContext.data,'Company, buyer and template changes never rewrite print context');
-  assert.equal((await fetch(pdfUrl,{headers:{Cookie:b.cookie}})).status,403);
+  assert.equal((await fetch(pdfUrl,{headers:{Origin: base, Cookie:b.cookie}})).status,403);
   const pdfEdit=await api('PUT',`/api/invoices/${pdfInvoiceId}`,{...pdfBody,version:pdfCreated.data.invoice.version,notes:'New revision note'},a.cookie);
   assert.equal(pdfEdit.res.status,200,JSON.stringify(pdfEdit.data));
-  const pdfChanged=await fetch(pdfUrl,{headers:{Cookie:a.cookie}}); assert.equal(pdfChanged.status,200);
+  const pdfChanged=await fetch(pdfUrl,{headers:{Origin: base, Cookie:a.cookie}}); assert.equal(pdfChanged.status,200);
   assert.notEqual(pdfChanged.headers.get('x-pdf-version'),firstVersion);
   assert.notDeepEqual(Buffer.from(await pdfChanged.arrayBuffer()),firstBytes);
-  const archived=await fetch(`${pdfUrl}?version=${firstVersion}`,{headers:{Cookie:a.cookie}});
+  const archived=await fetch(`${pdfUrl}?version=${firstVersion}`,{headers:{Origin: base, Cookie:a.cookie}});
   assert.equal(archived.status,200);assert.deepEqual(Buffer.from(await archived.arrayBuffer()),firstBytes,'Earlier rendered versions remain immutable after editing');
   const pdfHistory=await api('GET',`/api/invoices/${pdfInvoiceId}/pdf?history=1`,undefined,a.cookie);
   assert.equal(pdfHistory.res.status,200);assert.equal(pdfHistory.data.versions.length,2);
@@ -877,7 +880,7 @@ try {
   const nextContext=await db.invoicePrintContext.findUniqueOrThrow({where:{id:nextInvoice.data.invoice.id}});
   assert.equal(nextContext.data.templateId,templateTwo.data.id);
   assert.equal(nextContext.data.company.companyName,'Changed company');
-  assert.equal((await fetch(`${base}/api/invoices/${nextInvoice.data.invoice.id}/pdf?version=${firstVersion}`,{headers:{Cookie:a.cookie}})).status,404,'A version cannot be fetched through another invoice');
+  assert.equal((await fetch(`${base}/api/invoices/${nextInvoice.data.invoice.id}/pdf?version=${firstVersion}`,{headers:{Origin: base, Cookie:a.cookie}})).status,404,'A version cannot be fetched through another invoice');
   console.log('PASS: immutable PDF bytes, issued party/template snapshots, source revisions, history, ownership and template CAS');
   const bankCsv = 'Data;Kwota;Tytuł;Nadawca\n2026-09-23;123,00;PDF/ARCHIVE/2;Client';
   const bankBody = { csvContent: bankCsv, bankFormat: 'generic' };
@@ -918,7 +921,7 @@ try {
   assert.equal(await db.paymentRecord.count({where:{invoiceId:{in:[workflowSale.id,workflowPurchase.id]}}}),2);
   const outstandingCost=await db.invoice.create({data:{...workflowBase,number:'WORKFLOW/COST/2',type:'purchase'}});
   const transferBody={companyId:workflowCompany.id,bankAccountId:workflowAccount.id,executionDate:'2026-10-01',format:'pain001',items:[{id:outstandingCost.id,kind:'invoice',iban:'PL61109010140000071219812874'}]};
-  const workflowTransfer=await fetch(base+'/api/banking/transfers',{method:'POST',headers:{Cookie:a.cookie,'Content-Type':'application/json'},body:JSON.stringify(transferBody)});
+  const workflowTransfer=await fetch(base+'/api/banking/transfers',{method:'POST',headers:{Origin: base, Cookie:a.cookie,'Content-Type':'application/json'},body:JSON.stringify(transferBody)});
   assert.equal(workflowTransfer.status,200,await workflowTransfer.clone().text());assert.match(await workflowTransfer.text(),/pain.001.001.03/);
   assert.equal((await db.invoice.findUniqueOrThrow({where:{id:outstandingCost.id}})).paymentStatus,'unpaid','Export cannot mark invoice as paid');
   assert.equal((await api('POST','/api/banking/transfers',transferBody,b.cookie)).res.status,403);
@@ -938,9 +941,9 @@ try {
   assert.equal(await db.documentComment.count({where:{invoiceId:outstandingCost.id}}),1);
   workflowPortal=await portalRead();const portalExpense=workflowPortal.data.rows.find(row=>row.id===workflowExpense.id);
   assert.equal((await portalAction('approve',portalExpense)).res.status,200);
-  const workflowXlsx=await fetch(base+'/api/invoices/export?companyId='+workflowCompany.id+'&format=xlsx',{headers:{Cookie:b.cookie}});
+  const workflowXlsx=await fetch(base+'/api/invoices/export?companyId='+workflowCompany.id+'&format=xlsx',{headers:{Origin: base, Cookie:b.cookie}});
   assert.equal(workflowXlsx.status,200);assert.equal(Buffer.from(await workflowXlsx.arrayBuffer()).readUInt32LE(0),0x04034b50);
-  const packageResult=await fetch(base+'/api/accountant/package?companyId='+workflowCompany.id+'&month=2026-09&target=optima',{headers:{Cookie:b.cookie}});
+  const packageResult=await fetch(base+'/api/accountant/package?companyId='+workflowCompany.id+'&month=2026-09&target=optima',{headers:{Origin: base, Cookie:b.cookie}});
   assert.equal(packageResult.status,200,await packageResult.clone().text());assert.equal(Buffer.from(await packageResult.arrayBuffer()).readUInt32LE(0),0x04034b50);
   const workflowTax=await api('GET','/api/tax-estimate?companyId='+workflowCompany.id+'&month=2026-09&mode=cit&citRate=19',undefined,b.cookie);
   assert.equal(workflowTax.res.status,200,JSON.stringify(workflowTax.data));assert.equal(workflowTax.data.revenueNet,100);assert.ok(Array.isArray(workflowTax.data.warnings));
@@ -968,6 +971,7 @@ try {
   assert.ok(sharedCounters.some(counter=>counter.hits===8 && counter.expiresAt instanceof Date));
   assert.ok(sharedCounters.every(counter=>!JSON.stringify(counter).includes('127.0.0.1')),'Counters must not store IPs');
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
+  await auditProductSecurity(base, db);
   if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerCookie:a.cookie,companyId,otherCookie:b.cookie,otherUserId:b.data.user.id});
   if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
