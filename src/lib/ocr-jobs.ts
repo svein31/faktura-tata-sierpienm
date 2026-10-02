@@ -70,6 +70,7 @@ export async function processOcrJob(scope: { companyId?: string; id?: string } =
     const original = await prisma.expenseScan.findUnique({ where: { id: claimed.id } });
     if (!original) throw new ApiError(404, "Brak oryginału.");
     await ensureDocumentSafety(original);
+    await access(prisma, claimed.userId, claimed.companyId);
     output = await provider(claimed.imageData);
   }
   catch (e) { failure = e instanceof OcrProviderError ? e : e instanceof ApiError ? new OcrProviderError(e.message, false) : new OcrProviderError("Rozpoznawanie nie powiodło się. Zaplanowano ponowienie.", true); }

@@ -50,6 +50,6 @@ Metadata planu zastosowano w aplikacji, nie tylko w dokumentacji. Publiczne stro
 
 Opublikowano poradniki FA(3), UPO, odrzucenia, QR i przygotowania 2027; pięć scenariuszy produktu oraz sześć porównań. Strony zawierają odpowiedź, przykłady, źródła, ograniczenia i daty. Nie dopisano fikcyjnych ekspertów, ocen ani gwarancji pozycji. Niepotwierdzone ceny konkurencji są jawnie oznaczone.
 
-Aktualizacja prawnych treści opiera się na źródłach zapisanych w audycie z 30 września. Odczyt źródeł jest powtarzany przez workflow SEO. Nowe przepisy wymagają przeglądu redakcyjnego.
+Aktualizacja prawnych treści opiera się na źródłach zapisanych w audycie z 30 września i ponownie odczytanych 2 października (workflow 37025602589; source-verification-2026-10-02.json). Odczyt źródeł jest powtarzany przez workflow SEO. Nowe przepisy wymagają przeglądu redakcyjnego.
 
 Brak dostępu do Search Console, analityki i płatnych danych SERP uniemożliwia potwierdzenie indeksacji, pozycji, konwersji i terenowych CWV. llms.txt nie gwarantuje cytowania przez model. Plan partnerstw, uczciwych opinii i publikacji poza serwisem wymaga rzeczywistych partnerów; nie wysłano wiadomości ani nie utworzono sztucznych opinii.

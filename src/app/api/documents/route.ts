@@ -1,3 +1,4 @@
+import { companyAccess } from "@/lib/company-write";
 import { scanDocument } from "@/lib/document-safety";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -37,6 +38,12 @@ export async function POST(req: Request) {
     await prisma.$transaction(async tx => {
       // This company mutex also serializes concurrent quota claims.
       await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date() } });
+      // Scanning can take seconds: recheck permissions under the company mutex.
+      try { await companyAccess(tx, user.id, companyId, "canIssueInvoices"); }
+      catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 403) throw error;
+        await companyAccess(tx, user.id, companyId, "canExport");
+      }
       const [daily, storage] = await Promise.all([
         tx.expenseScan.count({ where: { companyId, createdAt: { gte: new Date(Date.now() - 86400000) } } }),
         tx.expenseScan.aggregate({ where: { companyId }, _sum: { sizeBytes: true } }),
