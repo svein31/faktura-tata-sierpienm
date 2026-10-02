@@ -49,6 +49,22 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const fractional=await submit(page.getByRole('button',{name:'Szkic',exact:true}),'/api/invoices');
     assert.equal(fractional.invoice.lines[0].quantity,0.004);assert.equal(fractional.invoice.totalNet,4);
     await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity');
+    await page.goto('/invoices/' + fractional.invoice.id);
+    const beforeIssue = await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}});
+    await page.getByRole('button',{name:/^Zapisz fakturę/}).first().click();
+    let assistant = page.getByRole('dialog');
+    await expect(assistant.getByRole('heading',{name:'Asystent przed wysyłką faktury',exact:true})).toBeVisible();
+    await checkPhoneDialog('Invoice preflight assistant');
+    assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).version,beforeIssue.version,'Preflight does not save the document');
+    await assistant.getByRole('button',{name:'Wróć do edycji',exact:true}).click();
+    assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).status,'draft');
+    await page.getByRole('button',{name:/^Zapisz fakturę/}).first().click();
+    assistant = page.getByRole('dialog');
+    await submit(assistant.getByRole('button',{name:'Zatwierdzam i kontynuuję',exact:true}),'/api/invoices/'+fractional.invoice.id);
+    await expect(page).toHaveURL(/invoices$/);
+    assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).status,'issued');
+    checks.push('Phone invoice assistant cancel, no side effects and explicit issue confirmation');
+
     await page.setViewportSize({width:1280,height:900});
     await page.goto('/narzedzia/kalkulator-vat');
     await page.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');
@@ -148,6 +164,11 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
     assert.equal(offer.offer.totalGross,123);await expect(page.getByRole('table').getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
     checks.push('Offer creation through UI');
+    await page.goto('/accountant');
+    await expect(page.getByRole('progressbar',{name:'Postęp kontroli miesiąca'})).toBeVisible();
+    await expect(page.getByRole('link',{name:'Sprawdź skrzynkę dokumentów →'})).toBeVisible();
+    await checkPhoneDialog('Accountant readiness checklist');
+    checks.push('Phone accountant month readiness and source links');
     assert.deepEqual(errors,[],'Functional UI journeys must not raise unhandled JavaScript errors');
     console.log('[feature-controls-summary] '+JSON.stringify({checks:checks.length,scenarios:checks,errors}));
   } catch(error) {

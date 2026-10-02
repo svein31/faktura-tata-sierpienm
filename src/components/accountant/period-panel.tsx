@@ -17,7 +17,9 @@ const money = (value: number, currency: string) => `${value.toLocaleString("pl-P
 export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }: { companyId: string; month: string; revision: number; onReadOnly: (closed: boolean) => void }) {
   const [state, setState] = React.useState<State | null>(null), [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState(false), [reason, setReason] = React.useState("");
-  const mounted = React.useRef(false), generation = React.useRef(0);
+  const mounted = React.useRef(false), generation = React.useRef(0), mutationBusy = React.useRef(false);
+  const scope = companyId + ":" + month;
+  const activeScope = React.useRef(scope); activeScope.current = scope;
   const load = React.useCallback(async (cursor?: string) => {
     const ticket = ++generation.current;
     try {
@@ -31,18 +33,19 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
       }
     } catch (e) { if (mounted.current && ticket === generation.current) { setError(e instanceof Error ? e.message : "Błąd odczytu okresu."); onReadOnly(true); } }
   }, [companyId, month, onReadOnly]);
-  React.useEffect(() => { mounted.current = true; void load(); return () => { mounted.current = false; ++generation.current; }; }, [load, revision]);
+  React.useEffect(() => { mounted.current = true; setState(null); setReason(""); setBusy(false); mutationBusy.current = false; onReadOnly(true); void load(); return () => { mounted.current = false; ++generation.current; }; }, [load, revision]);
   const change = async () => {
-    if (!state || busy || !reason.trim()) return;
+    if (!state || busy || mutationBusy.current || !reason.trim()) return;
+    const operationScope = scope;
     const action = state.period.status === "closed" ? "reopen" : "close";
     if (!window.confirm(action === "close" ? `Zamknąć ${month}? Zapisy dokumentów w tym miesiącu zostaną zablokowane.` : `Ponownie otworzyć ${month}? Zapis dokumentów będzie znów możliwy.`)) return;
-    setBusy(true); setError("");
+    mutationBusy.current = true; setBusy(true); setError("");
     try {
       const response = await fetch("/api/accountant/period", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, month, version: state.period.version, action, reason }) }), result = await response.json();
       if (!response.ok) throw new Error(result.error || "Nie udało się zmienić okresu.");
-      if (mounted.current) { setReason(""); await load(); }
-    } catch (e) { if (mounted.current) setError(e instanceof Error ? e.message : "Błąd zmiany okresu. Odśwież dane."); }
-    finally { if (mounted.current) setBusy(false); }
+      if (mounted.current && activeScope.current === operationScope) { setReason(""); await load(); }
+    } catch (e) { if (mounted.current && activeScope.current === operationScope) setError(e instanceof Error ? e.message : "Błąd zmiany okresu. Odśwież dane."); }
+    finally { if (mounted.current && activeScope.current === operationScope) { mutationBusy.current = false; setBusy(false); } }
   };
   const closed = state?.period.status === "closed";
   return <section className="rounded-xl border p-4 space-y-3 mb-4">

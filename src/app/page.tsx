@@ -35,7 +35,7 @@ export default function LandingPage() {
       <JsonLd value={{ "@context": "https://schema.org", "@graph": [
         { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#organization`, name: "FakturaProsto", url: PUBLIC_ORIGIN },
         { "@type": "WebSite", "@id": `${PUBLIC_ORIGIN}/#website`, name: "FakturaProsto", url: PUBLIC_ORIGIN, inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` } },
-        { "@type": "SoftwareApplication", "@id": `${PUBLIC_ORIGIN}/#software`, name: "FakturaProsto", url: PUBLIC_ORIGIN, description: "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.", applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, offers: { "@type": "Offer", price: "0", priceCurrency: "PLN", description: "Plan Free: do 5 faktur miesięcznie", url: `${PUBLIC_ORIGIN}/register` } },
+        { "@type": "SoftwareApplication", "@id": `${PUBLIC_ORIGIN}/#software`, name: "FakturaProsto", url: PUBLIC_ORIGIN, description: "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.", applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, offers: [{ "@type": "Offer", price: "0", priceCurrency: "PLN", description: "Plan Free: do 5 faktur miesięcznie", url: `${PUBLIC_ORIGIN}/register` }, { "@type": "Offer", price: "7", priceCurrency: "PLN", description: "Pro: 7 zł brutto za miesiąc", url: `${PUBLIC_ORIGIN}/register` }, { "@type": "Offer", price: "59", priceCurrency: "PLN", description: "Pro: 59 zł brutto za rok", url: `${PUBLIC_ORIGIN}/register` }] },
       ] }} />
       {/* ── NAWIGACJA GŁÓWNA ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background">
@@ -83,9 +83,7 @@ export default function LandingPage() {
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.12]">Faktury VAT online z KSeF 2.0 dla małych firm</h1>
 
             <p className="mt-5 text-base sm:text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
-              Zaprojektowany dla polskich przedsiębiorców i biur rachunkowych. Wystawiaj faktury
-              zgodne ze schematem FA(3), pobieraj dane z GUS po NIP w sekundę i odbieraj urzędowe
-              poświadczenia odbioru (UPO).
+              FakturaProsto to polski program do faktur VAT online dla JDG, małych firm i biur rachunkowych. Łączy formularz faktury, integrację KSeF 2.0, dane GUS po NIP oraz współpracę z księgową. Free obejmuje 5 faktur miesięcznie. Pro kosztuje 7 zł brutto miesięcznie lub 59 zł brutto rocznie. Sprawdź demo bez rejestracji i karty.
             </p>
 
             {/* CTA Buttons */}

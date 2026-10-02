@@ -18,6 +18,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <Link className="hover:text-primary" href="/faktury">Faktury</Link>
             <Link className="hover:text-primary" href="/poradnik-ksef">KSeF</Link>
             <Link className="hover:text-primary" href="/narzedzia">Narzędzia</Link>
+            <Link className="hover:text-primary" href="/porownania">Porównania</Link>
             <Link className="hover:text-primary" href="/demo">Demo</Link>
           </nav>
         </div>
@@ -81,7 +82,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
       { "@type": "Article", "@id": `${canonical}#article`, headline: topic.title, description: topic.description, mainEntityOfPage: { "@id": `${canonical}#page` }, author: { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#editorial`, name: "Redakcja FakturaProsto", url: `${PUBLIC_ORIGIN}/pomoc` }, publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, datePublished: topic.publishedAt || REVIEW_DATE, dateModified: topic.modifiedAt || REVIEW_DATE, inLanguage: "pl-PL", citation: topic.sources.map(source => source.url) },
       { "@type": "BreadcrumbList", "@id": `${canonical}#breadcrumbs`, itemListElement: [
         { "@type": "ListItem", position: 1, name: "Start", item: PUBLIC_ORIGIN },
-        { "@type": "ListItem", position: 2, name: category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : "Faktury", item: `${PUBLIC_ORIGIN}/${category}` },
+        { "@type": "ListItem", position: 2, name: category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury", item: `${PUBLIC_ORIGIN}/${category}` },
         { "@type": "ListItem", position: 3, name: topic.title, item: canonical },
       ] },
       ...(topic.path === "/faktury/jak-wystawic" ? [{ "@type": "HowTo", "@id": `${canonical}#howto`, name: topic.title, description: topic.answer, step: topic.sections.map((section, index) => ({ "@type": "HowToStep", position: index + 1, name: section.title, text: section.body })) }] : []),
@@ -100,6 +101,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <h2 className="text-xl font-semibold">{section.title}</h2>
             <p className="mt-3 leading-relaxed text-muted-foreground">{section.body}</p>
           </section>)}
+          {topic.comparison && <section><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
           <section className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-semibold">Przykład z wynikiem</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground">{topic.example}</p>
@@ -109,7 +111,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{topic.caution}</p>
           </section>
           <section>
-            <h2 className="font-semibold">Źródła urzędowe</h2>
+            <h2 className="font-semibold">Źródła i weryfikacja</h2>
             <ul className="mt-3 space-y-2 text-sm">{topic.sources.map(source => <li key={source.url}><a className="text-primary underline underline-offset-4" href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></li>)}</ul>
             <p className="mt-3 text-xs text-muted-foreground">Autor: Redakcja FakturaProsto. Opracowujemy instrukcje produktu i poradniki na podstawie podanych źródeł urzędowych. <Link href="/pomoc" className="text-primary underline">Kontakt i zgłoszenie poprawki</Link>. W złożonej sytuacji sprawdź aktualne przepisy i szczegóły własnej transakcji.</p>
           </section>

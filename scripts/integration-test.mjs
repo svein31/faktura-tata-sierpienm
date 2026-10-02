@@ -1,3 +1,4 @@
+import { auditSeoContracts } from "./seo-contract-audit.mjs";
 import { auditProductSecurity } from './product-security-audit.mjs';
 import { fullFeatureAudit } from './full-feature-audit.mjs';
 import assert from 'node:assert/strict';
@@ -141,6 +142,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   assert.ok(ready, 'Application must start');
+  await auditSeoContracts(base);
   // An expired session cookie must never bounce /login -> /dashboard -> /login.
   const staleCookie = 'auth_session=expired-session-token';
   for (const path of ['/login', '/register']) {

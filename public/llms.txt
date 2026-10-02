@@ -31,3 +31,18 @@
 - [FA(3)](https://fakturaprosto.pl/poradnik-ksef/fa3): schemat XML i kontrola danych.
 - [UPO](https://fakturaprosto.pl/poradnik-ksef/upo): potwierdzenie odbioru oraz jego dostępność.
 - [Odrzucona faktura](https://fakturaprosto.pl/poradnik-ksef/odrzucona-faktura): odrzucenie a wynik nieznany.
+
+## Scenariusze i wybór programu
+- [kody-qr](https://fakturaprosto.pl/poradnik-ksef/kody-qr)
+- [2027](https://fakturaprosto.pl/poradnik-ksef/2027)
+- [dla-jdg](https://fakturaprosto.pl/program-do-faktur/dla-jdg)
+- [dla-freelancerow](https://fakturaprosto.pl/program-do-faktur/dla-freelancerow)
+- [dla-biur-rachunkowych](https://fakturaprosto.pl/program-do-faktur/dla-biur-rachunkowych)
+- [dla-firm-uslugowych](https://fakturaprosto.pl/program-do-faktur/dla-firm-uslugowych)
+- [na-telefonie](https://fakturaprosto.pl/program-do-faktur/na-telefonie)
+- [fakturownia](https://fakturaprosto.pl/porownania/fakturownia)
+- [ifirma](https://fakturaprosto.pl/porownania/ifirma)
+- [wfirma](https://fakturaprosto.pl/porownania/wfirma)
+- [infakt](https://fakturaprosto.pl/porownania/infakt)
+- [comarch](https://fakturaprosto.pl/porownania/comarch)
+- [aplikacja-mf](https://fakturaprosto.pl/porownania/aplikacja-mf)

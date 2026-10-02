@@ -1,5 +1,7 @@
 import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
+import { topicsFor } from "@/lib/seo/content";
+import { TopicCards } from "@/components/seo/public-pages";
 import { PublicShell, JsonLd } from "@/components/seo/public-pages";
 
 export const metadata = pageMetadata("/program-do-faktur", "Darmowy program do faktur online — FakturaProsto", "Wystawiaj do 5 faktur miesięcznie w planie Free. Wypróbuj demo bez logowania, sprawdź przykłady faktur i poznaj zasady KSeF.");
@@ -29,5 +31,6 @@ export default function Page() {
         ["Korekta faktury", "/faktury/korygujaca"],
       ].map(([label, url]) => <Link key={url} href={url} className="rounded-xl border border-border bg-card p-4 text-sm font-medium hover:border-primary hover:text-primary">{label} →</Link>)}
     </div></section>
+  <section className="mt-10"><h2 className="mb-4 text-xl font-semibold">Program dopasowany do Twojej pracy</h2><TopicCards items={topicsFor("/program-do-faktur/")} /></section><p className="mt-6"><Link href="/porownania" className="text-primary underline">Porównaj programy i aplikację MF →</Link></p>
   </main></PublicShell>;
 }

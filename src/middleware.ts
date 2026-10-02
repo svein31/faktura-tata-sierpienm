@@ -46,7 +46,7 @@ export function middleware(request: NextRequest) {
     pathname === "/powierzenie-danych" ||
     pathname === "/podwykonawcy";
 
-  const isPublicSeoPath = ["/program-do-faktur", "/faktury", "/poradnik-ksef", "/vat", "/narzedzia"]
+  const isPublicSeoPath = ["/program-do-faktur", "/faktury", "/poradnik-ksef", "/vat", "/narzedzia", "/porownania"]
     .some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
   const isPublicPath =
