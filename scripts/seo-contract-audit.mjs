@@ -19,7 +19,8 @@ export async function auditSeoContracts(base) {
     assert.ok(html.includes('property="og:image"'),path+" image");
     const meta=html.match(/<meta name="description" content="([^"]+)"/)?.[1];
     assert.ok(meta && meta.length<=165,path+" description");
-    assert.ok(!html.includes('noindex'),path+" indexable");
+    const robots=html.match(/<meta name="robots" content="([^"]+)"/)?.[1];
+    assert.ok(robots && !robots.includes("noindex"),path+" indexable");
     const graphs=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m=>JSON.parse(m[1]));
     assert.ok(graphs.length,path+" JSON-LD");
     const topic=topics.find(t=>t.path===path);

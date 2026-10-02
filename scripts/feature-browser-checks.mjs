@@ -166,6 +166,18 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const offer=await submit(dialog.getByRole('button',{name:'Zapisz i wygeneruj ofertę',exact:true}),'/api/offers');
     assert.equal(offer.offer.totalGross,123);await expect(page.getByRole('table').getByText('UI/AUDIT/OFFER',{exact:true})).toBeVisible();
     checks.push('Offer creation through UI');
+    const bankTarget = await db.bankTransaction.create({data:{userId:beforeIssue.userId,accountId:fixture.companyId,externalId:'ui-manual-bank-target',bookingDate:beforeIssue.issueDate,amount:beforeIssue.totalGross,currency:beforeIssue.currency,direction:'in',description:'UI audited bank receipt'}});
+    await db.bankTransaction.createMany({data:Array.from({length:31},(_,i)=>({userId:beforeIssue.userId,accountId:fixture.companyId,externalId:'ui-bank-pagination-'+i,bookingDate:beforeIssue.issueDate,amount:1,currency:'PLN',direction:'in',description:'UI pagination '+i}))});
+    await page.goto('/finances?transactionId='+bankTarget.id);
+    dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Rozlicz transakcję bankową',exact:true})).toBeVisible();
+    await dialog.getByLabel('Dokument',{exact:true}).click();
+    await page.getByRole('option').filter({hasText:fractional.invoice.number}).click();
+    await checkPhoneDialog('Bank transaction matching beyond first page');
+    page.once('dialog',d=>d.accept());
+    await submit(dialog.getByRole('button',{name:'Przypisz i zapisz płatność',exact:true}),'/api/banking/transactions');
+    assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).paymentStatus,'paid');
+    assert.equal(await db.paymentRecord.count({where:{invoiceId:fractional.invoice.id}}),1);
+    checks.push('Phone bank deep link beyond pagination and exactly one manual payment');
     await page.goto('/accountant');
     await expect(page.getByRole('progressbar',{name:'Postęp kontroli miesiąca'})).toBeVisible();
     await expect(page.getByRole('link',{name:'Sprawdź skrzynkę dokumentów →'})).toBeVisible();

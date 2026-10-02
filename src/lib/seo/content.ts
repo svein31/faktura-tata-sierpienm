@@ -38,6 +38,7 @@ export const topics: Topic[] = [
     related: ["/faktury/bez-vat", "/poradnik-ksef/jdg", "/narzedzia/kalkulator-vat"],
   },
   {
+    modifiedAt: "2026-10-02",
     path: "/faktury/bez-vat",
     title: "Faktura bez VAT: kiedy i jak ją wystawić?",
     description: "Faktura bez VAT a zwolnienie z podatku. Sprawdź różnicę między zwolnieniem, stawką 0% i obowiązkiem KSeF.",
@@ -46,6 +47,7 @@ export const topics: Topic[] = [
       { title: "Ustal podstawę zwolnienia", body: "Od 1 stycznia 2026 r. limit zwolnienia podmiotowego wynosi 240 000 zł, ale obowiązują warunki i wyłączenia. Przy rozpoczęciu działalności w trakcie roku sprawdź zasady proporcji. Możliwe jest także zwolnienie wynikające z rodzaju czynności." },
       { title: "Oddziel zwolnienie od stawki 0%", body: "Stawka 0% jest stawką podatku stosowaną przy spełnieniu określonych przesłanek. Zwolnienie oznacza inny status podatkowy transakcji. Nie zastępuj jednego oznaczenia drugim tylko dlatego, że kwota VAT wynosi 0 zł." },
       { title: "Sprawdź KSeF osobno", body: "Podatnicy zwolnieni z VAT także podlegają zasadom obowiązkowego KSeF, z uwzględnieniem etapów wdrożenia, wyjątków i przepisów przejściowych." },
+      {"title":"Jak pokazać dane i podstawę zwolnienia?","body":"Wpisz rzeczywiste dane stron, daty, numer i przedmiot sprzedaży. Ustal, czy dla danego zwolnienia należy podać podstawę prawną. Nie wpisuj przypadkowego przepisu tylko po to, by usunąć ostrzeżenie formularza; poprawność podstawy potwierdź z księgowością."},
     ],
     example: "Firma korzysta ze zwolnienia podmiotowego i świadczy usługę za 400 zł. Weryfikuje, czy zwolnienie obejmuje tę sprzedaż, i nie wpisuje automatycznie stawki 0% zamiast podstawy zwolnienia.",
     caution: "Limit 240 000 zł dotyczy zwolnienia z VAT; próg 10 000 zł to odrębna, przejściowa zasada KSeF w 2026 r.",
@@ -53,6 +55,7 @@ export const topics: Topic[] = [
     related: ["/poradnik-ksef/jdg", "/poradnik-ksef/limit-10000-zl", "/faktury/jak-wystawic"],
   },
   {
+    modifiedAt: "2026-10-02",
     path: "/faktury/zaliczkowa",
     title: "Faktura zaliczkowa: jak rozliczyć wpłatę?",
     description: "Zaliczka, wartość zamówienia i faktura rozliczająca. Zobacz przykład z kwotami i źródło Ministerstwa Finansów.",
@@ -60,6 +63,7 @@ export const topics: Topic[] = [
     sections: [
       { title: "Zapisz wartość zamówienia i otrzymane wpłaty", body: "Nie myl wartości całego zamówienia z kwotą konkretnej zaliczki. Przy kilku wpłatach zachowaj powiązania między dokumentami, aby rozliczenie nie naliczyło należności drugi raz." },
       { title: "Rozlicz pozostałą kwotę", body: "Jeżeli suma zaliczek jest mniejsza od ceny, faktura rozliczająca uwzględnia wcześniejsze dokumenty. Gdy zaliczki pokryły całą zapłatę, sprawdź odrębne zasady dokumentowania zamówienia." },
+      {"title":"Jak uniknąć podwójnej należności?","body":"Trzymaj zamówienie, zaliczki i fakturę końcową w jednym powiązanym procesie. Nie traktuj pełnej wartości zamówienia oraz każdej zaliczki jako oddzielnej sprzedaży do zsumowania. Porównaj wpłaty, faktury zaliczkowe i pozostałe saldo, a przy różnych stawkach rozlicz odpowiednie pozycje osobno."},
     ],
     example: "Zamówienie ma wartość 1 230 zł brutto, a klient wpłacił 300 zł. Do zapłaty pozostaje 930 zł brutto; sposób wykazania podatku i danych dokumentów zależy od szczegółów transakcji.",
     caution: "Ten przykład pokazuje przepływ kwot, nie ustala stawki VAT ani momentu powstania obowiązku podatkowego w konkretnej sprawie.",
@@ -81,6 +85,7 @@ export const topics: Topic[] = [
     related: ["/faktury/zaliczkowa", "/poradnik-ksef/numer-faktury"],
   },
   {
+    modifiedAt: "2026-10-02",
     path: "/faktury/korygujaca",
     title: "Faktura korygująca: co zrobić z błędem?",
     description: "Kiedy wystawić korektę i dlaczego faktury przyjętej przez KSeF nie można po prostu edytować.",
@@ -88,6 +93,8 @@ export const topics: Topic[] = [
     sections: [
       { title: "Sprawdź status dokumentu pierwotnego", body: "Szkic, odrzucona wysyłka i przyjęta faktura to różne stany. Numer KSeF i potwierdzenie przyjęcia mają znaczenie dla dalszej ścieżki poprawienia błędu." },
       { title: "Ustal, co się zmienia", body: "Korekta może dotyczyć kwot albo innych danych. Powiąż ją z właściwą fakturą i pokaż dane przed zmianą oraz po zmianie tam, gdzie jest to wymagane." },
+      {"title":"Jak odróżnić korektę kwoty od poprawy danych?","body":"Przy zmianie ceny lub ilości zachowaj wartości pierwotne i pokaż wynik zmiany zgodnie z właściwą strukturą. Przy poprawie danych stron sprawdź zakres błędu i prawidłowe powiązanie z oryginałem. Nie każda korekta zmienia kwotę do zapłaty; nie twórz automatycznie nowej należności w pełnej wartości pierwotnej faktury."},
+      {"title":"Jak pracować z fakturą offline?","body":"Ustal status dokumentu pierwotnego i moment jego przesłania. Numer własny, numer KSeF i dane wymagane w korekcie mają różne role. Przed wysyłką korekty sprawdź aktualną instrukcję MF oraz dokument pierwotny; nie zastępuj brakującego identyfikatora numerem sesji."},
     ],
     example: "Na przyjętej fakturze wpisano błędną cenę. Nie poprawiasz pliku XML pierwotnej faktury; wystawiasz powiązaną z nią fakturę korygującą.",
     caution: "Od 1 lutego 2026 r. nie wystawia się not korygujących ani w KSeF, ani poza nim.",
@@ -95,6 +102,7 @@ export const topics: Topic[] = [
     related: ["/poradnik-ksef/numer-faktury", "/poradnik-ksef/jdg"],
   },
   {
+    modifiedAt: "2026-10-02",
     path: "/faktury/dla-osoby-prywatnej",
     title: "Faktura dla osoby prywatnej a KSeF",
     description: "Czy faktura dla konsumenta trafia do KSeF? Krótka odpowiedź z przykładem i źródłem Ministerstwa Finansów.",
@@ -102,6 +110,7 @@ export const topics: Topic[] = [
     sections: [
       { title: "Rozpoznaj rodzaj nabywcy", body: "Oddziel sprzedaż dla firmy od sprzedaży dla osoby fizycznej nieprowadzącej działalności gospodarczej. To rozróżnienie wpływa na ocenę obowiązku KSeF." },
       { title: "Ustal sposób przekazania", body: "Jeżeli faktura konsumencka została wystawiona w KSeF, sama obecność w systemie nie oznacza, że konsument ją odebrał. Uzgodnij sposób udostępnienia dokumentu." },
+      {"title":"Czy trzeba wpisać NIP konsumenta?","body":"Nie przypisuj konsumentowi fikcyjnego NIP firmy, żeby przejść walidację. Wybierz prawidłowy rodzaj identyfikacji nabywcy i wymagane dla transakcji dane. Osoba fizyczna prowadząca działalność kupująca jako firma i osoba kupująca prywatnie to różne sytuacje; ustal je przed wystawieniem."},
     ],
     example: "Osoba prywatna prosi o fakturę za zakup. Sprzedawca sprawdza zasady wystawienia dokumentu i może wybrać dobrowolne wystawienie go w KSeF.",
     caution: "Faktur konsumenckich nie wlicza się do przejściowego progu 10 000 zł dla faktur objętych obowiązkiem KSeF.",
