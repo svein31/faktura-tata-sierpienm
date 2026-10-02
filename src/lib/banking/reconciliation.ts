@@ -4,15 +4,15 @@ const cents = (value: number) => Math.round(value * 100);
 function includesNumber(text: string, number: string) {
   if (!number.trim()) return false;
   const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp("(^|[^\\p{L}\\p{N}])" + escape(number.trim()) + "(?=$|[^\\p{L}\\p{N}])", "iu").test(text);
+  return new RegExp("(^|[^\\p{L}\\p{N}/_.-])" + escape(number.trim()) + "(?=$|[^\\p{L}\\p{N}/_.-])", "iu").test(text);
 }
 export function reconcile(transactions: StatementTransaction[], candidates: ReconciliationCandidate[]) {
   return transactions.map((tx, index) => {
     const amount = cents(Math.abs(tx.amount)), text = tx.title + " " + tx.senderName;
-    const matches = candidates.filter(c => c.currency === tx.currency && c.type === (tx.amount > 0 ? "sale" : "purchase") && c.totalGross > c.paidAmount).map(c => {
+    const matches = candidates.filter(c => !tx.reversal && amount > 0 && amount <= cents(c.totalGross) - cents(c.paidAmount) && (c.kind !== "expense" || amount === cents(c.totalGross) - cents(c.paidAmount)) && c.currency === tx.currency && c.type === (tx.amount > 0 ? "sale" : "purchase") && c.totalGross > c.paidAmount).map(c => {
       const remaining = cents(c.totalGross) - cents(c.paidAmount);
       const number = includesNumber(tx.title, c.number);
-      const nip = !!c.contractorNip && c.contractorNip.replace(/\D/g, "").length === 10 && text.replace(/[ -]/g, "").includes(c.contractorNip.replace(/\D/g, ""));
+      const nip = !!c.contractorNip && c.contractorNip.replace(/\D/g, "").length === 10 && new RegExp("(^|\\D)" + c.contractorNip.replace(/\D/g, "") + "(?=$|\\D)").test(text.replace(/[ -]/g, ""));
       const signals = [number && "number", nip && "nip", amount === remaining && "amount"].filter(Boolean) as string[];
       // An invoice number can identify a partial payment. NIP alone needs an exact amount.
       const score = number ? (amount === remaining ? 100 : 90) : nip && amount === remaining ? 80 : 0;

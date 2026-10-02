@@ -64,7 +64,7 @@ export async function POST(req: Request) {
           await tx.bankStatementImport.create({ data: { userId: user.id, filename: String(body.filename || "wyciag").slice(0, 200), bankFormat: parsed.format, rowCount: matched.length, matchedCount, totalAmount: Math.round(matched.reduce((s, t) => s + t.amount, 0) * 100) / 100, fileHash } });
           const duplicates = new Map<string, number>();
           for (const item of matched) {
-            const identity = hash(JSON.stringify(item.externalReference ? [companyId || user.id, item.accountIban || "", item.externalReference] : [companyId || user.id, item.accountIban || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
+            const identity = hash(JSON.stringify(item.externalReference ? [companyId || user.id, item.accountIban || "", item.externalReference, ...(item.reversal ? ["reversal"] : [])] : [companyId || user.id, item.accountIban || "", item.date, item.amount, item.currency, item.title, item.senderAccount || ""]));
             const occurrence = duplicates.get(identity) || 0; duplicates.set(identity, occurrence + 1);
             const externalId = item.externalReference ? identity : identity + ":" + occurrence;
             if (await tx.bankTransaction.findUnique({ where: { userId_externalId: { userId: ownerId, externalId } } })) { skippedCount++; continue; }
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
               appliedCount++;
               await recordAuditLog({ client: tx, companyId, userId: user.id, userName: user.name, entityType: "expense", entityId: expense.id, documentId: expense.id, action: "bank_payment_applied", diff: { paymentStatus: { old: "unpaid", new: "paid" } } });
             }
-            await tx.bankTransaction.create({ data: { userId: ownerId, externalId, accountId: companyId, accountIban: item.accountIban, bookingDate: item.date, amount: item.amount, currency: item.currency, direction: item.amount > 0 ? "in" : "out", description: item.title, counterpartyName: item.senderName, counterpartyIban: item.senderAccount, source: parsed.format, matchStatus: item.matchedInvoiceId || item.matchedExpenseId ? "matched" : item.ambiguous ? "ambiguous" : "unmatched", matchedInvoiceId: item.matchedInvoiceId, matchedExpenseId: item.matchedExpenseId, matchedInvoiceNumber: item.matchedInvoiceNumber, matchConfidence: item.confidence === "exact" ? 1 : item.confidence === "high" ? .9 : 0, paymentRecordId } });
+            await tx.bankTransaction.create({ data: { userId: ownerId, externalId, accountId: companyId, accountIban: item.accountIban, bookingDate: item.date, amount: item.amount, currency: item.currency, direction: item.amount > 0 ? "in" : "out", description: item.title, counterpartyName: item.senderName, counterpartyIban: item.senderAccount, source: parsed.format, matchSignals: item.reversal ? ["reversal"] : [], matchStatus: item.matchedInvoiceId || item.matchedExpenseId ? "matched" : item.ambiguous ? "ambiguous" : "unmatched", matchedInvoiceId: item.matchedInvoiceId, matchedExpenseId: item.matchedExpenseId, matchedInvoiceNumber: item.matchedInvoiceNumber, matchConfidence: item.confidence === "exact" ? 1 : item.confidence === "high" ? .9 : 0, paymentRecordId } });
           }
         }, { timeout: 30000 });
       } catch (error) {

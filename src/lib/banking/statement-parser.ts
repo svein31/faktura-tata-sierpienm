@@ -1,7 +1,7 @@
 import { XMLParser, XMLValidator } from "fast-xml-parser";
 export type StatementTransaction = {
   date: string; amount: number; currency: string; title: string; senderName: string;
-  senderAccount?: string; accountIban?: string; externalReference?: string; raw: string;
+  senderAccount?: string; accountIban?: string; externalReference?: string; reversal?: boolean; raw: string;
 };
 export type StatementFormat = "csv" | "mt940" | "camt053";
 function date(value: string) {
@@ -77,7 +77,7 @@ export function parseMt940(text: string): StatementTransaction[] {
       if (!m || !ccy) throw new Error("Nieobsługiwana operacja MT940 lub brak waluty salda.");
       const sign = m[2] === "C" || m[2] === "RD" ? 1 : -1;
       const y = Number(m[1].slice(0, 2)), reference = m[4].split("//")[1]?.trim().split("\n")[0];
-      last = { date: date(`${y < 70 ? 2000 + y : 1900 + y}-${m[1].slice(2, 4)}-${m[1].slice(4, 6)}`), amount: sign * statementAmount(m[3].replace(/,$/, ",00")), currency: ccy, title: m[4].trim(), senderName: "", accountIban, externalReference: reference && reference !== "NONREF" ? reference : undefined, raw: value };
+      last = { date: date(`${y < 70 ? 2000 + y : 1900 + y}-${m[1].slice(2, 4)}-${m[1].slice(4, 6)}`), amount: sign * statementAmount(m[3].replace(/,$/, ",00")), currency: ccy, reversal: m[2].startsWith("R"), title: m[4].trim(), senderName: "", accountIban, externalReference: reference && reference !== "NONREF" ? reference : undefined, raw: value };
       transactions.push(last);
     }
     if (tag === "86" && last) {
@@ -109,12 +109,12 @@ export function parseCamt053(text: string): StatementTransaction[] {
       const amount = statementAmount(String(typeof amountNode === "object" ? amountNode["#text"] : amountNode));
       const ccy = currency(amountNode["@_Ccy"] || entry.Amt?.["@_Ccy"] || statement.Acct?.Ccy);
       if (ccy !== currency(entry.Amt?.["@_Ccy"] || statement.Acct?.Ccy)) throw new Error("Zbiorczy wpis camt.053 zawiera różne waluty; wymagany jest profil banku.");
-      if (amount < 0) throw new Error("Kwota camt.053 musi być dodatnia.");
+      if (amount <= 0) throw new Error("Kwota camt.053 musi być dodatnia.");
       sum += amount;
       const party = indicator === "CRDT" ? "Dbtr" : "Cdtr";
       const remittance = list<string>(detail.RmtInf?.Ustrd).join(" ") || detail.RmtInf?.Strd?.CdtrRefInf?.Ref || entry.AddtlNtryInf || "";
       const reference = detail.Refs?.AcctSvcrRef || detail.Refs?.TxId || (operations.length === 1 ? entry.AcctSvcrRef : undefined);
-      result.push({ date: date(entry.BookgDt?.Dt || entry.BookgDt?.DtTm || ""), amount: indicator === "CRDT" ? amount : -amount, currency: ccy, title: remittance, senderName: detail.RltdPties?.[party]?.Nm || detail.RltdPties?.[party]?.Pty?.Nm || "", senderAccount: detail.RltdPties?.[party + "Acct"]?.Id?.IBAN, accountIban: statement.Acct?.Id?.IBAN, externalReference: reference && reference !== "NOTPROVIDED" ? reference : undefined, raw: JSON.stringify(detail) });
+      result.push({ date: date(entry.BookgDt?.Dt || entry.BookgDt?.DtTm || ""), amount: indicator === "CRDT" ? amount : -amount, currency: ccy, reversal: ["true", "1"].includes(String(entry.RvslInd || detail.RvslInd || "")), title: remittance, senderName: detail.RltdPties?.[party]?.Nm || detail.RltdPties?.[party]?.Pty?.Nm || "", senderAccount: detail.RltdPties?.[party + "Acct"]?.Id?.IBAN, accountIban: statement.Acct?.Id?.IBAN, externalReference: reference && reference !== "NOTPROVIDED" ? reference : undefined, raw: JSON.stringify(detail) });
     }
     if (operations.length > 1 && Math.round(sum * 100) !== Math.round(statementAmount(String(entry.Amt?.["#text"] ?? entry.Amt)) * 100)) throw new Error("Suma operacji nie zgadza się z kwotą wpisu camt.053.");
   }

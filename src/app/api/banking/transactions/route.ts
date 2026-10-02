@@ -18,6 +18,7 @@ export async function GET(req: Request) {
       assertObjectId(transactionId);
       const transaction = await prisma.bankTransaction.findFirst({ where: { id: transactionId, ...scope(company.id) } });
       if (!transaction) throw new ApiError(404, "Nie znaleziono transakcji.");
+      if (transaction.matchSignals.includes("reversal")) return json({ transaction, candidates: [] });
       const amount = Math.abs(transaction.amount), type = transaction.amount > 0 ? "sale" : "purchase";
       const [invoices, expenses] = await Promise.all([
         prisma.invoice.findMany({ where: { sellerCompanyId: company.id, type, currency: transaction.currency, status: { notIn: ["draft", "cancelled", "paid"] }, isProforma: { not: true }, isCorrection: { not: true }, totalGross: { gte: amount }, ...(q.get("search") ? { number: { contains: q.get("search")!.slice(0, 100), mode: "insensitive" } } : {}) }, orderBy: { issueDate: "desc" }, take: 100 }),
@@ -30,7 +31,7 @@ export async function GET(req: Request) {
     }
     const where = { ...scope(company.id), matchStatus: { in: ["unmatched", "ambiguous"] } };
     const [rows, total] = await Promise.all([
-      prisma.bankTransaction.findMany({ where: { ...where, ...(cursor ? { id: { lt: cursor } } : {}) }, select: { id: true, bookingDate: true, amount: true, currency: true, description: true, counterpartyName: true, matchStatus: true, updatedAt: true }, orderBy: { id: "desc" }, take: 31 }),
+      prisma.bankTransaction.findMany({ where: { ...where, ...(cursor ? { id: { lt: cursor } } : {}) }, select: { id: true, bookingDate: true, amount: true, currency: true, description: true, counterpartyName: true, matchSignals: true, matchStatus: true, updatedAt: true }, orderBy: { id: "desc" }, take: 31 }),
       prisma.bankTransaction.count({ where }),
     ]);
     return json({ transactions: rows.slice(0, 30), nextCursor: rows.length > 30 ? rows[29].id : null, total });
@@ -47,6 +48,7 @@ export async function PATCH(req: Request) {
       const transaction = await tx.bankTransaction.findFirst({ where: { id: body.transactionId as string, ...scope(company.id) } });
       if (!transaction) throw new ApiError(404, "Nie znaleziono transakcji.");
       if (!["unmatched", "ambiguous"].includes(transaction.matchStatus) || transaction.updatedAt.toISOString() !== body.revision) throw new ApiError(409, "Transakcja zmieniła się lub jest już rozliczona. Odśwież listę.");
+      if (body.action === "match" && transaction.matchSignals.includes("reversal")) throw new ApiError(400, "Storno nie jest zapłatą dokumentu. Sprawdź odwróconą operację z księgowością.");
       const amount = Math.abs(transaction.amount);
       if (!Number.isFinite(amount) || amount <= 0) throw new ApiError(400, "Nieprawidłowa kwota transakcji.");
       let paymentRecordId: string | undefined, number: string | undefined;

@@ -895,6 +895,20 @@ try {
   assert.equal(await db.paymentRecord.count({where:{invoiceId:nextInvoice.data.invoice.id}}),1);
   assert.equal((await db.invoice.findUniqueOrThrow({where:{id:nextInvoice.data.invoice.id}})).paymentStatus,'paid');
   console.log('PASS: CSV preview, atomic rollback on overpayment and deduplicated import');
+  const reversalInvoice=await api('POST','/api/invoices',{...pdfBody,number:'STORNO/1'},a.cookie);assert.equal(reversalInvoice.res.status,201);
+  await db.companyBankAccount.create({data:{companyId:projectCompanyId,accountNumber:'PL61109010140000071219812874',beneficiaryName:'Test company'}});
+  const reversalBody={companyId:projectCompanyId,format:'mt940',content:':20:REVERSAL\n:25:PL61109010140000071219812874\n:60F:C261002PLN0,00\n:61:261002RD123,00NTRF//REVERSAL-TEST\n:86:STORNO/1'};
+  const originalEntry=await api('POST','/api/banking/import',{...reversalBody,content:reversalBody.content.replace('RD123,00','D123,00'),applyPayments:true},a.cookie);assert.equal(originalEntry.res.status,200);assert.equal(originalEntry.data.appliedCount,0);
+  const reversalPreview=await api('POST','/api/banking/import',reversalBody,a.cookie);assert.equal(reversalPreview.res.status,200,JSON.stringify(reversalPreview.data));assert.equal(reversalPreview.data.matchedCount,0);assert.equal(reversalPreview.data.transactions[0].reversal,true);
+  const reversalApplied=await api('POST','/api/banking/import',{...reversalBody,applyPayments:true},a.cookie);assert.equal(reversalApplied.res.status,200);assert.equal(reversalApplied.data.appliedCount,0);
+  const storedReversal=await db.bankTransaction.findFirstOrThrow({where:{accountId:projectCompanyId,matchSignals:{has:'reversal'}}});assert.equal(storedReversal.matchStatus,'unmatched');assert.equal(await db.bankTransaction.count({where:{accountId:projectCompanyId,description:'STORNO/1'}}),2,'Reused bank reference must preserve both original operation and reversal');assert.equal(await db.paymentRecord.count({where:{invoiceId:reversalInvoice.data.invoice.id}}),0);
+  const reversalCandidates=await api('GET',`/api/banking/transactions?companyId=${projectCompanyId}&transactionId=${storedReversal.id}`,undefined,a.cookie);assert.equal(reversalCandidates.res.status,200);assert.deepEqual(reversalCandidates.data.candidates,[]);
+  const reversalManual={companyId:projectCompanyId,transactionId:storedReversal.id,revision:storedReversal.updatedAt.toISOString(),documentId:reversalInvoice.data.invoice.id,kind:'invoice'};
+  assert.equal((await api('PATCH','/api/banking/transactions',{...reversalManual,action:'match'},a.cookie)).res.status,400);
+  assert.equal((await api('PATCH','/api/banking/transactions',{...reversalManual,action:'ignore'},a.cookie)).res.status,200);
+  assert.equal((await db.invoice.findUniqueOrThrow({where:{id:reversalInvoice.data.invoice.id}})).paidAmount,0);
+  console.log('PASS: reversal import preserves bank entry, blocks automatic/manual payment and allows explicit ignore');
+
 
   // Expanded SaaS workflows use their own company to keep financial fixtures independent.
   const workflowCompany = await db.companyProfile.create({data:{userId:a.data.user.id,nip:'1234567890',companyName:'Workflow isolated company',bankAccount:'61109010140000071219812874'}});
