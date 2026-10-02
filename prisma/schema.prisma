@@ -1676,6 +1676,10 @@ model Webhook {
 
 /// Zdjęcie faktury/paragonu zrobione aparatem → OCR → moduł kosztów
 model ExpenseScan {
+  safetyStatus String?
+  safetyEngine String?
+  safetyReason String?
+  safetyCheckedAt DateTime?
   ocrResult Json?
   companyId String? @db.ObjectId
   sha256 String?
@@ -1877,4 +1881,11 @@ model CompanySecurityPolicy {
   id String @id @map("_id") @db.ObjectId
   requireMfa Boolean @default(false)
   updatedAt DateTime @updatedAt
+}
+
+model BackupReceipt {
+  id String @id @map("_id")
+  completedAt DateTime
+  archiveSha256 String
+  receivedAt DateTime @default(now())
 }

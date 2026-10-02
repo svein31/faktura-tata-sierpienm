@@ -91,7 +91,7 @@ function getRateLimitClient(): Promise<MongoClient> {
 export async function rateLimitShared(
   req: Request,
   opts: { windowMs: number; max: number },
-  scope: "login" | "register" | "forgot-password" | "team-invite"
+  scope: string
 ): Promise<RateLimitResult> {
   // The database credential is a stable secret fallback on existing deployments.
   // A dedicated NEXTAUTH_SECRET is preferred when available.

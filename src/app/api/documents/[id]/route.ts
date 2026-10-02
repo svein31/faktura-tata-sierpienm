@@ -1,3 +1,4 @@
+import { ensureDocumentSafety } from "@/lib/document-safety";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -30,6 +31,7 @@ export async function PATCH(req: Request, context: Context) {
     const companyId = await inboxAccess(user.id, record.companyId, true, body.action === "approve" || body.action === "reject");
     if (record.expenseId || record.status === "converted" || record.status === "rejected") throw new ApiError(409, "Dokument ma już zapisaną decyzję.");
     if (body.version !== record.version) throw new ApiError(409, "Dokument zmienił się. Odśwież podgląd.");
+    if (body.action === "approve") await ensureDocumentSafety(record);
     if (body.action === "approve" && record.ocrResult && body.ocrReviewed !== true) throw new ApiError(400, "Potwierdź sprawdzenie danych OCR z oryginałem.");
     const fields = body.action === "reject" ? null : reviewFields(body);
     const result = await prisma.$transaction(async tx => {

@@ -1,4 +1,4 @@
-import { catalogWhere } from "@/lib/company-scope";
+import { accessibleCompanyIds as permittedCompanyIds, catalogWhere } from "@/lib/company-scope";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -120,7 +120,8 @@ export async function GET(req: Request) {
       companyMap.set(m.companyId,dto);
     }
 
-    const allCompanies = Array.from(companyMap.values());
+    const permitted = new Set(await permittedCompanyIds(user.id));
+    const allCompanies = Array.from(companyMap.values()).filter(c => permitted.has(c.id));
     const accessibleCompanyIds = allCompanies.map((c) => c.id);
     const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
       by: ["contractorId"], where: { sellerCompanyId: { in: accessibleCompanyIds } },

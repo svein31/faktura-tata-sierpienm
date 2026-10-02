@@ -1,0 +1,25 @@
+name: Product and security type checks
+on:
+  push:
+    branches: ['codex/product-security-seo-20261002']
+permissions:
+  contents: read
+concurrency:
+  group: product-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run db:generate
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: python3 -m pip install lxml==6.0.2
+      - run: npm test

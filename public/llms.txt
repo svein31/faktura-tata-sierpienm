@@ -27,3 +27,7 @@
 - [Prywatność](https://fakturaprosto.pl/polityka-prywatnosci): informacje o przetwarzaniu danych.
 - FakturaProsto jest niezależnym produktem. Informacje prawne należy sprawdzać w aktualnych źródłach Ministerstwa Finansów i ustawie o VAT.
 - Aktualizacja informacji produktowych: 2026-10-02.
+
+- [FA(3)](https://fakturaprosto.pl/poradnik-ksef/fa3): schemat XML i kontrola danych.
+- [UPO](https://fakturaprosto.pl/poradnik-ksef/upo): potwierdzenie odbioru oraz jego dostępność.
+- [Odrzucona faktura](https://fakturaprosto.pl/poradnik-ksef/odrzucona-faktura): odrzucenie a wynik nieznany.

@@ -1,3 +1,4 @@
+import { ensureDocumentSafety } from "@/lib/document-safety";
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -14,6 +15,10 @@ async function access(tx: Prisma.TransactionClient, userId: string, companyId: u
 
 export async function enqueueOcr(userId: string, id: string) {
   if (!objectId(id)) throw new ApiError(404, "Nie znaleziono dokumentu.");
+  const original = await prisma.expenseScan.findUnique({ where: { id } });
+  if (!original) throw new ApiError(404, "Nie znaleziono oryginału.");
+  await access(prisma, userId, original.companyId);
+  await ensureDocumentSafety(original);
   return prisma.$transaction(async tx => {
     const record = await tx.expenseScan.findUnique({ where: { id } });
     if (!record?.imageData) throw new ApiError(404, "Nie znaleziono oryginału.");

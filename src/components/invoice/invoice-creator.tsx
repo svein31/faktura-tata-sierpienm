@@ -784,6 +784,9 @@ export function InvoiceCreator() {
     try {
       const inv = await buildInvoice("issued");
       const saved = await persist(inv);
+      // Keep the persisted identity if transport fails, so retries update this document instead of creating a duplicate.
+      store.setDraft(saved, false);
+      setForm(previous => ({ ...previous, number: saved.number, contractorId: saved.contractorId, useNewContractor: false }));
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
       const xmlRes = await import("@/lib/xml");
       const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany);
@@ -808,7 +811,7 @@ export function InvoiceCreator() {
         store.setDraft(null, true);
         router.push("/invoices");
       } else {
-        toast("error", "KSeF: odrzucono dokument", data.message ?? "Błąd wysyłki do KSeF.");
+        toast("error", "KSeF: odrzucono dokument", data.message ?? data.error ?? "Błąd wysyłki do KSeF.");
         setSaving(null);
       }
     } catch (e) {

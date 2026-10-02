@@ -1,3 +1,6 @@
+import { reportBackup } from "../backup/receipt.mjs";
+import { readdir, stat } from "node:fs/promises";
+import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { isAbsolute } from "node:path";
 
@@ -11,4 +14,12 @@ if (!directory || !isAbsolute(directory) || !target || !/^[\w-]+:[^\s]+$/.test(t
 // Immutable copies never replace a previously uploaded archive or remove one.
 const child = spawn("rclone", ["copy", directory, target, "--include", "*.enc", "--immutable", "--checksum", "--quiet"], { stdio: "inherit" });
 child.on("error", () => { console.error("Backup transfer could not start."); process.exitCode = 1; });
-child.on("exit", code => { if (code !== 0) process.exitCode = 1; });
+child.on("exit", async code => {
+  if (code !== 0) { process.exitCode = 1; return; }
+  try {
+    const files = await Promise.all((await readdir(directory)).filter(name => name.endsWith(".enc")).map(async name => ({ file: join(directory, name), modified: (await stat(join(directory, name))).mtimeMs })));
+    files.sort((a, b) => b.modified - a.modified);
+    if (!files.length) throw new Error("No archives copied");
+    await reportBackup("offsite", files[0].file);
+  } catch { console.error("Offsite backup confirmation failed."); process.exitCode = 1; }
+});

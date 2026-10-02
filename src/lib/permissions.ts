@@ -33,7 +33,7 @@ export async function getCompanyMembership(
   });
 
   if (!company) return null;
-  await assertCompanyMfa(prisma, userId, companyId);
+
 
   // 1. Sprawdź rekord w CompanyMember
   const member = await prisma.companyMember.findUnique({
@@ -46,6 +46,7 @@ export async function getCompanyMembership(
   });
 
   if (member) {
+    await assertCompanyMfa(prisma, userId, companyId);
     const role = member.role as CompanyRole;
     if (!Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, role)) return null;
     const defaults = DEFAULT_ROLE_PERMISSIONS[role];
@@ -79,6 +80,7 @@ export async function getCompanyMembership(
 
   // 2. Fallback dla bezpośredniego założyciela profilu
   if (company.userId === userId) {
+    await assertCompanyMfa(prisma, userId, companyId);
     // Utwórz brakujący wpis dla spójności
     try {
       const created = await prisma.companyMember.create({

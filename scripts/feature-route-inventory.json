@@ -101,6 +101,13 @@
     ]
   },
   {
+    "path": "/api/banking/transactions",
+    "methods": [
+      "GET",
+      "PATCH"
+    ]
+  },
+  {
     "path": "/api/banking/transfers",
     "methods": [
       "POST",
@@ -223,6 +230,12 @@
   },
   {
     "path": "/api/documents/[id]/ocr",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/documents/[id]/safety",
     "methods": [
       "POST"
     ]
@@ -532,6 +545,12 @@
   },
   {
     "path": "/api/offers/[id]/convert",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "path": "/api/ops/backup-receipt",
     "methods": [
       "POST"
     ]
