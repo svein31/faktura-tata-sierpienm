@@ -185,6 +185,16 @@ export async function auditFeatureControls(page, context, db, fixture) {
     assert.equal((await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}})).paymentStatus,'paid');
     assert.equal(await db.paymentRecord.count({where:{invoiceId:fractional.invoice.id}}),1);
     checks.push('Phone bank deep link beyond pagination and exactly one manual payment');
+    const reversal = await db.bankTransaction.create({data:{userId:beforeIssue.userId,accountId:fixture.companyId,externalId:'ui-reversal-target',bookingDate:beforeIssue.issueDate,amount:beforeIssue.totalGross,currency:beforeIssue.currency,direction:'in',description:'UI reversal receipt',matchSignals:['reversal']}});
+    await page.goto('/finances?transactionId='+reversal.id);
+    dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Rozlicz transakcję bankową',exact:true})).toBeVisible();
+    await expect(dialog.getByRole('status')).toContainText('To storno wcześniejszej operacji');
+    await expect(dialog.getByRole('button',{name:'Przypisz i zapisz płatność',exact:true})).toBeDisabled();
+    await checkPhoneDialog('Reversal warning and disabled payment action');
+    page.once('dialog',d=>d.accept());await submit(dialog.getByRole('button',{name:'Pomiń operację',exact:true}),'/api/banking/transactions');
+    assert.equal((await db.bankTransaction.findUniqueOrThrow({where:{id:reversal.id}})).matchStatus,'ignored');
+    assert.equal(await db.paymentRecord.count({where:{invoiceId:fractional.invoice.id}}),1,'Ignoring reversal does not modify earlier payments');
+    checks.push('Phone reversal warning, blocked payment and explicit ignore');
     await page.goto('/accountant');
     await expect(page.getByRole('progressbar',{name:'Postęp kontroli miesiąca'})).toBeVisible();
     await expect(page.getByRole('link',{name:'Sprawdź skrzynkę dokumentów →'})).toBeVisible();
