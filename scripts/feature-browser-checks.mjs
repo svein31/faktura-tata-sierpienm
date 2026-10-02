@@ -170,8 +170,14 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await db.bankTransaction.createMany({data:Array.from({length:31},(_,i)=>({userId:beforeIssue.userId,accountId:fixture.companyId,externalId:'ui-bank-pagination-'+i,bookingDate:beforeIssue.issueDate,amount:1,currency:'PLN',direction:'in',description:'UI pagination '+i}))});
     await page.goto('/finances?transactionId='+bankTarget.id);
     dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Rozlicz transakcję bankową',exact:true})).toBeVisible();
+    const issuedForBank=await db.invoice.findUniqueOrThrow({where:{id:fractional.invoice.id}});
+    const bankCandidatesResponse=await context.request.get('/api/banking/transactions?companyId='+fixture.companyId+'&transactionId='+bankTarget.id);
+    const bankCandidates=await bankCandidatesResponse.json();
+    assert.ok(bankCandidatesResponse.ok(),'Bank candidate request: '+JSON.stringify(bankCandidates));
+    assert.ok(bankCandidates.candidates.some(c=>c.id===fractional.invoice.id),'Issued invoice must be selectable: '+JSON.stringify({invoice:issuedForBank,transaction:bankCandidates.transaction,candidates:bankCandidates.candidates}));
+    await dialog.getByLabel('Szukaj numeru dokumentu',{exact:true}).fill(issuedForBank.number);
     await dialog.getByLabel('Dokument',{exact:true}).click();
-    await page.getByRole('option').filter({hasText:fractional.invoice.number}).click();
+    await page.getByRole('option').filter({hasText:issuedForBank.number}).click();
     await checkPhoneDialog('Bank transaction matching beyond first page');
     page.once('dialog',d=>d.accept());
     await submit(dialog.getByRole('button',{name:'Przypisz i zapisz płatność',exact:true}),'/api/banking/transactions');
