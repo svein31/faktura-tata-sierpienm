@@ -23,6 +23,7 @@ export function middleware(request: NextRequest) {
     pathname.includes(".") ||
     pathname === "/favicon.ico" ||
     pathname === "/icon.svg" ||
+    pathname === "/opengraph-image" ||
     pathname === "/sw.js"
   ) {
     return NextResponse.next();
