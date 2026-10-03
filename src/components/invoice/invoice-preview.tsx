@@ -227,7 +227,7 @@ export function InvoicePreview({
                 {invoice.bankAccountSnapshot ? (
                   <div className="space-y-0.5 text-muted-foreground">
                     <p>{L.bank}: <b className="text-foreground">{(invoice.bankAccountSnapshot as any).bankName || company.bankName || "—"}</b></p>
-                    <p>Beneficiary / Odbiorca: <b className="text-foreground">{(invoice.bankAccountSnapshot as any).beneficiary || sellerName}</b></p>
+                    <p>Beneficiary / Odbiorca: <b className="text-foreground">{invoice.bankAccountSnapshot.beneficiaryName || sellerName}</b></p>
                     <p>{L.account}: <span className="font-mono font-bold text-foreground">{(invoice.bankAccountSnapshot as any).accountNumber}</span></p>
                     {(invoice.bankAccountSnapshot as any).swiftBic && (
                       <p>SWIFT / BIC: <span className="font-mono font-medium text-foreground">{(invoice.bankAccountSnapshot as any).swiftBic}</span></p>

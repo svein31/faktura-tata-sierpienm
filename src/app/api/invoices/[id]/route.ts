@@ -2,7 +2,7 @@ import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { KSEF_IN_FLIGHT } from "@/lib/ksef/transmission-claim";
 import { contractorForCompany } from "@/lib/company-scope";
-import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
+import { changedAcceptedInvoiceFields, PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 import { getSessionUser } from "@/lib/auth";
@@ -110,6 +110,9 @@ export async function PUT(req: Request, { params }: Ctx) {
 
     // 3. Ochrona integralności: faktury z nadanym numerem KSeF
     if (existing.ksefNumber) {
+      if (changedAcceptedInvoiceFields(body, invoiceToDto(existing) as unknown as Record<string, unknown>).length) {
+        throw new ApiError(409, "Faktura została przyjęta w KSeF. Zmiana dat, pozycji, numeru lub rachunku wymaga faktury korygującej. Możesz zmienić notatki.");
+      }
       const allowedData: { notes?: string | null; approvalStatus?: string } = {};
       if (body.notes !== undefined) {
         allowedData.notes = typeof body.notes === "string" ? body.notes.trim() : null;

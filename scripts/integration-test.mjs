@@ -331,6 +331,12 @@ try {
   assert.equal(processed.res.status, 200, JSON.stringify(processed.data));
   const accepted = await db.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   assert.equal(accepted.ksefStatus, 'accepted'); assert.ok(accepted.ksefNumber);
+  const acceptedDateEdit = await api('PUT', `/api/invoices/${invoiceId}`, { issueDate: '2033-03-03' }, a.cookie);
+  assert.equal(acceptedDateEdit.res.status, 409, 'Registered tax data cannot be silently ignored');
+  assert.equal((await db.invoice.findUniqueOrThrow({where:{id:invoiceId}})).issueDate, accepted.issueDate);
+  const acceptedNoteEdit = await api('PUT', `/api/invoices/${invoiceId}`, { notes: 'Internal accepted invoice note' }, a.cookie);
+  assert.equal(acceptedNoteEdit.res.status, 200, JSON.stringify(acceptedNoteEdit.data));
+  assert.equal(acceptedNoteEdit.data.invoice.issueDate, accepted.issueDate);
   assert.equal(await db.ksefQueueTask.count({ where: { invoiceId } }), 1);
   // Keep transmission fixtures separate from the later webhook-delivery fixture for companyId.
   const claimInvoice = await api('POST', '/api/invoices', { ...invoice.data.invoice, sellerCompanyId: company2.data.company.id, number: 'KSEF/CLAIM/1' }, a.cookie);
@@ -865,10 +871,13 @@ try {
   assert.deepEqual(Buffer.from(await pdfAgain.arrayBuffer()),firstBytes,'Repeated PDF returns identical persisted bytes');
   assert.deepEqual((await db.invoicePrintContext.findUniqueOrThrow({where:{id:pdfInvoiceId}})).data,originalContext.data,'Company, buyer and template changes never rewrite print context');
   assert.equal((await fetch(pdfUrl,{headers:{Origin: base, Cookie:b.cookie}})).status,403);
-  const pdfEdit=await api('PUT',`/api/invoices/${pdfInvoiceId}`,{...pdfBody,version:pdfCreated.data.invoice.version,notes:'New revision note'},a.cookie);
+  const pdfEdit=await api('PUT',`/api/invoices/${pdfInvoiceId}`,{...pdfBody,version:pdfCreated.data.invoice.version,issueDate:'2032-01-03',saleDate:'2032-01-04',dueDate:'2032-01-17',notes:'New revision note'},a.cookie);
   assert.equal(pdfEdit.res.status,200,JSON.stringify(pdfEdit.data));
   const pdfChanged=await fetch(pdfUrl,{headers:{Origin: base, Cookie:a.cookie}}); assert.equal(pdfChanged.status,200);
   assert.notEqual(pdfChanged.headers.get('x-pdf-version'),firstVersion);
+  const revisedPdfData = (await db.invoicePrintVersion.findUniqueOrThrow({where:{id:pdfChanged.headers.get('x-pdf-version')}})).invoiceData;
+  assert.deepEqual([revisedPdfData.issueDate,revisedPdfData.saleDate,revisedPdfData.dueDate],['2032-01-03','2032-01-04','2032-01-17'],'Latest PDF uses the saved dates');
+  assert.equal((await db.invoicePrintVersion.findUniqueOrThrow({where:{id:firstVersion}})).invoiceData.issueDate, '2032-01-02');
   assert.notDeepEqual(Buffer.from(await pdfChanged.arrayBuffer()),firstBytes);
   const archived=await fetch(`${pdfUrl}?version=${firstVersion}`,{headers:{Origin: base, Cookie:a.cookie}});
   assert.equal(archived.status,200);assert.deepEqual(Buffer.from(await archived.arrayBuffer()),firstBytes,'Earlier rendered versions remain immutable after editing');

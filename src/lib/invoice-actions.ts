@@ -19,12 +19,13 @@ export interface ExportActions {
 export function useInvoiceExports(
   invoice: Invoice,
   contractor: Contractor | undefined,
-  company: CompanyProfile
+  company: CompanyProfile,
+  pdfMode: "saved" | "preview" = "saved"
 ): ExportActions {
   const safeName = invoice.number.replace(/[^a-zA-Z0-9_-]/g, "_");
 
   const exportPdf = () => {
-    if (/^[a-f0-9]{24}$/i.test(invoice.id)) {
+    if (pdfMode === "saved" && /^[a-f0-9]{24}$/i.test(invoice.id)) {
       window.open(`/api/invoices/${invoice.id}/pdf`, "_blank", "noopener,noreferrer");
       return;
     }

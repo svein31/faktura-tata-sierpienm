@@ -33,6 +33,8 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PrintVersions } from "@/components/invoice/print-versions";
+import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
+import { ksefProgress } from "@/lib/ksef/progress";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
@@ -67,6 +69,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const router = useRouter();
   const toast = useToast();
+  useKsefStatusPolling([invoice]);
   const { contractors, company, setDraft, deleteInvoice, updateInvoice, setInvoiceKsef, ksef } =
     useAppStore();
 
@@ -111,7 +114,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     ? companies.find((c) => c.id === invoice.sellerCompanyId)
     : null;
   const companySafe = matchedCompany ?? company ?? EMPTY_COMPANY;
-  const ksefEnv = ksef?.environment ?? "demo";
+  const ksefEnv = invoice.ksef?.environment || ksef?.environment || "demo";
   const contractor = getContractor(contractors, invoice.contractorId);
   const exports = useInvoiceExports(invoice, contractor, companySafe);
   const status = effectiveStatus(invoice);
@@ -123,7 +126,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const handleCopyTransfer = async () => {
     if (!transferAccount) return;
     const text = [
-      `Odbiorca: ${companySafe.companyName || companySafe.name}`,
+      `Odbiorca: ${invoice.bankAccountSnapshot?.beneficiaryName || companySafe.companyName || companySafe.name}`,
       `Rachunek: ${transferAccount}`,
       `Kwota do zapłaty: ${formatMoney(amountDue, invoice.currency)}`,
       `Tytuł przelewu: ${invoice.number}`,
@@ -165,7 +168,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         } else {
           setInvoiceKsef(invoice.id, {
             number: data.ksefNumber,
-            status: data.status ?? "ACTIVE",
+            status: data.status ?? "SENT",
             sentAt: data.timestamp ?? new Date().toISOString(),
             environment: ksefEnv,
           });
@@ -202,7 +205,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       const data = await res.json();
       if (res.ok && data.success) {
         await useAppStore.getState().revalidate();
-        toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription}`);
+        toast("success", "Status KSeF zaktualizowany", `Status: ${data.status} · ${data.processingDescription || data.message || "Pobrano wynik przetwarzania"}`);
       } else {
         toast("error", "Nie udało się pobrać statusu", data.error || data.message);
       }
@@ -228,7 +231,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   };
 
   const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
-  const isKsefActive = invoice.ksef?.status === "ACTIVE" || invoice.status === "ksef_active";
+  const progress = ksefProgress(invoice);
 
   return (
     <div className="space-y-6">
@@ -316,7 +319,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             )
           )}
 
-          {!ksefNum && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
+          {!ksefNum && !invoice.isProforma && !ksefProgress(invoice).polling && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
             <Button
               variant="subtle"
               size="sm"
@@ -461,10 +464,10 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
                       Dokument zarejestrowany w KSeF
                     </p>
                     <Badge tone="success" className="text-[10px]">
-                      {isKsefActive ? "Aktywny / UPO pobrane" : "Wysłano"}
+                      {progress.hasUpo ? "Przyjęta · UPO dostępne" : "Przyjęta · UPO w przygotowaniu"}
                     </Badge>
                     <Badge tone="outline" className="text-[10px] uppercase font-mono">
-                      {invoice.ksef?.environment || "demo"}
+                      {invoice.ksef?.environment || "Środowisko nie zapisane"}
                     </Badge>
                   </div>
                   <p className="mt-1 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 break-all">
@@ -509,7 +512,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             </CardContent>
           </Card>
         </motion.div>
-      ) : invoice.type === "sale" ? (
+      ) : invoice.type === "sale" && !invoice.isProforma ? (
         <Card className="no-print rounded-3xl border-border/70 bg-card/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -517,21 +520,22 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             </div>
             <div>
               <p className="text-xs font-semibold text-foreground">
-                Faktura nie została jeszcze przekazana do KSeF
+                {progress.polling ? "Faktura przekazana do KSeF · oczekuje na wynik" : "Faktura nie została jeszcze przekazana do KSeF"}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Możesz przesłać dokument w formacie FA(3) bezpośrednio do serwerów Ministerstwa Finansów ({ksefEnv}).
+                {progress.polling ? "Status sprawdzamy automatycznie. Nie ponawiaj wysyłki przed potwierdzeniem wyniku poprzedniej transmisji." : `Możesz przesłać dokument w formacie FA(3) do Ministerstwa Finansów (${ksefEnv}).`}
               </p>
             </div>
           </div>
           <Button
             onClick={() => setPendingAction("ksef")}
+            disabled={progress.polling || Boolean(invoice.isOffline && !invoice.qrCodeII)}
             loading={sending}
             size="sm"
             className="rounded-xl gap-1.5 text-xs font-semibold shrink-0"
           >
             <Send className="h-3.5 w-3.5" />
-            Wyślij do KSeF ({ksefEnv})
+            {progress.polling ? "Oczekiwanie na wynik KSeF" : `Wyślij do KSeF (${ksefEnv})`}
           </Button>
         </Card>
       ) : null}

@@ -49,6 +49,7 @@ export function BottomNav() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => useAppStore.getState().setDraft(null, true)}
                   className="group relative -mt-5 flex min-h-[48px] min-w-[48px] flex-col items-center justify-center"
                   aria-label="Wystaw nową fakturę"
                 >

@@ -715,7 +715,7 @@ export function PaymentCalendar() {
 
             {/* Szybkie akcje na dole panelu */}
             <div className="border-t border-border/50 pt-4 mt-4 flex items-center gap-2">
-              <Link href="/invoices/new" className="flex-1">
+              <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="flex-1">
                 <Button variant="outline" size="sm" className="w-full gap-1 text-xs border-border/60">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Wystaw fakturę</span>

@@ -478,7 +478,7 @@ export async function generateInvoicePdfBuffer(
 
   const bankSnapshot = invoice.bankAccountSnapshot as (CompanyBankAccount & { bankName?: string }) | undefined;
   if (bankSnapshot) {
-    page.drawText(`Bank: ${cleanText(bankSnapshot.bankName || "—")}`, { x: 50, y: y - 44, size: 7, font: fontRegular, color: grayColor });
+    page.drawText(`Bank: ${cleanText(bankSnapshot.bankName || "nie podano")}`, { x: 50, y: y - 44, size: 7, font: fontRegular, color: grayColor });
     page.drawText(`IBAN: ${cleanText(bankSnapshot.accountNumber)}`, { x: 50, y: y - 54, size: 7.5, font: fontBold, color: darkColor });
     if (bankSnapshot.swiftBic) {
       page.drawText(`SWIFT: ${cleanText(bankSnapshot.swiftBic)} | Waluta: ${cleanText(bankSnapshot.currency)}`, { x: 50, y: y - 64, size: 6.5, font: fontRegular, color: grayColor });

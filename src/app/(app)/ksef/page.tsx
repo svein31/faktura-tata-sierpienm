@@ -552,10 +552,10 @@ function KsefPageInner() {
           key="tab-settings"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid gap-6 xl:grid-cols-12"
+          className="grid grid-cols-1 gap-6 xl:grid-cols-12"
         >
           {/* Kolumna lewa: Konfiguracja KSeF */}
-          <div className="space-y-6 xl:col-span-7">
+          <div className="min-w-0 space-y-6 xl:col-span-7">
             <Card className="rounded-3xl border-border/70 shadow-sm">
               <CardHeader>
                 <div className="flex items-center gap-2.5">
@@ -688,7 +688,7 @@ function KsefPageInner() {
           </div>
 
           {/* Kolumna prawa: Status integracji i profil */}
-          <div className="space-y-6 xl:col-span-5">
+          <div className="min-w-0 space-y-6 xl:col-span-5">
             {/* Dane podmiotu wystawcy */}
             <Card className="rounded-3xl border-border/70 shadow-sm">
               <CardHeader>
@@ -704,27 +704,26 @@ function KsefPageInner() {
               </CardHeader>
               <CardContent className="space-y-3 text-[12.5px]">
                 <div className="rounded-2xl bg-muted/40 p-4 space-y-2 border border-border/50">
-                  <div className="flex justify-between items-center">
+                  <div className="grid min-w-0 gap-1 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-3">
                     <span className="text-muted-foreground">Firma:</span>
-                    <span className="font-semibold text-foreground">{companySafe.companyName || companySafe.name || "Nie podano"}</span>
+                    <span className="min-w-0 break-words font-semibold text-foreground sm:text-right">{companySafe.companyName || companySafe.name || "Nie podano"}</span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="grid min-w-0 gap-1 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-3">
                     <span className="text-muted-foreground">NIP:</span>
                     <code className="font-mono font-bold text-foreground">{companySafe.nip || "Brak NIP"}</code>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="grid min-w-0 gap-1 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-3">
                     <span className="text-muted-foreground">Adres:</span>
-                    <span className="text-right text-foreground">{companySafe.street || "—"}, {companySafe.postal || ""} {companySafe.city || ""}</span>
+                    <span className="min-w-0 break-words text-foreground sm:text-right">{companySafe.street || "—"}, {companySafe.postal || ""} {companySafe.city || ""}</span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="grid min-w-0 gap-1 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-3">
                     <span className="text-muted-foreground">Rachunek bankowy:</span>
-                    <code className="font-mono text-[11px] text-foreground">{companySafe.bankAccount || companySafe.iban || "Nie podano"}</code>
+                    <code className="min-w-0 break-all font-mono text-[11px] text-foreground sm:text-right">{companySafe.bankAccount || companySafe.iban || "Nie podano"}</code>
                   </div>
                 </div>
 
                 <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-                  Zgodnie z wymogami KSeF, sprzedawca w e-Fakturze FA(3) musi posiadać 10-cyfrowy NIP
-                  i zarejestrowany rachunek rozliczeniowy.
+                  Przed wysyłką sprawdź NIP, adres oraz rachunek wybranej firmy. Rachunek zapisany na fakturze może różnić się od aktualnego głównego rachunku profilu.
                 </p>
               </CardContent>
             </Card>
@@ -778,7 +777,7 @@ function KsefPageInner() {
           key="tab-inspector"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid gap-6 xl:grid-cols-12"
+          className="grid grid-cols-1 gap-6 xl:grid-cols-12"
         >
           {/* Edytor / Podgląd XML */}
           <div className="space-y-4 xl:col-span-8">

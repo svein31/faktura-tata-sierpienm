@@ -1,3 +1,4 @@
+import { reconcileKsefInvoice } from "@/lib/ksef/reconcile-status";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { invoiceToDto } from "@/lib/dto";
 import { prisma } from "@/lib/db";
@@ -46,6 +47,26 @@ export async function POST(req: Request) {
           data: { status: "verify_needed", lockedUntil: null, errorDetails: "Przerwane przetwarzanie: zweryfikuj wynik w KSeF przed ponowieniem." } });
         if (updated.count) await tx.invoice.update({ where: { id: task.invoiceId }, data: { ksefStatus: "verify_needed" } });
       });
+    }
+
+    // Confirm ambiguous transmissions and fetch delayed UPO without ever re-enqueueing a send.
+    const verification = await prisma.invoice.findMany({ where: {
+      ...(!isCron ? { userId: user!.id } : {}),
+      referenceNumber: { not: null },
+      updatedAt: { lt: new Date(now.getTime() - 30000) },
+      OR: [{ ksefStatus: "verify_needed" }, { ksefStatus: "accepted", OR: [{ upoXml: null }, { upoXml: { isSet: false } }] }],
+    }, include: { sellerCompany: true, ksefSession: true }, orderBy: { updatedAt: "asc" }, take: 3 });
+    for (const invoice of verification) {
+      const claimedCheck = await prisma.invoice.updateMany({ where: { id: invoice.id, updatedAt: invoice.updatedAt }, data: { updatedAt: now } });
+      if (!claimedCheck.count) continue;
+      const previousTask = await prisma.ksefQueueTask.findFirst({ where: { invoiceId: invoice.id }, orderBy: { createdAt: "desc" }, select: { userId: true } });
+      const actorId = previousTask?.userId || invoice.ksefSession?.userId || invoice.userId;
+      if (invoice.sellerCompanyId) {
+        const access = await requireCompanyAccess(actorId, invoice.sellerCompanyId, "canSendKsef");
+        if (!access.ok) continue;
+      }
+      try { await reconcileKsefInvoice(invoice, { id: actorId }); }
+      catch { /* Keep verification required when MF/session is unavailable; never resend. */ }
     }
 
     // Pobierz do 10 zadań oczekujących

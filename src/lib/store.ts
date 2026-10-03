@@ -42,6 +42,7 @@ export interface AppState {
   /** Faktura w edycji (ustawiana z listy faktur przed przejściem do kreatora). */
   draftInvoice: Invoice | null;
   draftInvoiceIsNew: boolean;
+  invoiceEditorSession: number;
 
   bootstrap: (mode?: "full" | "list") => Promise<void>;
   /** SWR-style silent revalidation — refreshes data without resetting hydrated. */
@@ -73,7 +74,7 @@ export interface AppState {
   applyInvoice: (inv: Invoice) => void;
   approveInvoices: (ids: string[], status?: "approved" | "pending") => Promise<void>;
 
-  setDraft: (invoice: Invoice | null, isNew: boolean) => void;
+  setDraft: (invoice: Invoice | null, isNew: boolean, preserveSession?: boolean) => void;
 
   fetchNotifications: () => Promise<{ unread: number }>;
   markNotificationRead: (id: string, read: boolean) => Promise<void>;
@@ -115,6 +116,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   draftInvoice: null,
   draftInvoiceIsNew: true,
+  invoiceEditorSession: 0,
 
   /* ── Bootstrap ──────────────────────────────────────────────────────── */
 
@@ -718,7 +720,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  setDraft: (invoice, isNew) => set({ draftInvoice: invoice, draftInvoiceIsNew: isNew }),
+  setDraft: (invoice, isNew, preserveSession = false) => set(state => ({ draftInvoice: invoice, draftInvoiceIsNew: isNew, invoiceEditorSession: preserveSession ? state.invoiceEditorSession : state.invoiceEditorSession + 1 })),
 
   /* ── Powiadomienia ──────────────────────────────────────────────────── */
 

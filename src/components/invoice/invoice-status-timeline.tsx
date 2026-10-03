@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ksefProgress } from "@/lib/ksef/progress";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   CheckCircle2,
@@ -43,12 +44,7 @@ export function InvoiceStatusTimeline({
   isRefreshing = false,
 }: InvoiceStatusTimelineProps) {
   const prefersReducedMotion = useReducedMotion();
-  const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
-  const isKsefRejected = invoice.ksefStatus === "rejected" || (invoice.status as string) === "ksef_rejected";
-  const isKsefQueued = invoice.ksefStatus === "queued" || (invoice.status as string) === "ksef_sent";
-  const isKsefSending = invoice.ksefStatus === "sending" || invoice.ksefStatus === "verify_needed";
-  const isKsefAccepted = Boolean(ksefNum) || invoice.ksefStatus === "accepted" || invoice.status === "ksef_active";
-  const hasUpo = Boolean(invoice.upoXml || ksefNum);
+  const { number: ksefNum, rejected: isKsefRejected, queued: isKsefQueued, sending: isKsefSending, accepted: isKsefAccepted, hasUpo } = ksefProgress(invoice);
   const isProforma = Boolean(invoice.isProforma);
   const isOffline = Boolean(invoice.isOffline);
 
@@ -112,12 +108,12 @@ export function InvoiceStatusTimeline({
         description: "Brak błędów semantycznych MF",
         timestamp: invoice.ksef?.sentAt || invoice.sentAt ? formatDateTime(invoice.ksef?.sentAt || invoice.sentAt!) : undefined,
         state: acceptedState,
-        details: isKsefRejected ? "Odrzucono przez Ministerstwo Finansów" : "Walidacja schematu XSD poprawna",
+        details: isKsefRejected ? "Odrzucono przez Ministerstwo Finansów" : isKsefAccepted ? "Nadano numer KSeF" : "Oczekuje na potwierdzenie MF",
       },
       {
         id: "upo",
         label: "UPO pobrane",
-        description: "Oficjalny numer e-Faktury",
+        description: "Urzędowe potwierdzenie odbioru",
         timestamp: invoice.ksef?.sentAt ? formatDateTime(invoice.ksef?.sentAt) : undefined,
         state: upoState,
         details: ksefNum ? `Nr KSeF: ${ksefNum.slice(0, 18)}…` : undefined,
@@ -147,12 +143,12 @@ export function InvoiceStatusTimeline({
     <div className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-bold text-foreground">Wizualna oś czasu KSeF 2.0</h3>
             {ksefNum && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
                 <ShieldCheck className="h-3 w-3" />
-                <span>200 OK &amp; UPO</span>
+                <span>{hasUpo ? "Przyjęta · UPO pobrane" : "Przyjęta · oczekuje na UPO"}</span>
               </span>
             )}
             {isOffline && (
@@ -167,7 +163,7 @@ export function InvoiceStatusTimeline({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2">
           {onRefreshStatus && (
             <button
               type="button"
@@ -193,6 +189,8 @@ export function InvoiceStatusTimeline({
         </div>
       </div>
 
+      {!isKsefAccepted && (isKsefQueued || isKsefSending) && <p role="status" className="mt-3 text-xs text-muted-foreground">{invoice.ksefStatus === "verify_needed" ? "Wynik poprzedniej wysyłki wymaga potwierdzenia. Aplikacja sprawdza status automatycznie; nie wysyłaj dokumentu ponownie." : "Dokument jest przetwarzany. Status aktualizuje się automatycznie po potwierdzeniu z KSeF."}</p>}
+      {isKsefAccepted && !hasUpo && <p role="status" className="mt-3 text-xs text-muted-foreground">KSeF nadał numer faktury. UPO jest jeszcze pobierane i pojawi się po udostępnieniu przez KSeF.</p>}
       {/* Komunikat błędu jeśli odrzucono (delikatny shake) */}
       {isKsefRejected && (
         <motion.div
@@ -226,7 +224,7 @@ export function InvoiceStatusTimeline({
       </div>
 
       {/* Oś czasu krok po kroku */}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-5 gap-3 relative">
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3 relative">
         {steps.map((step, idx) => {
           const isDone = step.state === "completed";
           const isCurrent = step.state === "current";
