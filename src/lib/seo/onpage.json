@@ -290,5 +290,12 @@
     "answer": "UPO, czyli Urzędowe Poświadczenie Odbioru, jest dokumentem potwierdzającym odbiór przez KSeF w ramach zakończonego procesu przesłania faktur. Pozwala powiązać przyjęte dokumenty z numerami KSeF. W FakturaProsto można pobrać UPO w XML. Samo rozpoczęcie wysyłki, lokalny PDF ani numer sesji nie zastępują sprawdzenia wyniku przetwarzania; UPO nie jest potwierdzeniem zapłaty.",
     "publication": "new",
     "index": true
+  },
+  {
+    "url": "/cennik",
+    "title": "Cennik FakturaProsto: Free i Pro od 7 zł brutto",
+    "description": "Porównaj Free: do 5 faktur miesięcznie, Pro: 7 zł brutto/mies. lub 59 zł brutto/rok. Sprawdź płatność roczną i automatyczne odnowienie.",
+    "h1": "Cennik FakturaProsto — Free i Pro",
+    "index": true
   }
 ]

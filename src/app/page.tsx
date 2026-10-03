@@ -24,7 +24,7 @@ import { Logo } from "@/components/logo";
 import { CookiePreferencesButton } from "@/components/legal/cookie-preferences-button";
 import { LandingHeaderActions, LandingPrimaryAction, LandingFooterActions } from "@/components/landing/auth-actions";
 import { JsonLd } from "@/components/seo/public-pages";
-import { PUBLIC_ORIGIN } from "@/lib/seo/content";
+import { publisherSchema, websiteSchema, softwareSchema } from "@/lib/seo/schema";
 
 export const metadata = pageMetadata("/", "FakturaProsto — faktury online i KSeF", "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.");
 
@@ -33,9 +33,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       <JsonLd value={{ "@context": "https://schema.org", "@graph": [
-        { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#organization`, name: "FakturaProsto", url: PUBLIC_ORIGIN },
-        { "@type": "WebSite", "@id": `${PUBLIC_ORIGIN}/#website`, name: "FakturaProsto", url: PUBLIC_ORIGIN, inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` } },
-        { "@type": "SoftwareApplication", "@id": `${PUBLIC_ORIGIN}/#software`, name: "FakturaProsto", url: PUBLIC_ORIGIN, description: "Program do wystawiania faktur online. Plan Free obejmuje do 5 faktur miesięcznie.", applicationCategory: "BusinessApplication", operatingSystem: "Web", inLanguage: "pl-PL", publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, offers: [{ "@type": "Offer", price: "0", priceCurrency: "PLN", description: "Plan Free: do 5 faktur miesięcznie", url: `${PUBLIC_ORIGIN}/register` }, { "@type": "Offer", price: "7", priceCurrency: "PLN", description: "Pro: 7 zł brutto za miesiąc", url: `${PUBLIC_ORIGIN}/register` }, { "@type": "Offer", price: "59", priceCurrency: "PLN", description: "Pro: 59 zł brutto za rok", url: `${PUBLIC_ORIGIN}/register` }] },
+        publisherSchema, websiteSchema, softwareSchema,
       ] }} />
       {/* ── NAWIGACJA GŁÓWNA ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background">
@@ -49,7 +47,7 @@ export default function LandingPage() {
             <a href="#ksef" className="focus-visible:text-foreground">
               KSeF 2.0 & FA(3)
             </a>
-            <a href="#cennik" className="focus-visible:text-foreground">Cennik</a>
+            <Link href="/cennik" className="focus-visible:text-foreground">Cennik</Link>
             <a href="#jak-dziala" className="focus-visible:text-foreground">
               Jak to działa
             </a>
@@ -219,7 +217,7 @@ export default function LandingPage() {
 
 
       <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card/40 py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Dostęp do funkcji Pro według aktualnej oferty.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Dostęp do funkcji Pro według aktualnej oferty.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
       </section>
       {/* ── KLUCZOWE FUNKCJE ── */}
       <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
@@ -362,6 +360,23 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="border-t border-border/60 py-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight">Faktury, KSeF i VAT — znajdź odpowiedź</h2>
+          <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">Sprawdź dane faktury, oblicz kwoty i poznaj znaczenie statusów KSeF przed wysyłką dokumentu.</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Jak wystawić fakturę krok po kroku", "/faktury/jak-wystawic"],
+              ["Faktura bez VAT i podstawa zwolnienia", "/faktury/bez-vat"],
+              ["KSeF dla jednoosobowej działalności", "/poradnik-ksef/jdg"],
+              ["Netto, VAT i brutto — kalkulator", "/narzedzia/kalkulator-vat"],
+              ["Stawki VAT na fakturze", "/vat"],
+              ["Porównanie programów do faktur", "/porownania"],
+            ].map(([label, href]) => <Link key={href} href={href} className="rounded-xl border border-border bg-card p-4 text-sm font-medium hover:border-primary hover:text-primary">{label} →</Link>)}
+          </div>
+        </div>
+      </section>
+
       </main>
       {/* ── STOPKA ── */}
       <footer className="border-t border-border/60 py-10 bg-background">
@@ -377,6 +392,7 @@ export default function LandingPage() {
               <Link href="/faktury" className="hover:text-foreground transition-colors">Poradniki o fakturach</Link>
               <Link href="/poradnik-ksef" className="hover:text-foreground transition-colors">KSeF 2026</Link>
               <Link href="/narzedzia" className="hover:text-foreground transition-colors">Kalkulatory</Link>
+              <Link href="/cennik" className="hover:text-foreground transition-colors">Cennik Free i Pro</Link>
               <Link href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>

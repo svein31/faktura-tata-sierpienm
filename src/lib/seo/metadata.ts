@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { PUBLIC_ORIGIN } from "./content";
 
-const origin = "https://fakturaprosto.pl";
+const origin = PUBLIC_ORIGIN;
 export function publicMetadata(
   path: string, title: string, description: string
 ): Metadata {

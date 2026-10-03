@@ -4,7 +4,7 @@
 
 ## Produkt i cennik
 - [Program do faktur](https://fakturaprosto.pl/program-do-faktur): plan Free obejmuje 5 faktur miesięcznie.
-- [Cennik](https://fakturaprosto.pl/#cennik): Pro kosztuje 7 zł brutto miesięcznie albo 59 zł brutto za rok; wariant roczny jest płatny za cały rok.
+- [Cennik](https://fakturaprosto.pl/cennik): Pro kosztuje 7 zł brutto miesięcznie albo 59 zł brutto za rok; wariant roczny jest płatny za cały rok.
 - [Demo](https://fakturaprosto.pl/demo): bez rejestracji i bez karty. Symulacja na przykładowych danych; nie wysyła faktur do produkcyjnego KSeF.
 - [Pomoc i kontakt](https://fakturaprosto.pl/pomoc): instrukcje i wsparcie.
 - [Rejestracja](https://fakturaprosto.pl/register): utworzenie konta.

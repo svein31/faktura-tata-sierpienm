@@ -54,6 +54,7 @@ export function middleware(request: NextRequest) {
     pathname === "/" ||
     pathname === "/demo" ||
     pathname === "/pomoc" ||
+    pathname === "/cennik" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||

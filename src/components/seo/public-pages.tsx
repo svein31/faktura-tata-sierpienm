@@ -2,6 +2,7 @@ import Link from "next/link";
 import { pageCopy } from "@/lib/seo/metadata";
 import { Logo } from "@/components/logo";
 import { PUBLIC_ORIGIN, REVIEW_DATE, topicMap, topics, topicsFor, type Topic } from "@/lib/seo/content";
+import { publisherSchema, websiteSchema } from "@/lib/seo/schema";
 
 export function JsonLd({ value }: { value: Record<string, unknown> }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(value).replace(/</g, "\\u003c") }} />;
@@ -10,15 +11,18 @@ export function JsonLd({ value }: { value: Record<string, unknown> }) {
 export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <JsonLd value={{ "@context": "https://schema.org", "@graph": [publisherSchema, websiteSchema] }} />
       <header className="border-b border-border/70 bg-background/95">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Logo />
           <nav aria-label="Poradniki i narzędzia" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <Link className="hover:text-primary" href="/program-do-faktur">Program</Link>
             <Link className="hover:text-primary" href="/faktury">Faktury</Link>
+            <Link className="hover:text-primary" href="/vat">VAT</Link>
             <Link className="hover:text-primary" href="/poradnik-ksef">KSeF</Link>
             <Link className="hover:text-primary" href="/narzedzia">Narzędzia</Link>
             <Link className="hover:text-primary" href="/porownania">Porównania</Link>
+            <Link className="hover:text-primary" href="/cennik">Cennik</Link>
             <Link className="hover:text-primary" href="/demo">Demo</Link>
           </nav>
         </div>
@@ -80,13 +84,13 @@ export function TopicPage({ topic }: { topic: Topic }) {
   return <PublicShell>
     <JsonLd value={{ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", "@id": `${canonical}#page`, url: canonical, name: topic.title, description: topic.description, isPartOf: { "@id": `${PUBLIC_ORIGIN}/#website` }, inLanguage: "pl-PL" },
-      { "@type": "Article", "@id": `${canonical}#article`, headline: topic.title, description: topic.description, mainEntityOfPage: { "@id": `${canonical}#page` }, author: { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#editorial`, name: "Redakcja FakturaProsto", url: `${PUBLIC_ORIGIN}/pomoc` }, publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, datePublished: topic.publishedAt || REVIEW_DATE, dateModified: topic.modifiedAt || REVIEW_DATE, inLanguage: "pl-PL", citation: topic.sources.map(source => source.url) },
+      { "@type": "Article", "@id": `${canonical}#article`, headline: topic.title, description: topic.description, mainEntityOfPage: { "@id": `${canonical}#page` }, author: { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#editorial`, name: "Redakcja FakturaProsto", url: `${PUBLIC_ORIGIN}/pomoc` }, publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, datePublished: topic.publishedAt || REVIEW_DATE, dateModified: topic.modifiedAt || REVIEW_DATE, inLanguage: "pl-PL", citation: topic.sources.map(source => source.url), image: `${PUBLIC_ORIGIN}/opengraph-image` },
       { "@type": "BreadcrumbList", "@id": `${canonical}#breadcrumbs`, itemListElement: [
         { "@type": "ListItem", position: 1, name: "Start", item: PUBLIC_ORIGIN },
         { "@type": "ListItem", position: 2, name: category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury", item: `${PUBLIC_ORIGIN}/${category}` },
         { "@type": "ListItem", position: 3, name: topic.title, item: canonical },
       ] },
-      ...(topic.path === "/faktury/jak-wystawic" ? [{ "@type": "HowTo", "@id": `${canonical}#howto`, name: topic.title, description: topic.answer, step: topic.sections.map((section, index) => ({ "@type": "HowToStep", position: index + 1, name: section.title, text: section.body })) }] : []),
+      ...(topic.path === "/faktury/jak-wystawic" ? [{ "@type": "HowTo", "@id": `${canonical}#howto`, name: topic.title, description: topic.answer, step: topic.sections.map((section, index) => ({ "@type": "HowToStep", position: index + 1, name: section.title, text: section.body, url: `${canonical}#sekcja-${index + 1}` })) }] : []),
     ] }} />
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
       <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground"><Link href="/" className="hover:text-primary">Start</Link> / <Link href={`/${category}`} className="hover:text-primary">{category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury"}</Link> / Poradnik</nav>
@@ -96,14 +100,23 @@ export function TopicPage({ topic }: { topic: Topic }) {
         <h2 className="text-sm font-bold text-primary">Krótka odpowiedź</h2>
         <p className="mt-2 text-base leading-relaxed">{topic.answer}</p>
       </div>
+      <nav aria-label="Spis treści poradnika" className="mt-7 rounded-2xl border border-border p-5">
+        <h2 className="font-semibold">Na tej stronie</h2>
+        <ul className="mt-3 space-y-2 text-sm">
+          {topic.sections.map((section, index) => <li key={section.title}><a className="text-primary hover:underline" href={`#sekcja-${index + 1}`}>{section.title}</a></li>)}
+          {topic.comparison && <li><a className="text-primary hover:underline" href="#porownanie">Tabela kryteriów wyboru</a></li>}
+          <li><a className="text-primary hover:underline" href="#przyklad">Przykład z wynikiem</a></li>
+          <li><a className="text-primary hover:underline" href="#zrodla">Źródła i weryfikacja</a></li>
+        </ul>
+      </nav>
       <div className="mt-10 grid min-w-0 grid-cols-1 gap-9 lg:grid-cols-[minmax(0,1fr)_240px]">
         <div className="min-w-0 space-y-8">
-          {topic.sections.map(section => <section key={section.title}>
+          {topic.sections.map((section, index) => <section key={section.title} id={`sekcja-${index + 1}`} className="scroll-mt-8">
             <h2 className="text-xl font-semibold">{section.title}</h2>
             <p className="mt-3 leading-relaxed text-muted-foreground">{section.body}</p>
           </section>)}
-          {topic.comparison && <section className="min-w-0"><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><p className="mt-2 text-xs text-muted-foreground sm:hidden">Przewiń tabelę w bok, aby zobaczyć wszystkie kryteria.</p><div role="region" aria-label="Porównanie kryteriów wyboru" tabIndex={0} className="mt-3 max-w-full overflow-x-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
-          <section className="rounded-2xl border border-border bg-card p-5">
+          {topic.comparison && <section id="porownanie" className="min-w-0 scroll-mt-8"><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><p className="mt-2 text-xs text-muted-foreground sm:hidden">Przewiń tabelę w bok, aby zobaczyć wszystkie kryteria.</p><div role="region" aria-label="Porównanie kryteriów wyboru" tabIndex={0} className="mt-3 max-w-full overflow-x-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
+          <section id="przyklad" className="scroll-mt-8 rounded-2xl border border-border bg-card p-5">
             <h2 className="font-semibold">Przykład z wynikiem</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground">{topic.example}</p>
           </section>
@@ -111,7 +124,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <h2 className="font-semibold">Kiedy sprawdzić szczegóły?</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{topic.caution}</p>
           </section>
-          <section>
+          <section id="zrodla" className="scroll-mt-8">
             <h2 className="font-semibold">Źródła i weryfikacja</h2>
             <ul className="mt-3 space-y-2 text-sm">{topic.sources.map(source => <li key={source.url}><a className="text-primary underline underline-offset-4" href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></li>)}</ul>
             <p className="mt-3 text-xs text-muted-foreground">Autor: Redakcja FakturaProsto. Opracowujemy instrukcje produktu i poradniki na podstawie podanych źródeł urzędowych. <Link href="/pomoc" className="text-primary underline">Kontakt i zgłoszenie poprawki</Link>. W złożonej sytuacji sprawdź aktualne przepisy i szczegóły własnej transakcji.</p>
