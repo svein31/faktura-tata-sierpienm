@@ -33,6 +33,8 @@
 - [Odrzucona faktura](https://fakturaprosto.pl/poradnik-ksef/odrzucona-faktura): odrzucenie a wynik nieznany.
 
 ## Scenariusze i wybór programu
+- [Fakturowo a FakturaProsto](https://fakturaprosto.pl/porownania/fakturowo): ceny brutto, limity darmowego konta i usługi dodatkowe; źródło: oficjalny cennik Fakturowo.
+- [Faktura.pl a FakturaProsto](https://fakturaprosto.pl/porownania/faktura-pl): pakiety, okres testowy, KSeF i zakres księgowości.
 - [kody-qr](https://fakturaprosto.pl/poradnik-ksef/kody-qr)
 - [2027](https://fakturaprosto.pl/poradnik-ksef/2027)
 - [dla-jdg](https://fakturaprosto.pl/program-do-faktur/dla-jdg)

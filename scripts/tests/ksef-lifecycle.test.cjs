@@ -6,6 +6,30 @@ const { KsefClient, generateDemoUpoXml } = require('../../src/lib/ksef/client.ts
 const { FA3_NAMESPACE, KSEF_V2_URLS } = require('../../src/lib/ksef/constants.ts');
 const { claimKsefTransmission } = require('../../src/lib/ksef/transmission-claim.ts');
 
+test('demo challenges never contact a gateway, while test and production keep the HTTP challenge flow', async () => {
+  const previous = global.fetch;
+  const calls = [];
+  try {
+    global.fetch = async (url, options) => {
+      calls.push({ url, options });
+      return Response.json({ challenge: 'gateway-challenge', timestamp: '2026-10-03T12:00:00Z', timestampMs: 1791028800000 });
+    };
+    const demo = new KsefClient({ environment: 'demo' });
+    const first = await demo.getAuthorisationChallenge(), second = await demo.getAuthorisationChallenge();
+    assert.match(first.challenge, /^DEMO-CHALLENGE-/);
+    assert.notEqual(first.challenge, second.challenge);
+    assert.equal(new Date(first.timestamp).getTime(), first.timestampMs);
+    assert.equal(calls.length, 0);
+    for (const environment of ['test', 'production']) {
+      const challenge = await new KsefClient({ environment }).getAuthorisationChallenge();
+      assert.equal(challenge.challenge, 'gateway-challenge');
+      assert.equal(calls.at(-1).url, KSEF_V2_URLS[environment] + '/auth/challenge');
+      assert.equal(calls.at(-1).options.method, 'POST');
+    }
+    assert.equal(calls.length, 2);
+  } finally { global.fetch = previous; }
+});
+
 test('Punkt 2: KSeF od poczatku do konca - FA(3), auth, send, reject, retry lock, UPO i download', async () => {
   // 1. Walidacja FA(3) i odseparowanie srodowisk
   assert.equal(KSEF_V2_URLS.test, 'https://api-test.ksef.mf.gov.pl/v2');

@@ -64,12 +64,17 @@ export function middleware(request: NextRequest) {
     isPublicSeoPath ||
     isLegalPath;
 
+  // Nieznane adresy muszą dotrzeć do obsługi 404 zamiast przekierowania do logowania.
+  // AppLayout nadal weryfikuje sesję w bazie dla każdej strony panelu.
+  const isAppPath = ["/accountant", "/advances", "/analytics", "/audit", "/calendar", "/contractors", "/cost-reviews", "/dashboard", "/documents", "/expenses", "/finances", "/help", "/invoices", "/jpk", "/ksef", "/offers", "/orders", "/products", "/projects", "/recurring", "/reminders", "/settings", "/tax-estimate", "/warehouse"]
+    .some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`));
+
   // Ciasteczko może wskazywać wygasłą lub usuniętą sesję. Nie przekierowuj
   // z /login na podstawie samego tokenu: ekran logowania sprawdza sesję
   // przez /api/auth/me i przekierowuje dopiero po potwierdzeniu w bazie.
   // W przeciwnym razie /login i chroniony /dashboard zapętlają przekierowania.
   // Brak tokenu + próba wejścia na chronioną stronę -> /login
-  if (!token && !isPublicPath) {
+  if (!token && !isPublicPath && isAppPath) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);

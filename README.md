@@ -90,6 +90,7 @@ Migracje MongoDB prowadzi [scripts/migrations/README.md](scripts/migrations/READ
 | `npm run typecheck`, `npm run lint` | Sprawdzenie typów i jakości kodu |
 | `npm test` | Testy regresji i modułów |
 | `npm run test:integration` | HTTP z odizolowanym MongoDB |
+| `npm run test:seo -- http://127.0.0.1:3000` | Kontrola wyrenderowanych publicznych stron, linków, sitemap, 404 i bramki logowania |
 | `npm run verify` | Build, typy, lint, testy i integracja |
 
 ## Dokumentacja

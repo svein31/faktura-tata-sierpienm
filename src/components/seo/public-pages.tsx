@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { pageCopy } from "@/lib/seo/metadata";
 import { Logo } from "@/components/logo";
-import { PUBLIC_ORIGIN, REVIEW_DATE, topicMap, topics, topicsFor, type Topic } from "@/lib/seo/content";
+import { PUBLIC_ORIGIN, REVIEW_DATE, topicMap, topicsFor, type Topic } from "@/lib/seo/content";
 import { publisherSchema, websiteSchema } from "@/lib/seo/schema";
 
 export function JsonLd({ value }: { value: Record<string, unknown> }) {
@@ -30,7 +30,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       {children}
       <footer className="border-t border-border/70 py-8">
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 text-xs text-muted-foreground sm:px-6">
-          <span>© FakturaProsto · Informacje aktualizowane na podstawie źródeł urzędowych.</span>
+          <span>© FakturaProsto · Poradniki i narzędzia do faktur oraz KSeF.</span>
           <div className="flex gap-4"><Link href="/pomoc">Kontakt</Link><Link href="/polityka-prywatnosci">Prywatność</Link><Link href="/regulamin">Regulamin</Link></div>
         </div>
       </footer>
@@ -38,7 +38,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function TopicCards({ items }: { items: Topic[] }) {
+export function TopicCards({ items }: { items: Pick<Topic, "path" | "title" | "description">[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {items.map(topic => <Link key={topic.path} href={topic.path} className="group rounded-2xl border border-border/70 bg-card p-5 transition-colors hover:border-primary/60 hover:bg-primary/5">
@@ -80,7 +80,12 @@ export function PillarPage({ title, description, prefix }: { title: string; desc
 export function TopicPage({ topic }: { topic: Topic }) {
   const canonical = PUBLIC_ORIGIN + topic.path;
   const category = topic.path.split("/")[1];
-  const related = topic.related.map(path => topicMap.get(path)).filter((item): item is Topic => !!item);
+  const related = topic.related.flatMap(path => {
+    const linkedTopic = topicMap.get(path);
+    if (linkedTopic) return [linkedTopic];
+    const copy = pageCopy(path);
+    return copy ? [{ path, title: copy.h1 || copy.title, description: copy.description }] : [];
+  });
   return <PublicShell>
     <JsonLd value={{ "@context": "https://schema.org", "@graph": [
       { "@type": "WebPage", "@id": `${canonical}#page`, url: canonical, name: topic.title, description: topic.description, isPartOf: { "@id": `${PUBLIC_ORIGIN}/#website` }, inLanguage: "pl-PL" },
@@ -94,8 +99,9 @@ export function TopicPage({ topic }: { topic: Topic }) {
     ] }} />
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
       <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground"><Link href="/" className="hover:text-primary">Start</Link> / <Link href={`/${category}`} className="hover:text-primary">{category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury"}</Link> / Poradnik</nav>
-      <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Odpowiedź · Aktualizacja {topic.modifiedAt || REVIEW_DATE}</p>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{topic.title}</h1>
+      <article aria-labelledby="poradnik-title">
+      <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Redakcja FakturaProsto · Aktualizacja <time dateTime={topic.modifiedAt || REVIEW_DATE}>{topic.modifiedAt || REVIEW_DATE}</time></p>
+      <h1 id="poradnik-title" className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{topic.title}</h1>
       <div className="mt-7 rounded-2xl border border-primary/30 bg-primary/5 p-5 sm:p-6">
         <h2 className="text-sm font-bold text-primary">Krótka odpowiedź</h2>
         <p className="mt-2 text-base leading-relaxed">{topic.answer}</p>
@@ -114,6 +120,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
           {topic.sections.map((section, index) => <section key={section.title} id={`sekcja-${index + 1}`} className="scroll-mt-8">
             <h2 className="text-xl font-semibold">{section.title}</h2>
             <p className="mt-3 leading-relaxed text-muted-foreground">{section.body}</p>
+            {section.source && <p className="mt-3 text-xs text-muted-foreground">Źródło: <a className="text-primary underline" href={section.source.url} target="_blank" rel="noopener noreferrer">{section.source.title} ↗</a></p>}
           </section>)}
           {topic.comparison && <section id="porownanie" className="min-w-0 scroll-mt-8"><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><p className="mt-2 text-xs text-muted-foreground sm:hidden">Przewiń tabelę w bok, aby zobaczyć wszystkie kryteria.</p><div role="region" aria-label="Porównanie kryteriów wyboru" tabIndex={0} className="mt-3 max-w-full overflow-x-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
           <section id="przyklad" className="scroll-mt-8 rounded-2xl border border-border bg-card p-5">
@@ -127,7 +134,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
           <section id="zrodla" className="scroll-mt-8">
             <h2 className="font-semibold">Źródła i weryfikacja</h2>
             <ul className="mt-3 space-y-2 text-sm">{topic.sources.map(source => <li key={source.url}><a className="text-primary underline underline-offset-4" href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></li>)}</ul>
-            <p className="mt-3 text-xs text-muted-foreground">Autor: Redakcja FakturaProsto. Opracowujemy instrukcje produktu i poradniki na podstawie podanych źródeł urzędowych. <Link href="/pomoc" className="text-primary underline">Kontakt i zgłoszenie poprawki</Link>. W złożonej sytuacji sprawdź aktualne przepisy i szczegóły własnej transakcji.</p>
+            <p className="mt-3 text-xs text-muted-foreground">Autor: Redakcja FakturaProsto. Opracowujemy instrukcje, poradniki i porównania na podstawie wskazanych źródeł. <Link href="/pomoc" className="text-primary underline">Kontakt i zgłoszenie poprawki</Link>. Szczegóły własnej transakcji oraz aktualne warunki usług sprawdź przed podjęciem decyzji.</p>
           </section>
         </div>
         <aside className="min-w-0 space-y-5">
@@ -136,13 +143,14 @@ export function TopicPage({ topic }: { topic: Topic }) {
             <p className="mt-2 text-sm text-muted-foreground">Zobacz formularz przykładowej faktury bez rejestracji. Demo nie wysyła dokumentów do KSeF.</p>
             <Link href="/demo" className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Otwórz demo →</Link>
           </div>
-          <div className="rounded-2xl border border-border/70 bg-card p-5">
+          <nav aria-label="Powiązane tematy" className="rounded-2xl border border-border/70 bg-card p-5">
             <h2 className="font-semibold">Powiązane tematy</h2>
             <ul className="mt-3 space-y-3 text-sm">{related.map(item => <li key={item.path}><Link className="text-primary hover:underline" href={item.path}>{item.title} →</Link></li>)}</ul>
-          </div>
+          </nav>
         </aside>
       </div>
       <div className="mt-12 border-t border-border/70 pt-8"><h2 className="text-xl font-semibold">Więcej odpowiedzi</h2><div className="mt-4"><TopicCards items={related.length ? related.slice(0, 4) : topicsFor(`/${category}`).filter(item => item.path !== topic.path).slice(0, 2)} /></div></div>
+      </article>
     </main>
   </PublicShell>;
 }

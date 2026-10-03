@@ -15,6 +15,7 @@ export async function GET() {
       {
         ok: true,
         db: "ok",
+        revision: process.env.APP_BUILD_REVISION || "unknown",
         uptimeSeconds: Math.round(startedAt),
         timestamp: new Date().toISOString(),
         env: process.env.NODE_ENV ?? "development",
@@ -23,7 +24,7 @@ export async function GET() {
     );
   } catch {
     return Response.json(
-      { ok: false, db: "error", uptimeSeconds: Math.round(startedAt), timestamp: new Date().toISOString() },
+      { ok: false, db: "error", revision: process.env.APP_BUILD_REVISION || "unknown", uptimeSeconds: Math.round(startedAt), timestamp: new Date().toISOString() },
       { status: 503, headers: { "Cache-Control": "no-store" } }
     );
   }

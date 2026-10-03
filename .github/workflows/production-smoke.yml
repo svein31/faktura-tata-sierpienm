@@ -30,9 +30,17 @@ jobs:
                 const health = await get('/api/health');
                 const body = await health.json();
                 if (health.status !== 200 || body.ok !== true || body.db !== 'ok') throw new Error('Application or database health check failed.');
+                if (body.revision !== context.sha) throw new Error('Expected deployment ' + context.sha + ', received ' + (body.revision || 'unknown revision') + '.');
                 const home = await get('/');
                 const html = await home.text();
                 if (home.status !== 200 || !html.includes('Faktury VAT online z KSeF 2.0 dla małych firm') || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
+                for (const path of ['/cennik', '/porownania/fakturowo', '/porownania/faktura-pl']) {
+                  const page = await get(path);
+                  const content = await page.text();
+                  if (page.status !== 200 || !content.includes('rel="canonical" href="' + origin + path + '"') || content.includes('name="robots" content="noindex')) throw new Error('Public SEO page is unavailable or not indexable: ' + path);
+                }
+                const missing = await get('/nieistniejaca-strona-audyt');
+                if (missing.status !== 404) throw new Error('Unknown public URL must return HTTP 404.');
                 for (const path of ['/api/accountant/portal', '/api/tax-estimate', '/api/banking/transfers', '/api/ksef/invoices/download/AUDIT-MISSING-REFERENCE?format=upo']) {
                   const response = await get(path);
                   if (response.status !== 401) throw new Error('Unauthenticated API check failed for ' + path + ': HTTP ' + response.status);
@@ -51,6 +59,7 @@ jobs:
                     [{ data: 'Check', header: true }, { data: 'Result', header: true }],
                     ['Target', origin],
                     ['Release commit', context.sha],
+                    ['Deployed revision', body.revision],
                     ['Public page and new pricing/preview', 'HTTP 200 and expected content'],
                     ['Database', 'Health endpoint: ok'],
                     ['Accountant, tax estimate, bank transfers', 'Unauthenticated requests: HTTP 401'],

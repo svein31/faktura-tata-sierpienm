@@ -297,5 +297,12 @@
     "description": "Porównaj Free: do 5 faktur miesięcznie, Pro: 7 zł brutto/mies. lub 59 zł brutto/rok. Sprawdź płatność roczną i automatyczne odnowienie.",
     "h1": "Cennik FakturaProsto — Free i Pro",
     "index": true
+  },
+  {
+    "url": "/porownania",
+    "title": "Porównania programów do faktur — FakturaProsto",
+    "description": "Porównaj programy do faktur: KSeF, plany, koszty brutto i współpracę z księgową. Źródła producentów oraz praktyczne kryteria wyboru.",
+    "h1": "Jak wybrać program do faktur?",
+    "index": true
   }
 ]

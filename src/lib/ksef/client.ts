@@ -340,6 +340,14 @@ export class KsefClient {
    * KROK 1: Inicjalizacja uwierzytelnienia (POST /auth/challenge)
    */
   public async getAuthorisationChallenge(nip?: string): Promise<KsefChallengeResponse> {
+    if (this.environment === "demo") {
+      const timestampMs = Date.now();
+      return {
+        challenge: `DEMO-CHALLENGE-${crypto.randomBytes(16).toString("hex")}`,
+        timestamp: new Date(timestampMs).toISOString(),
+        timestampMs,
+      };
+    }
     const res = await this.request<any>("/auth/challenge", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

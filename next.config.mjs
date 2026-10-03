@@ -1,3 +1,12 @@
+import { execFileSync } from "node:child_process";
+
+// Freeze the source revision at build time so smoke checks cannot accept an older deploy.
+let sourceRevision = process.env.COMMIT_REF || process.env.GITHUB_SHA || "";
+if (!sourceRevision) {
+  try { sourceRevision = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); } catch { /* Source archives may omit Git metadata. */ }
+}
+const buildRevision = /^[a-f0-9]{40}$/i.test(sourceRevision) ? sourceRevision : "unknown";
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -11,6 +20,7 @@ const securityHeaders = [
 ];
 const nextConfig = {
   reactStrictMode: true,
+  env: { APP_BUILD_REVISION: buildRevision },
   outputFileTracingIncludes: {"/*": ["./public/fonts/*.ttf"]},
   async headers() { return [
     { source: "/:path*", headers: securityHeaders },

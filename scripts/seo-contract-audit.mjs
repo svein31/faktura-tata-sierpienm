@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 require("./register-ts.cjs");
 const { topics } = require("../src/lib/seo/content.ts");
+const fs = require("node:fs"), pathModule = require("node:path");
 const copy = require("../src/lib/seo/onpage.json");
 export async function auditSeoContracts(base) {
   const paths = [...new Set(["/", "/cennik", "/program-do-faktur", "/porownania", "/poradnik-ksef", "/faktury", "/vat", "/narzedzia", "/narzedzia/kalkulator-vat", "/narzedzia/limit-ksef", "/demo", "/pomoc", ...topics.map(t=>t.path)])];
@@ -44,8 +45,32 @@ export async function auditSeoContracts(base) {
       assert.ok(graphs.some(g=>g["@graph"]?.some(n=>n["@type"]==="Article" && n.dateModified===(topic.modifiedAt||"2026-09-24"))),path+" actual article dates");
       assert.ok(nodes.some(n=>n["@type"]==="Organization" && n["@id"]===canonicalOrigin+"/#organization"),path+" publisher definition");
       assert.ok(nodes.find(n=>n["@type"]==="Article")?.image,path+" article image");
+      assert.ok(html.includes('<article aria-labelledby="poradnik-title"'),path+" semantic article");
+      assert.ok(html.includes('dateTime="'+(topic.modifiedAt||"2026-09-24")+'"'),path+" visible machine-readable date");
+      const relatedHtml=html.match(/<nav aria-label="Powiązane tematy"[^>]*>([\s\S]*?)<\/nav>/)?.[1] || "";
+      for(const related of topic.related) assert.ok(relatedHtml.includes('href="'+related+'"'),path+" related topic "+related);
+      for(const section of topic.sections.filter(s=>s.source)) assert.ok(hrefs.includes(section.source.url),path+" inline citation "+section.source.url);
     }
   }
+  for(const path of ["/nieistniejaca-strona-audyt", "/login-typo", "/narzedzia/brak-narzedzia"]) {
+    const res=await fetch(base+path,{redirect:"manual"});
+    assert.equal(res.status,404,path+" returns real 404 without login redirect");
+    assert.ok((await res.text()).includes("noindex"),path+" not indexed");
+  }
+  // Keep the authentication audit in sync with the actual application pages.
+  const appRoot=new URL("../src/app/(app)/",import.meta.url);
+  async function checkAppPages(directory,segments=[]) {
+    for(const entry of fs.readdirSync(directory,{withFileTypes:true})) {
+      if(entry.isDirectory()) await checkAppPages(pathModule.join(directory,entry.name),[...segments,entry.name]);
+      else if(entry.name==="page.tsx") {
+        const path="/"+segments.map(s=>s.startsWith("[")?"audit-missing-id":s).join("/");
+        const res=await fetch(base+path,{redirect:"manual"});
+        assert.equal(res.status,307,path+" anonymous app login gate");
+        assert.equal(new URL(res.headers.get("location"),base).pathname,"/login",path+" app redirect destination");
+      }
+    }
+  }
+  await checkAppPages(require("node:url").fileURLToPath(appRoot));
   const reachable=new Set(["/"]), queue=["/"];
   for(let i=0;i<queue.length;i++) for(const target of links.get(queue[i]) || []) {
     if(links.has(target) && !reachable.has(target)) { reachable.add(target); queue.push(target); }
