@@ -26,6 +26,27 @@ export default function PricingPage() {
           <Link href="/register" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Załóż konto i wybierz Pro</Link>
         </article>)}
       </section>
+      <section aria-labelledby="plan-features-title" className="mt-10">
+        <h2 id="plan-features-title" className="text-xl font-semibold">Co otrzymujesz w Free i Pro?</h2>
+        <p className="mt-3 leading-relaxed text-muted-foreground">Oba plany udostępniają te same moduły aplikacji. Pro znosi limit wystawianych faktur sprzedaży z planu Free. Plan miesięczny i roczny Pro różnią się okresem rozliczenia.</p>
+        <div className="mt-5 overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">Porównanie zakresu planów FakturaProsto</caption>
+            <thead className="bg-muted/50"><tr><th scope="col" className="p-3 font-semibold">Funkcja</th><th scope="col" className="p-3 font-semibold">Free</th><th scope="col" className="p-3 font-semibold">Pro</th></tr></thead>
+            <tbody className="divide-y divide-border">
+              {[
+                ["Faktury sprzedaży", "Do 5 miesięcznie", "Bez limitu Free"],
+                ["Szablony i pobieranie PDF", "Dostępne", "Dostępne"],
+                ["Wysyłka i odbiór KSeF", "Po konfiguracji", "Po konfiguracji"],
+                ["Dane kontrahenta po NIP", "Dostępne", "Dostępne"],
+                ["Zespół i dostęp księgowej", "Dostępne", "Dostępne"],
+                ["Koszty i eksporty", "Dostępne", "Dostępne"],
+              ].map(([feature, free, pro]) => <tr key={feature}><th scope="row" className="p-3 font-medium">{feature}</th><td className="p-3 text-muted-foreground">{free}</td><td className="p-3 text-muted-foreground">{pro}</td></tr>)}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Limit Free obejmuje łącznie faktury sprzedaży firm przypisanych do konta w miesiącu kalendarzowym; szkice i proformy nie zużywają limitu. KSeF wymaga uprawnień wystawcy. Usługi zewnętrzne i operacje na dużych paczkach dokumentów mają własne ograniczenia, niezależne od planu.</p>
+      </section>
       <section className="mt-10 space-y-6">
         <div><h2 className="text-xl font-semibold">Czy subskrypcja odnawia się automatycznie?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Tak. Pro odnawia się automatycznie w wybranym okresie rozliczeniowym. Możesz anulować odnowienie w ustawieniach konta. Warunki świadczenia usług i rozliczeń znajdziesz w <Link className="text-primary underline" href="/regulamin">regulaminie FakturaProsto</Link>.</p></div>
         <div><h2 className="text-xl font-semibold">Czym różni się demo od konta Free?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Demo działa bez rejestracji i karty, na przykładowych danych. Nie wysyła rzeczywistych faktur do KSeF. Konto Free pozwala pracować z dokumentami swojej firmy. Integracja z KSeF wymaga konfiguracji i odpowiednich uprawnień.</p><Link href="/demo" className="mt-3 inline-block text-primary underline">Sprawdź formularz faktury w demo</Link></div>

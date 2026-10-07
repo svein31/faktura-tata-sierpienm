@@ -1,4 +1,5 @@
 import { reconcileKsefInvoice } from "@/lib/ksef/reconcile-status";
+import { processKsefAutoEmails, triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { invoiceToDto } from "@/lib/dto";
 import { prisma } from "@/lib/db";
@@ -224,6 +225,7 @@ export async function POST(req: Request) {
                   ksefStatus: "accepted",
                   ksefNumber: statusRes.ksefReferenceNumber,
                   upoXml: statusRes.upoXml,
+                  ksef: { ...ksefJson, environment: env, number: statusRes.ksefReferenceNumber, status: "ACTIVE" },
                 },
               });
 
@@ -231,6 +233,8 @@ export async function POST(req: Request) {
                 where: { id: task.id },
                 data: { status: "completed", lockedUntil: null },
               });
+
+              if (invoice.autoSendEmailOnKsef && statusRes.upoXml) await triggerAutoEmailOnKsef(invoice.id);
 
               results.push({ taskId: task.id, invoiceId: invoice.id, status: "completed", message: "Potwierdzono w KSeF (kod 200)" });
               continue;
@@ -438,10 +442,13 @@ export async function POST(req: Request) {
       }
     }
 
+    // Email retries remain independent of the KSeF transmission queue, including when it is empty.
+    const autoEmail = await processKsefAutoEmails(isCron ? undefined : user!.id);
     return json({
       success: true,
       processedCount: results.length,
       results,
+      autoEmail,
     });
   } catch (e) {
     return handleApiError(e);

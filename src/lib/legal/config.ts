@@ -7,14 +7,21 @@
  */
 
 export const LEGAL_VERSIONS = {
-  terms: "1.0.0-2026-09-13",
-  privacy: "1.0.0-2026-09-13",
+  terms: "1.1.0-2026-10-07",
+  privacy: "1.1.0-2026-10-07",
   cookies: "1.0.0-2026-09-13",
-  dpa: "1.0.0-2026-09-13",
+  dpa: "1.1.0-2026-10-07",
   subprocessors: "1.0.0-2026-09-13",
 } as const;
 
-export const EFFECTIVE_DATE = "13 września 2026 r.";
+export const EFFECTIVE_DATE = "7 października 2026 r.";
+export const LEGAL_EFFECTIVE_DATES = {
+  terms: EFFECTIVE_DATE,
+  privacy: EFFECTIVE_DATE,
+  cookies: "13 września 2026 r.",
+  dpa: EFFECTIVE_DATE,
+  subprocessors: "13 września 2026 r.",
+} as const;
 
 export interface OperatorConfig {
   serviceName: string;

@@ -1,113 +1,66 @@
 import type Stripe from "stripe";
-import { json } from "@/lib/api";
-import { prisma } from "@/lib/db";
+import { ApiError, json } from "@/lib/api";
 import { getStripe } from "@/lib/stripe";
-import { syncStripeSubscription } from "@/lib/subscription";
+import { syncLatestStripeSubscription } from "@/lib/subscription";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const referenceId = (reference: unknown): string | null => typeof reference === "string" ? reference :
+  reference && typeof reference === "object" && "id" in reference && typeof reference.id === "string" ? reference.id : null;
+
 export async function POST(req: Request) {
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) return json({ error: "Brak nagłówka stripe-signature." }, { status: 400 });
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 503 });
   try {
-    const signature = req.headers.get("stripe-signature");
-    if (!signature) {
-      console.warn("[Stripe Webhook] Odrzucono żądanie bez nagłówka stripe-signature.");
-      return json({ error: "Brak nagłówka stripe-signature." }, { status: 400 });
-    }
-
-
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!webhookSecret) {
-      console.error("[Stripe Webhook] Brak zdefiniowanej zmiennej STRIPE_WEBHOOK_SECRET w środowisku.");
-      return json({ error: "Brak konfiguracji webhooka Stripe na serwerze." }, { status: 503 });
-    }
-
-
     const stripe = getStripe();
-    const rawBody = await req.text();
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Błąd weryfikacji podpisu.";
-      console.error("[Stripe Webhook] Weryfikacja sygnatury nie powiodła się:", message);
-      return json({ error: `Błąd weryfikacji podpisu: ${message}` }, { status: 400 });
+      event = stripe.webhooks.constructEvent(await req.text(), signature, webhookSecret);
+    } catch {
+      return json({ error: "Nieprawidłowy podpis zdarzenia Stripe." }, { status: 400 });
     }
-
-    console.log(`[Stripe Webhook] Otrzymano zdarzenie: ${event.type} (ID: ${event.id})`);
-
+    const eventReference = { created: event.created, id: event.id };
+    let subscriptionId: string | null = null, userId: string | null | undefined, customerId: string | null = null;
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        if (session.mode === "subscription" && session.subscription) {
-          const subscriptionId =
-            typeof session.subscription === "string"
-              ? session.subscription
-              : session.subscription.id;
-
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          const userId = session.client_reference_id || session.metadata?.userId;
-
-          await syncStripeSubscription(subscription, userId);
+        if (session.mode === "subscription") {
+          subscriptionId = referenceId(session.subscription);
+          userId = session.client_reference_id || session.metadata?.userId;
+          customerId = referenceId(session.customer);
         }
         break;
       }
-
-      case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        await syncStripeSubscription(subscription);
-        break;
-      }
-
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        await syncStripeSubscription(subscription);
-
-        // Upewnij się, że status został oznaczony jako anulowany
-        await prisma.subscription.updateMany({
-          where: { stripeSubscriptionId: subscription.id },
-          data: { status: "canceled" },
-        });
+        subscriptionId = subscription.id;
+        userId = subscription.metadata?.userId;
+        customerId = referenceId(subscription.customer);
         break;
       }
-
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subRef = (invoice as any).subscription;
-        if (subRef) {
-          const subscriptionId = typeof subRef === "string" ? subRef : subRef.id;
-          console.warn(
-            `[Stripe Webhook] Płatność faktury ${invoice.id} nie powiodła się dla subskrypcji ${subscriptionId}. Ustawianie statusu past_due.`
-          );
-          await prisma.subscription.updateMany({
-            where: { stripeSubscriptionId: subscriptionId },
-            data: { status: "past_due" },
-          });
-        }
+      case "invoice.payment_failed":
+      case "invoice.payment_succeeded":
+      case "invoice.paid": {
+        // The pinned 2025-02 API uses subscription; newer Stripe payloads nest this reference.
+        const invoice = event.data.object as unknown as {
+          subscription?: unknown; customer?: unknown; parent?: { subscription_details?: { subscription?: unknown } };
+        };
+        subscriptionId = referenceId(invoice.subscription || invoice.parent?.subscription_details?.subscription);
+        customerId = referenceId(invoice.customer);
         break;
       }
-
-      case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subRef = (invoice as any).subscription;
-        if (subRef) {
-          const subscriptionId = typeof subRef === "string" ? subRef : subRef.id;
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          await syncStripeSubscription(subscription);
-        }
-        break;
-      }
-
-      default:
-        // Pozostałe zdarzenia są bezpiecznie ignorowane
-        break;
+      default: break;
     }
-
+    if (subscriptionId) await syncLatestStripeSubscription({ subscriptionId, userId, customerId, event: eventReference });
     return json({ received: true, eventId: event.id });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Błąd przetwarzania webhooka.";
-    console.error("[Stripe Webhook] Błąd przetwarzania webhooka:", message);
-    return json({ error: "Błąd przetwarzania zdarzenia webhooka." }, { status: 500 });
+  } catch (error) {
+    // A concurrent checkout/deletion is retried by Stripe. Never acknowledge an unsaved update.
+    return json({ error: "Nie udało się zsynchronizować rozliczeń. Zdarzenie wymaga ponowienia." },
+      { status: error instanceof ApiError && error.status === 409 ? 503 : 500 });
   }
 }

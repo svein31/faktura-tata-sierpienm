@@ -75,7 +75,7 @@ const TOUR_STEPS: TourStep[] = [
     iconColor: "text-emerald-400",
     iconBg: "bg-emerald-500/15 border-emerald-500/30",
     description:
-      "FakturaProsto jest w 100% zintegrowane z Krajowym Systemem e-Faktur w najnowszym schemacie FA(3). Możesz testować wysyłkę na środowisku demo lub od razu przejść na produkcję.",
+      "FakturaProsto obsługuje KSeF 2.0 i strukturę FA(3). Zacznij od symulatora demo. Wysyłkę na oficjalną bramkę testową lub produkcyjną uruchom po konfiguracji i nadaniu uprawnień.",
     highlights: [
       "Kolejkowanie asynchroniczne i odporność na awarie bramki",
       "Automatyczne pobieranie i archiwizacja plików UPO (XML)",
@@ -131,7 +131,7 @@ const TOUR_STEPS: TourStep[] = [
     description:
       "Kontroluj płatności i terminy urzędowe w nowym widoku Kalendarza. Zabezpiecz swoje konto logowaniem dwuskładnikowym (2FA TOTP), aby chronić dane finansowe.",
     highlights: [
-      "Przypomnienia o terminach: 20. ZUS oraz 25. VAT (JPK_V7) i PIT/CIT",
+      "Terminy: ZUS zależnie od firmy, zaliczki PIT/CIT zwykle 20., VAT/JPK_V7 zwykle 25.; dni wolne przesuwają termin",
       "Miesięczny bilans przepływów pieniężnych (wpływy vs wydatki)",
       "Uwierzytelnianie dwuskładnikowe 2FA z kodami zapasowymi",
     ],

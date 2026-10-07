@@ -704,7 +704,11 @@ export default function AccountSettingsPage() {
                     <p className="font-semibold">Ostrzeżenie: Tej operacji nie można cofnąć!</p>
                     <p className="mt-1 opacity-90">
                       Wszystkie dane przypisane do Twojego konta (faktury, poświadczenia KSeF, baza klientów) zostaną
-                      trwale skasowane.
+                      usunięte z aktywnej bazy. Przed usunięciem pobierz potrzebne dokumenty i eksporty.
+                    </p>
+                    <p className="mt-2 opacity-90">
+                      Najpierw anulujemy subskrypcje i rozpoczęte zakupy Pro. Jeśli nie uda się potwierdzić anulowania,
+                      konto pozostanie dostępne. Usunięcie konta nie usuwa historycznych rozliczeń Stripe ani faktur już przyjętych przez KSeF.
                     </p>
                   </div>
 

@@ -333,6 +333,9 @@ export interface Invoice {
   sentAt?: string | null;
   sentToEmail?: string | null;
   emailStatus?: string | null;
+  autoKsefEmailStatus?: "queued" | "preparing" | "sending" | "retry" | "accepted" | "verify_needed" | "failed" | "cancelled" | null;
+  autoKsefEmailLastError?: string | null;
+  autoKsefEmailSentAt?: string | null;
   approvalStatus?: "pending" | "approved" | string | null;
   approvedAt?: string | null;
   approvedBy?: string | null;
@@ -416,7 +419,7 @@ export interface InvoiceEmailLog {
   subject: string;
   messageBody?: string | null;
   attachments?: Array<{ filename: string; size?: number; contentType?: string }>;
-  status: "queued" | "accepted" | "sent" | "delivered" | "failed";
+  status: "queued" | "accepted" | "sent" | "delivered" | "failed" | "verify_needed";
   provider: "smtp" | "resend" | "simulated";
   messageId?: string | null;
   error?: string | null;

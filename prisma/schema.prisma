@@ -74,6 +74,24 @@ model User {
   // PWA / OCR (sekcja 7)
   expenseScans        ExpenseScan[]
   subscription        Subscription?
+  billingCheckoutState BillingCheckoutState?
+}
+
+/// Trwała próba Checkout i blokada wspólna dla zakupu, synchronizacji oraz usuwania konta.
+model BillingCheckoutState {
+  id                      String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId                  String    @unique @db.ObjectId
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                    String
+  idempotencyKey          String
+  leaseToken              String?
+  leaseExpiresAt          DateTime?
+  stripeCheckoutSessionId String?
+  checkoutUrl             String?
+  checkoutParams          Json?
+  sessionExpiresAt        DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 }
 
 /// Stan planu aplikacji; brak rekordu oznacza brak aktywnej subskrypcji.
@@ -89,6 +107,8 @@ model Subscription {
   status                String    @default("inactive") // inactive | active | past_due | canceled | trialing | unpaid
   currentPeriodEnd      DateTime?
   cancelAtPeriodEnd     Boolean?  @default(false)
+  stripeEventCreatedAt  Int?
+  stripeLastEventId     String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 }
@@ -441,6 +461,14 @@ model Invoice {
   isProforma                Boolean? @default(false)
   declaredPaymentDate       String? // Deklarowana data zapłaty przez kontrahenta
   autoSendEmailOnKsef       Boolean? @default(false)
+  autoKsefEmailConfig        Json?
+  autoKsefEmailStatus        String?
+  autoKsefEmailAttempts      Int? @default(0)
+  autoKsefEmailNextAttemptAt DateTime?
+  autoKsefEmailLockedUntil   DateTime?
+  autoKsefEmailLeaseToken    String?
+  autoKsefEmailLastError     String?
+  autoKsefEmailSentAt        DateTime?
 
   // Pola walutowe, NBP i bankowe
   exchangeRate              Float?
@@ -488,6 +516,7 @@ model Invoice {
   @@index([referenceNumber])
   @@index([ksefNumber])
   @@index([ksefStatus])
+  @@index([autoKsefEmailStatus, autoKsefEmailNextAttemptAt])
   @@index([paymentStatus])
   @@index([shareToken])
   @@index([sellerCompanyId, issuedAt])

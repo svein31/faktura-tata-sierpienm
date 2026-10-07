@@ -33,7 +33,7 @@ jobs:
                 if (body.revision !== context.sha) throw new Error('Expected deployment ' + context.sha + ', received ' + (body.revision || 'unknown revision') + '.');
                 const home = await get('/');
                 const html = await home.text();
-                if (home.status !== 200 || !html.includes('Faktury VAT online z KSeF 2.0 dla małych firm') || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
+                if (home.status !== 200 || !html.includes('Faktury VAT online z KSeF') || !html.includes('Interaktywny podgląd') || !html.includes('id="cennik"') || html.includes('SMS rozlicza dostawca')) throw new Error('The new public page is not available yet.');
                 for (const path of ['/cennik', '/porownania/fakturowo', '/porownania/faktura-pl']) {
                   const page = await get(path);
                   const content = await page.text();

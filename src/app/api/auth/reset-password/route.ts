@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { handleApiError, json, readJson, str } from "@/lib/api";
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth";
+import { resetPasswordWithToken, UNUSED_PASSWORD_RESET_TOKEN } from "@/lib/password-reset";
 
 export const runtime = "nodejs";
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     const tokenRecord = await prisma.passwordResetToken.findFirst({
       where: {
         tokenHash,
-        usedAt: null,
+        ...UNUSED_PASSWORD_RESET_TOKEN,
         expiresAt: { gt: new Date() },
       },
       include: { user: true },
@@ -56,22 +57,7 @@ export async function POST(req: Request) {
     // Haszowanie nowego hasła (bcrypt, 12 rund)
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // Aktualizacja hasła użytkownika
-    await prisma.user.update({
-      where: { id: tokenRecord.userId },
-      data: { password: hashedPassword },
-    });
-
-    // Oznaczenie tokena jako zużyty
-    await prisma.passwordResetToken.update({
-      where: { id: tokenRecord.id },
-      data: { usedAt: new Date() },
-    });
-
-    // Wylogowanie ze wszystkich dotychczasowych sesji (unieważnienie starych sesji w DB)
-    await prisma.session.deleteMany({
-      where: { userId: tokenRecord.userId },
-    });
+    await resetPasswordWithToken(tokenHash, hashedPassword);
 
     return json({
       ok: true,

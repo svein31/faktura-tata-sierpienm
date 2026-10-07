@@ -1,4 +1,5 @@
 import { buildEmailHtml } from "@/lib/email/invoice-template";
+import { configureKsefAutoEmail } from "@/lib/email/auto-send";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -75,6 +76,7 @@ export async function GET() {
  */
 export async function POST(req: Request) {
   let inFlightKey = "";
+  let acquiredInFlight = false;
   try {
     const user = await getSessionUser();
     if (!user) {
@@ -97,6 +99,19 @@ export async function POST(req: Request) {
 
     const body = await readJson(req);
 
+    if (body.action === "cancel-auto-ksef") {
+      const id = str(body.invoiceId);
+      assertObjectId(id);
+      const companies = await accessibleCompanyIds(user.id);
+      const invoice = await prisma.invoice.findFirst({ where: {
+        id, OR: [{ sellerCompanyId: { in: companies } }, { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] }],
+      } });
+      if (!invoice) throw new ApiError(404, "Faktura nie istnieje lub nie masz do niej uprawnień.");
+      await requireDocumentWrite(user, { userId: invoice.userId, companyId: invoice.sellerCompanyId });
+      await configureKsefAutoEmail(invoice.id, null);
+      return NextResponse.json({ success: true, autoKsefEmailStatus: "cancelled", message: "Automatyczny e-mail po KSeF został wyłączony." });
+    }
+
     // Idempotency / Double-click protection
     const idempotencyKey = str(body.idempotencyKey)?.trim();
     if (idempotencyKey) {
@@ -111,6 +126,7 @@ export async function POST(req: Request) {
         );
       }
       inFlightRequests.add(inFlightKey);
+      acquiredInFlight = true;
     }
 
     // ── Walidacja e-mail odbiorcy ──
@@ -316,6 +332,7 @@ export async function POST(req: Request) {
     if (attachXml) {
       try {
         let xmlString = invoiceRecord?.ksefXml || "";
+        if (!xmlString && invoiceRecord?.ksefNumber) throw new ApiError(409, "Brak oryginalnego XML wysłanego do KSeF. Pobierz oryginał w KSeF przed wysłaniem e-mailem.");
         if (!xmlString) {
           xmlString = buildFa3Xml({
             invoice: invoiceData,
@@ -336,12 +353,14 @@ export async function POST(req: Request) {
           contentType: "application/xml",
         });
       } catch (xmlError: any) {
+        if (xmlError instanceof ApiError) throw xmlError;
         console.error("EMAIL_SEND_ERROR [XML generation]:", xmlError);
         throw new Error(`Błąd generowania pliku XML KSeF: ${xmlError.message || xmlError}`);
       }
     }
 
     // C. Załącznik UPO XML (jeśli pobrano z KSeF)
+    if (attachUpo && !invoiceRecord?.upoXml) throw new ApiError(409, "Wybrane UPO nie jest jeszcze dostępne. Sprawdź status KSeF przed wysyłką.");
     if (attachUpo && invoiceRecord?.upoXml) {
       const upoBuffer = Buffer.from(invoiceRecord.upoXml, "utf-8");
       const filename = `UPO_KSeF_${safeDocNumber}.xml`;
@@ -361,6 +380,15 @@ export async function POST(req: Request) {
     const htmlContent = buildEmailHtml(messageBody, invoiceData, effectiveSeller, buyerContractor);
     const replyTo = effectiveSeller.email || user.email;
 
+    if (autoSendOnKsef && (!invoiceRecord || invoiceRecord.type !== "sale" || invoiceRecord.isProforma))
+      throw new ApiError(400, "Automatyczny e-mail po KSeF dotyczy zapisanej faktury sprzedaży, z wyłączeniem proform.");
+    if (invoiceRecord && (!invoiceRecord.ksefNumber || !autoSendOnKsef) && typeof body.autoSendOnKsef === "boolean") {
+      await configureKsefAutoEmail(invoiceRecord.id, autoSendOnKsef ? {
+        userId: user.id, recipientEmail, ...(cc ? { cc } : {}), ...(bcc ? { bcc } : {}),
+        subject, messageBody, attachPdf, attachXml,
+      } : null);
+    }
+
     // ── 4. Wysyłka wiadomości ──
     let emailResult;
     try {
@@ -375,6 +403,10 @@ export async function POST(req: Request) {
         attachments,
       });
     } catch (sendErr: any) {
+      const uncertain = sendErr.deliveryUncertain === true;
+      const errorMessage = uncertain
+        ? "Nie można potwierdzić wyniku wysyłki. Wiadomość mogła zostać przyjęta przez serwer. Sprawdź historię u dostawcy poczty przed ponowną wysyłką."
+        : sendErr.message || String(sendErr);
       // Rejestracja błędu w historii
       if (invoiceRecord) {
         await prisma.invoiceEmailLog.create({
@@ -387,12 +419,13 @@ export async function POST(req: Request) {
             subject,
             messageBody,
             attachments: loggedAttachmentsMeta,
-            status: "failed",
+            status: uncertain ? "verify_needed" : "failed",
             provider: mailConfig.provider,
-            error: sendErr.message || String(sendErr),
+            error: errorMessage,
           },
         }).catch((e) => console.error("Failed to log failed email:", e));
       }
+      if (uncertain) throw new ApiError(409, errorMessage, "EMAIL_DELIVERY_UNCERTAIN");
       throw sendErr;
     }
 
@@ -428,7 +461,6 @@ export async function POST(req: Request) {
             sentAt: now,
             sentToEmail: recipientEmail,
             emailStatus: "SENT",
-            autoSendEmailOnKsef: autoSendOnKsef ? true : invoiceRecord.autoSendEmailOnKsef,
             // Email delivery does not issue a draft or alter its legal status.
           },
         });
@@ -473,7 +505,7 @@ export async function POST(req: Request) {
       { status: statusCode }
     );
   } finally {
-    if (inFlightKey) {
+    if (acquiredInFlight) {
       inFlightRequests.delete(inFlightKey);
     }
   }

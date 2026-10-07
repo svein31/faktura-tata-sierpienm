@@ -3,10 +3,14 @@ import { prisma } from "@/lib/db";
 import { ApiError } from "@/lib/api";
 import { KsefClient, type KsefEnvironment } from "@/lib/ksef/index";
 import { recordAuditLog } from "@/lib/audit";
+import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 type StatusInvoice = Prisma.InvoiceGetPayload<{ include: { sellerCompany: true; ksefSession: true } }>;
 /** Read the previous transmission only. This function never sends or retries an invoice. */
 export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: string; name?: string | null; email?: string | null }) {
-  if (invoice.ksefNumber && invoice.upoXml) return { success: true, status: "ACCEPTED", ksefReferenceNumber: invoice.ksefNumber, hasUpo: true };
+  if (invoice.ksefNumber && invoice.upoXml) {
+    if (invoice.autoSendEmailOnKsef) await triggerAutoEmailOnKsef(invoice.id);
+    return { success: true, status: "ACCEPTED", ksefReferenceNumber: invoice.ksefNumber, hasUpo: true };
+  }
   const meta = (invoice.ksef && typeof invoice.ksef === "object" && !Array.isArray(invoice.ksef) ? invoice.ksef : {}) as Record<string, unknown>;
   const env = meta.environment as KsefEnvironment;
   if (env !== "production" && env !== "test") {
@@ -36,5 +40,6 @@ export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: 
       }
     });
   }
+  if (accepted && (result.upoXml || invoice.upoXml) && invoice.autoSendEmailOnKsef) await triggerAutoEmailOnKsef(invoice.id);
   return { success: true, status: result.status, processingCode: result.processingCode, processingDescription: result.processingDescription, ksefReferenceNumber: result.ksefReferenceNumber || invoice.ksefNumber, hasUpo: Boolean(result.upoXml || invoice.upoXml), upoXml: result.upoXml || invoice.upoXml };
 }

@@ -2,6 +2,9 @@ import "server-only";
 import type Stripe from "stripe";
 import { prisma } from "./db";
 import { resolvePlanFromStripeSubscription } from "./stripe";
+import { getStripe } from "./stripe";
+import { acquireBillingLease, refreshBillingLease, releaseBillingLease } from "./billing-lease";
+import { BILLING_REQUEST_OPTIONS, isRenewableStripeSubscription } from "./billing-stripe-state";
 import type { SubscriptionPlan, SubscriptionStatus } from "./subscription-plans";
 
 /**
@@ -75,7 +78,8 @@ export function normalizeStripeStatus(stripeStatus: Stripe.Subscription.Status):
  */
 export async function syncStripeSubscription(
   subscription: Stripe.Subscription,
-  explicitUserId?: string
+  explicitUserId?: string,
+  event?: { created: number; id: string }
 ) {
   const stripeSubscriptionId = subscription.id;
   const stripeCustomerId =
@@ -109,6 +113,11 @@ export async function syncStripeSubscription(
     return null;
   }
 
+  if (event) {
+    const existing = await prisma.subscription.findUnique({ where: { userId } });
+    if (existing?.stripeEventCreatedAt && existing.stripeEventCreatedAt > event.created) return existing;
+  }
+
   // 2. Odczytaj szczegóły planu, datę i status
   const plan: SubscriptionPlan | null = resolvePlanFromStripeSubscription(subscription);
   const status: SubscriptionStatus = normalizeStripeStatus(subscription.status);
@@ -116,8 +125,9 @@ export async function syncStripeSubscription(
   const stripePriceId = primaryItem?.price?.id ?? null;
 
   // Stripe current_period_end jest w sekundach (Unix timestamp)
-  const currentPeriodEnd = (subscription as any).current_period_end
-    ? new Date((subscription as any).current_period_end * 1000)
+  const periodEnd = (subscription as unknown as { current_period_end?: number }).current_period_end || primaryItem?.current_period_end;
+  const currentPeriodEnd = periodEnd
+    ? new Date(periodEnd * 1000)
     : null;
 
   const cancelAtPeriodEnd = Boolean(subscription.cancel_at_period_end);
@@ -134,6 +144,7 @@ export async function syncStripeSubscription(
       status,
       currentPeriodEnd,
       cancelAtPeriodEnd,
+      ...(event ? { stripeEventCreatedAt: event.created, stripeLastEventId: event.id } : {}),
     },
     update: {
       stripeCustomerId: stripeCustomerId || undefined,
@@ -143,6 +154,8 @@ export async function syncStripeSubscription(
       status,
       currentPeriodEnd,
       cancelAtPeriodEnd,
+      accessSource: null,
+      ...(event ? { stripeEventCreatedAt: event.created, stripeLastEventId: event.id } : {}),
     },
   });
 
@@ -151,4 +164,41 @@ export async function syncStripeSubscription(
   );
 
   return updated;
+}
+
+/** Webhooks reconcile current Stripe state under the same lock as purchase/removal. */
+export async function syncLatestStripeSubscription(input: {
+  subscriptionId: string;
+  userId?: string | null;
+  customerId?: string | null;
+  event: { created: number; id: string };
+}) {
+  let userId = input.userId || undefined;
+  if (!userId) {
+    const existing = await prisma.subscription.findUnique({ where: { stripeSubscriptionId: input.subscriptionId }, select: { userId: true } });
+    userId = existing?.userId;
+  }
+  if (!userId && input.customerId) {
+    const existing = await prisma.subscription.findUnique({ where: { stripeCustomerId: input.customerId }, select: { userId: true } });
+    userId = existing?.userId;
+  }
+  if (!userId || !await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })) return null;
+  const state = await acquireBillingLease(userId);
+  try {
+    const existing = await prisma.subscription.findUnique({ where: { userId } });
+    if (existing?.stripeEventCreatedAt && existing.stripeEventCreatedAt > input.event.created) return existing;
+    const stripe = getStripe();
+    await refreshBillingLease(userId, state.leaseToken!);
+    let latest = await stripe.subscriptions.retrieve(input.subscriptionId, {}, BILLING_REQUEST_OPTIONS);
+    // A delayed cancellation of an older subscription must not overwrite its paid replacement.
+    if (existing?.stripeSubscriptionId && existing.stripeSubscriptionId !== latest.id) {
+      await refreshBillingLease(userId, state.leaseToken!);
+      const current = await stripe.subscriptions.retrieve(existing.stripeSubscriptionId, {}, BILLING_REQUEST_OPTIONS);
+      if (isRenewableStripeSubscription(current) || !isRenewableStripeSubscription(latest)) latest = current;
+    }
+    await refreshBillingLease(userId, state.leaseToken!);
+    return await syncStripeSubscription(latest, userId, input.event);
+  } finally {
+    await releaseBillingLease(userId, state.leaseToken!).catch(() => undefined);
+  }
 }

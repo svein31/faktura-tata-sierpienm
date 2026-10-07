@@ -8,6 +8,7 @@ export interface EmailAttachment {
 
 export interface SendEmailOptions {
   singleAttempt?: boolean;
+  idempotencyKey?: string;
   signal?: AbortSignal;
   to: string | string[];
   cc?: string | string[];
@@ -25,6 +26,14 @@ export interface SendEmailResult {
   messageId?: string;
   provider: "resend" | "smtp";
   message: string;
+}
+
+/** A timeout after provider submission can mean the message was already accepted. */
+export class EmailDeliveryError extends Error {
+  constructor(message: string, public readonly deliveryUncertain: boolean) {
+    super(message);
+    this.name = "EmailDeliveryError";
+  }
 }
 
 import { isValidEmail, parseEmailList } from "./validation";
@@ -75,6 +84,11 @@ function isTransientError(error: any): boolean {
   return false;
 }
 
+function isDefinitelyRejected(error: any): boolean {
+  return error?.responseCode >= 400
+    || ["EAUTH", "ENOTFOUND", "EDNS", "ECONNREFUSED", "EHOSTUNREACH", "ENETUNREACH", "EENVELOPE", "ETLS"].includes(error?.code);
+}
+
 /**
  * Uniwersalny serwis wysyłki e-maili z obsługą Resend, SMTP (Nodemailer) oraz ponawianiem błędów przejściowych.
  * ZGODNIE Z WYMAGANIAMI: Nie symuluje sukcesu, jeśli brak konfiguracji.
@@ -86,30 +100,30 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
   // Parsowanie i walidacja adresów odbiorców
   const toList = parseEmailList(options.to);
   if (toList.length === 0) {
-    throw new Error("Brak wymaganego adresu e-mail odbiorcy.");
+    throw new EmailDeliveryError("Brak wymaganego adresu e-mail odbiorcy.", false);
   }
   for (const addr of toList) {
     if (!isValidEmail(addr)) {
-      throw new Error(`Nieprawidłowy format adresu odbiorcy: ${addr}`);
+      throw new EmailDeliveryError(`Nieprawidłowy format adresu odbiorcy: ${addr}`, false);
     }
   }
 
   const ccList = parseEmailList(options.cc);
   for (const addr of ccList) {
     if (!isValidEmail(addr)) {
-      throw new Error(`Nieprawidłowy format adresu DW (Cc): ${addr}`);
+      throw new EmailDeliveryError(`Nieprawidłowy format adresu DW (Cc): ${addr}`, false);
     }
   }
 
   const bccList = parseEmailList(options.bcc);
   for (const addr of bccList) {
     if (!isValidEmail(addr)) {
-      throw new Error(`Nieprawidłowy format adresu UDW (Bcc): ${addr}`);
+      throw new EmailDeliveryError(`Nieprawidłowy format adresu UDW (Bcc): ${addr}`, false);
     }
   }
 
   if (replyTo && !isValidEmail(replyTo)) {
-    throw new Error(`Nieprawidłowy format adresu Reply-To: ${replyTo}`);
+    throw new EmailDeliveryError(`Nieprawidłowy format adresu Reply-To: ${replyTo}`, false);
   }
 
   // ── 1. Resend API (HTTP REST) ──
@@ -142,13 +156,14 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
         headers: {
           Authorization: `Bearer ${resendApiKey}`,
           "Content-Type": "application/json",
+          ...(options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : {}),
         },
         body: JSON.stringify(payload),
       });
 
       const resData = await res.json();
       if (!res.ok) {
-        throw new Error(resData?.message || `Błąd Resend API HTTP ${res.status}`);
+        throw new EmailDeliveryError(resData?.message || `Błąd Resend API HTTP ${res.status}`, res.status >= 500);
       }
 
       return {
@@ -159,7 +174,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       };
     } catch (err: any) {
       console.error("[Email] Błąd wysyłki przez Resend API:", err);
-      throw new Error(`Wysyłka e-mail (Resend) nie powiodła się: ${err.message || err}`);
+      throw new EmailDeliveryError(`Wysyłka e-mail (Resend) nie powiodła się: ${err.message || err}`, err.deliveryUncertain !== false);
     }
   }
 
@@ -218,7 +233,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
       } catch (err: any) {
         lastErr = err;
         console.warn(`[Email SMTP] Próba ${attempt}/${maxAttempts} nie powiodła się:`, err.message || err);
-        if (attempt < maxAttempts && isTransientError(err)) {
+        if (attempt < maxAttempts && isTransientError(err) && isDefinitelyRejected(err)) {
           // Odczekanie z exponential backoff
           await new Promise((r) => setTimeout(r, attempt * 1000));
           continue;
@@ -228,7 +243,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     }
 
     console.error("[Email] Błąd wysyłki przez SMTP po próbach:", lastErr);
-    throw new Error(`Wysyłka e-mail (SMTP) nie powiodła się: ${lastErr?.message || lastErr}`);
+    throw new EmailDeliveryError(`Wysyłka e-mail (SMTP) nie powiodła się: ${lastErr?.message || lastErr}`, !isDefinitelyRejected(lastErr));
   }
 
   // ── 3. Brak konfiguracji — rzucamy czytelny błąd, NIE symulujemy sukcesu! ──
@@ -236,6 +251,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     "Poczta e-mail nie została skonfigurowana. Skonfiguruj serwer SMTP (np. w hostingu CyberFolks) lub RESEND_API_KEY w zmiennych środowiskowych."
   );
   configErr.code = "EMAIL_NOT_CONFIGURED";
+  configErr.deliveryUncertain = false;
   throw configErr;
 }
 

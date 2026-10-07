@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { formatDateTime, formatMoney, invoiceTotals } from "@/lib/format";
 import { isValidEmail, parseEmailList } from "@/lib/email/validation";
+import { useAppStore } from "@/lib/store";
 import type { CompanyProfile, Contractor, Invoice, InvoiceEmailLog } from "@/lib/types";
 
 export interface SendInvoiceEmailModalProps {
@@ -62,7 +63,7 @@ export function SendInvoiceEmailModal({
   const [showConfigHelp, setShowConfigHelp] = React.useState(false);
 
   // Dane formularza
-  const initialEmail = contractor?.email || invoice.sentToEmail || "";
+  const initialEmail = invoice.sentToEmail || contractor?.email || "";
   const [recipientEmail, setRecipientEmail] = React.useState(initialEmail);
   const [showCc, setShowCc] = React.useState(false);
   const [cc, setCc] = React.useState("");
@@ -104,10 +105,34 @@ export function SendInvoiceEmailModal({
   const [attachPdf, setAttachPdf] = React.useState(true);
   const [attachXml, setAttachXml] = React.useState(Boolean(invoice.ksef?.number || invoice.ksefNumber));
   const hasUpo = Boolean(invoice.upoXml);
+  const isDemoKsef = invoice.ksef?.environment === "demo";
   const [attachUpo, setAttachUpo] = React.useState(hasUpo);
 
   // Opcja auto-wysyłki po KSeF
   const [autoSendOnKsef, setAutoSendOnKsef] = React.useState(Boolean(invoice.autoSendEmailOnKsef));
+  const [autoEmailCancelled, setAutoEmailCancelled] = React.useState(false);
+  const [cancellingAutoEmail, setCancellingAutoEmail] = React.useState(false);
+  React.useEffect(() => {
+    setAutoEmailCancelled(invoice.autoKsefEmailStatus === "cancelled");
+    setAutoSendOnKsef(Boolean(invoice.autoSendEmailOnKsef));
+  }, [invoice.id, invoice.autoKsefEmailStatus, invoice.autoSendEmailOnKsef]);
+
+  async function cancelAutoEmail() {
+    setCancellingAutoEmail(true);
+    try {
+      const response = await fetch("/api/invoices/send-email", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-auto-ksef", invoiceId: invoice.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Nie można wyłączyć e-maila w trakcie wysyłki.");
+      setAutoEmailCancelled(true); setAutoSendOnKsef(false);
+      useAppStore.setState(state => ({ invoices: state.invoices.map(i => i.id === invoice.id ? { ...i, autoSendEmailOnKsef: false, autoKsefEmailStatus: "cancelled", autoKsefEmailLastError: null } : i) }));
+      toast("success", "Automatyczny e-mail wyłączony", "Oczekująca wiadomość po KSeF została anulowana.");
+    } catch (error) {
+      toast("error", "Nie udało się wyłączyć e-maila", error instanceof Error ? error.message : "Sprawdź historię wysyłki.");
+    } finally { setCancellingAutoEmail(false); }
+  }
 
   // Podgląd wiadomości
   const [showPreview, setShowPreview] = React.useState(false);
@@ -215,6 +240,14 @@ export function SendInvoiceEmailModal({
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (data.error === "EMAIL_DELIVERY_UNCERTAIN") {
+          setReviewed(false);
+          toast("warning", "Sprawdź wynik wysyłki", data.message);
+          const history = await fetch(`/api/invoices/${encodeURIComponent(invoice.id)}/email-history`).then(r => r.json()).catch(() => null);
+          if (history?.logs) setEmailLogs(history.logs);
+          setActiveTab("history");
+          return;
+        }
         if (data.error === "EMAIL_NOT_CONFIGURED") {
           setShowConfigHelp(true);
           toast(
@@ -577,10 +610,10 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                     />
                     <div className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Urzędowe UPO (XML)
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> {isDemoKsef ? "Potwierdzenie demo (XML)" : "Urzędowe UPO (XML)"}
                       </span>
                       <p className="text-[10.5px] text-muted-foreground">
-                        Oficjalne poświadczenie odbioru nadane przez Ministerstwo Finansów.
+                        {isDemoKsef ? "Symulacja lokalna; nie jest poświadczeniem Ministerstwa Finansów." : "Oficjalne poświadczenie odbioru nadane przez Ministerstwo Finansów."}
                       </p>
                     </div>
                   </label>
@@ -602,10 +635,22 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                     Automatycznie wyślij po przyjęciu przez KSeF
                   </span>
                   <p className="text-[11px] text-muted-foreground">
-                    Gdy faktura otrzyma numer KSeF i UPO, system sam wyśle e-mail z finalnym PDF i UPO do kontrahenta.
+                    Po pobraniu rzeczywistego UPO system wyśle ponowną wiadomość na wybrany adres oraz DW/UDW, z wybranym PDF/XML i UPO. Symulacja demo nie uruchamia wysyłki.
                   </p>
                 </div>
               </label>
+            )}
+
+            {!autoEmailCancelled && (invoice.autoSendEmailOnKsef || invoice.autoKsefEmailStatus) && invoice.autoKsefEmailStatus !== "cancelled" && (
+              <div role="status" className="rounded-xl border border-border/70 bg-muted/20 p-3 text-xs space-y-1">
+                <p className="font-semibold">E-mail po KSeF: {invoice.autoKsefEmailStatus === "accepted" ? "przyjęty przez serwer pocztowy" : invoice.autoKsefEmailStatus === "verify_needed" ? "wynik wymaga sprawdzenia" : invoice.autoKsefEmailStatus === "failed" ? "wstrzymany po nieudanych próbach" : invoice.autoKsefEmailStatus === "retry" ? "oczekuje na ponowną próbę" : "oczekuje na UPO lub wysyłkę"}.</p>
+                {invoice.autoKsefEmailLastError && <p className="text-muted-foreground">{invoice.autoKsefEmailLastError}</p>}
+                {(!invoice.autoKsefEmailStatus || ["queued", "retry", "preparing", "failed"].includes(invoice.autoKsefEmailStatus)) && (
+                  <Button type="button" variant="secondary" size="sm" disabled={cancellingAutoEmail} onClick={cancelAutoEmail}>
+                    {cancellingAutoEmail ? "Wyłączanie…" : "Wyłącz oczekujący e-mail po KSeF"}
+                  </Button>
+                )}
+              </div>
             )}
 
             {/* Podgląd wiadomości e-mail (rozwijany) */}
@@ -654,7 +699,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        {log.status === "failed" ? (
+                        {log.status === "failed" || log.status === "verify_needed" ? (
                           <XCircle className="h-4 w-4 text-rose-500 shrink-0" />
                         ) : (
                           <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -667,10 +712,14 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                         )}
                       </div>
                       <Badge
-                        tone={log.status === "failed" ? "danger" : "success"}
+                        tone={log.status === "failed" || log.status === "verify_needed" ? "danger" : log.status === "queued" ? "outline" : "success"}
                         className="text-[10.5px] font-medium"
                       >
-                        {log.status === "accepted"
+                        {log.status === "verify_needed"
+                          ? "Sprawdź wynik wysyłki"
+                          : log.status === "queued"
+                          ? "Wysyłka w toku"
+                          : log.status === "accepted"
                           ? "Przyjęto przez serwer"
                           : log.status === "sent"
                           ? "Wysłano"

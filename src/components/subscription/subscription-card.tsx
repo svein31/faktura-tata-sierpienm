@@ -22,6 +22,7 @@ import {
   type SubscriptionStatus,
 } from "@/lib/subscription-plans";
 import { cn } from "@/lib/utils";
+import { paymentReturnMessage } from "./payment-return";
 
 type SubscriptionInfo = {
   plan: SubscriptionPlan | null;
@@ -49,47 +50,45 @@ export function SubscriptionCard() {
   const [checkoutLoading, setCheckoutLoading] = React.useState(false);
   const [portalLoading, setPortalLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [bannerMessage, setBannerMessage] = React.useState<{
-    type: "success" | "warning";
-    text: string;
-  } | null>(null);
+  const [verificationExhausted, setVerificationExhausted] = React.useState(false);
 
-  // Obsługa powrotów z sesji Stripe
-  React.useEffect(() => {
-    if (billingParam === "success") {
-      setBannerMessage({
-        type: "success",
-        text: "Płatność zakończona sukcesem! Twoja subskrypcja planu Pro została aktywowana.",
-      });
-    } else if (billingParam === "cancel") {
-      setBannerMessage({
-        type: "warning",
-        text: "Proces płatności został przerwany. Żadne środki nie zostały pobrane.",
-      });
-    }
-  }, [billingParam]);
-
-  const loadSubscription = React.useCallback(async (signal?: AbortSignal) => {
+  const loadSubscription = React.useCallback(async (signal?: AbortSignal, background = false): Promise<BillingApiResponse | null> => {
     try {
-      setLoading(true);
+      if (!background) setLoading(true);
       setError(null);
-      const res = await fetch("/api/subscription", { signal, cache: "no-store" });
+      const timeout = AbortSignal.timeout(10000);
+      const res = await fetch("/api/subscription", { signal: signal ? AbortSignal.any([signal, timeout]) : timeout, cache: "no-store" });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Nie udało się pobrać danych subskrypcji.");
+      if (signal?.aborted) return null;
       setData(result as BillingApiResponse);
+      return result as BillingApiResponse;
     } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") return;
+      if (signal?.aborted) return null;
       setError(err instanceof Error ? err.message : "Wystąpił błąd podczas ładowania planu.");
+      return null;
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
   React.useEffect(() => {
     const controller = new AbortController();
-    loadSubscription(controller.signal);
-    return () => controller.abort();
-  }, [loadSubscription]);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    setVerificationExhausted(false);
+    async function check() {
+      attempts += 1;
+      const result = await loadSubscription(controller.signal, attempts > 1);
+      if (controller.signal.aborted) return;
+      if (billingParam === "success" && !result?.subscription.isPro) {
+        if (attempts < 8) timer = setTimeout(() => { void check(); }, 3000);
+        else setVerificationExhausted(true);
+      }
+    }
+    void check();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [billingParam, loadSubscription]);
 
   // Rozpoczęcie procesu Stripe Checkout
   const handleStartCheckout = async (plan: SubscriptionPlan) => {
@@ -141,6 +140,7 @@ export function SubscriptionCard() {
 
   const subscription = data?.subscription;
   const isPro = subscription?.isPro ?? false;
+  const bannerMessage = paymentReturnMessage(billingParam, subscription, verificationExhausted);
 
   const currentStatusLabel = subscription
     ? SUBSCRIPTION_STATUS_LABELS[subscription.status] || subscription.status
@@ -171,7 +171,7 @@ export function SubscriptionCard() {
               <CardTitle className="text-lg">Plan i Subskrypcja</CardTitle>
             </div>
             <CardDescription>
-              Zarządzaj dostępem do nielimitowanego wystawiania faktur, integracji KSeF 2.0 i funkcji Pro.
+              Free obejmuje do 5 faktur miesięcznie. Pro znosi ten limit; dostępne moduły pozostają wspólne dla obu planów.
             </CardDescription>
           </div>
           {subscription && (
@@ -189,20 +189,26 @@ export function SubscriptionCard() {
         {/* Baner informacyjny powrotu ze Stripe */}
         {bannerMessage && (
           <div
+            role="status"
             className={cn(
               "flex items-start gap-3 rounded-xl border p-4 text-sm",
               bannerMessage.type === "success"
                 ? "border-emerald-500/30 bg-emerald-50/50 text-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300"
-                : "border-amber-500/30 bg-amber-50/50 text-amber-900 dark:bg-amber-950/20 dark:text-amber-300"
+                : bannerMessage.type === "pending"
+                  ? "border-blue-500/30 bg-blue-50/50 text-blue-900 dark:bg-blue-950/20 dark:text-blue-300"
+                  : "border-amber-500/30 bg-amber-50/50 text-amber-900 dark:bg-amber-950/20 dark:text-amber-300"
             )}
           >
             {bannerMessage.type === "success" ? (
               <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            ) : bannerMessage.type === "pending" ? (
+              <RefreshCw className="h-5 w-5 shrink-0 animate-spin" />
             ) : (
               <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
             )}
             <div className="flex-1">
               <p className="font-medium">{bannerMessage.text}</p>
+              {billingParam === "success" && verificationExhausted && !isPro && <Button variant="outline" size="sm" className="mt-3" onClick={() => { void loadSubscription(); }} loading={loading}>Odśwież stan</Button>}
             </div>
           </div>
         )}
@@ -237,7 +243,7 @@ export function SubscriptionCard() {
                       </h4>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {subscription.accessSource === "complimentary" ? "Pełny dostęp bez opłat i automatycznego odnawiania." : "Posiadasz aktywną subskrypcję. Wszystkie moduły aplikacji są w pełni odblokowane."}
+                      {subscription.accessSource === "complimentary" ? "Faktury bez limitu Free, bez opłat i automatycznego odnawiania." : "Posiadasz aktywną subskrypcję. Wystawiaj faktury bez limitu Free."}
                     </p>
                   </div>
 
@@ -331,27 +337,27 @@ export function SubscriptionCard() {
                           </div>
 
                           <p className="text-xs text-muted-foreground leading-relaxed">
-                            {plan.description}
+                            {isYearly ? "Jedna opłata za rok. Około 4,92 zł miesięcznie; oszczędzasz 25 zł wobec 12 opłat po 7 zł." : "Opłata co miesiąc. Możesz anulować automatyczne odnowienie."}
                           </p>
                         </div>
 
                         <ul className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
                           <li className="flex items-center gap-2">
                             <Check className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>Wszystkie szablony faktur i eksport PDF</span>
+                            <span>Faktury bez limitu 5 miesięcznie z planu Free</span>
                           </li>
                           <li className="flex items-center gap-2">
                             <Check className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>Wysyłka i odbiór e-faktur KSeF 2.0</span>
+                            <span>KSeF, PDF i pozostałe moduły jak w Free</span>
                           </li>
                           <li className="flex items-center gap-2">
                             <Check className="h-3.5 w-3.5 text-emerald-500" />
-                            <span>Weryfikacja kontrahentów w GUS i Białej Liście VAT</span>
+                            <span>Integracje wymagają konfiguracji i uprawnień</span>
                           </li>
                           {isYearly && (
                             <li className="flex items-center gap-2 font-medium text-foreground">
                               <Check className="h-3.5 w-3.5 text-emerald-500" />
-                              <span>2 miesiące gratis w porównaniu z planem miesięcznym</span>
+                              <span>25 zł oszczędności wobec 12 opłat miesięcznych</span>
                             </li>
                           )}
                         </ul>
@@ -371,6 +377,7 @@ export function SubscriptionCard() {
                     className="w-full sm:w-auto px-6 font-semibold"
                     onClick={() => handleStartCheckout(selectedPlan)}
                     loading={checkoutLoading}
+                    disabled={billingParam === "success" && !verificationExhausted}
                   >
                     Aktywuj {selectedPlan === "yearly" ? "Plan Roczny (59 zł)" : "Plan Miesięczny (7 zł)"}
                   </Button>

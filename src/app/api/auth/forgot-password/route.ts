@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { handleApiError, json, readJson, str } from "@/lib/api";
 import { rateLimitShared } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email/sender";
+import { UNUSED_PASSWORD_RESET_TOKEN } from "@/lib/password-reset";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
 
     // Unieważnij poprzednie niewykorzystane tokeny tego użytkownika
     await prisma.passwordResetToken.updateMany({
-      where: { userId: user.id, usedAt: null },
+      where: { userId: user.id, ...UNUSED_PASSWORD_RESET_TOKEN },
       data: { usedAt: new Date() },
     });
 

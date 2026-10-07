@@ -1,6 +1,7 @@
 import { clearSessionCookieValue, getSessionUser, verifyPassword } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
-import { prisma } from "@/lib/db";
+import { withUserBillingCancellation } from "@/lib/billing-cancellation";
+import { deleteUserAccount } from "@/lib/account-deletion";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -36,9 +37,10 @@ export async function POST(req: Request) {
       throw new ApiError(400, "Podane hasło jest nieprawidłowe.");
     }
 
-    // 2. Kaskadowe usunięcie użytkownika i jego danych
-    await prisma.user.delete({
-      where: { id: user.id },
+    // Anulowanie płatności i usunięcie konta współdzielą blokadę z uruchomieniem Checkout.
+    // Jeżeli Stripe nie potwierdzi anulowania, callback nie usunie konta.
+    await withUserBillingCancellation(user.id, async () => {
+      await deleteUserAccount(user.id);
     });
 
     const res = json({

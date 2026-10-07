@@ -53,11 +53,12 @@ let mocks = {};
 Module._load = function(request, parent, main) { return Object.hasOwn(mocks, request) ? mocks[request] : originalLoad.call(this, request, parent, main); };
 function reconciliationFixture(result, overrides = {}, token = 'token') {
   for (const key of Object.keys(require.cache)) if (/[\\/]src[\\/]lib[\\/]ksef[\\/]reconcile-status/.test(key)) delete require.cache[key];
-  const writes = [], sessions = [], calls = [];
+  const writes = [], sessions = [], calls = [], autoEmails = [];
   const db = { ksefSession: { findFirst: async query => { sessions.push(query.where); return token ? { accessToken: token } : null; } }, invoice: { updateMany: async query => { writes.push(query); return { count: 1 }; } }, ksefQueueTask: { updateMany: async () => ({ count: 1 }) }, $transaction: async callback => callback(db) };
   mocks = { '@/lib/db': { prisma: db }, '@/lib/audit': { recordAuditLog: async () => {} }, '@/lib/ksef/index': { KsefClient: class { async getInvoiceStatus(...args) { calls.push(args); return result; } async sendInvoiceEncrypted() { throw new Error('Reconciliation must never send'); } } } };
+  mocks['@/lib/email/auto-send'] = { triggerAutoEmailOnKsef: async id => { autoEmails.push(id); return true; } };
   const value = { id: 'invoice', userId: 'owner', sellerCompanyId: 'company', sellerCompany: { nip: '5260301706' }, referenceNumber: 'original-element', ksefSession: null, ksefStatus: 'verify_needed', ksefNumber: null, upoXml: null, ksef: { environment: 'production', sessionReferenceNumber: 'original-session' }, ...overrides };
-  return { reconcile: require('../../src/lib/ksef/reconcile-status.ts').reconcileKsefInvoice, value, writes, sessions, calls };
+  return { reconcile: require('../../src/lib/ksef/reconcile-status.ts').reconcileKsefInvoice, value, writes, sessions, calls, autoEmails };
 }
 test('ambiguous submission is confirmed by reference without resend and without fabricating UPO', async () => {
   const state = reconciliationFixture({ status: 'ACCEPTED', ksefReferenceNumber: 'KSEF', processingCode: 200 });
@@ -83,4 +84,15 @@ test('complete UPO is returned locally without another MF request', async () => 
   const state = reconciliationFixture({}, { ksefNumber: 'KSEF', upoXml: '<UPO/>' });
   assert.equal((await state.reconcile(state.value, { id: 'owner' })).hasUpo, true);
   assert.equal(state.calls.length, 0); assert.equal(state.sessions.length, 0);
+});
+test('opted-in auto-email starts after persisted UPO and can recover on a later local status read', async () => {
+  const pending = reconciliationFixture({ status: 'ACCEPTED', ksefReferenceNumber: 'KSEF' }, { autoSendEmailOnKsef: true });
+  await pending.reconcile(pending.value, { id: 'owner' });
+  assert.equal(pending.autoEmails.length, 0, 'KSeF number alone must not start email');
+  const ready = reconciliationFixture({ status: 'ACCEPTED', ksefReferenceNumber: 'KSEF', upoXml: '<UPO/>' }, { autoSendEmailOnKsef: true });
+  await ready.reconcile(ready.value, { id: 'owner' });
+  assert.deepEqual(ready.autoEmails, ['invoice']); assert.equal(ready.writes[0].data.upoXml, '<UPO/>');
+  const recovery = reconciliationFixture({}, { ksefNumber: 'KSEF', upoXml: '<UPO/>', autoSendEmailOnKsef: true });
+  await recovery.reconcile(recovery.value, { id: 'owner' });
+  assert.deepEqual(recovery.autoEmails, ['invoice']); assert.equal(recovery.calls.length, 0);
 });

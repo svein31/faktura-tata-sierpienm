@@ -35,3 +35,7 @@ Dodaje unikalne indeksy wystąpień harmonogramu: dokument źródłowy + termin 
 ### 015-auth-rate-limit
 
 Tworzy indeks TTL na `AuthRateLimit.expiresAt` (liczniki logowania, rejestracji i resetu hasła). `up` działa wielokrotnie; `down` usuwa jedynie indeks założony przez migrację i zachowuje rekordy. Przed publikacją sprawdź stan produkcyjnej migracji; brak indeksu nie usuwa starych liczników. Zalecany stabilny `NEXTAUTH_SECRET`; istniejące wdrożenia bez niego używają `DATABASE_URL` jako klucza HMAC dla pseudonimu IP.
+
+### 017-launch-safety
+
+Dodaje unikalny indeks `BillingCheckoutState.userId` dla trwałych prób zakupu Pro i wspólnej blokady rozliczeń oraz indeks wyboru oczekujących e-maili KSeF na `Invoice`. Przed uruchomieniem nowej aplikacji wykonaj `npm run db:migrate -- up`; nowe opcjonalne pola nie wymagają nadpisywania istniejących faktur. Migracja up → up → down → up jest sprawdzana na izolowanej bazie. Rollback usuwa tylko dodane indeksy i zachowuje próby Checkout, historię oraz stany wysyłki. Przed cofnięciem kodu zatrzymaj worker, aby nie powtórzyć wysyłek zapisanych jako `sending` lub `verify_needed`.

@@ -10,7 +10,7 @@
  * - Ustawa o podatku od towarów i usług (art. 106a-106q, art. 112a, art. 31a)
  */
 
-import { OPERATOR_CONFIG, EFFECTIVE_DATE, LEGAL_VERSIONS } from "./config";
+import { OPERATOR_CONFIG, EFFECTIVE_DATE, LEGAL_VERSIONS, LEGAL_EFFECTIVE_DATES } from "./config";
 
 export interface LegalDocument {
   id: string;
@@ -35,7 +35,7 @@ export const TERMS_OF_SERVICE: LegalDocument = {
   title: "Regulamin Świadczenia Usług Drogą Elektroniczną",
   shortTitle: "Regulamin",
   version: LEGAL_VERSIONS.terms,
-  effectiveDate: EFFECTIVE_DATE,
+  effectiveDate: LEGAL_EFFECTIVE_DATES.terms,
   description: "Warunki korzystania z platformy FakturaProsto, rejestracji kont, wystawiania faktur, integracji KSeF oraz praw i obowiązków stron.",
   sections: [
     {
@@ -91,16 +91,18 @@ export const TERMS_OF_SERVICE: LegalDocument = {
    a) wystawianie, ewidencjonowanie i edycja faktur sprzedaży (VAT, bez VAT, proforma, zaliczkowe, korygujące),
    b) wystawianie faktur w walutach obcych z automatycznym przeliczaniem kursów średnich NBP zgodnie z art. 31a ustawy o VAT,
    c) rejestrowanie kontrahentów krajowych (weryfikacja w rejestrze GUS BIR 1.1) oraz zagranicznych (sprawdzenie formatu VAT UE, opcjonalne zapytanie do VIES na żądanie Użytkownika, TIN spoza UE),
-   d) generowanie plików dokumentów w formacie PDF, ustrukturyzowanych XML FA(3) oraz zestawień księgowych (CSV, ZIP),
+   d) generowanie plików dokumentów w formacie PDF, ustrukturyzowanych XML FA(3) oraz eksportów zestawień faktur (CSV, JSON, XLSX),
    e) moduł pracy wieloużytkownikowej w ramach jednej firmy (zapraszanie członków zespołu, nadawanie ról: Właściciel, Księgowa, Pracownik, Podgląd),
    f) integracja z Krajowym Systemem e-Faktur (KSeF) — generowanie struktur FA(3), odbiór UPO i podgląd statusów (w trybie testowym lub produkcyjnym zgodnie z konfiguracją Użytkownika),
    g) rejestracja wpłat oraz trwały dziennik audytu operacji (Audit Log).
 2. **Plany taryfowe i zasady odpłatności**:
    a) **Plan Free (Darmowy)**:
       - Umożliwia bezpłatne wystawienie do 5 faktur sprzedaży w każdym miesiącu kalendarzowym.
+      - Limit jest wspólny dla firm należących do właściciela Konta i dotyczy wystawionych faktur sprzedaży; szkice i proformy nie wykorzystują tego limitu.
       - Korzystanie z Planu Free nie wymaga podawania danych karty płatniczej ani ponoszenia opłat.
+      - KSeF po konfiguracji, dane GUS, PDF/XML, eksporty i współpraca z zespołem są dostępne również w Planie Free, zgodnie z uprawnieniami Użytkownika i możliwościami danego modułu.
    b) **Plan Pro (Subskrypcyjny - nielimitowany)**:
-      - Umożliwia nielimitowane wystawianie faktur, pełną integrację z KSeF, nielimitowany moduł zespołu oraz zaawansowany eksport.
+      - Znosi miesięczny limit 5 wystawionych faktur sprzedaży. KSeF, PDF/XML, eksporty i zespół działają na tych samych zasadach jak w Planie Free; integracje wymagają konfiguracji i odpowiednich uprawnień.
       - **Cennik**:
         * **Subskrypcja miesięczna**: 7,00 zł brutto za każdy miesiąc rozliczeniowy.
         * **Subskrypcja roczna**: 59,00 zł brutto za każdy rok rozliczeniowy (stanowiąca równowartość ok. 4,92 zł brutto miesięcznie).
@@ -109,7 +111,7 @@ export const TERMS_OF_SERVICE: LegalDocument = {
    a) Płatności subskrypcyjne obsługiwane są bezgotówkowo przez certyfikowanego dostawcę usług płatniczych Stripe Inc.
    b) Subskrypcja Planu Pro odnawia się w sposób automatyczny na kolejny tożsamy okres rozliczeniowy (odpowiednio miesiąc lub rok) w dniu przypadającym na koniec bieżącego okresu, z zachowaniem tej samej ceny, chyba że Użytkownik zrezygnuje z subskrypcji przed upływem okresu rozliczeniowego.
    c) **1-Click Cancel (Łatwa rezygnacja)**: Użytkownik może w dowolnej chwili i bez podawania jakichkolwiek przyczyn wyłączyć automatyczne odnawianie subskrypcji bezpośrednio w Serwisie (\`Ustawienia → Subskrypcja → Zarządzaj subskrypcją / Anuluj\`) lub z poziomu dedykowanego portalu klienta Stripe.
-   d) Po anulowaniu subskrypcji Użytkownik zachowuje pełen dostęp do funkcji Planu Pro do końca opłaconego okresu. Po tym czasie konto automatycznie przechodzi w tryb Planu Free (brak automatycznych obciążeń, brak jakichkolwiek kar umownych).
+   d) Po wyłączeniu odnowienia subskrypcji Użytkownik zachowuje dostęp do Planu Pro do końca opłaconego okresu. Po tym czasie Konto przechodzi do Planu Free. Usunięcie Konta jest odrębną operacją: najpierw anuluje subskrypcje, a po potwierdzeniu usuwa Konto i dostęp do danych. Przed usunięciem należy pobrać potrzebne dokumenty.
    e) Wszelkie zmiany cennika wymagają powiadomienia Użytkownika drogą e-mail z co najmniej 30-dniowym wyprzedzeniem. Zmiana cen nie dotyczy okresu już opłaconego.
    f) Konsument oraz Przedsiębiorca na prawach konsumenta (PNPK) ma prawo odstąpić od umowy zawartej na odległość w terminie 14 dni od jej zawarcia bez podania przyczyny, składając oświadczenie na adres ${OPERATOR_CONFIG.emailComplaints}, chyba że przed upływem tego terminu zażądał rozpoczęcia świadczenia usługi i przyjął do wiadomości utratę prawa do odstąpienia po jej całkowitym wykonaniu.`,
     },
@@ -163,7 +165,7 @@ export const TERMS_OF_SERVICE: LegalDocument = {
     {
       title: "§ 10. Zawieszenie i usunięcie Konta",
       content: `1. Użytkownik może w dowolnym momencie, bez podania przyczyn i bez ponoszenia kosztów, rozwiązać umowę i usunąć swoje Konto z poziomu panelu Ustawień Konta (\`Ustawienia → Bezpieczeństwo i Sesje → Usuń konto\`).
-2. Przed usunięciem Konta Użytkownik ma możliwość pobrania archiwum wszystkich wystawionych dokumentów (paczka ZIP, pliki XML, zestawienia CSV).
+2. Przed usunięciem Konta Użytkownik powinien pobrać potrzebne dokumenty PDF, dostępne pliki XML i UPO oraz eksporty zestawień faktur (CSV, JSON, XLSX). Eksport danych w Ustawieniach obejmuje profil, firmy i historię zgód; nie jest kompletnym archiwum dokumentów. Dostępne eksporty i pliki pobiera się z odpowiednich modułów Serwisu.
 3. Operator ma prawo zawiesić dostęp do Konta lub rozwiązać umowę z Użytkownikiem z zachowaniem 14-dniowego okresu wypowiedzenia z ważnych przyczyn, takich jak:
    a) rażące naruszenie postanowień Regulaminu lub powszechnie obowiązujących przepisów prawa,
    b) wykorzystywanie Serwisu do dystrybucji złośliwego oprogramowania, spamu lub prowadzenia działalności przestępczej,
@@ -202,7 +204,7 @@ export const PRIVACY_POLICY: LegalDocument = {
   title: "Polityka Prywatności i Ochrony Danych Osobowych",
   shortTitle: "Polityka Prywatności",
   version: LEGAL_VERSIONS.privacy,
-  effectiveDate: EFFECTIVE_DATE,
+  effectiveDate: LEGAL_EFFECTIVE_DATES.privacy,
   description: "Zasady przetwarzania danych osobowych w serwisie FakturaProsto, prawa przysługujące osobom, których dane dotyczą, okresy retencji, transfery danych i środki bezpieczeństwa.",
   sections: [
     {
@@ -234,14 +236,15 @@ export const PRIVACY_POLICY: LegalDocument = {
     },
     {
       title: "3. Zróżnicowane okresy przechowywania danych (Retencja)",
-      content: `Nie stosujemy jednego, ogólnego okresu retencji dla wszystkich danych. Okresy przechowywania wynikają z charakteru danych i wymogów prawnych:
+      content: `Poniżej opisujemy faktyczny cykl danych w aplikacji oraz odrębne systemy rozliczeń i kopii zapasowych:
 
-1. **Dane Konta Użytkownika**: Przechowywane przez czas trwania umowy (posiadania aktywnego Konta), a po jej rozwiązaniu — przez okres przedawnienia ewentualnych roszczeń cywilnoprawnych (zgodnie z art. 118 Kodeksu cywilnego — standardowo 3 lata dla roszczeń związanych z prowadzeniem działalności gospodarczej).
-2. **Faktury i dokumentacja księgowa**: Zgodnie z art. 112a ustawy o podatku od towarów i usług oraz przepisami Ordynacji podatkowej, dokumenty księgowe przechowywane są przez okres 5 lat, licząc od końca roku kalendarzowego, w którym upłynął termin płatności podatku.
-3. **Dziennik audytu dokumentów (Audit Log) i logi bezpieczeństwa**: Przechowywane przez okres od 12 do 24 miesięcy od daty zdarzenia na potrzeby zapewnienia integralności i bezpieczeństwa systemu.
-4. **Rejestr zgód prawnych i akceptacji regulaminu**: Przechowywany przez czas posiadania Konta oraz do 5 lat po jego usunięciu na potrzeby wykazania spełnienia obowiązków prawnych (rozliczalność wg art. 5 ust. 2 RODO).
-5. **Kopie zapasowe (backupy bazy danych)**: Tworzone w cyklu automatycznym i retencjonowane w zarządzanym klastrze MongoDB Atlas oraz w zaszyfrowanych kopiach archiwalnych przez ściśle zdefiniowany okres 30 dni, po czym są automatycznie i bezpowrotnie nadpisywane/usuwane.
-6. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.`,
+1. **Dane Konta Użytkownika**: Przechowywane w aktywnej bazie przez czas posiadania Konta. Potwierdzone usunięcie Konta usuwa jego dane oraz powiązane sesje z aktywnej bazy. Nie tworzymy przy tej operacji osobnego archiwum Konta.
+2. **Faktury i dokumentacja księgowa Klienta**: Dokumenty przypisane do usuwanego Konta są usuwane z aktywnej bazy wraz z Kontem. Przed usunięciem wyeksportuj faktury i pozostałe potrzebne dokumenty. To Klient zapewnia zachowanie dokumentacji wymaganej dla własnych rozliczeń; Konto nie jest usługą gwarantującą archiwizację po jego zamknięciu. Usunięcie Konta nie usuwa dokumentów już przyjętych przez KSeF.
+3. **Dziennik audytu dokumentów (Audit Log)**: Wpisy przypisane do Konta są usuwane razem z nim. Logi infrastruktury hostingowej są odrębne od tego dziennika, a ich rotacja zależy od konfiguracji dostawcy.
+4. **Rejestr zgód prawnych i akceptacji regulaminu**: Przechowywany w aktywnej bazie podczas posiadania Konta i usuwany wraz z Kontem. Aplikacja nie utrzymuje osobnego rejestru zgód po usunięciu Konta.
+5. **Kopie zapasowe (backupy bazy danych)**: Usunięcie z aktywnej bazy nie modyfikuje wcześniej wykonanych kopii. Dane mogą w nich pozostać do wygaśnięcia skonfigurowanej retencji. Okres i wykonywanie kopii zależą od wdrożonej konfiguracji Operatora i dostawcy; aplikacja nie narzuca automatycznego terminu 30 ani 60 dni. Kopie służą odzyskiwaniu po awarii, a nie dalszemu korzystaniu z usuniętego Konta.
+6. **Rozliczenia z Operatorem**: Historia płatności i wymagane dokumenty dotyczące zakupu usługi mogą pozostawać w systemie płatniczym Stripe lub w dokumentacji Operatora niezależnie od usunięcia Konta. Usunięcie Konta zatrzymuje jego subskrypcje; nie oznacza usunięcia historycznych rozliczeń u dostawcy płatności.
+7. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.`,
     },
     {
       title: "4. Odbiorcy danych i podwykonawcy (Podprocesorzy)",
@@ -316,7 +319,7 @@ export const COOKIE_POLICY: LegalDocument = {
   title: "Polityka Plików Cookies i Pamięci Przeglądarki",
   shortTitle: "Polityka Cookies",
   version: LEGAL_VERSIONS.cookies,
-  effectiveDate: EFFECTIVE_DATE,
+  effectiveDate: LEGAL_EFFECTIVE_DATES.cookies,
   description: "Zasady wykorzystywania plików cookies, pamięci LocalStorage, kategorie technologii, podstawa prawna z art. 399 Prawa komunikacji elektronicznej oraz instrukcja zarządzania preferencjami.",
   sections: [
     {
@@ -376,7 +379,7 @@ export const DPA_AGREEMENT: LegalDocument = {
   title: "Umowa Powierzenia Przetwarzania Danych Osobowych (DPA)",
   shortTitle: "Umowa Powierzenia (DPA)",
   version: LEGAL_VERSIONS.dpa,
-  effectiveDate: EFFECTIVE_DATE,
+  effectiveDate: LEGAL_EFFECTIVE_DATES.dpa,
   description: "Warunki powierzenia przetwarzania danych osobowych zgodnie z art. 28 RODO pomiędzy Klientem (Administratorem Danych) a Operatorem (Podmiotem Przetwarzającym).",
   sections: [
     {
@@ -441,9 +444,9 @@ export const DPA_AGREEMENT: LegalDocument = {
     {
       title: "§ 7. Zakończenie przetwarzania, usunięcie i zwrot danych",
       content: `1. Z chwilą rozwiązania umowy o świadczenie usług w Serwisie i usunięcia Konta przez Administratora, Podmiot Przetwarzający — zależnie od decyzji Administratora:
-   a) umożliwia Administratorowi uprzednie pobranie pełnej kopii wszystkich danych w formacie zdatnym do odczytu maszynowego (ZIP, XML, CSV),
+   a) umożliwia Administratorowi uprzednie pobranie danych za pomocą eksportów dostępnych w poszczególnych modułach Serwisu (m.in. JSON, CSV, XLSX oraz dostępne pliki XML). Eksport profilu w Ustawieniach nie obejmuje pełnej dokumentacji. W sprawie zwrotu powierzonych danych wykraczających poza dostępne eksporty Administrator kontaktuje się z Operatorem pod adresem ${OPERATOR_CONFIG.emailPrivacy} przed usunięciem Konta,
    b) trwale usuwa wszelkie powierzone dane osobowe ze środowiska produkcyjnego, chyba że prawo Unii Europejskiej lub prawo Rzeczypospolitej Polskiej nakazuje ich dalsze przechowywanie.
-2. Z uwagi na specyfikę kopii zapasowych (backupów) dane usuwane są z kopii archiwalnych w miarę ich planowej cyklicznej rotacji i nadpisywania (do 60 dni).`,
+2. Usunięcie danych z aktywnej bazy nie zmienia kopii zapasowych już wykonanych przed usunięciem. W kopiach dane pozostają do wygaśnięcia retencji skonfigurowanej przez Operatora lub dostawcę infrastruktury. Aplikacja nie narzuca automatycznego terminu 30 ani 60 dni. Kopie są przeznaczone do odzyskiwania po awarii; przy odtworzeniu należy ponownie zastosować wcześniej wykonane żądania usunięcia.`,
     },
   ],
 };
@@ -457,7 +460,7 @@ export const SUBPROCESSORS_DOCUMENT: LegalDocument = {
   title: "Wykaz Podwykonawców (Podprocesorów) i Dostawców Usług",
   shortTitle: "Podwykonawcy",
   version: LEGAL_VERSIONS.subprocessors,
-  effectiveDate: EFFECTIVE_DATE,
+  effectiveDate: LEGAL_EFFECTIVE_DATES.subprocessors,
   description: "Zestawienie podmiotów trzecich biorących udział w przetwarzaniu danych w infrastrukturze FakturaProsto, ich lokalizacja, rola i zabezpieczenia transferu.",
   sections: [
     {

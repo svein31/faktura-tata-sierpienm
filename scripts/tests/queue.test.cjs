@@ -23,6 +23,7 @@ function setup(status = 'PROCESSING', token = 'own-token') {
     '@/lib/auth':{getSessionUser:async()=>({id:'actor'})},
     '@/lib/permissions':{requireCompanyAccess:async()=>({ok:true})},
     '@/lib/dto':{},
+    '@/lib/email/auto-send': {processKsefAutoEmails: async()=>({checked:0,accepted:0}),triggerAutoEmailOnKsef:async()=>false},
     '@/lib/ksef/index':{KsefClient:class {async getInvoiceStatus(){return {status};} async sendInvoiceEncrypted(){sends++;throw new Error('must never resend');}}},
   };
   return {writes,lookups,sends:()=>sends};
@@ -70,4 +71,14 @@ test('worker does not reuse revoked sender access when verifying an old transmis
   mocked['@/lib/ksef/reconcile-status']={reconcileKsefInvoice:async()=>{throw new Error('Revoked sender must not verify');}};
   const route=require('../../src/app/api/ksef/queue/process/route.ts');
   assert.equal((await route.POST(request())).status,200);assert.equal(state.sends(),0);
+});
+test('email outbox runs even when the KSeF queue is empty and keeps the authenticated user scope', async()=>{
+  setup(); const db = mocked['@/lib/db'].prisma;
+  db.ksefQueueTask.findMany = async()=>[];
+  const calls = [];
+  mocked['@/lib/email/auto-send'] = { processKsefAutoEmails: async userId => { calls.push(userId); return {checked:1,accepted:1}; }, triggerAutoEmailOnKsef: async()=>{throw new Error('No KSeF task must start another send');} };
+  const route=require('../../src/app/api/ksef/queue/process/route.ts');
+  const response = await route.POST(request()), body = await response.json();
+  assert.equal(response.status,200); assert.deepEqual(calls,['actor']);
+  assert.equal(body.processedCount,0); assert.deepEqual(body.autoEmail,{checked:1,accepted:1});
 });

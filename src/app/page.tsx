@@ -66,7 +66,7 @@ export default function LandingPage() {
 
       <main id="main-content">
       {/* ── HERO SECTION ── */}
-      <section className="relative overflow-hidden pt-12 pb-20 sm:pt-20 sm:pb-28">
+      <section className="relative overflow-hidden pt-6 pb-12 sm:pt-20 sm:pb-28">
         {/* Delikatne tło gradientowe Apple/Stripe */}
         <div className="pointer-events-none absolute -top-40 left-1/2 hidden h-[600px] w-[900px] sm:block -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
         <div className="pointer-events-none absolute top-1/3 -right-40 hidden h-[450px] w-[450px] sm:block rounded-full bg-emerald-500/6 blur-3xl" />
@@ -79,14 +79,14 @@ export default function LandingPage() {
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.12]">Faktury VAT online z KSeF 2.0 dla małych firm</h1>
+            <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:mt-6 sm:text-5xl lg:text-6xl leading-[1.12]">Faktury VAT online z KSeF</h1>
 
-            <p className="mt-5 text-base sm:text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
-              FakturaProsto to polski program do faktur VAT online dla JDG, małych firm i biur rachunkowych. Łączy formularz faktury, integrację KSeF 2.0, dane GUS po NIP oraz współpracę z księgową. Free obejmuje 5 faktur miesięcznie. Pro kosztuje 7 zł brutto miesięcznie lub 59 zł brutto rocznie. Sprawdź demo bez rejestracji i karty.
+            <p className="mt-4 text-base sm:mt-5 sm:text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
+              Program dla JDG i małych firm. Wystawiaj faktury, pobieraj dane po NIP i współpracuj z księgową.
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <div className="mt-6 flex flex-col sm:mt-8 sm:flex-row items-center justify-center gap-3">
               <LandingPrimaryAction />
               <Link
                 href="/demo"
@@ -96,6 +96,8 @@ export default function LandingPage() {
                 <span>Wypróbuj Demo bez rejestracji</span>
               </Link>
             </div>
+
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">Free: 5 faktur miesięcznie. Pro: 7 zł/miesiąc lub 59 zł/rok, brutto. <Link href="/cennik" className="text-primary underline">Porównaj plany</Link>.</p>
 
             <a href="#funkcje" className="mt-4 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline md:hidden">Zobacz funkcje ↓</a>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px] text-muted-foreground">
@@ -217,7 +219,7 @@ export default function LandingPage() {
 
 
       <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card/40 py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Dostęp do funkcji Pro według aktualnej oferty.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Wspólne moduły aplikacji i więcej wystawionych dokumentów.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
       </section>
       {/* ── KLUCZOWE FUNKCJE ── */}
       <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
