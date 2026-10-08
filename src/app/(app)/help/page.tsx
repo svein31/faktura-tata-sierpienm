@@ -31,7 +31,7 @@ import {
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { openOnboardingTour } from "@/components/onboarding/onboarding-tour";
+import { openOnboardingTour } from "@/components/onboarding/events";
 
 interface HelpSection {
   id: string;

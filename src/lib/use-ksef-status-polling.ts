@@ -30,7 +30,7 @@ export function useKsefStatusPolling(invoices: Invoice[], onRefresh?: () => void
           const response = await fetch(`/api/invoices/${previous.id}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
           if (!response.ok) continue;
           const data = await response.json();
-          if (!cancelled && data.invoice && (data.invoice.ksefStatus !== previous.ksefStatus || data.invoice.ksefNumber !== previous.ksefNumber || data.invoice.upoXml !== previous.upoXml)) {
+          if (!cancelled && data.invoice && (data.invoice.ksefStatus !== previous.ksefStatus || data.invoice.ksefNumber !== previous.ksefNumber || ksefProgress(data.invoice).hasUpo !== ksefProgress(previous).hasUpo)) {
             useAppStore.getState().applyInvoice(data.invoice);
             latest.current.onRefresh?.();
           }

@@ -6,11 +6,13 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
-import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
+import { requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
-import { DEFAULT_INVOICE_PATTERN, invoicePrefix, nextFormattedInvoiceNumber } from "@/lib/invoice-numbering";
+import { DEFAULT_INVOICE_PATTERN, invoicePrefix } from "@/lib/invoice-numbering";
+import { nextPersistedInvoiceNumber } from "@/lib/invoice-numbering-server";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
+import { recordPilotEvent } from "@/lib/pilot-metrics";
 
 export const runtime = "nodejs";
 
@@ -49,13 +51,8 @@ export async function POST(req: Request) {
     if (autoNumber) {
       if (!companyId || !/^[a-f0-9]{24}$/i.test(companyId)) throw new ApiError(400, "Wybierz firmę wystawiającą fakturę.");
       const seller = await prisma.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
-      const reservationPrefix = `${companyId}:`;
-      const [existing, reservations] = await Promise.all([
-        prisma.invoice.findMany({ where: { sellerCompanyId: companyId }, select: { number: true } }),
-        prisma.invoiceNumberClaim.findMany({ where: { id: { startsWith: reservationPrefix } }, select: { id: true } }),
-      ]);
-      number = nextFormattedInvoiceNumber(seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
-        [...existing.map(inv => inv.number), ...reservations.map(claim => claim.id.slice(reservationPrefix.length))], String(body.issueDate || ""),
+      number = await nextPersistedInvoiceNumber(prisma, companyId, seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
+        String(body.issueDate || ""),
         invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
     }
     const parsed = await buildData(number);
@@ -74,6 +71,7 @@ export async function POST(req: Request) {
           sellerCompanyId: data.sellerCompanyId,
           number: data.number,
         },
+        select: { id: true },
       });
       if (existingWithSameNumber) {
         if (autoNumber && attempt < 7) continue;
@@ -86,6 +84,7 @@ export async function POST(req: Request) {
           sellerCompanyId: null,
           number: data.number,
         },
+        select: { id: true },
       });
       if (existingWithSameNumber) {
         if (autoNumber && attempt < 7) continue;
@@ -139,9 +138,20 @@ export async function POST(req: Request) {
     return invoice;
     });
 
+    if (invoice.type === "sale" && !invoice.isProforma && invoice.issuedAt) recordPilotEvent(req, "first_invoice");
     return json({ invoice: invoiceToDto(invoice) }, { status: 201 });
     } catch (error) {
-      if ((error as { code?: string }).code === "P2002" || (error as { code?: string }).code === "P2034") {
+      const code = (error as { code?: string }).code;
+      if (code === "P2034") {
+        // A quota/accounting CAS conflict rolls back the complete transaction. It does
+        // not mean a manually entered invoice number is occupied; retry both modes.
+        if (attempt < 7) {
+          await new Promise(resolve => setTimeout(resolve, Math.min(200, 20 * (attempt + 1)) + Math.floor(Math.random() * 30)));
+          continue;
+        }
+        throw new ApiError(409, "Firma wystawia równocześnie wiele dokumentów. Spróbuj ponownie za chwilę.");
+      }
+      if (code === "P2002") {
         if (autoNumber && attempt < 7) continue;
         throw new ApiError(409, `Numer "${number}" jest już zajęty. Odśwież numer i spróbuj ponownie.`);
       }

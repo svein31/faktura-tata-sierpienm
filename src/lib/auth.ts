@@ -51,6 +51,8 @@ export type PublicUser = {
   createdAt: string;
   termsAcceptedAt?: string | null;
   termsAcceptedVersion?: string | null;
+  emailVerificationRequired?: boolean;
+  emailVerified?: boolean;
   company?: {
     name: string;
     nip: string;
@@ -86,6 +88,8 @@ export function toPublicUser(u: FullUserWithRelations): PublicUser {
     createdAt: u.createdAt.toISOString(),
     termsAcceptedAt: u.termsAcceptedAt ? u.termsAcceptedAt.toISOString() : null,
     termsAcceptedVersion: u.termsAcceptedVersion || null,
+    emailVerificationRequired: Boolean(u.emailVerificationRequiredAt),
+    emailVerified: Boolean(u.emailVerifiedAt),
     company: u.company
       ? {
           name: u.company.name,

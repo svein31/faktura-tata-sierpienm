@@ -94,6 +94,7 @@ function isDefinitelyRejected(error: any): boolean {
  * ZGODNIE Z WYMAGANIAMI: Nie symuluje sukcesu, jeśli brak konfiguracji.
  */
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
+  if (options.signal?.aborted) throw new EmailDeliveryError("Budżet czasu wysyłki e-maila został wykorzystany przed połączeniem z dostawcą.", false);
   const { subject, text, html, attachments = [], replyTo } = options;
   const from = options.from || process.env.EMAIL_FROM || "FakturaProsto <faktury@fakturaprosto.pl>";
 
@@ -222,8 +223,18 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     const maxAttempts = options.singleAttempt ? 1 : 3;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let onAbort: (() => void) | undefined;
       try {
-        const info = await transporter.sendMail(mailOptions);
+        if (options.signal?.aborted) throw new EmailDeliveryError("Przerwano wysyłkę przed połączeniem SMTP.", false);
+        const delivery = transporter.sendMail(mailOptions);
+        const info = options.signal ? await Promise.race([delivery, new Promise<never>((_resolve, reject) => {
+          onAbort = () => {
+            transporter.close?.();
+            reject(new EmailDeliveryError("Budżet czasu SMTP został wykorzystany. Wynik doręczenia wymaga sprawdzenia u dostawcy.", true));
+          };
+          options.signal!.addEventListener("abort", onAbort, { once: true });
+          if (options.signal!.aborted) onAbort();
+        })]) : await delivery;
         return {
           success: true,
           messageId: info.messageId,
@@ -239,11 +250,13 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
           continue;
         }
         break;
+      } finally {
+        if (onAbort) options.signal?.removeEventListener("abort", onAbort);
       }
     }
 
     console.error("[Email] Błąd wysyłki przez SMTP po próbach:", lastErr);
-    throw new EmailDeliveryError(`Wysyłka e-mail (SMTP) nie powiodła się: ${lastErr?.message || lastErr}`, !isDefinitelyRejected(lastErr));
+    throw new EmailDeliveryError(`Wysyłka e-mail (SMTP) nie powiodła się: ${lastErr?.message || lastErr}`, lastErr instanceof EmailDeliveryError ? lastErr.deliveryUncertain : !isDefinitelyRejected(lastErr));
   }
 
   // ── 3. Brak konfiguracji — rzucamy czytelny błąd, NIE symulujemy sukcesu! ──

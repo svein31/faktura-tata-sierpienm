@@ -32,7 +32,7 @@ import { Input, Label, Select, Textarea } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
-import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, nextFormattedInvoiceNumber, parseInvoicePattern } from "@/lib/invoice-numbering";
+import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, parseInvoicePattern } from "@/lib/invoice-numbering";
 import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
 import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
 import { getContractor } from "@/lib/store";
@@ -210,7 +210,7 @@ export function InvoiceCreator() {
   const router = useRouter();
   const toast = useToast();
   const store = useAppStore();
-  const { contractors: allContractors, products: allProducts, company, companies, invoices, draftInvoice, draftInvoiceIsNew, ksef } = store;
+  const { contractors: allContractors, products: allProducts, company, companies, draftInvoice, draftInvoiceIsNew, ksef } = store;
   const ksefEnv = ksef?.environment ?? "demo";
 
   const defaultCompany =
@@ -266,12 +266,23 @@ export function InvoiceCreator() {
 
   // Clone from existing invoice (?cloneFrom=<id>)
   const clonedFrom = React.useRef("");
+  const cloneId = searchParams.get("cloneFrom");
+  const [cloneLoading, setCloneLoading] = React.useState(Boolean(cloneId));
+  const [cloneError, setCloneError] = React.useState("");
+  const [cloneAttempt, setCloneAttempt] = React.useState(0);
   React.useEffect(() => {
-    const cloneId = searchParams.get("cloneFrom");
-    if (cloneId && invoices.length > 0) {
-      const src = invoices.find((i) => i.id === cloneId);
-      const cloneKey = `${defaultCompany.id}:${cloneId}`;
-      if (src && clonedFrom.current !== cloneKey) {
+    if (!cloneId) { setCloneLoading(false); setCloneError(""); return; }
+    const cloneKey = `${defaultCompany.id}:${cloneId}`;
+    if (clonedFrom.current === cloneKey) return;
+    const controller = new AbortController();
+    setCloneLoading(true); setCloneError("");
+    void (async () => {
+      try {
+        const response = await fetch(`/api/invoices/${encodeURIComponent(cloneId)}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Nie udało się wczytać faktury do sklonowania.");
+        if (controller.signal.aborted) return;
+        const src: Invoice = data.invoice;
         clonedFrom.current = cloneKey;
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
@@ -290,9 +301,12 @@ export function InvoiceCreator() {
           dueTouched: false,
         });
         toast("info", "Sklonowano dane faktury", `Utworzono nowy dokument na wzór ${src.number}`);
-      }
-    }
-  }, [searchParams, invoices, defaultCompany.id]);
+      } catch (failure) {
+        if (!controller.signal.aborted) setCloneError(failure instanceof Error ? failure.message : "Nie udało się sklonować faktury.");
+      } finally { if (!controller.signal.aborted) setCloneLoading(false); }
+    })();
+    return () => controller.abort();
+  }, [cloneId, cloneAttempt, defaultCompany.id]);
 
   // NBP rate fetcher zgodny z art. 31a ust. 1 i 2
   const fetchNbpRate = React.useCallback(async (curr: string, issueDate: string, saleDate: string) => {
@@ -476,14 +490,31 @@ export function InvoiceCreator() {
   };
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
-  const companyInvoices = invoices.filter(inv => inv.sellerCompanyId === effectiveSellerCompany.id);
-  let suggestedNumber = "";
-  let numberingError = "";
-  try {
-    suggestedNumber = nextFormattedInvoiceNumber(effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
-      companyInvoices.map(inv => inv.number), form.issueDate || todayISO(), invoicePrefix(form.type, form.isCorrection, form.isProforma));
-  } catch (error) { numberingError = error instanceof Error ? error.message : "Sprawdź wzór numeracji."; }
-  const lastNumber = [...companyInvoices].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.number;
+  const numberDate = form.issueDate || todayISO();
+  const numberPrefix = invoicePrefix(form.type, form.isCorrection, form.isProforma);
+  const numberKey = `${effectiveSellerCompany.id}:${effectiveSellerCompany.invoiceNumberPattern}:${numberDate}:${numberPrefix}`;
+  const [numberPreview, setNumberPreview] = React.useState<{ key: string; number: string; lastNumber: string | null; error: string }>({ key: "", number: "", lastNumber: null, error: "" });
+  const [numberAttempt, setNumberAttempt] = React.useState(0);
+  React.useEffect(() => {
+    const controller = new AbortController();
+    if (!effectiveSellerCompany.id) { setNumberPreview({ key: numberKey, number: "", lastNumber: null, error: "Wybierz firmę wystawiającą fakturę." }); return; }
+    const timer = setTimeout(() => { void (async () => {
+      try {
+        const params = new URLSearchParams({ companyId: effectiveSellerCompany.id, date: numberDate, type: form.type, correction: form.isCorrection ? "1" : "0", proforma: form.isProforma ? "1" : "0" });
+        const response = await fetch(`/api/invoices/next-number?${params}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Nie udało się sprawdzić numeracji.");
+        if (!controller.signal.aborted) setNumberPreview({ key: numberKey, number: data.number, lastNumber: data.lastNumber, error: "" });
+      } catch (failure) {
+        if (!controller.signal.aborted) setNumberPreview({ key: numberKey, number: "", lastNumber: null, error: failure instanceof Error ? failure.message : "Nie udało się sprawdzić numeracji." });
+      }
+    })(); }, 100);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [numberKey, numberAttempt]);
+  const numberLoading = numberPreview.key !== numberKey;
+  const suggestedNumber = numberLoading ? "" : numberPreview.number;
+  const numberingError = numberLoading ? "" : numberPreview.error;
+  const lastNumber = numberLoading ? null : numberPreview.lastNumber;
   const invoiceNumber = numberMode === "manual" ? form.number : form.number || suggestedNumber;
   const isPurchase = form.type === "purchase";
   const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
@@ -557,8 +588,11 @@ export function InvoiceCreator() {
 
   const validate = (): string[] => {
     const errs: string[] = [];
+    if (cloneLoading) errs.push("Poczekaj na wczytanie faktury do sklonowania.");
+    if (cloneError) errs.push(cloneError);
     if (!editing && !numberMode) errs.push("Wybierz, czy kontynuować numerację automatycznie, czy wpisać numer ręcznie.");
     if (numberMode === "auto" && numberingError) errs.push(numberingError);
+    if (numberMode === "auto" && numberLoading) errs.push("Poczekaj na sprawdzenie numeracji firmy.");
     if (!invoiceNumber.trim()) errs.push("Wpisz numer faktury.");
     if (editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id) errs.push("Ta faktura należy do innej firmy. Otwórz ją we właściwym kontekście.");
     if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
@@ -891,6 +925,12 @@ export function InvoiceCreator() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="min-w-0 space-y-5">
+        {cloneLoading && <p className="rounded-xl border border-border bg-muted/30 p-3 text-sm" role="status">Wczytywanie faktury do sklonowania…</p>}
+        {cloneError && <div className="rounded-xl border border-rose-500/30 p-3 text-sm space-y-2" role="alert">
+          <p>{cloneError}</p>
+          <button type="button" className="text-primary underline" onClick={() => setCloneAttempt(value => value + 1)}>Spróbuj ponownie</button>
+          <button type="button" className="ml-4 text-primary underline" onClick={() => router.replace("/invoices/new")}>Zacznij pustą fakturę</button>
+        </div>}
         {/* Inline walidacja błędów z wejściem fade+slide-down */}
         <AnimatePresence>
           {errors.length > 0 && (
@@ -1127,7 +1167,8 @@ export function InvoiceCreator() {
               <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
                 disabled={isKsefRegistered || (Boolean(draftInvoice) && draftInvoice?.status !== "draft" && !draftInvoiceIsNew)}
                 onChange={(event) => { setNumberMode("manual"); set({ number: event.target.value }); }} />
-              <p className="text-xs text-muted-foreground">{numberingError || `Propozycja: ${suggestedNumber}. Numer możesz zmienić przed wystawieniem.`}</p>
+              <p className="text-xs text-muted-foreground" aria-live="polite">{numberLoading ? "Sprawdzanie numeracji firmy…" : numberingError || `Propozycja: ${suggestedNumber}. Numer możesz zmienić przed wystawieniem.`}</p>
+              {numberingError && <button type="button" className="text-xs text-primary underline" onClick={() => { setNumberPreview(value => ({ ...value, key: "" })); setNumberAttempt(value => value + 1); }}>Sprawdź numerację ponownie</button>}
               {lastNumber && <p className="text-xs text-muted-foreground">Ostatnio zapisany numer tej firmy: <span className="font-mono">{lastNumber}</span></p>}
               {effectiveSellerCompany.currentUserRole === "owner" && (
                 <div className="pt-1">

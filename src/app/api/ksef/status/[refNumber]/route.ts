@@ -4,6 +4,8 @@ import { ApiError, handleApiError, json } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { reconcileKsefInvoice } from "@/lib/ksef/reconcile-status";
 import { accessibleCompanyIds } from "@/lib/company-scope";
+import { recordPilotEvent } from "@/lib/pilot-metrics";
+import { ksefAcceptanceDateFromUpo } from "@/lib/pdf/ksef-acceptance-date";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -28,6 +30,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ refNumb
       if (!access.ok) throw new ApiError(access.status, access.error);
     } else if (invoice.userId !== user.id) throw new ApiError(404, "Nie znaleziono faktury.");
 
-    return json(await reconcileKsefInvoice(invoice, user));
+    const result = await reconcileKsefInvoice(invoice, user);
+    const environment = invoice.ksef && typeof invoice.ksef === "object" && !Array.isArray(invoice.ksef) ? invoice.ksef.environment : null;
+    if (["production", "test"].includes(String(environment)) && result.status === "ACCEPTED" && result.ksefReferenceNumber
+      && ksefAcceptanceDateFromUpo("upoXml" in result ? result.upoXml : invoice.upoXml, result.ksefReferenceNumber)) recordPilotEvent(_req, "ksef");
+    return json(result);
   } catch (error) { return handleApiError(error); }
 }

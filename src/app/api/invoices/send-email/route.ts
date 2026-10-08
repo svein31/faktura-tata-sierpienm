@@ -1,5 +1,8 @@
 import { buildEmailHtml } from "@/lib/email/invoice-template";
 import { configureKsefAutoEmail } from "@/lib/email/auto-send";
+import { requireVerifiedEmailForSending } from "@/lib/email/verification";
+import { claimManualEmail, startManualEmail, finishManualEmail, manualEmailDigest, recoverInterruptedManualEmails, resolveManualEmail, DELIVERY_UNCERTAIN_MESSAGE, type ManualDeliveryLease } from "@/lib/email/manual-delivery";
+import { rateLimitSubject } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -7,8 +10,6 @@ import { assertObjectId, ApiError, readJson, str } from "@/lib/api";
 import { accessibleCompanyIds } from "@/lib/company-scope";
 import { requireDocumentWrite } from "@/lib/document-scope";
 import { companyProfileToDto, companyToDto, contractorToDto, emailLogToDto, invoiceToDto } from "@/lib/dto";
-import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
-import { invoicePdf } from "@/lib/pdf/invoice-print";
 import {
   getEmailConfigStatus,
   isValidEmail,
@@ -16,32 +17,10 @@ import {
   sendEmail,
   type EmailAttachment,
 } from "@/lib/email/sender";
-import { buildFa3Xml } from "@/lib/ksef/index";
-import { formatMoney, invoiceTotals, vatRateLabel } from "@/lib/format";
-import type { CompanyProfile, Contractor, Invoice, VatRate } from "@/lib/types";
+import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-// Prosty limiter pamięciowy chroniący przed spamem i pętlami (max 30 wysyłek / min na usera)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(key: string, limit = 30, windowMs = 60_000): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(key);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  if (entry.count >= limit) {
-    return false;
-  }
-  entry.count += 1;
-  return true;
-}
-
-// Zabezpieczenie przed podwójnym kliknięciem (idempotency key lock)
-const inFlightRequests = new Set<string>();
 
 /**
  * GET /api/invoices/send-email
@@ -75,8 +54,9 @@ export async function GET() {
  * - ZGODNIE Z WYMOGIEM: brak konfiguracji poczty zwraca konkretny błąd i instrukcję (brak fałszywego sukcesu).
  */
 export async function POST(req: Request) {
-  let inFlightKey = "";
-  let acquiredInFlight = false;
+  let deliveryLease: ManualDeliveryLease | undefined;
+  let providerAttempted = false;
+  let deliveryCompleted = false;
   try {
     const user = await getSessionUser();
     if (!user) {
@@ -86,18 +66,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Rate limiting: ochrona przed spamem / pętlami
-    if (!checkRateLimit(`user_${user.id}`, 30)) {
-      return NextResponse.json(
-        {
-          error: "RATE_LIMIT_EXCEEDED",
-          message: "Przekroczono limit wysyłek wiadomości e-mail (maks. 30 na minutę). Spróbuj ponownie za chwilę.",
-        },
-        { status: 429 }
-      );
-    }
-
     const body = await readJson(req);
+
+    if (body.action === "resolve-manual-delivery") {
+      const invoiceId = str(body.invoiceId), deliveryId = str(body.deliveryId);
+      assertObjectId(invoiceId); assertObjectId(deliveryId);
+      if (body.providerChecked !== true || !["accepted", "not-sent"].includes(str(body.result)))
+        throw new ApiError(400, "Najpierw sprawdź wynik u dostawcy poczty i potwierdź sprawdzenie.", "PROVIDER_CHECK_REQUIRED");
+      const companies = await accessibleCompanyIds(user.id);
+      const invoice = await prisma.invoice.findFirst({ where: { id: invoiceId, OR: [{ sellerCompanyId: { in: companies } }, { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] }] }, select: { id: true, userId: true, sellerCompanyId: true } });
+      if (!invoice) throw new ApiError(404, "Faktura nie istnieje lub nie masz do niej uprawnień.");
+      await requireDocumentWrite(user, { userId: invoice.userId, companyId: invoice.sellerCompanyId });
+      await recoverInterruptedManualEmails(user.id, invoice.id);
+      const result = await resolveManualEmail({ deliveryId, invoiceId, userId: user.id, companyId: invoice.sellerCompanyId, result: body.result as "accepted" | "not-sent" });
+      return NextResponse.json({ ...result, resolved: true }, { headers: { "Cache-Control": "no-store" } });
+    }
 
     if (body.action === "cancel-auto-ksef") {
       const id = str(body.invoiceId);
@@ -112,22 +95,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, autoKsefEmailStatus: "cancelled", message: "Automatyczny e-mail po KSeF został wyłączony." });
     }
 
-    // Idempotency / Double-click protection
-    const idempotencyKey = str(body.idempotencyKey)?.trim();
-    if (idempotencyKey) {
-      inFlightKey = `${user.id}_${idempotencyKey}`;
-      if (inFlightRequests.has(inFlightKey)) {
-        return NextResponse.json(
-          {
-            error: "DUPLICATE_REQUEST",
-            message: "Ta wysyłka jest już w trakcie realizacji. Proszę czekać.",
-          },
-          { status: 409 }
-        );
-      }
-      inFlightRequests.add(inFlightKey);
-      acquiredInFlight = true;
-    }
+    await requireVerifiedEmailForSending(user.id);
 
     // ── Walidacja e-mail odbiorcy ──
     const recipientEmail = str(body.recipientEmail)?.trim();
@@ -302,6 +270,23 @@ export async function POST(req: Request) {
       );
     }
 
+    const recipientCount = 1 + parseEmailList(cc).length + parseEmailList(bcc).length;
+    if (recipientCount > 20) throw new ApiError(400, "Jedna wiadomość może mieć maksymalnie 20 odbiorców.", "TOO_MANY_RECIPIENTS");
+    if (subject.length > 250 || messageBody.length > 20_000) throw new ApiError(400, "Skróć temat lub treść wiadomości.", "EMAIL_CONTENT_TOO_LONG");
+    const requestHash = manualEmailDigest({ invoice: invoiceRecord ? {
+      id: invoiceRecord.id, number: invoiceData.number, issueDate: invoiceData.issueDate, lines: invoiceData.lines,
+      ksefNumber: invoiceRecord.ksefNumber, ksefXml: attachXml ? invoiceRecord.ksefXml : null, upoXml: attachUpo ? invoiceRecord.upoXml : null,
+    } : invoiceData, recipientEmail: recipientEmail.toLowerCase(), cc, bcc, subject, messageBody, attachPdf, attachXml, attachUpo, autoSendOnKsef });
+    const targetHash = manualEmailDigest({ invoice: invoiceRecord?.id ?? invoiceData.number });
+    const suppliedKey = str(body.idempotencyKey).trim();
+    if (suppliedKey.length > 200) throw new ApiError(400, "Nieprawidłowy klucz wysyłki.", "INVALID_IDEMPOTENCY_KEY");
+    // Older clients without a key get a stable request key; the current modal creates an explicit key per intended send.
+    deliveryLease = await claimManualEmail({ userId: user.id, invoiceId: invoiceRecord?.id, requestHash, targetHash, key: suppliedKey || `legacy-${requestHash}` });
+    if (deliveryLease.replay) return NextResponse.json(deliveryLease.replay, { headers: { "Cache-Control": "no-store" } });
+    const minuteLimit = await rateLimitSubject(user.id, { max: 30, windowMs: 60_000 }, "invoice-email-minute");
+    const dailyLimit = await rateLimitSubject(user.id, { max: 200, windowMs: 24 * 60 * 60_000 }, "invoice-email-day");
+    if (!minuteLimit.allowed || !dailyLimit.allowed) throw new ApiError(429, "Przekroczono limit wysyłek e-mail (30 na minutę lub 200 na dobę). Spróbuj ponownie później.", "RATE_LIMIT_EXCEEDED");
+
     // ── 2. Przygotowanie załączników w pamięci RAM ──
     const attachments: EmailAttachment[] = [];
     const loggedAttachmentsMeta: Array<{ filename: string; size: number; contentType: string }> = [];
@@ -310,7 +295,9 @@ export async function POST(req: Request) {
     // A. Załącznik PDF faktury (domyślny)
     if (attachPdf) {
       try {
-        const pdfBuffer = invoiceRecord ? (await invoicePdf(invoiceRecord.id)).buffer : await generateInvoicePdfBuffer(invoiceData, buyerContractor, effectiveSeller);
+        const pdfBuffer = invoiceRecord
+          ? (await (await import("@/lib/pdf/invoice-print")).invoicePdf(invoiceRecord.id)).buffer
+          : await (await import("@/lib/pdf/generate-invoice-pdf")).generateInvoicePdfBuffer(invoiceData, buyerContractor, effectiveSeller);
         const filename = `Faktura_${safeDocNumber}.pdf`;
         attachments.push({
           filename,
@@ -334,6 +321,7 @@ export async function POST(req: Request) {
         let xmlString = invoiceRecord?.ksefXml || "";
         if (!xmlString && invoiceRecord?.ksefNumber) throw new ApiError(409, "Brak oryginalnego XML wysłanego do KSeF. Pobierz oryginał w KSeF przed wysłaniem e-mailem.");
         if (!xmlString) {
+          const { buildFa3Xml } = await import("@/lib/ksef/xmlBuilder");
           xmlString = buildFa3Xml({
             invoice: invoiceData,
             seller: effectiveSeller,
@@ -389,124 +377,38 @@ export async function POST(req: Request) {
       } : null);
     }
 
-    // ── 4. Wysyłka wiadomości ──
-    let emailResult;
-    try {
-      emailResult = await sendEmail({
-        to: recipientEmail,
-        cc,
-        bcc,
-        replyTo,
-        subject,
-        text: messageBody,
-        html: htmlContent,
-        attachments,
-      });
-    } catch (sendErr: any) {
-      const uncertain = sendErr.deliveryUncertain === true;
-      const errorMessage = uncertain
-        ? "Nie można potwierdzić wyniku wysyłki. Wiadomość mogła zostać przyjęta przez serwer. Sprawdź historię u dostawcy poczty przed ponowną wysyłką."
-        : sendErr.message || String(sendErr);
-      // Rejestracja błędu w historii
-      if (invoiceRecord) {
-        await prisma.invoiceEmailLog.create({
-          data: {
-            invoiceId: invoiceRecord.id,
-            userId: user.id,
-            to: recipientEmail,
-            cc: cc || null,
-            bcc: bcc || null,
-            subject,
-            messageBody,
-            attachments: loggedAttachmentsMeta,
-            status: uncertain ? "verify_needed" : "failed",
-            provider: mailConfig.provider,
-            error: errorMessage,
-          },
-        }).catch((e) => console.error("Failed to log failed email:", e));
-      }
-      if (uncertain) throw new ApiError(409, errorMessage, "EMAIL_DELIVERY_UNCERTAIN");
-      throw sendErr;
-    }
-
-    const now = new Date();
-
-    // ── 5. Rejestracja w bazie danych ──
-    let emailLogRecord: any = null;
-    if (invoiceRecord) {
-      try {
-        emailLogRecord = await prisma.invoiceEmailLog.create({
-          data: {
-            invoiceId: invoiceRecord.id,
-            userId: user.id,
-            to: recipientEmail,
-            cc: cc || null,
-            bcc: bcc || null,
-            subject,
-            messageBody,
-            attachments: loggedAttachmentsMeta,
-            status: "accepted", // przyjęto przez serwer pocztowy
-            provider: emailResult.provider,
-            messageId: emailResult.messageId || null,
-            sentAt: now,
-          },
-          include: {
-            user: { select: { name: true, email: true } },
-          },
-        });
-
-        await prisma.invoice.update({
-          where: { id: invoiceRecord.id },
-          data: {
-            sentAt: now,
-            sentToEmail: recipientEmail,
-            emailStatus: "SENT",
-            // Email delivery does not issue a draft or alter its legal status.
-          },
-        });
-
-        await prisma.notification.create({
-          data: {
-            userId: user.id,
-            kind: "system",
-            title: `Faktura ${invoiceData.number} wysłana e-mailem`,
-            body: `Wysłano na adres: ${recipientEmail} (${attachments.length} zał.)`,
-            link: `/invoices/${invoiceRecord.id}`,
-            read: false,
-          },
-        });
-      } catch (dbUpdateErr) {
-        console.error("EMAIL_SEND_ERROR [DB update]:", dbUpdateErr);
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Faktura została pomyślnie wysłana na adres ${recipientEmail}`,
-      provider: emailResult.provider,
-      messageId: emailResult.messageId,
-      sentAt: now.toISOString(),
-      sentToEmail: recipientEmail,
-      attachmentCount: attachments.length,
-      log: emailLogRecord ? emailLogToDto(emailLogRecord) : null,
+    // Persist the sending fence and history before contacting the provider.
+    await startManualEmail(deliveryLease, { to: recipientEmail, cc, bcc, subject, messageBody, provider: mailConfig.provider, attachments: loggedAttachmentsMeta });
+    providerAttempted = true;
+    const emailResult = await sendEmail({
+      to: recipientEmail, cc, bcc, replyTo, subject, text: messageBody, html: htmlContent, attachments,
+      singleAttempt: true, idempotencyKey: `manual-email-${deliveryLease.id}`, signal: AbortSignal.timeout(15_000),
     });
-  } catch (error: any) {
-    console.error("EMAIL_SEND_ERROR:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error || "Nieznany błąd serwera");
-    const statusCode =
-      error.code === "EMAIL_NOT_CONFIGURED" ? 422 : error instanceof ApiError ? error.status : 500;
+    if (!emailResult.success) throw new Error("Serwer pocztowy nie potwierdził przyjęcia wiadomości.");
+    const now = new Date();
+    const resultPayload = {
+      success: true, message: `Serwer pocztowy przyjął fakturę dla adresu ${recipientEmail}`,
+      provider: emailResult.provider, messageId: emailResult.messageId ?? null,
+      sentAt: now.toISOString(), sentToEmail: recipientEmail, attachmentCount: attachments.length,
+    };
+    await finishManualEmail(deliveryLease, { status: "accepted", provider: emailResult.provider, messageId: emailResult.messageId, sentToEmail: recipientEmail, response: resultPayload });
+    deliveryCompleted = true;
+    const emailLogRecord = invoiceRecord ? await prisma.invoiceEmailLog.findUnique({ where: { id: deliveryLease.id }, include: { user: { select: { name: true, email: true } } } }).catch(() => null) : null;
+    if (invoiceRecord) await prisma.notification.create({ data: {
+      userId: user.id, kind: "system", title: `Faktura ${invoiceData.number} przyjęta przez serwer pocztowy`,
+      body: `Odbiorca: ${recipientEmail} (${attachments.length} zał.)`, link: `/invoices/${invoiceRecord.id}`, read: false,
+    } }).catch(() => undefined);
 
-    return NextResponse.json(
-      {
-        error: error.code || "EMAIL_SEND_FAILED",
-        details: errorMessage,
-        message: errorMessage,
-      },
-      { status: statusCode }
-    );
-  } finally {
-    if (acquiredInFlight) {
-      inFlightRequests.delete(inFlightKey);
+    return NextResponse.json({ ...resultPayload, log: emailLogRecord ? emailLogToDto(emailLogRecord) : null }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error: any) {
+    const uncertain = providerAttempted && !deliveryCompleted && error.deliveryUncertain !== false;
+    const errorMessage = uncertain ? DELIVERY_UNCERTAIN_MESSAGE : error instanceof Error ? error.message : "Nie udało się przygotować wiadomości.";
+    if (deliveryLease && !deliveryLease.replay && !deliveryCompleted) {
+      await finishManualEmail(deliveryLease, { status: uncertain ? "verify_needed" : "failed", error: errorMessage }).catch(() => undefined);
     }
+    // Provider exceptions can contain credentials or complete invoice bodies; never dump them into logs.
+    console.error("EMAIL_SEND_ERROR:", uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : error.code || error.name || "EMAIL_SEND_FAILED");
+    const statusCode = uncertain ? 409 : error instanceof ApiError ? error.status : 500;
+    return NextResponse.json({ error: uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : error.code || "EMAIL_SEND_FAILED", details: errorMessage, message: errorMessage }, { status: statusCode, headers: { "Cache-Control": "no-store" } });
   }
 }

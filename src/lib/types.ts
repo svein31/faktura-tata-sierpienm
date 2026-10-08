@@ -329,6 +329,10 @@ export interface Invoice {
   ksefAcceptedAt?: string | null;
   referenceNumber?: string | null;
   upoXml?: string | null;
+  /** Summary readiness without downloading archived UPO for every row. */
+  hasUpo?: boolean;
+  /** Only detail responses include archived XML/UPO and individual payment records. */
+  detailsLoaded?: boolean;
   ksefXml?: string | null;
   sentAt?: string | null;
   sentToEmail?: string | null;
@@ -423,6 +427,9 @@ export interface InvoiceEmailLog {
   provider: "smtp" | "resend" | "simulated";
   messageId?: string | null;
   error?: string | null;
+  resolutionAt?: string;
+  resolutionResult?: "accepted" | "not-sent";
+  manualDelivery?: boolean;
   sentAt: string;
   userName?: string | null;
 }
@@ -639,6 +646,8 @@ export interface SessionUser {
   email: string;
   name: string;
   createdAt: string;
+  emailVerificationRequired?: boolean;
+  emailVerified?: boolean;
   role?: "owner" | "accountant" | "viewer" | string;
   nip?: string | null;
   companyName?: string | null;

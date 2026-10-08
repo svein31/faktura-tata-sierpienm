@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Building2,
   FileText,
@@ -53,14 +52,12 @@ export function BottomNav() {
                   className="group relative -mt-5 flex min-h-[48px] min-w-[48px] flex-col items-center justify-center"
                   aria-label="Wystaw nową fakturę"
                 >
-                  <motion.div
-                    whileTap={{ scale: 0.88 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    className="flex h-13 w-13 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background"
+                  <div
+                    className="flex h-13 w-13 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background motion-safe:transition-transform group-active:scale-90"
                     style={{ width: "3.25rem", height: "3.25rem" }}
                   >
                     <Plus className="h-6 w-6 stroke-[2.5]" />
-                  </motion.div>
+                  </div>
                   <span className="mt-0.5 text-[9.5px] font-semibold text-primary">
                     {item.label}
                   </span>
@@ -81,10 +78,8 @@ export function BottomNav() {
               >
                 <div className="relative flex h-6 w-6 items-center justify-center">
                   {active && (
-                    <motion.div
-                      layoutId="bottom-nav-active"
+                    <div
                       className="absolute inset-0 -m-1.5 rounded-xl bg-primary/10"
-                      transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
                     />
                   )}
                   <item.icon

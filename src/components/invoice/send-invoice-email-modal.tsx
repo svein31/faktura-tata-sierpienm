@@ -27,6 +27,7 @@ import { useToast } from "@/components/toast";
 import { formatDateTime, formatMoney, invoiceTotals } from "@/lib/format";
 import { isValidEmail, parseEmailList } from "@/lib/email/validation";
 import { useAppStore } from "@/lib/store";
+import { useSessionUser } from "@/lib/session-context";
 import type { CompanyProfile, Contractor, Invoice, InvoiceEmailLog } from "@/lib/types";
 
 export interface SendInvoiceEmailModalProps {
@@ -47,10 +48,14 @@ export function SendInvoiceEmailModal({
   onSent,
 }: SendInvoiceEmailModalProps) {
   const toast = useToast();
+  const sessionUser = useSessionUser();
+  const [providerChecked, setProviderChecked] = React.useState<Record<string, boolean>>({});
+  const [resolvingDelivery, setResolvingDelivery] = React.useState("");
 
   const [activeTab, setActiveTab] = React.useState<"compose" | "history">("compose");
   const [submitting, setSubmitting] = React.useState(false);
   const sendBusy=React.useRef(false);
+  const pendingSend = React.useRef<{ key: string; fingerprint: string } | null>(null);
   const [reviewed,setReviewed]=React.useState(false);
 
   // Status konfiguracji serwera pocztowego z backendu
@@ -104,7 +109,7 @@ export function SendInvoiceEmailModal({
   // Załączniki
   const [attachPdf, setAttachPdf] = React.useState(true);
   const [attachXml, setAttachXml] = React.useState(Boolean(invoice.ksef?.number || invoice.ksefNumber));
-  const hasUpo = Boolean(invoice.upoXml);
+  const hasUpo = Boolean(invoice.hasUpo ?? invoice.upoXml);
   const isDemoKsef = invoice.ksef?.environment === "demo";
   const [attachUpo, setAttachUpo] = React.useState(hasUpo);
 
@@ -216,7 +221,10 @@ export function SendInvoiceEmailModal({
     }
 
     sendBusy.current=true; setSubmitting(true);
-    const idempotencyKey = `${invoice.id}_${Date.now()}`;
+    const fingerprint = JSON.stringify({ invoiceId: invoice.id, recipientEmail, cc: showCc ? cc : "", bcc: showBcc ? bcc : "", subject, messageBody, attachPdf, attachXml, attachUpo, autoSendOnKsef });
+    if (!pendingSend.current || pendingSend.current.fingerprint !== fingerprint)
+      pendingSend.current = { key: `${invoice.id}_${crypto.randomUUID()}`, fingerprint };
+    const idempotencyKey = pendingSend.current.key;
 
     try {
       const res = await fetch("/api/invoices/send-email", {
@@ -260,10 +268,11 @@ export function SendInvoiceEmailModal({
         throw new Error(data.message || data.error || "Wystąpił błąd podczas wysyłki.");
       }
 
+      pendingSend.current = null;
       toast(
         "success",
-        "Faktura została wysłana!",
-        `Wiadomość z fakturą pomyślnie wysłana do: ${recipientEmail}`
+        "Serwer pocztowy przyjął fakturę",
+        `Odbiorca: ${recipientEmail}. Doręczenie zależy od serwera odbiorcy.`
       );
 
       if (data.log) {
@@ -281,6 +290,21 @@ export function SendInvoiceEmailModal({
       sendBusy.current=false; setSubmitting(false);
     }
   };
+
+  async function resolveDelivery(log: InvoiceEmailLog, result: "accepted" | "not-sent") {
+    if (!providerChecked[log.id] || resolvingDelivery) return;
+    setResolvingDelivery(log.id);
+    try {
+      const response = await fetch("/api/invoices/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "resolve-manual-delivery", invoiceId: invoice.id, deliveryId: log.id, result, providerChecked: true }) });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || body.error || "Nie udało się zapisać sprawdzenia.");
+      const history = await fetch(`/api/invoices/${encodeURIComponent(invoice.id)}/email-history`).then(r => r.json());
+      if (Array.isArray(history.logs)) setEmailLogs(history.logs);
+      pendingSend.current = null; setReviewed(false);
+      toast("success", "Zapisano ręczne sprawdzenie", body.message);
+    } catch (error) { toast("error", "Błąd zapisu", error instanceof Error ? error.message : "Spróbuj ponownie."); }
+    finally { setResolvingDelivery(""); }
+  }
 
   return (
     <Dialog
@@ -715,7 +739,11 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                         tone={log.status === "failed" || log.status === "verify_needed" ? "danger" : log.status === "queued" ? "outline" : "success"}
                         className="text-[10.5px] font-medium"
                       >
-                        {log.status === "verify_needed"
+                        {log.resolutionResult === "accepted"
+                          ? "Ręcznie potwierdzono przyjęcie"
+                          : log.resolutionResult === "not-sent"
+                          ? "Ręcznie potwierdzono brak wysyłki"
+                          : log.status === "verify_needed"
                           ? "Sprawdź wynik wysyłki"
                           : log.status === "queued"
                           ? "Wysyłka w toku"
@@ -740,6 +768,17 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                         Błąd: {log.error}
                       </div>
                     )}
+
+                    {log.status === "verify_needed" && log.manualDelivery && log.userId === sessionUser.id && <div className="space-y-3 rounded-xl border border-amber-400/50 bg-amber-50 p-3 text-slate-900">
+                      <p>Sprawdź historię w panelu dostawcy poczty lub skontaktuj się z pomocą. Sam brak wiadomości w skrzynce odbiorcy nie potwierdza braku wysyłki.</p>
+                      <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={Boolean(providerChecked[log.id])} onChange={event => setProviderChecked(previous => ({ ...previous, [log.id]: event.target.checked }))} />Sprawdziłem wynik tej próby u dostawcy poczty.</label>
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" size="sm" disabled={!providerChecked[log.id] || Boolean(resolvingDelivery)} onClick={() => void resolveDelivery(log, "accepted")}>Potwierdzam przyjęcie wiadomości</Button>
+                        <Button type="button" variant="outline" size="sm" disabled={!providerChecked[log.id] || Boolean(resolvingDelivery)} onClick={() => void resolveDelivery(log, "not-sent")}>Potwierdzam brak wysyłki</Button>
+                      </div>
+                      <p className="text-[11px]">Zapiszemy Twoją decyzję w historii. Potwierdzenie braku wysyłki pozwoli ponowić wiadomość ręcznie.</p>
+                    </div>}
+                    {log.resolutionAt && <p className="text-[11px] text-muted-foreground">Sprawdzenie przez użytkownika: {formatDateTime(log.resolutionAt)}</p>}
 
                     {Array.isArray(log.attachments) && log.attachments.length > 0 && (
                       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50 text-[10.5px]">

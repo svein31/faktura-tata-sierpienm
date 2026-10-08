@@ -25,13 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = "fakturo_onboarding_completed_v2";
-
-export function openOnboardingTour() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("fakturo:open-onboarding"));
-  }
-}
+import { ONBOARDING_STORAGE_KEY } from "./events";
 
 interface TourStep {
   id: string;
@@ -140,36 +134,15 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-export function OnboardingTour() {
-  const [isOpen, setIsOpen] = React.useState(false);
+export function OnboardingTour({ open: isOpen, onClose }: { open: boolean; onClose: () => void }) {
   const [stepIndex, setStepIndex] = React.useState(0);
 
-  // Sprawdzenie przy montowaniu komponentu
-  React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const completed = localStorage.getItem(STORAGE_KEY);
-    if (!completed) {
-      // Otwórz samouczek z lekkim opóźnieniem dla płynnego startu
-      const timer = setTimeout(() => setIsOpen(true), 800);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Nasłuchiwanie na custom event ponownego otwarcia samouczka
-  React.useEffect(() => {
-    function handleOpen() {
-      setStepIndex(0);
-      setIsOpen(true);
-    }
-    window.addEventListener("fakturo:open-onboarding", handleOpen);
-    return () => window.removeEventListener("fakturo:open-onboarding", handleOpen);
-  }, []);
 
   const handleComplete = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, "true");
+      try { localStorage.setItem(ONBOARDING_STORAGE_KEY, "true"); } catch { /* Storage may be unavailable. */ }
     }
-    setIsOpen(false);
+    onClose();
   };
 
   const handleNext = () => {
@@ -274,7 +247,7 @@ export function OnboardingTour() {
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Link
                   href={currentStep.actionHref}
-                  onClick={() => { if (currentStep.actionHref === "/invoices/new") useAppStore.getState().setDraft(null, true); setIsOpen(false); }}
+                  onClick={() => { if (currentStep.actionHref === "/invoices/new") useAppStore.getState().setDraft(null, true); onClose(); }}
                   className="inline-flex min-h-11 min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"
                 >
                   <span>{currentStep.actionLabel}</span>

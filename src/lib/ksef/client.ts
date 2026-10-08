@@ -87,6 +87,8 @@ export interface KsefInvoiceQueryResult {
 export interface KsefClientOptions {
   environment?: KsefEnvironment;
   timeoutMs?: number;
+  /** Optional total deadline across authentication, status/UPO and transmission requests. */
+  deadlineAtMs?: number;
   baseUrl?: string;
 }
 
@@ -129,12 +131,14 @@ export class KsefClient {
   public readonly environment: KsefEnvironment;
   public readonly baseUrl: string;
   public readonly timeoutMs: number;
+  private readonly deadlineAtMs?: number;
 
   constructor(options: KsefClientOptions = {}) {
     const envVar = (process.env.KSEF_ENV || process.env.KSEF_ENVIRONMENT || "test").toLowerCase();
     this.environment = options.environment || (envVar === "production" ? "production" : envVar === "demo" ? "demo" : "test");
     this.baseUrl = options.baseUrl || KSEF_V2_URLS[this.environment] || KSEF_V2_URLS.test;
     this.timeoutMs = options.timeoutMs || 25000;
+    this.deadlineAtMs = options.deadlineAtMs;
   }
 
   /**
@@ -152,8 +156,10 @@ export class KsefClient {
     const { method = "GET", body, headers = {}, rawResponse = false } = options;
     const url = `${this.baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
+    const remainingMs = this.deadlineAtMs === undefined ? this.timeoutMs : Math.min(this.timeoutMs, this.deadlineAtMs - Date.now());
+    if (remainingMs <= 0) throw new KsefApiError("Wykorzystano budżet czasu workera KSeF.", 504, "WORKER_DEADLINE");
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(), remainingMs);
 
     try {
       const isOctetStream = (headers["Content-Type"] || "") === "application/octet-stream";
@@ -211,7 +217,7 @@ export class KsefClient {
     } catch (e) {
       if (e instanceof KsefApiError) throw e;
       if ((e as any)?.name === "AbortError") {
-        throw new KsefApiError(`Przekroczono limit czasu połączenia z KSeF (${this.timeoutMs}ms)`, 504, "TIMEOUT");
+        throw new KsefApiError(`Przekroczono limit czasu połączenia z KSeF (${Math.ceil(remainingMs)}ms)`, 504, "TIMEOUT");
       }
       throw new KsefApiError(`Nie udało się połączyć z bramką KSeF: ${e instanceof Error ? e.message : String(e)}`, 502, "NETWORK_ERROR");
     } finally {
@@ -430,7 +436,9 @@ export class KsefClient {
       if (Date.now() - pollStart > 25_000) {
         throw new KsefApiError("Przekroczono limit czasu oczekiwania na potwierdzenie autoryzacji KSeF (timeout).", 504, "AUTH_TIMEOUT");
       }
-      await new Promise((r) => setTimeout(r, 1800));
+      const pollWaitMs = this.deadlineAtMs === undefined ? 1800 : Math.min(1800, this.deadlineAtMs - Date.now());
+      if (pollWaitMs <= 0) throw new KsefApiError("Wykorzystano budżet czasu uwierzytelnienia workera KSeF.", 504, "WORKER_DEADLINE");
+      await new Promise((r) => setTimeout(r, pollWaitMs));
 
       const statusRes = await this.request<any>(`/auth/${encodeURIComponent(referenceNumber)}`, {
         method: "GET",

@@ -1,9 +1,8 @@
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { handleApiError, json, readJson, str } from "@/lib/api";
-import { rateLimitShared } from "@/lib/rate-limit";
+import { rateLimitShared, rateLimitSubject } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email/sender";
-import { UNUSED_PASSWORD_RESET_TOKEN } from "@/lib/password-reset";
 
 export const runtime = "nodejs";
 
@@ -34,12 +33,14 @@ export async function POST(req: Request) {
     const neutralResponse = {
       ok: true,
       message:
-        "Jeśli konto z podanym adresem e-mail istnieje w systemie, wysłaliśmy instrukcję resetowania hasła.",
+        "Jeśli konto z podanym adresem e-mail istnieje, otrzymasz instrukcję resetowania hasła, gdy wysyłka poczty będzie dostępna. Sprawdź skrzynkę i folder Spam.",
     };
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
       return json(neutralResponse);
     }
+    const accountLimit = await rateLimitSubject(email, { max: 5, windowMs: 60 * 60_000 }, "forgot-password-address");
+    if (!accountLimit.allowed) return json(neutralResponse);
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -50,11 +51,7 @@ export async function POST(req: Request) {
       return json(neutralResponse);
     }
 
-    // Unieważnij poprzednie niewykorzystane tokeny tego użytkownika
-    await prisma.passwordResetToken.updateMany({
-      where: { userId: user.id, ...UNUSED_PASSWORD_RESET_TOKEN },
-      data: { usedAt: new Date() },
-    });
+    // Keep previous links valid if this delivery fails. Consuming any one link atomically revokes all others.
 
     // Wygeneruj bezpieczny losowy token 32 bajty (64 znaki hex)
     const rawToken = randomBytes(32).toString("hex");
@@ -70,19 +67,22 @@ export async function POST(req: Request) {
     });
 
     // Konstrukcja linku
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "https://fakturaprosto.pl";
     const resetLink = `${baseUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
 
     // Próba wysyłki wiadomości e-mail
     try {
       if (process.env.RESEND_API_KEY || process.env.SMTP_HOST) {
         await sendEmail({
+          singleAttempt: true,
+          idempotencyKey: `password-reset-${tokenHash}`,
+          signal: AbortSignal.timeout(15_000),
           to: user.email,
           subject: "Reset hasła w aplikacji FakturaProsto",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #1e293b;">
               <h2 style="color: #0f172a; margin-bottom: 16px;">Odzyskiwanie hasła do FakturaProsto</h2>
-              <p>Otrzymaliśmy prośbę o zresetowanie hasła dla konta <strong>${user.email}</strong>.</p>
+              <p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.</p>
               <p>Kliknij poniższy przycisk, aby ustawić nowe hasło. Link jest ważny przez 60 minut i może być użyty tylko raz:</p>
               <div style="margin: 28px 0; text-align: center;">
                 <a href="${resetLink}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">

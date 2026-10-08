@@ -4,7 +4,7 @@ const Module = require('node:module');
 const originalLoad = Module._load;
 let unavailable = false;
 Module._load = function(request, parent, main) {
-  if (request === '@/lib/prisma') return { prisma: { user: { count: async () => { if (unavailable) throw new Error('private database connection details'); return 1; } } } };
+  if (request === '@/lib/prisma') return { prisma: { $runCommandRaw: async () => { if (unavailable) throw new Error('private database connection details'); return { ok: 1 }; } } };
   return originalLoad.call(this, request, parent, main);
 };
 const { GET } = require('../../src/app/api/health/route.ts');

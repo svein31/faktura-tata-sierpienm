@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { assertObjectId, handleApiError, json } from "@/lib/api";
 import { getCompanyMembership } from "@/lib/permissions";
 import { emailLogToDto } from "@/lib/dto";
+import { recoverInterruptedManualEmails } from "@/lib/email/manual-delivery";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,8 +18,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (!invoice || (invoice.sellerCompanyId
       ? !await getCompanyMembership(user.id,invoice.sellerCompanyId)
       : invoice.userId !== user.id)) return json({error:"Faktura nie istnieje lub brak uprawnień."},{status:404});
+    await recoverInterruptedManualEmails(user.id, id);
     const logs = await prisma.invoiceEmailLog.findMany({
       where:{invoiceId:id},orderBy:{sentAt:"desc"},
+      take:100,
       include:{user:{select:{name:true,email:true}}},
     });
     return json({logs:logs.map(emailLogToDto)});

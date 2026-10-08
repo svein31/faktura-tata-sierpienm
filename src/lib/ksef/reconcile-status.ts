@@ -6,9 +6,9 @@ import { recordAuditLog } from "@/lib/audit";
 import { triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
 type StatusInvoice = Prisma.InvoiceGetPayload<{ include: { sellerCompany: true; ksefSession: true } }>;
 /** Read the previous transmission only. This function never sends or retries an invoice. */
-export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: string; name?: string | null; email?: string | null }) {
+export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: string; name?: string | null; email?: string | null }, options: { deadlineAtMs?: number; deferAutoEmail?: boolean } = {}) {
   if (invoice.ksefNumber && invoice.upoXml) {
-    if (invoice.autoSendEmailOnKsef) await triggerAutoEmailOnKsef(invoice.id);
+    if (invoice.autoSendEmailOnKsef && !options.deferAutoEmail) await triggerAutoEmailOnKsef(invoice.id);
     return { success: true, status: "ACCEPTED", ksefReferenceNumber: invoice.ksefNumber, hasUpo: true };
   }
   const meta = (invoice.ksef && typeof invoice.ksef === "object" && !Array.isArray(invoice.ksef) ? invoice.ksef : {}) as Record<string, unknown>;
@@ -23,7 +23,7 @@ export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: 
     userId: { in: [...new Set([actor.id, invoice.userId])] }, nip, environment: env, status: "ACTIVE", validUntil: { gt: new Date() },
   }, orderBy: { createdAt: "desc" } });
   if (!session?.accessToken) throw new ApiError(409, "Brak aktywnej sesji KSeF dla tej firmy. Odnów uwierzytelnienie i sprawdź ponownie.");
-  const result = await new KsefClient({ environment: env }).getInvoiceStatus(session.accessToken, sessionRef, invoice.referenceNumber);
+  const result = await new KsefClient({ environment: env, deadlineAtMs: options.deadlineAtMs }).getInvoiceStatus(session.accessToken, sessionRef, invoice.referenceNumber);
   const accepted = result.status === "ACCEPTED" && Boolean(result.ksefReferenceNumber);
   const rejected = result.status === "REJECTED";
   if (accepted || rejected) {
@@ -40,6 +40,6 @@ export async function reconcileKsefInvoice(invoice: StatusInvoice, actor: { id: 
       }
     });
   }
-  if (accepted && (result.upoXml || invoice.upoXml) && invoice.autoSendEmailOnKsef) await triggerAutoEmailOnKsef(invoice.id);
+  if (accepted && (result.upoXml || invoice.upoXml) && invoice.autoSendEmailOnKsef && !options.deferAutoEmail) await triggerAutoEmailOnKsef(invoice.id);
   return { success: true, status: result.status, processingCode: result.processingCode, processingDescription: result.processingDescription, ksefReferenceNumber: result.ksefReferenceNumber || invoice.ksefNumber, hasUpo: Boolean(result.upoXml || invoice.upoXml), upoXml: result.upoXml || invoice.upoXml };
 }

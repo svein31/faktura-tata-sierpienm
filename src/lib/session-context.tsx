@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import type { SessionUser } from "./types";
 
 interface SessionContextValue {
@@ -15,10 +16,15 @@ const SessionContext = React.createContext<SessionContextValue | null>(null);
 export function SessionProvider({
   user: initialUser,
   children,
+  deferPublicCheck = false,
 }: {
   user?: SessionUser | null;
+  deferPublicCheck?: boolean;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const needsPublicSession = !deferPublicCheck || pathname === "/" || pathname === "/login" || pathname === "/register";
+  const deferUntilIdle = deferPublicCheck && pathname === "/";
   const [user, setUser] = React.useState<SessionUser | null>(initialUser ?? null);
   const [status, setStatus] = React.useState<"loading" | "authenticated" | "unauthenticated">(
     initialUser ? "authenticated" : "loading"
@@ -45,10 +51,23 @@ export function SessionProvider({
     if (initialUser) {
       setUser(initialUser);
       setStatus("authenticated");
-    } else {
-      void fetchSession();
+      return;
     }
-  }, [initialUser, fetchSession]);
+    // Public guides and pricing never need a database-backed session lookup.
+    // The authenticated app has its own provider with the server-verified user.
+    if (!needsPublicSession) return;
+    if (!deferUntilIdle) {
+      void fetchSession();
+      return;
+    }
+    // Keep the anonymous homepage render independent of auth and network latency.
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(() => void fetchSession(), { timeout: 2000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const timer = window.setTimeout(() => void fetchSession(), 1000);
+    return () => window.clearTimeout(timer);
+  }, [initialUser, fetchSession, needsPublicSession, deferUntilIdle]);
 
   const logout = React.useCallback(async () => {
     try {

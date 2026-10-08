@@ -1,5 +1,5 @@
 import { reconcileKsefInvoice } from "@/lib/ksef/reconcile-status";
-import { processKsefAutoEmails, triggerAutoEmailOnKsef } from "@/lib/email/auto-send";
+import { processKsefAutoEmails } from "@/lib/email/auto-send";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { invoiceToDto } from "@/lib/dto";
 import { prisma } from "@/lib/db";
@@ -9,6 +9,7 @@ import { handleApiError, json } from "@/lib/api";
 import { KsefClient, buildFa3Xml, validateFa3Xml, generateDemoUpoXml } from "@/lib/ksef/index";
 import { companyProfileToDto, companyToDto } from "@/lib/dto";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
+import { canStartQueueJob, queueRunBudget } from "@/lib/ksef/queue-budget";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,7 @@ export const runtime = "nodejs";
  * POST /api/ksef/queue/process — Przetwarza oczekujące zadania w kolejce KSeF (worker/cron)
  */
 export async function POST(req: Request) {
+  const budget = queueRunBudget();
   try {
     if (process.env.KSEF_PAUSE_DISPATCH === "true") {
       return json(
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
     // An expired sending lease is ambiguous: require reconciliation, never blind resend.
     const abandoned = await prisma.ksefQueueTask.findMany({ where: {
       ...(!isCron ? { userId: user!.id } : {}), status: "processing", lockedUntil: { lt: now },
-    }, take: 50 });
+    }, orderBy: { lockedUntil: "asc" }, take: 10 });
     for (const task of abandoned) {
       await prisma.$transaction(async (tx) => {
         const updated = await tx.ksefQueueTask.updateMany({ where: { id: task.id, status: "processing", lockedUntil: { lt: now } },
@@ -49,6 +51,8 @@ export async function POST(req: Request) {
         if (updated.count) await tx.invoice.update({ where: { id: task.invoiceId }, data: { ksefStatus: "verify_needed" } });
       });
     }
+    // Recover uncertain SMTP attempts before any slow MF call can consume the run.
+    await processKsefAutoEmails(isCron ? undefined : user!.id, { maintenanceOnly: true, deadlineAtMs: budget.deadlineAtMs });
 
     // Confirm ambiguous transmissions and fetch delayed UPO without ever re-enqueueing a send.
     const verification = await prisma.invoice.findMany({ where: {
@@ -57,7 +61,9 @@ export async function POST(req: Request) {
       updatedAt: { lt: new Date(now.getTime() - 30000) },
       OR: [{ ksefStatus: "verify_needed" }, { ksefStatus: "accepted", OR: [{ upoXml: null }, { upoXml: { isSet: false } }] }],
     }, include: { sellerCompany: true, ksefSession: true }, orderBy: { updatedAt: "asc" }, take: 3 });
+    let verificationChecked = 0;
     for (const invoice of verification) {
+      if (!canStartQueueJob(budget.verificationDeadlineAtMs)) break;
       const claimedCheck = await prisma.invoice.updateMany({ where: { id: invoice.id, updatedAt: invoice.updatedAt }, data: { updatedAt: now } });
       if (!claimedCheck.count) continue;
       const previousTask = await prisma.ksefQueueTask.findFirst({ where: { invoiceId: invoice.id }, orderBy: { createdAt: "desc" }, select: { userId: true } });
@@ -66,7 +72,10 @@ export async function POST(req: Request) {
         const access = await requireCompanyAccess(actorId, invoice.sellerCompanyId, "canSendKsef");
         if (!access.ok) continue;
       }
-      try { await reconcileKsefInvoice(invoice, { id: actorId }); }
+      try {
+        verificationChecked++;
+        await reconcileKsefInvoice(invoice, { id: actorId }, { deadlineAtMs: budget.verificationDeadlineAtMs, deferAutoEmail: true });
+      }
       catch { /* Keep verification required when MF/session is unavailable; never resend. */ }
     }
 
@@ -91,17 +100,18 @@ export async function POST(req: Request) {
         ],
       },
       take: 10,
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       include: {
         invoice: {
           include: { sellerCompany: true },
         },
-        user: true,
       },
     });
 
     const results: Array<{ taskId: string; invoiceId: string; status: string; message: string }> = [];
 
     for (const task of tasks) {
+      if (!canStartQueueJob(budget.transmissionDeadlineAtMs)) break;
       // Zablokuj zadanie na czas przetwarzania (5 minut)
       const claimed = await prisma.ksefQueueTask.updateMany({
         where: { id: task.id, status: "queued" },
@@ -144,6 +154,7 @@ export async function POST(req: Request) {
       }
       if (invoice.isProforma || invoice.type === "purchase") {
         await prisma.ksefQueueTask.update({ where: { id: task.id }, data: { status: "failed", lockedUntil: null, errorDetails: "Ten dokument nie podlega wysyłce." } });
+        results.push({ taskId: task.id, invoiceId: invoice.id, status: "failed", message: "Ten dokument nie podlega wysyłce." });
         continue;
       }
       const env = (task.environment || "test") as any;
@@ -192,7 +203,7 @@ export async function POST(req: Request) {
       // ── TRYB TEST / PRODUKCJA ──
       let submissionStarted = false;
       try {
-        const client = new KsefClient({ environment: env });
+        const client = new KsefClient({ environment: env, timeoutMs: 5_000, deadlineAtMs: budget.transmissionDeadlineAtMs });
 
         // Jeśli faktura ma już numer referencyjny sesji KSeF, najpierw sprawdzamy jej status
         // zamiast wysyłać ponownie (ochrona przed duplikatem)
@@ -234,7 +245,7 @@ export async function POST(req: Request) {
                 data: { status: "completed", lockedUntil: null },
               });
 
-              if (invoice.autoSendEmailOnKsef && statusRes.upoXml) await triggerAutoEmailOnKsef(invoice.id);
+              // The outbox below has its own reserved budget; never let SMTP block MF work.
 
               results.push({ taskId: task.id, invoiceId: invoice.id, status: "completed", message: "Potwierdzono w KSeF (kod 200)" });
               continue;
@@ -350,18 +361,28 @@ export async function POST(req: Request) {
           continue;
         }
 
-        const loginRes = await client.loginWithKsefToken(sellerNip, ksefToken);
-        await prisma.ksefSession.upsert({
-          where: { referenceNumber: loginRes.referenceNumber },
-          create: { userId: task.userId, nip: sellerNip, environment: env, referenceNumber: loginRes.referenceNumber,
-            accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
-          update: { accessToken: loginRes.accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
-        });
+        // Reuse the same actor/NIP/environment session, avoiding a full auth exchange per invoice.
+        const activeSession = await prisma.ksefSession.findFirst({ where: {
+          userId: task.userId, nip: sellerNip, environment: env, status: "ACTIVE",
+          validUntil: { gt: new Date(Date.now() + 60_000) },
+        }, orderBy: { createdAt: "desc" } });
+        let accessToken = activeSession?.accessToken || "";
+        if (!accessToken) {
+          const loginRes = await client.loginWithKsefToken(sellerNip, ksefToken);
+          accessToken = loginRes.accessToken;
+          await prisma.ksefSession.upsert({
+            where: { referenceNumber: loginRes.referenceNumber },
+            create: { userId: task.userId, nip: sellerNip, environment: env, referenceNumber: loginRes.referenceNumber,
+              accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
+            update: { accessToken, refreshToken: loginRes.refreshToken, validUntil: new Date(loginRes.validUntil), status: "ACTIVE" },
+          });
+        }
+        if (!canStartQueueJob(budget.transmissionDeadlineAtMs)) throw new Error("Wykorzystano budżet czasu workera przed rozpoczęciem wysyłki; zaplanowano ponowienie.");
         await prisma.$transaction(tx => claimKsefTransmission(tx, { invoiceId: invoice.id, version: invoice.version, userId: task.userId, taskId: task.id }));
         submissionStarted = true;
-        const onlineSession = await client.openOnlineSession(loginRes.accessToken);
+        const onlineSession = await client.openOnlineSession(accessToken);
         const sendRes = await client.sendInvoiceEncrypted(
-          loginRes.accessToken,
+          accessToken,
           onlineSession.referenceNumber,
           xml,
           onlineSession.symmetricKey,
@@ -443,12 +464,17 @@ export async function POST(req: Request) {
     }
 
     // Email retries remain independent of the KSeF transmission queue, including when it is empty.
-    const autoEmail = await processKsefAutoEmails(isCron ? undefined : user!.id);
+    const autoEmail = await processKsefAutoEmails(isCron ? undefined : user!.id, { deadlineAtMs: budget.deadlineAtMs, skipMaintenance: true });
     return json({
       success: true,
       processedCount: results.length,
       results,
       autoEmail,
+      verificationChecked,
+      elapsedMs: Date.now() - budget.startedAtMs,
+      budgetMs: budget.deadlineAtMs - budget.startedAtMs,
+      budgetExhausted: !canStartQueueJob(budget.deadlineAtMs) || (tasks.length > results.length && !canStartQueueJob(budget.transmissionDeadlineAtMs)),
+      deferredTasks: Math.max(0, tasks.length - results.length),
     });
   } catch (e) {
     return handleApiError(e);

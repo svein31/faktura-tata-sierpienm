@@ -2,6 +2,7 @@ import { auditSeoContracts } from "./seo-contract-audit.mjs";
 import { auditProductSecurity } from './product-security-audit.mjs';
 import { fullFeatureAudit } from './full-feature-audit.mjs';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { backupDrill } from './backup/drill.mjs';
 import { browserChecks } from './browser-checks.mjs';
 import { spawn } from 'node:child_process';
@@ -14,6 +15,9 @@ import { migrateData } from './migrate-data.mjs';
 import { checkPasswordResetAtomic, checkAccountDeletionAtomic } from './password-reset-regression.mjs';
 import { checkBillingSafety } from './billing-regression.mjs';
 import { checkKsefAutoEmail } from './ksef-auto-email-regression.mjs';
+import { checkDataPerformance, checkPerformanceIndexes } from './data-performance-regression.mjs';
+import { checkQueueHealth } from './queue-health-regression.mjs';
+import { checkEmailSafety } from './email-safety-regression.mjs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 require('./register-ts.cjs');
@@ -36,12 +40,13 @@ const base = `http://127.0.0.1:${port}`;
 const mongoClient = new MongoClient(databaseUrl);
 let server, logs = '';
 const deliveredEmails = [], smtpSockets = new Set();
+let dropSmtpReceiptFor = null;
 const smtp = createServer(socket => {
   smtpSockets.add(socket);socket.once('close',()=>smtpSockets.delete(socket));
   let buffer='', collecting=false, message=[];
   socket.setEncoding('utf8');socket.write('220 localhost integration\r\n');
   socket.on('data',chunk=>{buffer+=chunk;let index;while((index=buffer.indexOf('\r\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+2);
-    if(collecting){if(line==='.') {deliveredEmails.push(message.join('\n'));message=[];collecting=false;socket.write('250 queued\r\n');}else message.push(line);}
+    if(collecting){if(line==='.') {const content=message.join('\n');message=[];collecting=false;if(dropSmtpReceiptFor && content.includes(dropSmtpReceiptFor)){socket.destroy();return;}deliveredEmails.push(content);socket.write('250 queued\r\n');}else message.push(line);}
     else if(/^DATA/i.test(line)){collecting=true;socket.write('354 send data\r\n');}
     else if(/^QUIT/i.test(line))socket.end('221 bye\r\n');
     else socket.write('250 OK\r\n');
@@ -136,15 +141,33 @@ try {
   await migrateData(migrationDb,'down','017-launch-safety');
   assert.deepEqual(await migrationDb.collection('BillingCheckoutState').findOne({ _id: billingMarker._id }), billingMarker);
   await migrateData(migrationDb,'up','017-launch-safety');
+  for (const migration of ['019-email-safety', '020-pilot-metrics', '021-queue-throughput']) {
+    await migrateData(migrationDb, 'up', migration);
+    await migrateData(migrationDb, 'up', migration);
+    await migrateData(migrationDb, 'down', migration);
+    await migrateData(migrationDb, 'up', migration);
+  }
+  await checkPerformanceIndexes(migrationDb);
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   await migrateData(mongoClient.db('fakturo_integration'),'up','015-auth-rate-limit');
   await migrateData(mongoClient.db('fakturo_integration'),'up','017-launch-safety');
+  for (const migration of ['018-performance-indexes', '019-email-safety', '020-pilot-metrics', '021-queue-throughput']) {
+    await migrateData(mongoClient.db('fakturo_integration'), 'up', migration);
+  }
   await checkPasswordResetAtomic(db);
   await checkAccountDeletionAtomic(db);
   await checkBillingSafety(db);
   await checkKsefAutoEmail(db);
+  await checkDataPerformance(db);
+  await checkQueueHealth(db);
+  await checkEmailSafety(db);
+  const pilotCheck = spawn(process.execPath, ['scripts/pilot-metrics-regression.cjs'], {
+    env: { ...process.env, DATABASE_URL: databaseUrl, PILOT_ISOLATED_TEST: 'true', PILOT_METRICS_SECRET: 'isolated-pilot-metrics-fixture-secret-32' },
+    stdio: 'inherit', timeout: 30000,
+  });
+  assert.equal((await once(pilotCheck, 'exit'))[0], 0, 'Consent withdrawal must fence concurrent measurement writes');
   console.log('[integration] Starting application');
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '', WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
@@ -173,6 +196,18 @@ try {
   const b = await api('POST', '/api/auth/register', { name: 'Other', email: 'b@example.com', password: 'Integration123!', acceptTerms: true });
   assert.equal(a.res.status, 201, JSON.stringify(a.data)); assert.equal(b.res.status, 201, JSON.stringify(b.data));
   assert.ok(a.cookie); assert.ok(b.cookie);
+  assert.equal((await api('POST', '/api/invoices/send-email', {}, a.cookie)).res.status, 403, 'A new account cannot send externally before mailbox proof');
+  for (const account of [a, b]) {
+    const email = deliveredEmails.findLast(message => message.split('\n').some(line => line.trim() === `To: ${account.data.user.email}`));
+    const verification = email?.replace(/=\r?\n/g, '').replace(/=3D/g, '=').match(/verify-email#token=([a-f0-9]{64})/);
+    assert.ok(verification, 'Registration must deliver a real single-use verification link');
+    const proof = await db.emailVerificationToken.findUnique({ where: { tokenHash: createHash('sha256').update(verification[1]).digest('hex') } });
+    assert.ok(proof, 'SMTP MIME must carry the complete persisted token');
+    assert.equal(proof.userId, account.data.user.id, 'Mailbox link must belong to its account');
+    assert.equal(proof.usedAt, null, 'Another mailbox confirmation must not consume this proof');
+    const verified = await api('POST', '/api/auth/verify-email', { token: verification[1] }, account.cookie);
+    assert.equal(verified.res.status, 200, JSON.stringify(verified.data));
+  }
   const login = await api('POST', '/api/auth/login', { email: 'a@example.com', password: 'Integration123!' });
   assert.equal(login.res.status, 200); assert.ok(login.cookie);
   // The broad integration scenario issues many documents; keep its owner unrestricted.
@@ -195,6 +230,30 @@ try {
   }, a.cookie);
   assert.equal(invoice.res.status, 201, JSON.stringify(invoice.data));
   const invoiceId = invoice.data.invoice.id;
+  const manualBody = { invoiceId, recipientEmail: 'manual-recipient@example.test', subject: 'Isolated manual fixture', attachPdf: false, attachXml: false, idempotencyKey: 'integration-manual-first' };
+  const beforeManual = deliveredEmails.length;
+  const manualAttempts = await Promise.all(Array.from({ length: 8 }, () => api('POST', '/api/invoices/send-email', manualBody, a.cookie)));
+  assert.ok(manualAttempts.every(result => [200,409].includes(result.res.status)), JSON.stringify(manualAttempts.map(result=>result.data)));
+  assert.ok(manualAttempts.some(result=>result.res.status===200));
+  assert.equal(deliveredEmails.length, beforeManual+1, 'Eight HTTP intents cause one actual local SMTP acceptance');
+  assert.equal((await api('POST', '/api/invoices/send-email', manualBody, a.cookie)).res.status, 200);
+  assert.equal(deliveredEmails.length, beforeManual+1, 'Accepted HTTP replay never contacts SMTP');
+  assert.equal((await api('POST', '/api/invoices/send-email', { ...manualBody, subject:'Changed request' }, a.cookie)).res.status, 409);
+  dropSmtpReceiptFor = 'unknown-fixture@example.test';
+  const uncertainBody = { ...manualBody, recipientEmail: dropSmtpReceiptFor, idempotencyKey: 'integration-manual-unknown' };
+  assert.equal((await api('POST', '/api/invoices/send-email', uncertainBody, a.cookie)).res.status, 409);
+  dropSmtpReceiptFor = null;
+  const afterInterrupted = deliveredEmails.length;
+  assert.equal((await api('POST', '/api/invoices/send-email', { ...uncertainBody, idempotencyKey:'unknown-new-key' }, a.cookie)).res.status, 409);
+  assert.equal(deliveredEmails.length, afterInterrupted, 'Unknown SMTP outcome cannot be bypassed by a new key');
+  const uncertainLog = await db.invoiceEmailLog.findFirstOrThrow({where:{invoiceId,status:'verify_needed',manualDelivery:true}});
+  const resolutionBody = {action:'resolve-manual-delivery',invoiceId,deliveryId:uncertainLog.id,result:'not-sent',providerChecked:true};
+  assert.equal((await api('POST','/api/invoices/send-email',resolutionBody,b.cookie)).res.status,404,'Another account cannot resolve a private delivery');
+  assert.equal((await api('POST','/api/invoices/send-email',{...resolutionBody,providerChecked:false},a.cookie)).res.status,400);
+  assert.equal((await api('POST','/api/invoices/send-email',resolutionBody,a.cookie)).res.status,200);
+  assert.equal((await api('POST','/api/invoices/send-email',{...uncertainBody,idempotencyKey:'checked-explicit-retry'},a.cookie)).res.status,200);
+  assert.equal(deliveredEmails.length,afterInterrupted+1);
+  console.log('[integration] PASS manual HTTP SMTP delivery: proof gate, eight concurrent intents/one acceptance, replay/conflict, disconnected receipt/new-key fence and authorized audited resolution');
   const proforma = await api('POST', '/api/invoices', {
     ...invoice.data.invoice, number: 'PF/2026/1', status: 'draft', documentStatus: 'draft', isProforma: true,
     isRecurring: false, isCorrection: false,
@@ -437,9 +496,10 @@ try {
   assert.equal((await api('POST','/api/due-reminders/process',{})).res.status,401);
 
   await db.dueReminderSetting.update({where:{id:legacySmsSetting.id},data:{channels:['sms'],nextCheckAt:new Date(0)}});
+  const emailsBeforeReminders = deliveredEmails.length;
   assert.equal((await api('GET','/api/due-reminders?companyId='+companyId,undefined,a.cookie)).data.settings.find(setting=>setting.id===legacySmsSetting.id).enabled,false);
   await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);
-  assert.equal(deliveredEmails.length,0,'SMS-only settings must not silently become e-mail subscriptions');
+  assert.equal(deliveredEmails.length,emailsBeforeReminders,'SMS-only settings must not silently become e-mail subscriptions');
   assert.equal((await db.dueReminderDelivery.findUniqueOrThrow({where:{eventKey:'retired-sms-event'}})).status,'cancelled');
   const retiredSms=await db.dueReminderDelivery.findUniqueOrThrow({where:{eventKey:'retired-sms-event'}});
   await db.dueReminderDelivery.update({where:{id:retiredSms.id},data:{status:'verify_needed'}});
@@ -448,13 +508,13 @@ try {
   await db.dueReminderSetting.createMany({data:Array.from({length:31},()=>({invoiceId:new ObjectId().toHexString(),companyId,userId:a.data.user.id,enabled:true,channels:['sms'],nextCheckAt:new Date(0)}))});
   const mailRuns=await Promise.all([1,2].map(()=>api('POST','/api/due-reminders/process',{},undefined,cronHeaders)));
   assert.ok(mailRuns.every(r=>[200,409].includes(r.res.status)),JSON.stringify(mailRuns.map(r=>r.data)));
-  assert.equal(deliveredEmails.length,1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
+  assert.equal(deliveredEmails.length,emailsBeforeReminders+1,JSON.stringify(await db.dueReminderDelivery.findMany({where:{companyId}})));
   assert.equal(await db.dueReminderSetting.count({where:{companyId,enabled:true,channels:{has:'sms'},NOT:{channels:{has:'email'}}}}),0,'Retired SMS schedules cannot starve the e-mail queue');
   assert.equal(await db.dueReminderDelivery.count({where:{companyId,status:'sent'}}),1);
-  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,emailsBeforeReminders+1);
   await db.invoice.update({where:{id:reminderId},data:{paidAmount:123,paymentStatus:'paid',dueDate:'2026-01-01'}});
   await db.dueReminderSetting.update({where:{invoiceId:reminderId},data:{nextCheckAt:new Date(0)}});
-  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,1);
+  await api('POST','/api/due-reminders/process',{},undefined,cronHeaders);assert.equal(deliveredEmails.length,emailsBeforeReminders+1);
   assert.equal((await api('POST','/api/due-reminders',{companyId,invoiceId:reminderId,enabled:false},a.cookie)).res.status,200);
   const jpkBody={companyId,format:'fa',dateFrom:'2026-09-01',dateTo:'2026-09-30',office:'1471',currency:'PLN',normalDomestic:true,address:{Wojewodztwo:'mazowieckie',Powiat:'Warszawa',Gmina:'Warszawa',NrDomu:'1',Miejscowosc:'Warszawa',KodPocztowy:'00-001'}};
   assert.equal((await api('POST','/api/jpk',jpkBody,b.cookie)).res.status,403);

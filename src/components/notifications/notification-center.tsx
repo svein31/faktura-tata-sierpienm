@@ -78,13 +78,6 @@ export function NotificationBell() {
     return () => window.removeEventListener("pointerdown", unlock);
   }, [refreshPermission]);
 
-  /* ── Service worker (obsługa kliknięć w powiadomienia) ─────────────── */
-  React.useEffect(() => {
-    if ("serviceWorker" in navigator && typeof window !== "undefined") {
-      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
-    }
-  }, []);
-
   /* ── Obsługa nowego powiadomienia (toast + dźwięk + browser) ───────── */
   const handleNew = React.useCallback(
     (n: AppNotification) => {

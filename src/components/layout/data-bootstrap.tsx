@@ -17,8 +17,8 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   // Ekrany korzystające z własnych zapytań dostają tylko katalogi, bez wszystkich faktur.
-  const fullInvoicePaths = new Set(["/invoices/new", "/invoices/recurring", "/advances", "/recurring", "/reminders", "/finances", "/calendar", "/settings/companies"]);
-  const mode = fullInvoicePaths.has(pathname) || (/^\/invoices\/[^/]+$/.test(pathname) && pathname !== "/invoices/new") ? "full" : "list";
+  const fullInvoicePaths = new Set(["/invoices/recurring", "/advances", "/recurring", "/reminders", "/finances", "/calendar", "/settings/companies"]);
+  const mode = fullInvoicePaths.has(pathname) ? "full" : "list";
   const dataMode = useAppStore(s => s.dataMode);
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);

@@ -31,7 +31,7 @@ async function navigate(previous, route, options) {
   return page;
 }
 
-const publicRoutes = ['/','/cennik','/porownania/fakturowo','/porownania/faktura-pl','/login','/register','/forgot-password','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat',"/poradnik-ksef/kody-qr","/poradnik-ksef/2027","/program-do-faktur/dla-jdg","/program-do-faktur/dla-freelancerow","/program-do-faktur/dla-biur-rachunkowych","/program-do-faktur/dla-firm-uslugowych","/program-do-faktur/na-telefonie","/porownania/fakturownia","/porownania/ifirma","/porownania/wfirma","/porownania/infakt","/porownania/comarch","/porownania/aplikacja-mf","/poradnik-ksef/fa3","/poradnik-ksef/upo","/poradnik-ksef/odrzucona-faktura","/porownania"];
+const publicRoutes = ['/','/cennik','/porownania/fakturowo','/porownania/faktura-pl','/login','/register','/forgot-password','/verify-email','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat',"/poradnik-ksef/kody-qr","/poradnik-ksef/2027","/program-do-faktur/dla-jdg","/program-do-faktur/dla-freelancerow","/program-do-faktur/dla-biur-rachunkowych","/program-do-faktur/dla-firm-uslugowych","/program-do-faktur/na-telefonie","/porownania/fakturownia","/porownania/ifirma","/porownania/wfirma","/porownania/infakt","/porownania/comarch","/porownania/aplikacja-mf","/poradnik-ksef/fa3","/poradnik-ksef/upo","/poradnik-ksef/odrzucona-faktura","/porownania"];
 export async function mobileLayoutDefects(page) {
   return page.evaluate(configuredWidth => {
     const width = Math.min(configuredWidth, document.documentElement.clientWidth), failures = [];
@@ -52,6 +52,17 @@ export async function mobileLayoutDefects(page) {
     }
     return failures.slice(0,16);
   }, page.viewportSize().width);
+}
+
+// Background polling/prefetch and service workers can keep the network active.
+// Audit the rendered view after hydration, bootstrap and font/layout completion.
+export async function waitForRenderedLayout(page) {
+  await page.waitForFunction(() => document.documentElement.dataset.uiReady === 'true');
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
 }
 
 export async function auditMobileExperience(base, storageState, fixture) {
@@ -98,8 +109,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
           page=await navigate(page,route); activeTarget=page;
           await expect(page.locator('main')).toBeVisible();
           await expect(page.locator('main h1').first()).toBeVisible();
-          await page.waitForLoadState('networkidle');
-          await page.evaluate(()=>document.fonts.ready);
+          await waitForRenderedLayout(page);
           assert.equal(await page.getByText('Nie udało się wyświetlić strony',{exact:true}).count(),0,route);
           await audit(page,route);
           if(width===320 || engine.name==='webkit' && width===375) {

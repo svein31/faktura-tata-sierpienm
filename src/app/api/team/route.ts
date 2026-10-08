@@ -1,6 +1,8 @@
 import {ApiError} from "@/lib/api";
 import {teamActor,validateTeamGrant} from "@/lib/team-grants";
 import {sendEmail,isValidEmail} from "@/lib/email/sender";
+import { isEmailVerifiedForSending } from "@/lib/email/verification";
+import { rateLimitSubject } from "@/lib/rate-limit";
 import * as crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -96,8 +98,12 @@ export async function POST(req: Request) {
       await recordAuditLog({client:tx,companyId,userId:user.id,userName:user.name,userEmail:user.email,action:"team_invite",entityType:"team",entityId:result.id,details:{email,role:grant.role}});
       return result;
     });
-    let emailDelivery="error";
-    try{const delivery=await sendEmail({to:email,subject:"Zaproszenie do zespołu FakturaProsto",text:`${user.name||user.email} zaprasza Cię do firmy ${invitation.company?.companyName||"Firma"}.\nPrzyjmij zaproszenie: https://fakturaprosto.pl/invite/${invitation.token}\nLink ważny przez 14 dni.`,singleAttempt:true});if(delivery.success)emailDelivery="sent";}catch{}
+    let emailDelivery=isEmailVerifiedForSending(user)?"error":"verification_required";
+    if (isEmailVerifiedForSending(user)) {
+      const quota = await rateLimitSubject(user.id, { max: 30, windowMs: 24 * 60 * 60_000 }, "team-invitation-email");
+      if (!quota.allowed) emailDelivery = "rate_limited";
+      else try{const delivery=await sendEmail({to:email,subject:"Zaproszenie do zespołu FakturaProsto",text:`${user.name||user.email} zaprasza Cię do firmy ${invitation.company?.companyName||"Firma"}.\nPrzyjmij zaproszenie: https://fakturaprosto.pl/invite/${invitation.token}\nLink ważny przez 14 dni.`,singleAttempt:true,signal:AbortSignal.timeout(15000)});if(delivery.success)emailDelivery="sent";}catch{}
+    }
     return json({invitation:teamInvitationToDto(invitation),inviteUrl:`/invite/${invitation.token}`,emailDelivery});
   } catch (e) {
     return handleApiError(e);

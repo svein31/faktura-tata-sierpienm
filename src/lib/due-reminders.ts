@@ -7,6 +7,7 @@ import { warsawDate } from "./scheduling";
 import { getEmailConfigStatus, isValidEmail, sendEmail } from "./email/sender";
 import { recordAuditLog } from "./audit";
 import { ApiError } from "./api";
+import { requireVerifiedEmailForSending } from "./email/verification";
 export async function processDueReminders() {
   await prisma.dueReminderDelivery.updateMany({ where: { channel: "sms", status: "pending" }, data: { status: "cancelled", error: "Obsługa SMS została wyłączona." } });
   await prisma.dueReminderSetting.updateMany({ where: { enabled: true, channels: { has: "sms" }, NOT: { channels: { has: "email" } } }, data: { enabled: false } });
@@ -37,6 +38,7 @@ export async function processDueReminders() {
     try {
       const setting = await prisma.dueReminderSetting.findUnique({ where: { id: delivery.settingId } });
       if (!setting?.enabled || (setting.channels.length && !setting.channels.includes("email")) || !(await requireCompanyAccess(setting.userId, setting.companyId,"canIssueInvoices")).ok) throw new Error("Harmonogram wyłączony lub odebrano uprawnienia.");
+      await requireVerifiedEmailForSending(setting.userId);
       const invoice = await prisma.invoice.findFirst({ where: { id: setting.invoiceId, sellerCompanyId: setting.companyId }, include: { sellerCompany: true } });
       const content = invoice && dueReminderContent(invoiceToDto(invoice),today,invoice.sellerCompany?.companyName || "");
       if (!content || !invoice || invoice.dueDate !== delivery.dueDate || content.stage !== delivery.stage) {

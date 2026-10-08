@@ -1,6 +1,8 @@
 require('../register-ts.cjs');
 const test = require('node:test'), assert = require('node:assert/strict'), Module = require('node:module');
 const originalLoad = Module._load;
+const { createHash } = require('node:crypto');
+const { ApiError } = require('../../src/lib/api.ts');
 const routePath = require.resolve('../../src/app/api/invoices/send-email/route.ts');
 
 function fixture(overrides = {}) {
@@ -11,17 +13,33 @@ function fixture(overrides = {}) {
     sellerCompany: { id: '507f191e810c19729de860ec', userId: user.id, companyName: 'Seller', nip: '5260301706', createdAt: new Date(), updatedAt: new Date() }, ...overrides,
   };
   const sends = [], configurations = [], logs = [], scopes = [];
+  const deliveries = new Map();
   let holdSend, startedSend;
   const sendStarted = new Promise(resolve => { startedSend = resolve; });
   const db = {
     invoice: { findFirst: async query => { scopes.push(query.where); return invoice; }, update: async query => ({ ...invoice, ...query.data }) },
     contractor: { findFirst: async () => null },
-    invoiceEmailLog: { create: async query => { const value = { id: 'synthetic-log', ...query.data }; logs.push(value); return value; } },
+    invoiceEmailLog: { create: async query => { const value = { id: 'synthetic-log', ...query.data }; logs.push(value); return value; }, findUnique: async () => logs.at(-1) },
     notification: { create: async () => ({}) },
   };
   Module._load = function(request, parent, main) {
     if (request === '@/lib/db') return { prisma: db };
     if (request === '@/lib/auth') return { getSessionUser: async () => user };
+    if (request === '@/lib/email/verification') return { requireVerifiedEmailForSending: async () => {} };
+    if (request === '@/lib/rate-limit') return { rateLimitSubject: async () => ({ allowed: true }) };
+    if (request === '@/lib/email/manual-delivery') return {
+      manualEmailDigest: value => createHash('sha256').update(JSON.stringify(value)).digest('hex'),
+      DELIVERY_UNCERTAIN_MESSAGE: 'Delivery requires verification',
+      claimManualEmail: async input => {
+        const prior = deliveries.get(input.key);
+        if (prior?.status === 'accepted') return { ...prior, replay: prior.response };
+        if (prior) throw new ApiError(409, 'Sending in progress', 'DUPLICATE_REQUEST');
+        const value = { id: '507f191e810c19729de860ef', userId: input.userId, invoiceId: input.invoiceId, token: input.key, status: 'preparing' };
+        deliveries.set(input.key, value); return value;
+      },
+      startManualEmail: async (lease, log) => { logs.push({ id: lease.id, invoiceId: lease.invoiceId, ...log, status: 'queued' }); },
+      finishManualEmail: async (lease, result) => { Object.assign(deliveries.get(lease.token), result); Object.assign(logs.at(-1) ?? {}, result); },
+    };
     if (request === '@/lib/company-scope') return { accessibleCompanyIds: async () => [invoice.sellerCompanyId] };
     if (request === '@/lib/document-scope') return { requireDocumentWrite: async () => {} };
     if (request === '@/lib/email/auto-send') return { configureKsefAutoEmail: async (...args) => { configurations.push(args); } };
@@ -38,6 +56,9 @@ function fixture(overrides = {}) {
   };
   delete require.cache[routePath];
   const { POST } = require(routePath);
+  // The production route loads PDF lazily; keep the controlled renderer available after Module._load is restored.
+  const pdfPath = require.resolve('../../src/lib/pdf/invoice-print.ts');
+  require.cache[pdfPath] = { id: pdfPath, filename: pdfPath, loaded: true, exports: { invoicePdf: async () => ({ buffer: Buffer.from('%PDF-synthetic') }) } };
   Module._load = originalLoad;
   const request = body => new Request('http://localhost/api/invoices/send-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ invoiceId: invoice.id, ...body }) });
   return { POST, request, invoice, configurations, sends, logs, scopes, sendStarted, hold: promise => { holdSend = promise; } };

@@ -49,12 +49,11 @@ interface CommandItem {
   onSelect: () => void;
 }
 
-export function CommandPalette() {
+export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
   const { contractors, products } = useAppStore();
   const companyId = useAppStore(s => s.selectedCompanyId);
 
-  const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const { invoices } = useInvoiceSearch({ companyId: companyId || "unassigned", search: query }, open);
   const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
@@ -64,26 +63,6 @@ export function CommandPalette() {
   const [visualBounds,setVisualBounds] = React.useState({top:0,height:0});
   const listRef = React.useRef<HTMLDivElement>(null);
 
-  // Otwieranie na Ctrl+K / Cmd+K lub zdarzenie globalne
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOpen((prev) => !prev);
-      } else if (e.key === "Escape" && open) {
-        setOpen(false);
-      }
-    };
-
-    const handleCustomOpen = () => setOpen(true);
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("open-command-palette", handleCustomOpen);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("open-command-palette", handleCustomOpen);
-    };
-  }, [open]);
 
   React.useEffect(() => {
     if (!open) return;

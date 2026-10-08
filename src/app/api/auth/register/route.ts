@@ -14,6 +14,8 @@ import { rateLimitShared } from "@/lib/rate-limit";
 import { reportUnexpectedError } from "@/lib/error-report";
 import { recordLegalConsent } from "@/lib/legal/record-consent";
 import { LEGAL_VERSIONS } from "@/lib/legal/config";
+import { requestEmailVerification } from "@/lib/email/verification";
+import { recordPilotEvent } from "@/lib/pilot-metrics";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -99,6 +101,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         email: cleanEmail,
+        emailVerificationRequiredAt: new Date(),
         password: passwordHash,
         name: rawName || cleanEmail.split("@")[0] || "Użytkownik",
         nip: nip || null,
@@ -133,11 +136,15 @@ export async function POST(req: Request) {
     const { token } = await createSession(user.id, metadata);
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 
+    let verificationDelivery = "failed";
+    try { verificationDelivery = (await requestEmailVerification(user.id)).delivery; }
+    catch { console.warn("[Auth Register] Nie udało się przygotować potwierdzenia e-mail; konto pozostaje dostępne."); }
     const res = NextResponse.json(
       {
         success: true,
         user: toPublicUser(user),
         message: "Rejestracja zakończona sukcesem.",
+        verificationDelivery,
       },
       { status: 201, headers: { "Cache-Control": "no-store" } }
     );
@@ -174,6 +181,7 @@ export async function POST(req: Request) {
       });
     }
 
+    await recordPilotEvent(req, "register");
     return res;
   } catch (error: unknown) {
     if (!(error instanceof ApiError)) reportUnexpectedError(error);

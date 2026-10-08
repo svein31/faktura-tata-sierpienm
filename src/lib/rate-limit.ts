@@ -93,17 +93,24 @@ export async function rateLimitShared(
   opts: { windowMs: number; max: number },
   scope: string
 ): Promise<RateLimitResult> {
-  // The database credential is a stable secret fallback on existing deployments.
-  // A dedicated NEXTAUTH_SECRET is preferred when available.
-  const secret = process.env.NEXTAUTH_SECRET || process.env.DATABASE_URL;
-  if (!secret) throw new Error("DATABASE_URL is required for auth rate limiting.");
-  const now = Date.now();
-  const bucketStart = Math.floor(now / opts.windowMs) * opts.windowMs;
   // On the production proxy the final forwarded address is the last trusted hop.
   // Use the platform client address when provided and never store an IP in plaintext.
   const forwarded = req.headers.get("x-forwarded-for")?.split(",").pop()?.trim();
   const ip = req.headers.get("x-nf-client-connection-ip")?.trim() || forwarded || req.headers.get("x-real-ip")?.trim() || "unknown";
-  const key = createHmac("sha256", secret).update(`${scope}:\0${ip}:\0${bucketStart}`).digest("hex");
+  return rateLimitSubject(ip, opts, scope);
+}
+
+/** An authenticated subject cannot evade its quota by changing IP or serverless instance. */
+export async function rateLimitSubject(
+  subject: string,
+  opts: { windowMs: number; max: number },
+  scope: string
+): Promise<RateLimitResult> {
+  const secret = process.env.NEXTAUTH_SECRET || process.env.DATABASE_URL;
+  if (!secret) throw new Error("DATABASE_URL is required for rate limiting.");
+  const now = Date.now();
+  const bucketStart = Math.floor(now / opts.windowMs) * opts.windowMs;
+  const key = createHmac("sha256", secret).update(`${scope}:\0${subject}:\0${bucketStart}`).digest("hex");
   const client = await getRateLimitClient();
   const bucket = await client.db().collection<{ _id: string; hits: number; expiresAt: Date }>("AuthRateLimit")
     .findOneAndUpdate(

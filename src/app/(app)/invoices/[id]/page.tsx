@@ -41,17 +41,56 @@ import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
 import { EMPTY_COMPANY } from "@/lib/types";
 import type { Invoice } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const router = useRouter();
   const invoices = useAppStore((s) => s.invoices);
-  const invoice = invoices.find((i) => i.id === id);
+  const [detail, setDetail] = React.useState<Invoice | null>(null);
+  const invoice = invoices.find((i) => i.id === id && i.detailsLoaded !== false) ?? (detail?.id === id ? detail : null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [attempt, setAttempt] = React.useState(0);
+  // Fetch one authorised detail, including the original XML/UPO. Opening a document
+  // never requires loading every invoice in the account first.
+  React.useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true); setError(null); setDetail(null);
+    let busy = false;
+    const refresh = async () => {
+      if (busy || controller.signal.aborted) return;
+      busy = true;
+      try {
+        const response = await fetch(`/api/invoices/${encodeURIComponent(id)}`, {
+          cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Nie udało się wczytać dokumentu.");
+        if (!controller.signal.aborted) { setDetail(data.invoice); useAppStore.getState().applyInvoice(data.invoice); }
+      } catch (failure) {
+        if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : "Nie udało się wczytać dokumentu.");
+      } finally { busy = false; if (!controller.signal.aborted) setLoading(false); }
+    };
+    void refresh();
+    const foreground = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", foreground);
+    return () => { controller.abort(); document.removeEventListener("visibilitychange", foreground); };
+  }, [id, attempt]);
+
+  if (loading) return (
+    <div className="space-y-6" aria-busy="true">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-[560px] w-full" />
+      <p className="sr-only">Ładowanie dokumentu…</p>
+    </div>
+  );
 
   if (!invoice) {
     return (
       <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <p className="text-lg font-semibold">Nie znaleziono faktury</p>
+        <p className="text-lg font-semibold">{error || "Nie znaleziono faktury"}</p>
         <p className="max-w-md text-[13px] text-muted-foreground">
           Dokument o identyfikatorze <code className="rounded bg-muted px-1.5 py-0.5">{id}</code>{" "}
           nie istnieje lub został usunięty.
@@ -59,6 +98,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <Button onClick={() => router.push("/invoices")}>
           <ArrowLeft className="h-4 w-4" /> Wróć do listy
         </Button>
+        {error && <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>Spróbuj ponownie</Button>}
       </div>
     );
   }
@@ -96,7 +136,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd aktualizacji");
-      await useAppStore.getState().revalidate();
+      const updated = await fetch(`/api/invoices/${invoice.id}`, { cache: "no-store", signal: AbortSignal.timeout(15000) });
+      if (updated.ok) useAppStore.getState().applyInvoice((await updated.json()).invoice);
       toast(
         targetStatus === "approved" ? "success" : "info",
         targetStatus === "approved" ? "Zatwierdzono fakturę dla księgowości" : "Cofnięto akceptację",

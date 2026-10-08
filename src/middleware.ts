@@ -59,6 +59,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password") ||
+    pathname === "/verify-email" ||
     pathname.startsWith("/invite") ||
     pathname.startsWith("/portal") ||
     isPublicSeoPath ||

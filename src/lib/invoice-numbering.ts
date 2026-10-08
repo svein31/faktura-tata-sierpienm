@@ -38,7 +38,8 @@ export function invoicePrefix(type: string, isCorrection?: boolean, isProforma?:
   return isCorrection ? "KOR" : isProforma ? "PRO" : type === "purchase" ? "FZ" : "FV";
 }
 
-export function nextFormattedInvoiceNumber(pattern: string, numbers: string[], date: string, prefix: string): string {
+/** The same matcher is used by browser previews and the bounded server aggregate. */
+export function invoiceNumberSeries(pattern: string, date: string, prefix: string) {
   const parsedDate = new Date(`${date}T12:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) throw new Error("Nieprawidłowa data wystawienia.");
   const parts = parseInvoicePattern(pattern);
@@ -53,6 +54,20 @@ export function nextFormattedInvoiceNumber(pattern: string, numbers: string[], d
     if (values[part.token!]) return literalRegex(values[part.token!]);
     return "(\\d+)";
   }).join("") + "$");
+  return { regex, format: (counter: number) => {
+    if (!Number.isSafeInteger(counter) || counter < 1) throw new Error("Licznik numeracji przekracza obsługiwany zakres.");
+    const result = parts.map(part => {
+      if (part.literal !== undefined) return part.literal;
+      if (values[part.token!]) return values[part.token!];
+      return String(counter).padStart(part.token!.length, "0");
+    }).join("");
+    if (result.length > 50) throw new Error("Numer faktury może mieć maksymalnie 50 znaków. Skróć wzór.");
+    return result;
+  } };
+}
+
+export function nextFormattedInvoiceNumber(pattern: string, numbers: string[], date: string, prefix: string): string {
+  const { regex, format } = invoiceNumberSeries(pattern, date, prefix);
   let max = 0;
   for (const number of numbers) {
     const matched = regex.exec(number);
@@ -65,13 +80,7 @@ export function nextFormattedInvoiceNumber(pattern: string, numbers: string[], d
   // If the pattern has no year/month marker, matching every previous number keeps it unique.
   const next = max + 1;
   if (!Number.isSafeInteger(next)) throw new Error("Licznik numeracji przekracza obsługiwany zakres.");
-  const result = parts.map(part => {
-    if (part.literal !== undefined) return part.literal;
-    if (values[part.token!]) return values[part.token!];
-    return String(next).padStart(part.token!.length, "0");
-  }).join("");
-  if (result.length > 50) throw new Error("Numer faktury może mieć maksymalnie 50 znaków. Skróć wzór.");
-  return result;
+  return format(next);
 }
 
 /** Only the explicitly selected numeric fragment becomes a counter; other text stays literal. */

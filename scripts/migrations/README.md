@@ -39,3 +39,19 @@ Tworzy indeks TTL na `AuthRateLimit.expiresAt` (liczniki logowania, rejestracji 
 ### 017-launch-safety
 
 Dodaje unikalny indeks `BillingCheckoutState.userId` dla trwałych prób zakupu Pro i wspólnej blokady rozliczeń oraz indeks wyboru oczekujących e-maili KSeF na `Invoice`. Przed uruchomieniem nowej aplikacji wykonaj `npm run db:migrate -- up`; nowe opcjonalne pola nie wymagają nadpisywania istniejących faktur. Migracja up → up → down → up jest sprawdzana na izolowanej bazie. Rollback usuwa tylko dodane indeksy i zachowuje próby Checkout, historię oraz stany wysyłki. Przed cofnięciem kodu zatrzymaj worker, aby nie powtórzyć wysyłek zapisanych jako `sending` lub `verify_needed`.
+
+### 018-performance-indexes
+
+Dodaje dziewięć nieunikalnych indeksów numerów i historii faktur, katalogów i powiadomień. Pomija już istniejące równoważne klucze niezależnie od nazwy. Down usuwa tylko indeksy należące do checkpointu i zachowuje dokumenty; regresja porównuje dane up/up/down/up i rzeczywisty plan zapytań. Kierunki indeksów są odwzorowane w schema Prisma.
+
+### 019-email-safety
+
+Dodaje unikalne klucze deduplikacji ręcznych e-maili i potwierdzeń adresu, indeksy odbiorców/faktury/stanu oraz TTL jednorazowych tokenów. Nowe konta wymagają dowodu adresu; istniejące nie otrzymują wstecznego obowiązku. Opcjonalne liczniki fencing i pola rozstrzygnięcia nie nadpisują faktur ani kont. Down pozostawia tokeny, historię i niepewne wysyłki, usuwając tylko dodane indeksy. Przed cofaniem kodu zatrzymaj wysyłki; starszy kod nie zna trwałych blokad.
+
+### 020-pilot-metrics
+
+Dodaje TTL `expiresAt` i indeks daty na `PilotMetric`, TTL oraz indeks pseudonimu i daty/metryki na `PilotVital`. Pomiar jest domyślnie wyłączony bez osobnego sekretu i aktualnej zgody analitycznej. Rekordy mają maksymalnie 30-dniową retencję, a raport filtruje wygasłe dane także przed sprzątaniem MongoDB. Down usuwa tylko założone indeksy, nie dane biznesowe; przed rollbackiem wyłącz `PILOT_METRICS_SECRET`, aby nie pozostawić nowych pomiarów bez retencji. Nie ma migracji danych faktur ani relacji do użytkowników.
+
+### 021-queue-throughput
+
+Dodaje pięć indeksów najstarszych zadań, wygasłych blokad i automatycznych e-maili. Nie zmienia statusów ani dokumentów. Down usuwa wyłącznie indeksy utworzone przez checkpoint. Operator obserwuje agregat kolejki i wiek zaległości; sama migracja nie zwiększa limitu czasu ani liczby instancji Netlify.

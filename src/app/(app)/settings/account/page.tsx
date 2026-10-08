@@ -40,6 +40,7 @@ import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { SubscriptionCard } from "@/components/subscription/subscription-card";
+import { EmailVerificationNotice } from "@/components/email-verification-notice";
 
 export default function AccountSettingsPage() {
   const toast = useToast();
@@ -148,7 +149,7 @@ export default function AccountSettingsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error || "Nie udało się zmienić adresu e-mail.");
-      toast("success", "Adres e-mail został zmieniony", `Nowy e-mail: ${data.email}`);
+      toast("success", "Potwierdź zmianę adresu", data.message);
       setNewEmailDraft("");
       setEmailAuthPassword("");
     } catch (err) {
@@ -271,6 +272,7 @@ export default function AccountSettingsPage() {
         }
       />
 
+      <EmailVerificationNotice />
       <Tabs
         className="max-w-full overflow-x-auto"
         value={activeTab}

@@ -10,7 +10,7 @@ export async function GET() {
   const startedAt = process.uptime();
   try {
     // Sprawdzenie dostępności bazy MongoDB
-    await prisma.user.count();
+    await prisma.$runCommandRaw({ ping: 1 });
     return Response.json(
       {
         ok: true,

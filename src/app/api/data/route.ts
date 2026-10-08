@@ -1,4 +1,4 @@
-import { accessibleCompanyIds as permittedCompanyIds, catalogWhere } from "@/lib/company-scope";
+import { filterCompanyIdsByMfa, catalogWhere } from "@/lib/company-scope";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -8,7 +8,6 @@ import {
   companyProfileToDto,
   companyToDto,
   contractorToDto,
-  invoiceToDto,
   ksefToDto,
   notificationToDto,
   prefsToDto,
@@ -16,6 +15,7 @@ import {
 } from "@/lib/dto";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
 import type { CompanyRole } from "@/lib/types";
+import { invoiceBootstrapScope, readInvoiceSummaries } from "@/lib/invoice-summary";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -34,23 +34,25 @@ export async function GET(req: Request) {
     }
 
     // 1. Pobierz członkostwa w zespołach
-    const memberships = await prisma.companyMember.findMany({
-      where: { userId: user.id },
-      include: {
-        company: {
-          include: { bankAccounts: true },
+    const [memberships, initialOwnedCompanies, companySettings] = await Promise.all([
+      prisma.companyMember.findMany({
+        where: { userId: user.id },
+        include: {
+          company: {
+            include: { bankAccounts: true },
+          },
         },
-      },
-    });
+      }),
 
     // 2. Pobierz profile własne
-    let ownedCompanies = await prisma.companyProfile.findMany({
-      where: { userId: user.id },
-      include: { bankAccounts: true },
-      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
-    });
-
-    const companySettings = await prisma.companySettings.findUnique({ where: { userId: user.id } });
+      prisma.companyProfile.findMany({
+        where: { userId: user.id },
+        include: { bankAccounts: true },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+      }),
+      prisma.companySettings.findUnique({ where: { userId: user.id } }),
+    ]);
+    let ownedCompanies = initialOwnedCompanies;
 
     // Automatyczna migracja starego profilu CompanySettings jeśli użytkownik nie ma jeszcze CompanyProfile
     if (ownedCompanies.length === 0 && companySettings && (companySettings.name || companySettings.nip)) {
@@ -120,7 +122,7 @@ export async function GET(req: Request) {
       companyMap.set(m.companyId,dto);
     }
 
-    const permitted = new Set(await permittedCompanyIds(user.id));
+    const permitted = new Set(await filterCompanyIdsByMfa(user.id, [...companyMap.keys()]));
     const allCompanies = Array.from(companyMap.values()).filter(c => permitted.has(c.id));
     const accessibleCompanyIds = allCompanies.map((c) => c.id);
     const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
@@ -139,21 +141,7 @@ export async function GET(req: Request) {
         where: catalogWhere(user.id, accessibleCompanyIds),
         orderBy: { createdAt: "desc" },
       }),
-      listMode ? Promise.resolve([]) : prisma.invoice.findMany({
-        where: {
-          OR: [
-            { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] },
-            { sellerCompanyId: { in: accessibleCompanyIds } },
-          ],
-        },
-        include: {
-          sellerCompany: {
-            include: { bankAccounts: true },
-          },
-          payments: true,
-        },
-        orderBy: { createdAt: "desc" },
-      }),
+      listMode ? Promise.resolve([]) : readInvoiceSummaries(prisma, invoiceBootstrapScope(user.id, accessibleCompanyIds)),
       prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 50 }),
       prisma.notificationPreference.findUnique({ where: { userId: user.id } }),
     ]);
@@ -166,7 +154,7 @@ export async function GET(req: Request) {
       ksef: ksef ? ksefToDto(ksef) : null,
       contractors: contractors.map(contractorToDto),
       products: products.map(productToDto),
-      invoices: invoices.map(invoiceToDto),
+      invoices,
       notifications: notifications.map(notificationToDto),
       notificationPrefs: prefsToDto(prefs),
     });

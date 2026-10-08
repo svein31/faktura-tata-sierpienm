@@ -9,18 +9,18 @@ async function withSender(callback) {
   const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
   const previousFetch = global.fetch;
   const deliveries = [];
-  let smtpError;
+  let smtpError, pendingDelivery = false, closed = 0;
   try {
     for (const name of names) delete process.env[name];
     process.env.SMTP_HOST = 'stub.example.test';
     Module._load = function(request, parent, main) {
-      if (request === 'nodemailer') return { createTransport: () => ({ sendMail: async payload => { deliveries.push(payload); if (smtpError) throw smtpError; return { messageId: 'stub-message-id' }; } }) };
+      if (request === 'nodemailer') return { createTransport: () => ({ close:()=>{closed++;}, sendMail: async payload => { deliveries.push(payload); if(pendingDelivery) return new Promise(()=>{}); if (smtpError) throw smtpError; return { messageId: 'stub-message-id' }; } }) };
       return originalLoad.call(this, request, parent, main);
     };
     delete require.cache[senderPath];
     const sender = require(senderPath);
     Module._load = originalLoad;
-    await callback({ ...sender, deliveries, setError: error => { smtpError = error; } });
+    await callback({ ...sender, deliveries, setError: error => { smtpError = error; }, holdDelivery:()=>{pendingDelivery=true;}, closed:()=>closed });
   } finally {
     Module._load = originalLoad;
     global.fetch = previousFetch;
@@ -35,6 +35,22 @@ test('automatic SMTP timeout has one attempt and an explicitly uncertain result'
     fixture.setError(Object.assign(new Error('Timeout after DATA'), { code: 'ETIMEDOUT', command: 'DATA' }));
     await assert.rejects(fixture.sendEmail(message), error => error.deliveryUncertain === true);
     assert.equal(fixture.deliveries.length, 1, 'SMTP must not retry an ambiguous auto-email inside the transport');
+  });
+});
+test('SMTP worker deadline closes the connection and leaves one ambiguous provider attempt',async()=>{
+  await withSender(async fixture=>{
+    fixture.holdDelivery();const controller=new AbortController();
+    const delivery=fixture.sendEmail({...message,signal:controller.signal});
+    controller.abort();
+    await assert.rejects(delivery,error=>error.deliveryUncertain===true);
+    assert.equal(fixture.deliveries.length,1);assert.equal(fixture.closed(),1);
+  });
+});
+test('an already expired email deadline never calls the provider',async()=>{
+  await withSender(async fixture=>{
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(fixture.sendEmail({...message,signal:controller.signal}),error=>error.deliveryUncertain===false);
+    assert.equal(fixture.deliveries.length,0);
   });
 });
 test('manual SMTP does not retry when the DATA response is lost either', async () => {

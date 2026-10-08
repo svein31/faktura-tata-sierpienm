@@ -1,6 +1,8 @@
 import { getSessionUser, normalizeEmail, verifyPassword } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { prisma } from "@/lib/db";
+import { requestEmailVerification } from "@/lib/email/verification";
+import { rateLimitShared, rateLimitSubject } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,6 +18,9 @@ export async function POST(req: Request) {
     if (!user) {
       throw new ApiError(401, "Nie jesteś zalogowany.", "UNAUTHENTICATED");
     }
+    const ipLimit = await rateLimitShared(req, { max: 10, windowMs: 60 * 60_000 }, "change-email");
+    const accountLimit = await rateLimitSubject(user.id, { max: 6, windowMs: 24 * 60 * 60_000 }, "change-email-user");
+    if (!ipLimit.allowed || !accountLimit.allowed) throw new ApiError(429, "Zbyt wiele prób zmiany adresu. Spróbuj ponownie później.", "RATE_LIMITED");
 
     const body = await readJson(req);
     const newEmail = normalizeEmail(str(body.newEmail));
@@ -24,7 +29,7 @@ export async function POST(req: Request) {
     if (!newEmail) {
       throw new ApiError(400, "Podaj nowy adres e-mail.");
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(newEmail)) {
+    if (newEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(newEmail)) {
       throw new ApiError(400, "Podany adres e-mail ma nieprawidłowy format.");
     }
     if (!currentPassword) {
@@ -49,16 +54,17 @@ export async function POST(req: Request) {
       throw new ApiError(409, "Konto z tym adresem e-mail już istnieje w systemie.");
     }
 
-    // 3. Aktualizacja e-maila w bazie
-    const updated = await prisma.user.update({
-      where: { id: user.id },
-      data: { email: newEmail },
-    });
+    // The login address changes only after proof of ownership of the target mailbox.
+    const result = await requestEmailVerification(user.id, { targetEmail: newEmail });
+    if (result.delivery === "failed" || result.delivery === "not-configured")
+      throw new ApiError(503, "Nie udało się wysłać linku potwierdzającego. Dotychczasowy adres pozostaje aktywny.", "VERIFICATION_EMAIL_UNAVAILABLE");
 
     return json({
       success: true,
-      message: "Adres e-mail został pomyślnie zaktualizowany.",
-      email: updated.email,
+      pending: true,
+      delivery: result.delivery,
+      message: result.delivery === "accepted" ? "Serwer pocztowy przyjął link wysłany na nowy adres. Potwierdź go, aby zmienić adres logowania. Dotychczasowy adres pozostaje aktywny do potwierdzenia." : "Nie można potwierdzić wysyłki. Sprawdź nową skrzynkę i folder Spam. Dotychczasowy adres pozostaje aktywny do potwierdzenia.",
+      email: user.email,
     });
   } catch (e) {
     return handleApiError(e);

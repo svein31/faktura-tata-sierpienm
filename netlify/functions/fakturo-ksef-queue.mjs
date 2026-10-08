@@ -13,5 +13,11 @@ export default async function () {
     redirect: 'error',
   });
   if (!response.ok) throw new Error(`KSeF queue worker failed: ${response.status}`);
+  const result = await response.json();
+  if (result.success !== true) throw new Error('KSeF queue worker did not confirm a successful run');
+  // Counts and runtime only. Never log document IDs, provider errors or recipient addresses.
+  console.log(JSON.stringify({ kind: 'ksef_queue_run', processed: result.processedCount, verificationChecked: result.verificationChecked,
+    emailChecked: result.autoEmail?.checked, emailAccepted: result.autoEmail?.accepted,
+    elapsedMs: result.elapsedMs, budgetMs: result.budgetMs, budgetExhausted: result.budgetExhausted, deferredTasks: result.deferredTasks }));
   return new Response(null, { status: 204 });
 }

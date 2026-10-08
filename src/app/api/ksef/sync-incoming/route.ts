@@ -10,6 +10,7 @@ import { KsefApiError, KsefClient, type KsefInvoiceHeader } from "@/lib/ksef/cli
 import type { KsefEnvironment } from "@/lib/ksef/constants";
 import { parseFa3IncomingInvoice } from "@/lib/ksef/incomingInvoice";
 import { sendEmail } from "@/lib/email/sender";
+import { isEmailVerifiedForSending } from "@/lib/email/verification";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -328,7 +329,7 @@ export async function performIncomingSync(companyId?: string | null) {
     }).catch(() => undefined);
 
     const notifyEmail = settings?.autoSyncNotifyEmail?.trim() || user.email;
-    if (notifyEmail) {
+    if (notifyEmail && (notifyEmail.toLowerCase() === user.email.toLowerCase() || isEmailVerifiedForSending(user))) {
       const rowsHtml = imported.map((inv: any) => `
         <tr style="border-bottom: 1px solid #e5e7eb;">
           <td style="padding: 10px; font-weight: bold;">${inv.number}</td>

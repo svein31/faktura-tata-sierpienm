@@ -1,6 +1,6 @@
 import { auditFeatureControls } from "./feature-browser-checks.mjs";
 import assert from 'node:assert/strict';
-import { auditMobileExperience, mobileLayoutDefects } from './mobile-audit.mjs';
+import { auditMobileExperience, mobileLayoutDefects, waitForRenderedLayout } from './mobile-audit.mjs';
 import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base, db) {
   const invoiceDate = new Date().toISOString().slice(0, 10);
@@ -203,7 +203,7 @@ export async function browserChecks(base, db) {
       await expect(page.getByRole('heading').first()).toBeVisible();
       if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
       await expect(page.locator('main h1').first()).toBeVisible();
-      await page.waitForLoadState('networkidle');
+      await waitForRenderedLayout(page);
       const found=await mobileLayoutDefects(page);
       if(found.length) {mobileFailures.push({route,defects:found});console.log('[basic-mobile-audit] '+JSON.stringify(mobileFailures.at(-1)));}
     }

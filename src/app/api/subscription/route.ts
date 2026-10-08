@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { currentInvoiceQuota } from "@/lib/invoice-quota";
+import { recordPilotEvent } from "@/lib/pilot-metrics";
 import {
   SUBSCRIPTION_PLANS,
   SUBSCRIPTION_STATUS_LABELS,
@@ -13,7 +14,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const user = await getSessionUser();
     if (!user) throw new ApiError(401, "Nieautoryzowany.");
@@ -26,6 +27,7 @@ export async function GET() {
         currentPeriodEnd: true,
         cancelAtPeriodEnd: true,
         stripeCustomerId: true,
+        stripeSubscriptionId: true,
         accessSource: true,
       },
     });
@@ -42,6 +44,8 @@ export async function GET() {
     const isPro =
       isSubscriptionStatusActive(status) &&
       (!record?.currentPeriodEnd || record.currentPeriodEnd.getTime() > Date.now());
+
+    if (isPro && record?.stripeSubscriptionId && record.accessSource !== "complimentary") recordPilotEvent(req, "pro");
 
     return json({
       plans: SUBSCRIPTION_PLANS,

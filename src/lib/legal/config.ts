@@ -8,8 +8,8 @@
 
 export const LEGAL_VERSIONS = {
   terms: "1.1.0-2026-10-07",
-  privacy: "1.1.0-2026-10-07",
-  cookies: "1.0.0-2026-09-13",
+  privacy: "1.2.0-2026-10-08",
+  cookies: "1.1.0-2026-10-08",
   dpa: "1.1.0-2026-10-07",
   subprocessors: "1.0.0-2026-09-13",
 } as const;
@@ -17,8 +17,8 @@ export const LEGAL_VERSIONS = {
 export const EFFECTIVE_DATE = "7 października 2026 r.";
 export const LEGAL_EFFECTIVE_DATES = {
   terms: EFFECTIVE_DATE,
-  privacy: EFFECTIVE_DATE,
-  cookies: "13 września 2026 r.",
+  privacy: "8 października 2026 r.",
+  cookies: "8 października 2026 r.",
   dpa: EFFECTIVE_DATE,
   subprocessors: "13 września 2026 r.",
 } as const;
@@ -140,6 +140,15 @@ export interface CookieItem {
  * Rzeczywisty inwentarz plików cookies i technologii pamięci przeglądarki.
  */
 export const COOKIE_INVENTORY: CookieItem[] = [
+  {
+    name: "fakturo_pilot",
+    category: "analytics",
+    categoryLabel: "Analityczne (opcjonalne)",
+    provider: "fakturaprosto.pl (własne)",
+    purpose: "Pseudonim przeglądarki do dobrowolnego pomiaru etapów korzystania i wydajności. HttpOnly, Secure, SameSite=Lax; bez danych faktur i adresów URL.",
+    expiry: "Maksymalnie 30 dni, usuwane przy wycofaniu zgody",
+    type: "cookie",
+  },
   {
     name: "auth_session / fakturaprosto_session / fakturo_session",
     category: "essential",

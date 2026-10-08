@@ -251,6 +251,8 @@ export function invoiceToDto(
     ksefNumber: i.ksefNumber ?? null,
     referenceNumber: i.referenceNumber ?? null,
     upoXml: i.upoXml ?? null,
+    hasUpo: Boolean(i.upoXml?.trim()),
+    detailsLoaded: true,
     ksefXml: i.ksefXml ?? null,
     sentAt: i.sentAt ? i.sentAt.toISOString() : null,
     sentToEmail: i.sentToEmail ?? null,
@@ -426,6 +428,9 @@ export function emailLogToDto(l: any): InvoiceEmailLog {
     provider: l.provider ?? "smtp",
     messageId: l.messageId ?? null,
     error: l.error ?? null,
+    resolutionAt: l.resolutionAt ? (l.resolutionAt instanceof Date ? l.resolutionAt.toISOString() : String(l.resolutionAt)) : undefined,
+    resolutionResult: l.resolutionResult ?? undefined,
+    manualDelivery: l.manualDelivery === true,
     sentAt: l.sentAt instanceof Date ? l.sentAt.toISOString() : String(l.sentAt),
     userName: l.user?.name ?? undefined,
   };

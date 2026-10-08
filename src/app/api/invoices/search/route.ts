@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { objectId } from "@/lib/company-scope";
-import { invoiceToDto } from "@/lib/dto";
+import { invoiceContractorSearchLookup, readInvoiceSummaries } from "@/lib/invoice-summary";
 import { effectiveStatusExpression, invoiceSearchParams, INVOICE_PAGE_SIZE, literalRegex } from "@/lib/invoice-search";
 export async function GET(req: Request) {
   try {
@@ -28,9 +28,7 @@ export async function GET(req: Request) {
     const selection: Record<string, unknown>[] = [{ $match: match }];
     if (filters.search) {
       // Join inside the scoped query: no unbounded list of contractor ids in the browser or request.
-      selection.push({ $lookup: { from: "Contractor", let: { id: "$contractorId" }, pipeline: [
-        { $match: { $expr: { $eq: [{ $toString: "$_id" }, "$$id"] } } }, { $project: { name: 1, nip: 1 } },
-      ], as: "searchContractor" } });
+      selection.push(invoiceContractorSearchLookup());
       const regex = { $regex: literalRegex(filters.search), $options: "i" };
       selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name", "searchContractor.nip"].map(field => ({ [field]: regex })) } });
     }
@@ -48,8 +46,8 @@ export async function GET(req: Request) {
     type Facet = { counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }[]; total: { value: number }[]; rows: { id: string }[] };
     const result = await prisma.invoice.aggregateRaw({ pipeline: stages as Prisma.InputJsonObject[] }) as unknown as Facet[];
     const data = result[0], ids = data.rows.slice(0, INVOICE_PAGE_SIZE).map(row => row.id);
-    const rows = await prisma.invoice.findMany({ where: { id: { in: ids }, ...(unassigned ? { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] } : { sellerCompanyId: companyId! }) }, include: { sellerCompany: { include: { bankAccounts: true } }, payments: true } });
+    const rows = await readInvoiceSummaries(prisma, { ...scope, _id: { $in: ids.map($oid => ({ $oid })) } });
     const byId = new Map(rows.map(row => [row.id, row]));
-    return json({ invoices: ids.flatMap(id => byId.has(id) ? [invoiceToDto(byId.get(id)!)] : []), total: data.total[0]?.value || 0, counts: data.counts[0] || { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: data.rows.length > INVOICE_PAGE_SIZE ? ids.at(-1) : null });
+    return json({ invoices: ids.flatMap(id => byId.has(id) ? [byId.get(id)!] : []), total: data.total[0]?.value || 0, counts: data.counts[0] || { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: data.rows.length > INVOICE_PAGE_SIZE ? ids.at(-1) : null });
   } catch (e) { return handleApiError(e); }
 }

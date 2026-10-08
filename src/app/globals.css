@@ -98,6 +98,14 @@
 }
 
 @layer utilities {
+  @keyframes toast-enter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-toast-enter {
+    animation: toast-enter 180ms ease-out;
+  }
+
   @keyframes select-enter {
     from { opacity: 0; transform: translateY(-4px) scale(0.985); }
     to { opacity: 1; transform: translateY(0) scale(1); }

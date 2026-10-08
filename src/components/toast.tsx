@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type ToastKind = "success" | "error" | "info" | "warning";
 interface ToastItem {
@@ -51,20 +49,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="no-print pointer-events-none fixed bottom-5 right-5 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
-        <AnimatePresence>
+      <div aria-live="polite" aria-atomic="false" className="no-print pointer-events-none fixed bottom-5 right-5 z-[70] flex w-[min(92vw,360px)] flex-col gap-2">
           {toasts.map((t) => (
-            <motion.div
+            <div
               key={t.id}
-              layout
-              initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                "pointer-events-auto flex items-start gap-3 rounded-2xl border p-3.5 shadow-xl backdrop-blur-xl",
-                kindStyles[t.kind]
-              )}
+              className={`pointer-events-auto flex items-start gap-3 rounded-2xl border p-3.5 shadow-xl motion-safe:animate-toast-enter ${kindStyles[t.kind]}`}
             >
               <div className="mt-0.5 shrink-0 rounded-lg p-1 bg-muted/50">{icons[t.kind]}</div>
               <div className="min-w-0">
@@ -75,9 +64,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   </p>
                 )}
               </div>
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

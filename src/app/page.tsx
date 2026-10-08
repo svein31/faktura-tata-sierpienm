@@ -47,17 +47,17 @@ export default function LandingPage() {
             <a href="#ksef" className="focus-visible:text-foreground">
               KSeF 2.0 & FA(3)
             </a>
-            <Link href="/cennik" className="focus-visible:text-foreground">Cennik</Link>
+            <Link prefetch={false} href="/cennik" className="focus-visible:text-foreground">Cennik</Link>
             <a href="#jak-dziala" className="focus-visible:text-foreground">
               Jak to działa
             </a>
-            <Link href="/demo" className="text-primary focus-visible:underline flex items-center gap-1">
+            <Link prefetch={false} href="/demo" className="text-primary focus-visible:underline flex items-center gap-1">
               <span>Piaskownica Demo</span>
               <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary border border-primary/20 font-semibold">
                 Bez logowania
               </span>
             </Link>
-            <Link href="/program-do-faktur" className="focus-visible:text-foreground">Program do faktur</Link>
+            <Link prefetch={false} href="/program-do-faktur" className="focus-visible:text-foreground">Program do faktur</Link>
           </nav>
 
           <LandingHeaderActions />
@@ -89,6 +89,7 @@ export default function LandingPage() {
             <div className="mt-6 flex flex-col sm:mt-8 sm:flex-row items-center justify-center gap-3">
               <LandingPrimaryAction />
               <Link
+                prefetch={false}
                 href="/demo"
                 className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/80 px-6 text-[14px] font-medium text-foreground hover:bg-muted/70 active:scale-95 transition-all shadow-sm"
               >
@@ -97,7 +98,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">Free: 5 faktur miesięcznie. Pro: 7 zł/miesiąc lub 59 zł/rok, brutto. <Link href="/cennik" className="text-primary underline">Porównaj plany</Link>.</p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">Free: 5 faktur miesięcznie. Pro: 7 zł/miesiąc lub 59 zł/rok, brutto. <Link prefetch={false} href="/cennik" className="text-primary underline">Porównaj plany</Link>.</p>
 
             <a href="#funkcje" className="mt-4 inline-block text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline md:hidden">Zobacz funkcje ↓</a>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px] text-muted-foreground">
@@ -219,7 +220,7 @@ export default function LandingPage() {
 
 
       <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card/40 py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Wspólne moduły aplikacji i więcej wystawionych dokumentów.</p><Link href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link className="underline" href="/regulamin">regulaminie</Link>.</p></div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Wspólne moduły aplikacji i więcej wystawionych dokumentów.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link prefetch={false} className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link prefetch={false} className="underline" href="/regulamin">regulaminie</Link>.</p></div>
       </section>
       {/* ── KLUCZOWE FUNKCJE ── */}
       <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
@@ -352,6 +353,7 @@ export default function LandingPage() {
 
           <div className="mt-14 text-center">
             <Link
+                prefetch={false}
               href="/register"
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-[13.5px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all"
             >
@@ -374,7 +376,7 @@ export default function LandingPage() {
               ["Netto, VAT i brutto — kalkulator", "/narzedzia/kalkulator-vat"],
               ["Stawki VAT na fakturze", "/vat"],
               ["Porównanie programów do faktur", "/porownania"],
-            ].map(([label, href]) => <Link key={href} href={href} className="rounded-xl border border-border bg-card p-4 text-sm font-medium hover:border-primary hover:text-primary">{label} →</Link>)}
+            ].map(([label, href]) => <Link prefetch={false} key={href} href={href} className="rounded-xl border border-border bg-card p-4 text-sm font-medium hover:border-primary hover:text-primary">{label} →</Link>)}
           </div>
         </div>
       </section>
@@ -389,13 +391,13 @@ export default function LandingPage() {
               <span>© {new Date().getFullYear()} FakturaProsto. Wszelkie prawa zastrzeżone.</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <Link href="/pomoc" className="hover:text-foreground transition-colors">Pomoc i kontakt</Link>
-              <Link href="/program-do-faktur" className="hover:text-foreground transition-colors">Darmowy program do faktur</Link>
-              <Link href="/faktury" className="hover:text-foreground transition-colors">Poradniki o fakturach</Link>
-              <Link href="/poradnik-ksef" className="hover:text-foreground transition-colors">KSeF 2026</Link>
-              <Link href="/narzedzia" className="hover:text-foreground transition-colors">Kalkulatory</Link>
-              <Link href="/cennik" className="hover:text-foreground transition-colors">Cennik Free i Pro</Link>
-              <Link href="/demo" className="hover:text-foreground transition-colors">
+              <Link prefetch={false} href="/pomoc" className="hover:text-foreground transition-colors">Pomoc i kontakt</Link>
+              <Link prefetch={false} href="/program-do-faktur" className="hover:text-foreground transition-colors">Darmowy program do faktur</Link>
+              <Link prefetch={false} href="/faktury" className="hover:text-foreground transition-colors">Poradniki o fakturach</Link>
+              <Link prefetch={false} href="/poradnik-ksef" className="hover:text-foreground transition-colors">KSeF 2026</Link>
+              <Link prefetch={false} href="/narzedzia" className="hover:text-foreground transition-colors">Kalkulatory</Link>
+              <Link prefetch={false} href="/cennik" className="hover:text-foreground transition-colors">Cennik Free i Pro</Link>
+              <Link prefetch={false} href="/demo" className="hover:text-foreground transition-colors">
                 Piaskownica Demo
               </Link>
               <LandingFooterActions />
@@ -403,11 +405,11 @@ export default function LandingPage() {
           </div>
           {/* Linki prawne */}
           <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/80">
-            <Link href="/regulamin" className="hover:text-foreground transition-colors">Regulamin</Link>
-            <Link href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">Polityka prywatności</Link>
-            <Link href="/polityka-cookies" className="hover:text-foreground transition-colors">Cookies</Link>
-            <Link href="/powierzenie-danych" className="hover:text-foreground transition-colors">DPA (art. 28)</Link>
-            <Link href="/podwykonawcy" className="hover:text-foreground transition-colors">Podwykonawcy</Link>
+            <Link prefetch={false} href="/regulamin" className="hover:text-foreground transition-colors">Regulamin</Link>
+            <Link prefetch={false} href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">Polityka prywatności</Link>
+            <Link prefetch={false} href="/polityka-cookies" className="hover:text-foreground transition-colors">Cookies</Link>
+            <Link prefetch={false} href="/powierzenie-danych" className="hover:text-foreground transition-colors">DPA (art. 28)</Link>
+            <Link prefetch={false} href="/podwykonawcy" className="hover:text-foreground transition-colors">Podwykonawcy</Link>
             <span className="text-border">|</span>
             <CookiePreferencesButton className="hover:text-foreground transition-colors cursor-pointer">
               Ustawienia prywatności

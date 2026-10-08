@@ -21,7 +21,8 @@
     "test:subscription": "node scripts/test-subscription-payment.cjs",
     "lint": "eslint src lib netlify --max-warnings=0",
     "test": "npm run test:fixes && node --test --test-concurrency=2 scripts/tests/*.test.cjs",
-    "verify": "npm run build && npm run typecheck && npm run lint && npm test && npm run test:integration"
+    "verify": "npm run build && npm run typecheck && npm run lint && npm test && npm run test:integration",
+    "test:mobile": "node scripts/browser-isolated.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

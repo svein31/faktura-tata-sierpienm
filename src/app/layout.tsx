@@ -1,16 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/toast";
 import { SessionProvider } from "@/lib/session-context";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
+import { PublicDeferred } from "@/components/public-deferred";
 
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-sans",
+// The Latin and Latin Extended A subsets preserve Polish names and variable weights.
+// Keeping the two real fonts ahead of the metric-adjusted fallback avoids mixing
+// Polish letters with Arial, while next/font gives both assets immutable hashes.
+const interLatin = localFont({
+  src: "./fonts/fakturaprosto-sans-latin-variable.woff2",
   display: "swap",
+  weight: "100 900",
+  adjustFontFallback: "Arial",
 });
+const interExtended = localFont({
+  src: "./fonts/fakturaprosto-sans-extended-variable.woff2",
+  display: "swap",
+  weight: "100 900",
+  adjustFontFallback: false,
+});
+const [latinFamily, ...latinFallback] = interLatin.style.fontFamily.split(",");
+const fontFamily = [latinFamily, interExtended.style.fontFamily, ...latinFallback].join(",");
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fakturaprosto.pl"),
@@ -51,16 +64,17 @@ try {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pl" suppressHydrationWarning className={`dark ${inter.variable}`}>
+    <html lang="pl" suppressHydrationWarning className="dark" style={{ "--font-sans": fontFamily } as React.CSSProperties}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${inter.className} font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen`}>
+      <body className="font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen">
         <ThemeProvider>
           <ToastProvider>
-            <SessionProvider>
+            <SessionProvider deferPublicCheck>
               {children}
               <CookieConsentBanner />
+              <PublicDeferred />
             </SessionProvider>
           </ToastProvider>
         </ThemeProvider>

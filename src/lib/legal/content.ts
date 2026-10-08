@@ -232,7 +232,8 @@ export const PRIVACY_POLICY: LegalDocument = {
 | **Wypełnienie obowiązków prawnych i podatkowych** | Dane rozliczeniowe, ewidencja księgowa, faktury za usługi (w razie płatności) | Art. 6 ust. 1 lit. c RODO w zw. z ustawą o VAT i ustawą o rachunkowości |
 | **Zapewnienie bezpieczeństwa teleinformatycznego i audyt** | Zanonimizowany adres IP, identyfikator sesji, znaczniki czasu operacji (Audit Log) | Art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes — ochrona przed atakami i rozliczalność) |
 | **Utrwalenie akceptacji regulaminu i zgód** | Wersja dokumentu, czas serwera, identyfikator użytkownika, status zgody | Art. 6 ust. 1 lit. c RODO w zw. z art. 5 ust. 2 RODO (zasada rozliczalności) |
-| **Komunikacja marketingowa (newsletter / nowości)** | Adres e-mail | Art. 6 ust. 1 lit. a RODO (dobrowolna zgoda — wyłącznie po zaznaczeniu opcjonalnego pola) |`,
+| **Komunikacja marketingowa (newsletter / nowości)** | Adres e-mail | Art. 6 ust. 1 lit. a RODO (dobrowolna zgoda — wyłącznie po zaznaczeniu opcjonalnego pola) |
+| **Dobrowolny pomiar korzystania i wydajności** | Pseudonim przeglądarki (HMAC), daty pięciu etapów korzystania, numeryczne TTFB/LCP/INP/CLS, ogólna klasa publiczne/aplikacja i telefon/desktop; bez URL, IP, User-Agent, e-maila, NIP-u, danych faktur i kwot | Art. 6 ust. 1 lit. a RODO i art. 399 PKE — wyłącznie aktualna zgoda analityczna; dane pseudonimowe, nie anonimowe |`,
     },
     {
       title: "3. Zróżnicowane okresy przechowywania danych (Retencja)",
@@ -244,7 +245,8 @@ export const PRIVACY_POLICY: LegalDocument = {
 4. **Rejestr zgód prawnych i akceptacji regulaminu**: Przechowywany w aktywnej bazie podczas posiadania Konta i usuwany wraz z Kontem. Aplikacja nie utrzymuje osobnego rejestru zgód po usunięciu Konta.
 5. **Kopie zapasowe (backupy bazy danych)**: Usunięcie z aktywnej bazy nie modyfikuje wcześniej wykonanych kopii. Dane mogą w nich pozostać do wygaśnięcia skonfigurowanej retencji. Okres i wykonywanie kopii zależą od wdrożonej konfiguracji Operatora i dostawcy; aplikacja nie narzuca automatycznego terminu 30 ani 60 dni. Kopie służą odzyskiwaniu po awarii, a nie dalszemu korzystaniu z usuniętego Konta.
 6. **Rozliczenia z Operatorem**: Historia płatności i wymagane dokumenty dotyczące zakupu usługi mogą pozostawać w systemie płatniczym Stripe lub w dokumentacji Operatora niezależnie od usunięcia Konta. Usunięcie Konta zatrzymuje jego subskrypcje; nie oznacza usunięcia historycznych rozliczeń u dostawcy płatności.
-7. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.`,
+7. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.
+8. **Opcjonalny pomiar pilota i wydajności**: Identyfikator przeglądarki, etapy i próbki wydajności wygasają najpóźniej 30 dni po utworzeniu identyfikatora. Wycofanie zgody usuwa etapy, próbki i cookie tej przeglądarki. Do końca pierwotnego terminu pozostaje wyłącznie HMAC oraz znacznik wycofania i data wygaśnięcia, aby zatrzymać zapisy już będące w trakcie przetwarzania. Dane nie są powiązane z Kontem; użycie innego urządzenia lub samodzielne usunięcie cookie uniemożliwia powiązanie poprzednich pomiarów, które wygasną automatycznie. Pomiar nie obejmuje wszystkich użytkowników i może pozostawać wyłączony przez Operatora.`,
     },
     {
       title: "4. Odbiorcy danych i podwykonawcy (Podprocesorzy)",
@@ -350,16 +352,17 @@ export const COOKIE_POLICY: LegalDocument = {
 | **auth_session** / **fakturaprosto_session** / **fakturo_session** | Cookie (HttpOnly, Secure) | Niezbędne | Utrzymanie aktywnej sesji zalogowanego Użytkownika, zabezpieczenie przed atakami CSRF. | 30 dni lub do wylogowania |
 | **__Secure-next-auth.session-token** | Cookie (HttpOnly, Secure) | Niezbędne | Bezpieczny token sesyjny frameworka NextAuth. | 30 dni |
 | **fakturaprosto_consent** / **fakturo_consent** | Cookie | Niezbędne | Zapamiętanie decyzji Użytkownika w przedmiocie zgód na pliki cookies (CMP). | 12 miesięcy |
+| **fakturo_pilot** | Cookie (HttpOnly, Secure, SameSite=Lax) | Analityczne (opcjonalne) | Pseudonim do dobrowolnego pomiaru etapów korzystania i TTFB/LCP/INP/CLS; bez danych faktur i adresów URL. | Maksymalnie 30 dni; usuwane przy wycofaniu zgody |
 | **fakturaprosto-theme** / **fakturo-theme** | LocalStorage | Niezbędne | Zapamiętanie wybranego trybu graficznego (ciemny / jasny) w celu uniknięcia migotania ekranu. | Trwałe (do wyczyszczenia) |
 | **pref_currency / pref_payment_terms** | LocalStorage | Funkcjonalne (opcjonalne) | Zapamiętanie preferowanych domyślnych ustawień wystawiania faktur (np. waluta EUR, termin 14 dni). | Trwałe |
 
-*Aktualny stan*: W Serwisie nie są wdrożone żadne zewnętrzne piksele śledzące (np. Meta Pixel) ani skrypty analityczne stron trzecich przesyłające dane poza infrastrukturę Operatora.`,
+*Aktualny stan*: W Serwisie nie są wdrożone żadne zewnętrzne piksele śledzące (np. Meta Pixel) ani skrypty analityczne stron trzecich przesyłające dane poza infrastrukturę Operatora. Własny pomiar pilota i wydajności uruchamia się wyłącznie po aktualnej zgodzie analitycznej i konfiguracji Operatora. Zapisujemy pseudonim HMAC, pięć etapów korzystania oraz numeryczne próbki wydajności z ogólną klasą strony i urządzenia. Identyfikator próbki jest hashowany. To dane pseudonimowe, nie anonimowe; nie zawierają danych faktur, e-maili, NIP-ów, IP, User-Agent ani odwiedzanych URL.`,
     },
     {
       title: "4. Zarządzanie zgodami i wycofanie zgody",
       content: `1. Użytkownik ma prawo w dowolnym momencie zmienić swoje preferencje lub wycofać uprzednio wyrażoną zgodę na opcjonalne pliki cookies.
 2. Wycofanie zgody jest równie łatwe jak jej udzielenie — w stopce każdej strony Serwisu oraz w Ustawieniach Konta znajduje się stały link **„Ustawienia prywatności / Cookies”**, który otwiera panel CMP.
-3. W przypadku wycofania zgody Serwis natychmiast zaprzestaje korzystania z danej kategorii technologii i podejmuje próbę usunięcia odpowiednich identyfikatorów z przeglądarki.
+3. W przypadku wycofania zgody Serwis natychmiast zaprzestaje korzystania z danej kategorii technologii i podejmuje próbę usunięcia odpowiednich identyfikatorów z przeglądarki. Wycofanie zgody analitycznej usuwa cookie pilota oraz etapy i próbki tej przeglądarki. W razie awarii połączenia usunięcie jest ponawiane po odzyskaniu kontaktu z serwisem. Sam HMAC ze znacznikiem wycofania i datą wygaśnięcia pozostaje do końca pierwotnych 30 dni wyłącznie po to, aby zablokować trwające zapisy.
 4. Użytkownik może także zarządzać plikami cookies bezpośrednio w ustawieniach swojej przeglądarki internetowej:
    - **Google Chrome**: Ustawienia → Prywatność i bezpieczeństwo → Pliki cookie i inne dane witryn.
    - **Mozilla Firefox**: Opcje → Prywatność i bezpieczeństwo → Ciasteczka i dane witryn.

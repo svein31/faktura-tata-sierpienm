@@ -20,7 +20,7 @@ import { Button } from "./button";
 import { Badge } from "./badge";
 import { Card } from "./card";
 import { cn } from "@/lib/utils";
-import { openOnboardingTour } from "@/components/onboarding/onboarding-tour";
+import { openOnboardingTour } from "@/components/onboarding/events";
 
 export { Tooltip, InfoTooltip, HelpTooltip } from "./tooltip";
 

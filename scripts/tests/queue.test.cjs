@@ -76,9 +76,59 @@ test('email outbox runs even when the KSeF queue is empty and keeps the authenti
   setup(); const db = mocked['@/lib/db'].prisma;
   db.ksefQueueTask.findMany = async()=>[];
   const calls = [];
-  mocked['@/lib/email/auto-send'] = { processKsefAutoEmails: async userId => { calls.push(userId); return {checked:1,accepted:1}; }, triggerAutoEmailOnKsef: async()=>{throw new Error('No KSeF task must start another send');} };
+  mocked['@/lib/email/auto-send'] = { processKsefAutoEmails: async (userId,options) => { calls.push({userId,options}); return {checked:1,accepted:1}; } };
   const route=require('../../src/app/api/ksef/queue/process/route.ts');
   const response = await route.POST(request()), body = await response.json();
-  assert.equal(response.status,200); assert.deepEqual(calls,['actor']);
+  assert.equal(response.status,200); assert.equal(calls.length,2); assert.ok(calls.every(call=>call.userId==='actor'));
+  assert.equal(calls[0].options.maintenanceOnly,true);assert.equal(calls[1].options.skipMaintenance,true);
+  assert.equal(calls[0].options.deadlineAtMs,calls[1].options.deadlineAtMs);
   assert.equal(body.processedCount,0); assert.deepEqual(body.autoEmail,{checked:1,accepted:1});
+});
+test('a slow status check stops starting new tasks and preserves an email reserve', async()=>{
+  const state=setup(); const db=mocked['@/lib/db'].prisma;
+  const actualNow=Date.now;let clock=actualNow();Date.now=()=>clock;
+  const first={id:'first',userId:'actor',invoiceId:'123456789012345678901234',invoice:{id:'123456789012345678901234',userId:'actor',sellerCompanyId:'company',sellerCompany:{nip:'5260301706'},type:'sale',referenceNumber:'reference',ksef:{sessionReferenceNumber:'session'}},attempts:0,maxAttempts:5,environment:'test'};
+  const second={...first,id:'second'};const claimed=[];const deadlines=[];const mail=[];
+  db.ksefQueueTask.findMany=async q=>q.where.status==='processing'?[]:[first,second];
+  db.ksefQueueTask.updateMany=async q=>{claimed.push(q.where.id);return {count:1};};
+  mocked['@/lib/ksef/index']={KsefClient:class{constructor(options){deadlines.push(options.deadlineAtMs);}async getInvoiceStatus(){clock+=14_000;return {status:'PROCESSING'};}}};
+  mocked['@/lib/email/auto-send']={processKsefAutoEmails:async(_scope,options)=>{mail.push({clock,options});return {checked:0,accepted:0};}};
+  try {
+    const route=require('../../src/app/api/ksef/queue/process/route.ts');
+    const body=await (await route.POST(request())).json();
+    assert.deepEqual(claimed,['first'],'Second task remains queued and unclaimed');
+    assert.equal(body.processedCount,1);assert.equal(body.deferredTasks,1);
+    assert.equal(deadlines[0],mail[0].options.deadlineAtMs-6_000);
+    assert.equal(mail[1].options.deadlineAtMs-mail[1].clock,6_000,'SMTP retains its budget after a slow MF call');
+    assert.equal(state.sends(),0);
+  } finally {Date.now=actualNow;}
+});
+test('expired request budget does not claim a KSeF job or submit a document',async()=>{
+  setup();const actualNow=Date.now;let clock=actualNow();Date.now=()=>clock;
+  let claims=0;const db=mocked['@/lib/db'].prisma;
+  db.ksefQueueTask.updateMany=async()=>{claims++;return {count:1};};
+  mocked['@/lib/email/auto-send']={processKsefAutoEmails:async(_scope,options)=>{if(options.maintenanceOnly)clock+=21_000;return {checked:0,accepted:0};}};
+  try {
+    const body=await (await require('../../src/app/api/ksef/queue/process/route.ts').POST(request())).json();
+    assert.equal(claims,0);assert.equal(body.processedCount,0);assert.equal(body.budgetExhausted,true);
+  }finally{Date.now=actualNow;}
+});
+test('a valid actor/NIP/environment MF session is reused without repeated authentication',async()=>{
+  const state=setup();const db=mocked['@/lib/db'].prisma;
+  const invoice={id:'123456789012345678901234',userId:'owner',sellerCompanyId:'company',sellerCompany:{nip:'5260301706',ksefToken:'synthetic-token'},type:'sale',referenceNumber:null,ksefStatus:'queued',ksefXml:'<Faktura>synthetic</Faktura>',version:1};
+  const task={id:'task',userId:'actor',invoiceId:invoice.id,invoice,attempts:0,maxAttempts:5,environment:'test'};
+  db.ksefQueueTask.findMany=async q=>q.where.status==='processing'?[]:[task];
+  db.ksefSession.upsert=async()=>{throw new Error('Valid session should not authenticate again');};
+  const submissions=[];let claims=0;
+  mocked['@/lib/ksef/transmission-claim']={claimKsefTransmission:async(_tx,input)=>{claims++;assert.equal(input.userId,'actor');}};
+  mocked['@/lib/ksef/index']={validateFa3Xml:()=>({ok:true}),KsefClient:class{
+    async loginWithKsefToken(){throw new Error('Valid scoped session should avoid authentication');}
+    async openOnlineSession(token){assert.equal(token,'own-token');return{referenceNumber:'online-session',symmetricKey:Buffer.alloc(32),iv:Buffer.alloc(16)};}
+    async sendInvoiceEncrypted(...args){submissions.push(args);return{elementReferenceNumber:'new-reference'};}
+  }};
+  const body=await (await require('../../src/app/api/ksef/queue/process/route.ts').POST(request())).json();
+  assert.equal(body.processedCount,1);assert.equal(claims,1);assert.equal(submissions.length,1);
+  assert.equal(submissions[0][0],'own-token');assert.equal(submissions[0][1],'online-session');
+  assert.equal(state.lookups[0].userId,'actor');assert.equal(state.lookups[0].nip,'5260301706');assert.equal(state.lookups[0].environment,'test');
+  assert.ok(state.lookups[0].validUntil.gt.getTime()>Date.now()+50_000);
 });
