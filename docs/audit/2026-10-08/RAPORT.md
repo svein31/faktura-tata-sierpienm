@@ -1,16 +1,36 @@
 # Audyt QA, naprawy i SEO FakturaProsto — 8–9 października 2026
 
-**Status: ukończona lokalna regresja final6 w opisanym zakresie.** Build, TypeScript, lint, 282 testy, pełny HTTP, axe oraz celowane kontrole aktualnej kompilacji przeszły. Zakres trzech silników ukończono w dwóch zgodnych przebiegach: Chromium/WebKit z pierwszego oraz pełny świeży Firefox z drugiego; zatrzymanego Firefox nie zaliczono. Testy zapisujące wykonywano wyłącznie na izolowanych, syntetycznych kontach i replice MongoDB. Produkcję badano odczytowo; jej wdrożenie pozostaje zablokowane limitem Netlify i nie odpowiada temu kodowi.
+**Status: lokalna regresja i pomiary final7 ukończone w opisanym zakresie.** W chwili zamrożenia raportu nie zweryfikowano jeszcze nowego zdalnego CI; dokładny SHA publikacji w historii main i odpowiedzi końcowej. [Addendum final7](dependency-followup-final7.md) oddziela nowe kontrole od historycznych dowodów final6. Nie przenosi się wyniku final6 na zależności po aktualizacji.
+
+**Historyczna regresja final6 jest ukończona w opisanym zakresie.** Build, TypeScript, lint, 282 testy, pełny HTTP, axe oraz celowane kontrole kompilacji final6 przeszły. Zakres trzech silników ukończono w dwóch zgodnych przebiegach: Chromium/WebKit z pierwszego oraz pełny świeży Firefox z drugiego; zatrzymanego Firefox nie zaliczono. Testy zapisujące wykonywano wyłącznie na izolowanych, syntetycznych kontach i replice MongoDB. Produkcję badano odczytowo; jej wdrożenie pozostaje zablokowane limitem Netlify i nie odpowiada temu kodowi.
 
 Naprawiono błędy obliczeń i korekt, księgi wpłat, uprawnień, kont, importów, wspólnych kontrolek i wykrywalności publicznych treści. Pętla kontroli ujawniła później także cookies w wydruku, utratę fokusu oraz nadmierny prefetch prywatnych tras; te problemy naprawiono i ponownie sprawdzono na final6. Ten raport **nie stwierdza przeklikania każdego mikroelementu, braku wszystkich możliwych błędów ani spełnienia TOP 5**.
 
-## Wydanie i dowody końcowego przebiegu
+## Aktualne wydanie final7 i ponowna regresja
+
+Aktualizacja po publikacji `87fb9afb170e5c04921aa22f1f8e674d0edf0645` naprawia zależności produkcyjne i indeksy nullable Stripe ID oraz izoluje finansowe fixture CI. Nie zmieniono plików aplikacji po kompilacji final7. Skrypty migracji i testów mają osobne hashe, ponieważ fingerprint aplikacji ich nie obejmuje.
+
+| Dowód aktualnego zakresu | Stan |
+| --- | --- |
+| Kompilacja / źródła | BUILD_ID `EtIKJoZ6X52nNorRlxheE`; SHA-256 `202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716` |
+| Build, TypeScript, lint i testy | PASS: każdy proces exit 0; 275 nazwanych + 7 test:fixes = 282, zero błędów i pominięć |
+| HTTP po migracji 022 | PASS: 135 wzorców / 193 metody / 442 kontrole, zero failures; 42 kontrole produktu/bezpieczeństwa oraz 46 publicznych HTML SEO. [Dowód](http-audit-final7-postmigration.json) |
+| Przeglądarki | Jedna rzeczywista inwokacja Chromium/WebKit/Firefox, exit 0: 1010 kontroli układu, 33863 obserwowane kontrolki i 246 nazwanych scenariuszy. To obserwacje i konkretne scenariusze, nie każdy stan wszystkich mikroelementów. [Dowód](browser-coverage-summary-final7.json) |
+| Axe | 90 tras / 180 ekranów, zero automatycznych naruszeń; 86 ekranów nadal wymaga oceny ręcznej. [Dowód](accessibility-routes-final7.json) |
+| Migracja Stripe 022 | PASS 12 natywnych grup oraz ponownie w rozszerzonym HTTP: prawdziwe ID nadal unikalne, dwa pending checkout i rzeczywiste nadanie subskrypcji współistnieją; checkpoint/kolacje/idempotencja/bezpieczny rollback. [Dowód i hashe](subscription-indexes-final7.json) |
+| Audyt zależności | Produkcyjny podzbiór 3 → 0. W narzędziach dev pozostaje 7 zgłoszonych węzłów: 5 high i 2 moderate; nie wykonano migracji Tailwind 4 |
+| Aktualna wydajność final7 | CDP LCP mediana **644 ms**, CLS 0; Lighthouse **95/100**, początkowy JS **116653 B / 113,92 KiB gzip**. Rampa **1317 żądań / 0 błędów**, maks. 20 wykonawców, p95 **538,5 ms**. [Pomiary](../../performance/WYNIKI-final7-2026-10-09.md) |
+| Wspólna ścieżka CI / publikacja | Pierwotny zdalny verify i audyt zależności FAIL; lokalna reprodukcja fixture oraz poprawki przeszły. W chwili zamrożenia raportu nowego zdalnego CI nie zweryfikowano; dokładny SHA publikacji w historii main i odpowiedzi końcowej |
+
+Final7 zachowuje 131 ujemnych odpowiedzi i 91 wpisów konsoli, w tym jeden WebKit anulowanego RSC; **nie jest to czysta konsola**. Odrębna macierz była przygotowana przed migracją 022 i miała wcześniej wczytany finansowy helper; nie dowodzi nowego układu indeksów ani wspólnego fixture HTTP. To naprawę ograniczeń bazy potwierdzają późniejsze natywne próby i rozszerzony HTTP. Cztery rzeczywiste wydruki A4, osobne 33 kontrole motywu/firm i agresywny pomiar prefetch pozostają dowodami final6; nie przeniesiono ich na final7. Szczegóły, pozostałe zgłoszenia i zakres: [dependency-followup-final7.md](dependency-followup-final7.md), [dependency-followup-final7.json](dependency-followup-final7.json).
+
+## Historyczne wydanie i dowody final6
 
 | Dowód | Stan |
 | --- | --- |
 | Commit bazowy | `0c4c726fb109ee209026e77541e8caf08a02c1fa` |
 | Gałąź docelowa | `main`; dokładny SHA publikacji w historii commitów i odpowiedzi końcowej. Publikacja kodu nie oznacza wdrożenia Netlify |
-| Końcowa kompilacja | BUILD_ID `21f_lBaQA8Ww--YiYgN1t`; SHA-256 źródeł `14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc`; bez późniejszych zmian źródeł aplikacji po kompilacji |
+| Historyczna kompilacja final6 | BUILD_ID `21f_lBaQA8Ww--YiYgN1t`; SHA-256 źródeł `14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc`; źródła pozostawały zgodne podczas pomiarów final6. Późniejsza aktualizacja zależności wymaga odrębnych dowodów final7 |
 | Build, TypeScript, lint | PASS: `npm run build`, `npm run typecheck`, `npm run lint`; logi `faktura-qa-{build,type,lint}-final6.log` |
 | Testy jednostkowe | PASS: 275 nazwanych i 7 `test:fixes`, łącznie 282, zero błędów i pominięć; `faktura-qa-tests-final6.log` |
 | SEO renderowanego HTML | PASS: 46 tras, metadata/H1/canonical/JSON-LD/sitemap/llms i prywatne noindex; nie jest to potwierdzenie indeksacji wszystkich URL-i przez Google |
@@ -23,16 +43,18 @@ Naprawiono błędy obliczeń i korekt, księgi wpłat, uprawnień, kont, import�
 | Prywatne układy, clipboard i filtry | PASS: 36 ekranów kosztów/zespołu, zero overflow i naruszeń axe; 9 scenariuszy clipboard bez pozornego sukcesu, 24 stany filtrów z rzeczywistym stylem/wierszami/klawiaturą |
 | Motyw i lista firm — dodatkowy desktop | 33 aktualne kontrole myszą/klawiaturą w trzech silnikach: light/dark i reload, System/media, wybór dwóch firm i Escape/focus; zero submit/zapisów interakcji. [theme-company-final6.json](theme-company-final6.json). Test1280×900; inne warianty i próby produkcji nieweryfikowane |
 | Cookies i rzeczywisty wydruk | PASS: 24 scenariusze print-media/fokusu w trzech silnikach; 4 krótkie dokumenty A4 Chromium, 92 asercje i 8 rzeczywiście obejrzanych renderów PDF. Inne warianty/drukarki pozostają nieweryfikowane |
-| Aktualna wydajność final6 | 3 próby CDP i 3 Lighthouse: mediana LCP 616 ms / 2423,92 ms, Lighthouse 97, start JS 113,81 KiB gzip; próba 1419 żądań z maks. 20 wykonawcami, zero błędów. Niespełnione progi i konfiguracja w [raporcie pomiarów](../../performance/WYNIKI-2026-10-09.md) |
+| Historyczna wydajność final6 | 3 próby CDP i 3 Lighthouse: mediana LCP 616 ms / 2423,92 ms, Lighthouse 97, start JS 113,81 KiB gzip; próba 1419 żądań z maks. 20 wykonawcami, zero błędów. Niespełnione progi i konfiguracja w [raporcie pomiarów](../../performance/WYNIKI-2026-10-09.md) |
 | Produkcja: odczyt publiczny | 62 adresy crawl, 79 ekranów Chromium/WebKit/Firefox i 58 interakcji; konkretne problemy starego wdrożenia, CSP i Escape nadal wymagają publikacji |
 
 **Zachowane diagnostyki:** w połączonych ukończonych przebiegach występuje 130 zamierzonych odpowiedzi ujemnych: 52 anonimowe401, 63 celowo blokowane NBP502, 6 kontrolowanych reset400 i 9 testowych404. Konsola zachowuje 92 wpisy: 90 diagnostyk zasobów oraz po jednym szczególnym wpisie WebKit RSC i Firefox InvalidStateError. Wpis WebKit powiązano z intencjonalnym warmupem i zamykaniem starego dokumentu; dokładnej przyczyny pojedynczego Firefox nie udowodniono. **Nie jest to czysta konsola.** Zakres i powody: [browser-diagnostics-review-final6.json](browser-diagnostics-review-final6.json).
 
-Kanoniczne dowody aktualnego buildu: [http-audit.json](http-audit.json), [browser-coverage-summary.json](browser-coverage-summary.json), [accessibility-routes.json](accessibility-routes.json) i [runtime-release-evidence.json](runtime-release-evidence.json). Historyczny final4 K1 miał ukończone pierwotne bramki, lecz późniejszy rzeczywisty PDF i proces cookies ujawniły defekty. Final5 Zj potwierdził poprawki cookies/HTTP/axe/układów, lecz pełna macierz zatrzymała się w WebKit po 713 obserwacjach na pięciu diagnostykach WebKit pobrań RSC podczas zmiany dokumentu. Odrębny test przyczynowy odtworzył diagnostykę adaptera mimo obsłużonej obietnicy; nie potwierdził nieobsłużonego wyjątku aplikacji ani błędnego CORS. Oba przebiegi pozostają historyczne; nie przeniesiono ich wyniku na final6. Pierwsze final6 zatrzymało się na dostępie harnessu do localStorage dokumentu opaque-origin; następne final6 ukończyło Chr/WK i zatrzymało proces FF po 983 kontrolach. Nie wykazano przyczynowego OOM. Końcowe pokrycie pochodzi wyłącznie z ukończonych Chr/WK oraz nowego pełnego FF na świeżym fixture; skład, hashe i oba logi zachowuje browser.composition w surowym dowodzie.
+Dowody historycznej kompilacji final6: [http-audit-final6.json](http-audit-final6.json), [browser-coverage-summary-final6.json](browser-coverage-summary-final6.json), [accessibility-routes-final6.json](accessibility-routes-final6.json) i [runtime-release-evidence.json](runtime-release-evidence.json). Historyczny final4 K1 miał ukończone pierwotne bramki, lecz późniejszy rzeczywisty PDF i proces cookies ujawniły defekty. Final5 Zj potwierdził poprawki cookies/HTTP/axe/układów, lecz pełna macierz zatrzymała się w WebKit po 713 obserwacjach na pięciu diagnostykach WebKit pobrań RSC podczas zmiany dokumentu. Odrębny test przyczynowy odtworzył diagnostykę adaptera mimo obsłużonej obietnicy; nie potwierdził nieobsłużonego wyjątku aplikacji ani błędnego CORS. Oba przebiegi pozostają historyczne; nie przeniesiono ich wyniku na final6. Pierwsze final6 zatrzymało się na dostępie harnessu do localStorage dokumentu opaque-origin; następne final6 ukończyło Chr/WK i zatrzymało proces FF po 983 kontrolach. Nie wykazano przyczynowego OOM. Końcowe pokrycie pochodzi wyłącznie z ukończonych Chr/WK oraz nowego pełnego FF na świeżym fixture; skład, hashe i oba logi zachowuje browser.composition w surowym dowodzie.
 
 ## Inwentaryzacja i granice pokrycia
 
-Końcowy spis tego fingerprintu obejmuje **65 wzorców stron, 51 konkretnych publicznych ścieżek, 135 wzorców Next API, 193 metody, 75 plików komponentów i 1730 szablonów mikroelementów JSX**.
+Aktualny fingerprint po aktualizacji zależności ma osobne [inventory-final7.json](inventory-final7.json) i [coverage-final7.md](coverage-final7.md). Dowody final7 oraz stan zdalnego CI w chwili zamrożenia raportu są w [addendum](dependency-followup-final7.md). Historyczne `inventory.json` i `coverage.md` poniżej zachowują final6; nie przeniesiono ich dopasowań na nowy kod.
+
+Spis źródłowy final6 obejmuje **65 wzorców stron, 51 konkretnych publicznych ścieżek, 135 wzorców Next API, 193 metody, 75 plików komponentów i 1730 szablonów mikroelementów JSX**.
 
 Osobna [mapa punktów wejścia platformy](platform-entrypoints.json) obejmuje pięć funkcji Netlify poza katalogiem Next API oraz start hosta Node w `app.js`. To dowód źródłowy konfiguracji i powiązań; rzeczywisty harmonogram, routing, cron/worker i autoryzacja na platformie pozostają nieweryfikowane. Lokalny przebieg Next nie potwierdza wykonania tych funkcji w hostingu.
 
@@ -154,9 +176,25 @@ Nie dodano zmyślonych recenzji, ocen, klientów, fraz z rzekomymi wolumenami an
 
 Po odnowieniu Netlify: potwierdzić 200 publicznego cennika i porównań, prawdziwe404 nieznanego adresu, canonical stron prawnych oraz 46 URL-i sitemap. Następnie ponownie odczytać sitemap w Search Console i sprawdzić reprezentatywne adresy w Inspekcji URL. Do oceny widoczności potrzebny jest raport Skuteczności: zapytania/strony/kraj/urządzenie/pozycje w kolejnych tygodniach. Indeksacja i llms nie gwarantują TOP 5 ani cytowań.
 
-## Wydajność — aktualne pomiary i priorytety według efektu/wysiłku
+## Wydajność — aktualne final7 i granice celu
 
-**Aktualny quiet lab z 9 października dotyczy dokładnie final6 `21f_lBaQA8Ww--YiYgN1t` / źródeł `14e1b8e…`.** CDP3, Lighthouse3 i izolowany load wykonano kolejno, po zakończeniu przeglądarek i innych testów, ze sprawdzeniem tożsamości przed/po każdej serii. Wszystkie próby, profile, host, rozmiary, indeksy i SHA surowych raportów: [results-2026-10-09.json](../../performance/results-2026-10-09.json). Gotowy kod/config i komendy Lighthouse/DevTools/WebPageTest/PageSpeed Insights: [WYNIKI-2026-10-09.md](../../performance/WYNIKI-2026-10-09.md).
+Pomiary final7: [WYNIKI-final7-2026-10-09.md](../../performance/WYNIKI-final7-2026-10-09.md), [pełne dane](../../performance/results-final7-2026-10-09.json). Wszystkie serie wykonano kolejno po QA na tym samym EtIK/202ad9a snapshot, ze sprawdzeniem tożsamości przed i po. Nie przeniesiono mediany 97 ani 1419 żądań z final6.
+
+| Twardy próg | Wynik aktualnego final7 / status |
+| --- | --- |
+| TTFB <100 ms | Dokument lokalnie mediana 11,2 ms. API przy 20 wykonawcach p95 538,26 ms — cel niespełniony; Internet/edge/cold-start niezweryfikowane |
+| LCP <1 s | CDP 588/652/644 ms, mediana 644 ms. Lighthouse mediana 2432,1 ms — cel niespełniony w tym profilu; field niezweryfikowany |
+| INP <100 ms | Field niezweryfikowany; EventTiming 56/40/56 ms to pojedyncza zaprogramowana interakcja, nie INP |
+| CLS =0 | Wszystkie 6 prób CDP/Lighthouse ma 0; field niezweryfikowany |
+| Lighthouse Mobile 100 | 97/95/95, mediana **95** — cel niespełniony |
+| Początkowy JS <100 KB gzip | **116653 B / 113,92 KiB**, ponad 100000 B — cel niespełniony |
+| Tysiące jednoczesnych użytkowników | Niezweryfikowane. 1000 kont/30000 seed faktur to rozmiar fixture; rampa miała maks. 20 wykonawców |
+
+Rampa 232/535/550 żądań przy 1/5/20 wykonawcach zliczyła 1317, zero błędów. Maksymalny etap: 89,46 req/s, p95 całości 538,5 ms. 136 udanych utworzeń odpowiada dokładnie 136 zapisom i rezerwacjom numerów. Rozgrzanie PDF i sondy nie wchodzą do liczników rampy. To lokalny zamknięty model bez dostawców zewnętrznych i produkcyjnego Netlify/Atlas, nie SLA. Wpływu aktualizacji zależności nie przedstawiono jako zysku czasu; różnice między seriami mogą wynikać ze zmienności. Po wdrożeniu potrzebne są nowe Lighthouse/DevTools/PageSpeed Insights/WebPageTest dla Polski/mobile, first/repeat, nagłówki/protokoły, fizyczny słaby telefon i RUM p75 za zgodą.
+
+## Wydajność — historyczne pomiary final6 i priorytety według efektu/wysiłku
+
+**Historyczny quiet lab z 9 października dotyczy dokładnie final6 `21f_lBaQA8Ww--YiYgN1t` / źródeł `14e1b8e…`.** CDP3, Lighthouse3 i izolowany load wykonano kolejno, po zakończeniu przeglądarek i innych testów, ze sprawdzeniem tożsamości przed/po każdej serii. Wszystkie próby, profile, host, rozmiary, indeksy i SHA surowych raportów: [results-2026-10-09.json](../../performance/results-2026-10-09.json). Gotowy kod/config i komendy Lighthouse/DevTools/WebPageTest/PageSpeed Insights: [WYNIKI-2026-10-09.md](../../performance/WYNIKI-2026-10-09.md).
 
 | Priorytet | Zmiana / pomiar i gotowy kod | Efekt udokumentowany | Granica dowodu |
 | --- | --- | --- | --- |
@@ -167,7 +205,7 @@ Po odnowieniu Netlify: potwierdzić 200 publicznego cennika i porównań, prawdz
 | 5 | Dokładne liczniki eksportu zamiast pobierania pełnych katalogów | Brak cichego limitu1000, brak list do samego policzenia;1250 dokumentów zweryfikowano jednostkowo | Nowa zmiana poprawności/wydajności; osobny zysk ms/KB niewymierzony |
 | 6 | Kontrolowany pilot i osobne pomiary field — aktualny load, OPS | 1000 kont/30 000 seed faktur, maks.20 wykonawców:101,96req/s, p95 całości474,99ms; 1419 żądań łącznie bez błędów.143 udane utworzenia=143 faktury=143 unikalne rezerwacje numerów | Liczność fixture nie oznacza1000 jednoczesnych użytkowników. Lokalny model zamknięty, rozgrzanyPDF, brak producentów/login-bcrypt i realnego Netlify/Atlas; nie jest to SLA |
 
-| Twardy próg użytkownika | Wynik aktualnego buildu / status |
+| Twardy próg użytkownika | Wynik historycznego buildu final6 / status |
 | --- | --- |
 | TTFB<100ms | CDP dokument lokalnie:13,1/10,3/11,3ms, mediana11,3ms. p95API przy20 wykonawcach474,87ms; Internet/edge/cold-start i field niepotwierdzone |
 | LCP<1s | CDP616/616/684ms, mediana616ms; Lighthouse2027,7/2423,92/2483,64ms, mediana2423,92ms. Spełnione tylko w profiluCDP, niespełnione w Lighthouse; field niepotwierdzony |
@@ -213,7 +251,9 @@ Wszystkie odpowiedzi, scenariusze i rozdzielenie błędu CA Firefox od błędu s
 11. **Cytowania GEO/AEO w AI.** Brak powtarzalnego testu prawdziwych odpowiedzi AI; llms jest katalogiem pomocniczym, nie miernikiem ani gwarancją cytowań.
 12. **Zakończenie Escape produkcyjnego Firefox.** Pierwszy odczyt był natychmiastowy; osobny retry zatrzymał się na WebKit. Nie przypisano Firefox PASS nieukończonego kroku.
 
-13. **Pojedynczy Firefox `InvalidStateError: Navigated away from page`.** Zachowano go podczas historii/nawigacji na `/dashboard` w ukończonym świeżym przebiegu. Nie był fatalnym błędem aktywnej strony i wszystkie asercje testu przeszły, lecz nie odtworzono niezależnie konkretnej przyczyny ani producenta komunikatu. Nie wykonano hipotetycznej poprawki źródła i nie uznano tego za dowód braku błędów.
+13. **Historyczny final6: pojedynczy Firefox `InvalidStateError: Navigated away from page`.** Zachowano go podczas historii/nawigacji na `/dashboard` w ukończonym świeżym Firefox final6. Final7 nie odnotował tego wpisu; nie wyjaśnia to przyczyny historycznego komunikatu. Nie był fatalnym błędem aktywnej strony i wszystkie asercje testu przeszły, lecz nie odtworzono niezależnie konkretnej przyczyny ani producenta komunikatu. Nie wykonano hipotetycznej poprawki źródła i nie uznano tego za dowód braku błędów.
+
+14. **Zgłoszenia bezpieczeństwa narzędzi deweloperskich.** Aktualizacja final7 usuwa trzy zgłoszone węzły z produkcyjnego podzbioru zależności, ale pełny audyt zachowuje 7 węzłów dev: 5 high i 2 moderate w łańcuchach braces oraz postcss-selector-parser. Nie znaleziono zgodnej poprawki braces w zbadanej gałęzi; proponowana przez npm migracja Tailwind 4 wymaga osobnej zmiany i regresji. Nie wykonano jej ani nie zadeklarowano kompletnego braku podatności. Dokładne wyniki: [dependency-followup-final7.md](dependency-followup-final7.md).
 
 ## Odtworzenie i materiał dowodowy
 

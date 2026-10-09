@@ -1,5 +1,7 @@
 # Audyt produkcji bez zapisu — 2026-10-08
 
+**Tożsamość dowodów:** poniższe wyniki final6 zachowują historyczny BUILD_ID i fingerprint. Aktualizację zależności oraz odrębne kontrole final7 opisuje [dependency-followup-final7.md](dependency-followup-final7.md); wyników final6 nie przenosi się na nowy build.
+
 Odczyt publiczny powtórzony **9 października** nadal potwierdza blokadę: `/cennik` kończy na `/login?next=%2Fcennik`; sitemap ma 43 adresy i pomija cennik. Strona główna, robots, llms i health odpowiadają 200; health deklaruje `db: ok`, ale nie udostępnia revision. To sześć nowych odczytów, nie powtórzenie pełnego crawl ani test zalogowanych użytkowników. TTFB 431–1596 ms zawiera sesyjny proxy i nie stanowi field metryki. Dowód: [production-readonly-2026-10-09.json](production-readonly-2026-10-09.json).
 
 Historyczny pełny przebieg i pomiary poniżej pochodzą z 8 października; nie zostały przeliczone z sześciu odczytów późniejszego dnia.

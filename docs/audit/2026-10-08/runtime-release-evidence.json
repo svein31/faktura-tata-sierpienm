@@ -2597,6 +2597,547 @@
         },
         "limitations": "Lighthouse 100, Lighthouse LCP below 1s and initial JavaScript below 100000 bytes are unmet. Field INP, Internet/edge TTFB and thousands of concurrent users are unverified."
       }
+    },
+    {
+      "runName": "final7-qa-dependency-and-subscription-index-regression",
+      "createdAt": "2026-10-09T14:30:00.424Z",
+      "parentPublishedCommit": "87fb9afb170e5c04921aa22f1f8e674d0edf0645",
+      "buildId": "EtIKJoZ6X52nNorRlxheE",
+      "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "901dc161c74714590cb7fb239d9a87755d2c3ab6b48d4293875bbc5eceeae55b",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "401": 180,
+        "200": 120,
+        "429": 1,
+        "400": 91,
+        "404": 28,
+        "204": 3,
+        "403": 4,
+        "201": 7,
+        "409": 8
+      },
+      "additionalExplicitSuiteResults": {
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "build": "PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "nativeSubscriptionMigrationGroups": 12,
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS"
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-build-final7.log": {
+          "sha256": "42e8e1e8f10f1a0c40d7b16041b1b07965b8ed8835dc2c922f697d098d1bd763"
+        },
+        "faktura-qa-type-final7.log": {
+          "sha256": "5641064464eb168562f6cd869ba598baab9a292b17dbf958bbaefc9c8b412ac7"
+        },
+        "faktura-qa-lint-final7.log": {
+          "sha256": "e449b760ff9dca0a1e6c8d82126284d7d498a47fb6fe367bb67caa5c1d3fb69e"
+        },
+        "faktura-qa-tests-final7.log": {
+          "sha256": "59a3635901d8294d344c4e56e4915225cbcf2465617b77d5c1cc87fc108bdaa2"
+        },
+        "faktura-qa-http-final7-postmigration.log": {
+          "sha256": "54da269a7188e03aa1105953c1a5ceff48989f2b7a7feddc9e0393c3753186ae"
+        }
+      },
+      "artifactReferences": {
+        "httpAfter022": {
+          "path": "docs/audit/2026-10-08/http-audit-final7-postmigration.json",
+          "sha256": "901dc161c74714590cb7fb239d9a87755d2c3ab6b48d4293875bbc5eceeae55b"
+        },
+        "httpBefore022": {
+          "path": "docs/audit/2026-10-08/http-audit-final7.json",
+          "sha256": "0899bb399234af34b7b0889ea037d3fb6827cf1b923890b04dd29ab845768033"
+        },
+        "browser": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final7.json",
+          "sha256": "da18745968544dff33f93bbeb638f322e65cb413e12f693f9dea25aa4387ddbc"
+        },
+        "browserExecution": {
+          "path": "docs/audit/2026-10-08/browser-execution-final7.json",
+          "sha256": "ef49ebc5cfaa7057ac18a66b4c773f01fba24d16560257fa44cded1221b9db40"
+        },
+        "accessibility": {
+          "path": "docs/audit/2026-10-08/accessibility-routes-final7.json",
+          "sha256": "a954f0c382eb52cbafc444946e97380966fa8e6d20b0cdf7bd299ab6393a2da6"
+        },
+        "subscriptionIndexMigration022": {
+          "path": "docs/audit/2026-10-08/subscription-indexes-final7.json",
+          "sha256": "469c50d75f7206fc918f77d73c23f5b85e15023e759bd5b7188b4b5f06dce234"
+        },
+        "dependencyFollowup": {
+          "path": "docs/audit/2026-10-08/dependency-followup-final7.json",
+          "sha256": "57923343bd1d994e7358c76c5d113bb0393ec6d3c1be40a27da63ceb92bc9008"
+        },
+        "inventoryFinal7": {
+          "path": "docs/audit/2026-10-08/inventory-final7.json",
+          "sha256": "9b438186e8c326e2e95e1329d6cde2cfd1a4ee83e25573ae9526277a47ac5ee4"
+        },
+        "coverageFinal7": {
+          "path": "docs/audit/2026-10-08/coverage-final7.md",
+          "sha256": "f1d26a69e3cac26733f67c896d605420cc3cd28a32f27bbfe1d783e9de3b228b"
+        },
+        "performanceResults": {
+          "path": "docs/performance/results-final7-2026-10-09.json",
+          "sha256": "d833558d73a2cd26df106df7696814473d0e4a3950efbe0ba4e5f35ebacc152b"
+        },
+        "performanceReport": {
+          "path": "docs/performance/WYNIKI-final7-2026-10-09.md",
+          "sha256": "33815a58a2d073ee70ba44b36243ba8f886249d4478b60dbe05af11c09866293"
+        }
+      },
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "status": "AUTOMATED-PASS-MANUAL-REVIEW-REMAINS",
+        "axeVersion": "4.14.0",
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 0,
+          "manualReviewScreens": 86
+        },
+        "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+        "artifact": {
+          "path": "docs/audit/2026-10-08/accessibility-routes-final7.json",
+          "sha256": "a954f0c382eb52cbafc444946e97380966fa8e6d20b0cdf7bd299ab6393a2da6"
+        },
+        "log": {
+          "path": "/tmp/faktura-qa-axe-final7.log",
+          "sha256": "ef8e0abf0c7c783826921b88e045b223cdec87aef93ceaba29ac495517f12c81"
+        },
+        "sourceIdentityChecks": {
+          "before": {
+            "phase": "before",
+            "checkedAt": "2026-10-09T14:00:17.214Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          "after": {
+            "phase": "after",
+            "checkedAt": "2026-10-09T14:07:25.975Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          }
+        }
+      },
+      "browserMatrix": {
+        "status": "PASS-ONE-GENUINE-ALL-THREE-ENGINE-INVOCATION",
+        "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+        "buildId": "EtIKJoZ6X52nNorRlxheE",
+        "completedEngines": [
+          "chromium",
+          "webkit",
+          "firefox"
+        ],
+        "totals": {
+          "observations": 1010,
+          "visibleControlInstances": 33863,
+          "checkedScenarios": 246
+        },
+        "layoutFailures": [],
+        "artifact": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final7.json",
+          "sha256": "da18745968544dff33f93bbeb638f322e65cb413e12f693f9dea25aa4387ddbc"
+        },
+        "executionArtifact": {
+          "path": "docs/audit/2026-10-08/browser-execution-final7.json",
+          "sha256": "ef49ebc5cfaa7057ac18a66b4c773f01fba24d16560257fa44cded1221b9db40"
+        },
+        "executionEvidence": {
+          "schemaVersion": 1,
+          "invocation": "RUN_ALL_MOBILE_CHECKS=1 RUN_WEBKIT_CHECKS=1 RUN_FIREFOX_CHECKS=1 PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 NODE_OPTIONS=--require=/tmp/launch-webkit-preload.cjs npm run test:mobile",
+          "selectedBrowserFilterUnset": true,
+          "startedAt": "2026-10-09T13:59:42.687Z",
+          "finishedAt": "2026-10-09T14:19:19.264Z",
+          "before": {
+            "phase": "before-full-matrix",
+            "checkedAt": "2026-10-09T13:59:42.582Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          "after": {
+            "phase": "after-full-matrix",
+            "checkedAt": "2026-10-09T14:19:19.042Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          "unchanged": true,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "memoryBefore": {
+            "memory.current": "6251712512",
+            "memory.max": "8589934592",
+            "memory.peak": "8589967360",
+            "memory.events": "low 0\nhigh 0\nmax 145238\noom 2\noom_kill 1\noom_group_kill 0"
+          },
+          "memoryAfter": {
+            "memory.current": "4056506368",
+            "memory.max": "8589934592",
+            "memory.peak": "8589967360",
+            "memory.events": "low 0\nhigh 0\nmax 157551\noom 2\noom_kill 1\noom_group_kill 0"
+          },
+          "artifact": {
+            "bytes": 24697452,
+            "sha256": "46630610257fbc7dc431b903fa8baa08fb916a23f7ca6576523e533ccf3a5930",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE",
+            "selectedEngines": [
+              "chromium",
+              "webkit",
+              "firefox"
+            ],
+            "engines": [
+              {
+                "engine": "chromium",
+                "status": "passed"
+              },
+              {
+                "engine": "webkit",
+                "status": "passed"
+              },
+              {
+                "engine": "firefox",
+                "status": "passed"
+              }
+            ],
+            "completedEngines": [
+              "chromium",
+              "webkit",
+              "firefox"
+            ],
+            "layoutChecks": 1010,
+            "layoutFailures": [],
+            "totals": {
+              "observations": 1010,
+              "visibleControlInstances": 33863,
+              "checkedScenarios": 246
+            },
+            "networkIssues": 131,
+            "consoleIssues": 91,
+            "browserLifecycle": [
+              {
+                "engine": "firefox",
+                "event": "between-layout-viewports",
+                "layoutChecks": 803,
+                "storageStatePreserved": true,
+                "privateViewport": {
+                  "width": 390,
+                  "height": 844
+                },
+                "publicViewport": {
+                  "width": 390,
+                  "height": 844
+                }
+              },
+              {
+                "engine": "firefox",
+                "event": "between-layout-viewports",
+                "layoutChecks": 893,
+                "storageStatePreserved": true,
+                "privateViewport": {
+                  "width": 768,
+                  "height": 1024
+                },
+                "publicViewport": {
+                  "width": 768,
+                  "height": 1024
+                }
+              },
+              {
+                "engine": "firefox",
+                "event": "before-interaction-phase",
+                "layoutChecks": 983,
+                "storageStatePreserved": true,
+                "privateViewport": {
+                  "width": 1280,
+                  "height": 900
+                },
+                "publicViewport": {
+                  "width": 1280,
+                  "height": 900
+                }
+              }
+            ]
+          },
+          "log": "/tmp/faktura-qa-matrix-final7.log",
+          "evidence": {
+            "raw": {
+              "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage.json",
+              "bytes": 24697452,
+              "sha256": "46630610257fbc7dc431b903fa8baa08fb916a23f7ca6576523e533ccf3a5930"
+            },
+            "summary": {
+              "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage-summary.json",
+              "bytes": 389328,
+              "sha256": "da18745968544dff33f93bbeb638f322e65cb413e12f693f9dea25aa4387ddbc"
+            },
+            "log": {
+              "path": "/tmp/faktura-qa-matrix-final7.log",
+              "bytes": 26522,
+              "sha256": "4b4f104738997f71139c0af7f7bcf2ead18eaf1ed211830dcaa9607fe83e0568"
+            }
+          },
+          "scope": "One genuine complete all3 invocation; isolated synthetic database; providers blocked; observed controls do not certify every unclicked state; raw network and console diagnostics preserved without reclassification.",
+          "harnessProvenance": {
+            "capturedAt": "2026-10-09 during full final7 before announced harness mutation",
+            "files": [
+              {
+                "path": "scripts/audit/financial-browser.mjs",
+                "committedSha256": "7808edd1d91e511e0fbba7c33698e1f3e00db18645af4d0cf3a4c53675a36bd5",
+                "currentSha256": "7808edd1d91e511e0fbba7c33698e1f3e00db18645af4d0cf3a4c53675a36bd5",
+                "currentlyMatchesCommitted": true,
+                "afterMatrixSha256": "8e59e0ffb9a11deabb38682cce426d0d3236e5219f7e785834eee211a09ea6d5",
+                "changedDuringMatrix": true
+              },
+              {
+                "path": "scripts/browser-checks.mjs",
+                "committedSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+                "currentSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+                "currentlyMatchesCommitted": true,
+                "afterMatrixSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+                "changedDuringMatrix": false
+              },
+              {
+                "path": "scripts/mobile-audit.mjs",
+                "committedSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+                "currentSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+                "currentlyMatchesCommitted": true,
+                "afterMatrixSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+                "changedDuringMatrix": false
+              }
+            ],
+            "runtimeInference": "Financial browser module was imported and passed in Chromium and WebKit before mutation; later engines reuse Node cached ESM import. This is not a replay of the failing coupled HTTP database precondition.",
+            "scope": "The financial helper was already loaded by Chromium before the later announced test-only fixture patch; the same Node ESM module is cached for WebKit and Firefox. This full matrix uses the original isolated financial fixture. It does not retest the distinct coupled HTTP database fixture precondition.",
+            "coupledHttpDatabasePreconditionRetestedByThisMatrix": false
+          },
+          "cleanup": {
+            "activeRelevantProcesses": [],
+            "historicalZombiesByName": {
+              "next-server (v1": 5,
+              "chrome-headless": 258,
+              "chrome_crashpad": 24,
+              "chrome": 144,
+              "WPENetworkProce": 53,
+              "WPEWebProcess": 78,
+              "mongod-x64-debi": 4,
+              "MiniBrowser": 1
+            },
+            "scope": "Procfs command-name scan after own runner exited; zombies are terminated processes, not active browser work. No credentials or command arguments inspected."
+          }
+        },
+        "diagnostics": {
+          "networkEntries": 131,
+          "networkStatusCounts": {
+            "401": 53,
+            "502": 63,
+            "404": 9,
+            "400": 6
+          },
+          "consoleEntries": 91,
+          "resourceFailureConsoleEntries": 90,
+          "specificWebKitRscDiagnostics": [
+            {
+              "engine": "webkit",
+              "page": "/invoices/6ac8f359a16d11e4af3b2ee4",
+              "message": "Failed to fetch RSC payload for http://127.0.0.1:44136/invoices/new. Falling back to browser navigation. TypeError: Load failed",
+              "classification": "requires-review"
+            }
+          ],
+          "cleanConsoleClaim": false,
+          "scope": "Negative provider/anonymous/reset/missing-route diagnostics retained. WebKit cancelled-RSC message matches the historical pattern; exact producer was not independently instrumented again in final7. No Firefox InvalidState entry in this invocation does not resolve the historical final6 cause."
+        },
+        "databaseMigrationScope": "Fresh isolated fixture initialized before022; does not exercise the later string-only partial unique migration. Original financial helper was already loaded before its fixture-only patch; coupled-HTTP fixture precondition was not retried by this matrix."
+      },
+      "subscriptionIndexMigration022": {
+        "status": "PASS-12-NATIVE-REGRESSION-GROUPS",
+        "migrationId": "022-subscription-nullable-identifiers",
+        "appSourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+        "buildId": "EtIKJoZ6X52nNorRlxheE",
+        "artifact": {
+          "path": "docs/audit/2026-10-08/subscription-indexes-final7.json",
+          "sha256": "469c50d75f7206fc918f77d73c23f5b85e15023e759bd5b7188b4b5f06dce234"
+        },
+        "scriptFingerprints": {
+          "scripts/audit/financial-browser.mjs": "8e59e0ffb9a11deabb38682cce426d0d3236e5219f7e785834eee211a09ea6d5",
+          "scripts/migrations/022-subscription-nullable-identifiers.mjs": "b96dbbd0e3fd48436deabbd9c3549c47ca5b604a0a8c799448c9ed144525e8aa",
+          "scripts/subscription-nullable-index-regression.mjs": "31d5cc8676dc8e92d8ce3c93ddf694b15b4e5e1688e30421c6f56cb8aca5725f",
+          "scripts/integration-test.mjs": "cf7f7a1dd80fce3d5c28b477d29eb2d08db1be5fc0021b92945a2b2dd8ecdfbf",
+          "scripts/browser-isolated.mjs": "ae5d13b7706f767f2d4eb17134bfc25e48808c0548e104564b43b9f7a72264a3"
+        },
+        "checks": [
+          "Non-sparse missing/null collisions reproduce; partial up/up preserves records, down/down restores exact options, two pending customers and two idempotent complimentary grants coexist, real Stripe IDs remain unique, impossible rollback changes no data/index",
+          "Migration014-style sparse indexes still reject duplicate explicit null; 022 fixes that shape and restores sparse options only when rollback is possible",
+          "Pre-existing duplicate real string IDs fail before any index/data mutation",
+          "Unexpected array/non-string Stripe identifiers fail preflight without changes",
+          "Unowned equivalent and incorrectly named compound indexes are rejected instead of silently removed",
+          "Index-definition changes after planning cannot be mistaken for migration-owned state",
+          "Forged replacement keys cannot weaken real identifier uniqueness or change indexes",
+          "Explicit case-insensitive legacy collations are retained by replacements, duplicate preflight and exact rollback",
+          "Index-free collections inherit their default collation without checkpoint mismatches or lost uniqueness",
+          "Explicit simple index collation overrides survive replacement and rollback on a case-insensitive collection",
+          "Real migration catalog and persisted checkpoint support up/up/down/up",
+          "Actual Prisma checkout upserts create two pending customer-only subscriptions and reject a duplicate customer without changing the second account"
+        ],
+        "scope": "isolated-MongoMemoryReplSet-synthetic-native-records",
+        "notes": [
+          "Application fingerprint excludes migration and harness scripts; script SHA-256 values separately bind this proof.",
+          "Actual production database/indexes and real Stripe checkout remain unverified. No external services or production writes were used."
+        ],
+        "productionIndexShapeRead": false
+      },
+      "dependencies": {
+        "installedVersions": {
+          "next": "15.5.27",
+          "sharp": "0.35.5",
+          "source-map-js": "1.2.2",
+          "tailwindcss": "3.4.19",
+          "braces": "3.0.3"
+        },
+        "productionAuditVulnerabilities": 0,
+        "developmentAffectedNodesRemaining": {
+          "high": 5,
+          "moderate": 2,
+          "total": 7
+        }
+      },
+      "performance": {
+        "status": "MEASURED-SOME-HARD-TARGETS-UNMET",
+        "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+        "buildId": "EtIKJoZ6X52nNorRlxheE",
+        "scope": "Actual final7 dependency-patched local production build. Sequential quiet measurements after all QA browser and HTTP suites. Synthetic isolated database, providers blocked; not production or field metrics.",
+        "artifacts": [
+          {
+            "path": "docs/performance/results-final7-2026-10-09.json",
+            "sha256": "d833558d73a2cd26df106df7696814473d0e4a3950efbe0ba4e5f35ebacc152b"
+          },
+          {
+            "path": "docs/performance/WYNIKI-final7-2026-10-09.md",
+            "sha256": "33815a58a2d073ee70ba44b36243ba8f886249d4478b60dbe05af11c09866293"
+          }
+        ],
+        "summary": {
+          "cdpMedianDocumentTtfbMs": 11.2,
+          "cdpMedianLcpMs": 644,
+          "cdpMedianSampleEventTimingMs": 56,
+          "lighthousePerformanceRuns": [
+            97,
+            95,
+            95
+          ],
+          "lighthouseMedianPerformance": 95,
+          "lighthouseMedianLcpMs": 2432.1,
+          "lighthouseMedianTbtMs": 172,
+          "initialJavaScriptGzipEstimateBytes": 116653,
+          "labClsAllSixRuns": 0,
+          "loadRampRequests": 1317,
+          "loadRampErrors": 0,
+          "loadMaximumClosedModelWorkers": 20,
+          "loadAtTwentyWorkersRequestsPerSecond": 89.46,
+          "loadAtTwentyWorkersP95Ms": 538.5,
+          "loadAtTwentyWorkersP95TtfbMs": 538.26,
+          "fixtureIntegrity": {
+            "successfulCreateResponses": 136,
+            "persistedCreatedInvoices": 136,
+            "persistedNumberClaims": 136,
+            "exactlyOnce": true
+          }
+        },
+        "goals": {
+          "localDocumentTtfbUnder100": true,
+          "cdpLcpUnder1000": true,
+          "lighthouseLcpUnder1000": false,
+          "lighthouse100EveryRun": false,
+          "initialJsBelow100000Bytes": false,
+          "clsZeroAllLabRuns": true,
+          "fieldInp": "unverified",
+          "productionInternetTtfb": "unverified",
+          "thousandsConcurrent": "unverified"
+        },
+        "sourceIdentityChecks": [
+          {
+            "phase": "web-cdp-before",
+            "checkedAt": "2026-10-09T14:32:05.409Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          {
+            "phase": "web-cdp-after",
+            "checkedAt": "2026-10-09T14:32:24.519Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          {
+            "phase": "lighthouse-before",
+            "checkedAt": "2026-10-09T14:32:24.595Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          {
+            "phase": "lighthouse-after",
+            "checkedAt": "2026-10-09T14:35:08.396Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          {
+            "phase": "load-1000-fixtures-before",
+            "checkedAt": "2026-10-09T14:35:08.472Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          },
+          {
+            "phase": "load-1000-fixtures-after",
+            "checkedAt": "2026-10-09T14:37:20.434Z",
+            "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+            "buildId": "EtIKJoZ6X52nNorRlxheE"
+          }
+        ],
+        "limitations": [
+          "CDP and Lighthouse use different throttling profiles and are not interchangeable.",
+          "EventTiming samples are not field INP.",
+          "The local closed-model ramp used at most20 workers; 1000 synthetic seeded accounts is not 1000 concurrent users.",
+          "Loopback document TTFB does not prove production Internet/edge/cold-start latency."
+        ]
+      },
+      "remoteCi": {
+        "status": "NOT-VERIFIED-AT-REPORT-FREEZE",
+        "priorPublishedCommitVerification": "FAIL",
+        "priorPublishedCommitSecrets": "PASS",
+        "note": "W chwili zamrożenia raportu nie zweryfikowano jeszcze nowego zdalnego CI; dokładny SHA publikacji w historii main i odpowiedzi końcowej."
+      },
+      "limitations": [
+        "Scope-specific local proofs only; no exhaustive every-microstate/no-known-vulnerability claim.",
+        "Standalone browser fixtures were prepared before022 and used the previously loaded financial helper; new database constraint coverage is separately bound to native022 and expanded HTTP.",
+        "Production indexes, providers, real devices, field metrics and Netlify deployment remain unverified."
+      ],
+      "completedLocalAt": "2026-10-09T14:37:20.434Z",
+      "reportFrozenAt": "2026-10-09T14:44:18.731400+00:00",
+      "publicationNote": "W chwili zamrożenia raportu nie zweryfikowano jeszcze nowego zdalnego CI; dokładny SHA publikacji w historii main i odpowiedzi końcowej."
     }
   ]
 }

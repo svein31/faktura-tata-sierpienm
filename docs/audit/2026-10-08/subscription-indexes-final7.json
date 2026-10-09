@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "scope": "isolated-MongoMemoryReplSet-synthetic-native-records",
+  "checks": [
+    "Non-sparse missing/null collisions reproduce; partial up/up preserves records, down/down restores exact options, two pending customers and two idempotent complimentary grants coexist, real Stripe IDs remain unique, impossible rollback changes no data/index",
+    "Migration014-style sparse indexes still reject duplicate explicit null; 022 fixes that shape and restores sparse options only when rollback is possible",
+    "Pre-existing duplicate real string IDs fail before any index/data mutation",
+    "Unexpected array/non-string Stripe identifiers fail preflight without changes",
+    "Unowned equivalent and incorrectly named compound indexes are rejected instead of silently removed",
+    "Index-definition changes after planning cannot be mistaken for migration-owned state",
+    "Forged replacement keys cannot weaken real identifier uniqueness or change indexes",
+    "Explicit case-insensitive legacy collations are retained by replacements, duplicate preflight and exact rollback",
+    "Index-free collections inherit their default collation without checkpoint mismatches or lost uniqueness",
+    "Explicit simple index collation overrides survive replacement and rollback on a case-insensitive collection",
+    "Real migration catalog and persisted checkpoint support up/up/down/up",
+    "Actual Prisma checkout upserts create two pending customer-only subscriptions and reject a duplicate customer without changing the second account"
+  ],
+  "checkedAt": "2026-10-09T14:28:12.242Z",
+  "appSourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+  "buildId": "EtIKJoZ6X52nNorRlxheE",
+  "migrationId": "022-subscription-nullable-identifiers",
+  "scriptFingerprints": {
+    "scripts/audit/financial-browser.mjs": "8e59e0ffb9a11deabb38682cce426d0d3236e5219f7e785834eee211a09ea6d5",
+    "scripts/migrations/022-subscription-nullable-identifiers.mjs": "b96dbbd0e3fd48436deabbd9c3549c47ca5b604a0a8c799448c9ed144525e8aa",
+    "scripts/subscription-nullable-index-regression.mjs": "31d5cc8676dc8e92d8ce3c93ddf694b15b4e5e1688e30421c6f56cb8aca5725f",
+    "scripts/integration-test.mjs": "cf7f7a1dd80fce3d5c28b477d29eb2d08db1be5fc0021b92945a2b2dd8ecdfbf",
+    "scripts/browser-isolated.mjs": "ae5d13b7706f767f2d4eb17134bfc25e48808c0548e104564b43b9f7a72264a3"
+  },
+  "notes": [
+    "Application fingerprint excludes migration and harness scripts; script SHA-256 values separately bind this proof.",
+    "Actual production database/indexes and real Stripe checkout remain unverified. No external services or production writes were used."
+  ]
+}

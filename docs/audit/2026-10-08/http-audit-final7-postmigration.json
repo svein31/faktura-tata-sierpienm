@@ -1,0 +1,4885 @@
+{
+  "createdAt": "2026-10-09T14:29:53.024Z",
+  "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+  "buildId": "EtIKJoZ6X52nNorRlxheE",
+  "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+  "scope": "loopback isolated fixture; generic statuses below 500 are smoke observations, not proof of authorization or successful business operations",
+  "routeCount": 135,
+  "methodCount": 193,
+  "checks": 442,
+  "failures": [],
+  "results": [
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/accountant/export-pack",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/accountant/package",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/accountant/period",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/accountant/period",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/accountant/portal",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/accountant/portal",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/accountant/workspace",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/accountant/workspace",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/audit",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/session",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/forgot-password",
+      "status": 429,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/auth/me",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/auth/mfa",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/mfa",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/resend-verification",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/reset-password",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/step-up",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/auth/verify-email",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/banking/import",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/banking/transactions",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/banking/transactions",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/banking/transfers",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/banking/transfers",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/companies/000000000000000000000001/bank-accounts",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001/bank-accounts",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/companies/000000000000000000000001/bank-accounts",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/companies/000000000000000000000001/bank-accounts",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/companies/000000000000000000000001/numbering",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/companies/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/companies/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001/security",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/companies/000000000000000000000001/security",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/companies/000000000000000000000001/set-default",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/companies",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/companies",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/company",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/consents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/consents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/contractors/000000000000000000000001/history",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/contractors/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/contractors/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/contractors/import",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/contractors",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/cost-reviews",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/cost-reviews",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/data",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/documents/000000000000000000000001/file",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/documents/000000000000000000000001/ocr",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/documents/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/documents/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/documents/000000000000000000000001/safety",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/documents/process",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/documents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/documents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/due-reminders/process",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/due-reminders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/due-reminders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/expenses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/expenses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/expenses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/expenses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/expenses",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/gus/search",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/integrations/process",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/integrations",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/integrations",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invite/000000000000000000000001",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invite/000000000000000000000001",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoice-settlements",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoice-settlements",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/email-history",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/payments",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/000000000000000000000001/payments",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/pdf",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/invoices/000000000000000000000001/recurrence",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/reminders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/000000000000000000000001/reminders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/invoices/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/invoices/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/approve",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/bulk/pay",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/export",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/export",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/next-number",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/preflight",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/search",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/invoices/send-email",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/jpk",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/auth/login",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/auth",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/auto-sync",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/auto-sync",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/center",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/center",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/invoices/send",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/invoices/status/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/offline/issue",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/queue/process",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/queue",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/queue",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/ksef",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/send",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ksef/status/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/sync-incoming",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ksef/test-connection",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/nbp?currency=PLN&issueDate=2026-09-30",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/nip-lookup",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/notifications/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/notifications/preferences",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/notifications",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/offers/000000000000000000000001/convert",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/offers/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/offers/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/offers/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/offers/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/offers",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/offers",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/ops/backup-receipt",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ops/queue-health",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/ops/readiness",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/orders/000000000000000000000001/convert",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/orders/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/orders/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/orders/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/orders/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/orders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/overview",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/pdf-templates",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/pdf-templates",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/pilot/events",
+      "status": 204,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/pilot/events",
+      "status": 204,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/pilot/vitals",
+      "status": 204,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/portal/000000000000000000000001/decision",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/portal/000000000000000000000001/declare-payment",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/portal/000000000000000000000001",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/products/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/products/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/products",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/projects",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/projects",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/recurring/process",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/subscription/checkout",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/subscription/portal",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/subscription",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/tax-estimate",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/team/invitations/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/team/members/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/team/members/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/team",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/team",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/test/incoming",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/user/accept-terms",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/user/change-email",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/user/change-password",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/user/delete-account",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/user/delete-account",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/user/export-data",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/user/logout-all",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/user/profile",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/user/profile",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/user/sessions",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/user/sessions",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/v1/catalogs",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/v1/documents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/v1/ksef/statuses",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/vies/check",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/warehouse/commands",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/warehouse/commands",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/warehouse/documents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/warehouse/documents",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/warehouse/overview",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/warehouse/stock/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/warehouse/stock",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "DELETE",
+      "path": "/api/warehouse/warehouses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PATCH",
+      "path": "/api/warehouse/warehouses/000000000000000000000001",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/warehouse/warehouses",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/warehouse/warehouses",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "POST",
+      "path": "/api/webhooks/stripe",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/workspace/health",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "GET",
+      "path": "/api/workspace/preferences",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "anonymous route boundary",
+      "method": "PUT",
+      "path": "/api/workspace/preferences",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "anonymous"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/accountant/export-pack?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/accountant/package?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/accountant/period?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/accountant/portal?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/accountant/workspace?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/audit?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/auth/me",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/auth/mfa",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/banking/transactions?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/banking/transfers?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001/bank-accounts?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 403,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/companies/000000000000000000000001/security?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 403,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/companies?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/consents?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/contractors/000000000000000000000001/history?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/cost-reviews?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/data?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/documents/000000000000000000000001/file?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/documents/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/documents?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/due-reminders?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/expenses/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/expenses?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/gus/search?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/health?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/integrations?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invite/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoice-settlements?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/email-history?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/payments?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/pdf?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001/reminders?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/export?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/next-number?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/search?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/invoices/send-email?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/auto-sync?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/center?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/invoices/status/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/queue?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ksef/status/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/nbp?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites&currency=PLN&issueDate=2026-09-30",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/nip-lookup?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/notifications?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/offers/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/offers?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ops/queue-health?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/ops/readiness?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/orders/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/orders?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/overview?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/pdf-templates?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/portal/000000000000000000000001?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 404,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/projects?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/subscription?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/tax-estimate?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/team?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/user/export-data?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/user/profile?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/user/sessions?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/v1/catalogs?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/v1/documents?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/v1/ksef/statuses?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 401,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/vies/check?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 400,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/warehouse/commands?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/warehouse/documents?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/warehouse/overview?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/warehouse/stock?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/warehouse/warehouses?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/workspace/health?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "authenticated route read",
+      "method": "GET",
+      "path": "/api/workspace/preferences?companyId=6ac8fa41e67a54b49851d215&month=2026-09&key=favorites",
+      "status": 200,
+      "ok": true,
+      "expected": null,
+      "assertion": "no-server-error-smoke",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "NBP base currency HTTP contract",
+      "method": "GET",
+      "path": "/api/nbp?currency=PLN&issueDate=2026-09-30",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "NBP invalid currency",
+      "method": "GET",
+      "path": "/api/nbp?currency=INVALID&issueDate=2026-09-30",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "NBP invalid calendar date",
+      "method": "GET",
+      "path": "/api/nbp?currency=EUR&issueDate=2026-02-30",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/companies/not-an-object-id/bank-accounts",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/companies/not-an-object-id/bank-accounts",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/companies/not-an-object-id/bank-accounts",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/companies/not-an-object-id/bank-accounts",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/companies/not-an-object-id/numbering",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/companies/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/companies/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/companies/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/companies/not-an-object-id/security",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/companies/not-an-object-id/security",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/companies/not-an-object-id/set-default",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/contractors/not-an-object-id/history",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/contractors/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/contractors/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/documents/not-an-object-id/file",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/documents/not-an-object-id/ocr",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/documents/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/documents/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/documents/not-an-object-id/safety",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/expenses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/expenses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/expenses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/expenses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/invoices/not-an-object-id/email-history",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/invoices/not-an-object-id/payments",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/invoices/not-an-object-id/payments",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/invoices/not-an-object-id/pdf",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/invoices/not-an-object-id/recurrence",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/invoices/not-an-object-id/reminders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/invoices/not-an-object-id/reminders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/invoices/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/invoices/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/invoices/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/notifications/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/offers/not-an-object-id/convert",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/offers/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/offers/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/offers/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/offers/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "POST",
+      "path": "/api/orders/not-an-object-id/convert",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/orders/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "GET",
+      "path": "/api/orders/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/orders/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/orders/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/products/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/products/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/team/invitations/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/team/members/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PUT",
+      "path": "/api/team/members/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/warehouse/stock/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "DELETE",
+      "path": "/api/warehouse/warehouses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "malformed object id",
+      "method": "PATCH",
+      "path": "/api/warehouse/warehouses/not-an-object-id",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400,
+        403,
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "create audit company",
+      "method": "POST",
+      "path": "/api/companies",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "create valid expense",
+      "method": "POST",
+      "path": "/api/expenses",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject inconsistent cost update",
+      "method": "PUT",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid payment status",
+      "method": "PATCH",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid paid date",
+      "method": "PATCH",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "protect company with business documents",
+      "method": "DELETE",
+      "path": "/api/companies/6ac8fa5ee67a54b49851d345",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "mark cost paid",
+      "method": "PATCH",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "read paid cost",
+      "method": "GET",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "delete manual cost",
+      "method": "DELETE",
+      "path": "/api/expenses/6ac8fa5fe67a54b49851d348",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "create audit contact",
+      "method": "POST",
+      "path": "/api/contractors",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "save fractional invoice quantity",
+      "method": "POST",
+      "path": "/api/invoices",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "half-up invoice price",
+      "method": "POST",
+      "path": "/api/invoices",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invoice quantity overflow",
+      "method": "POST",
+      "path": "/api/invoices",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject excessive invoice rows",
+      "method": "POST",
+      "path": "/api/invoices",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "create valid order",
+      "method": "POST",
+      "path": "/api/orders",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid order status",
+      "method": "PATCH",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject negative tracked hours",
+      "method": "PATCH",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "save zero order amount",
+      "method": "PUT",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "record order time",
+      "method": "PATCH",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "complete order",
+      "method": "PATCH",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "delete order",
+      "method": "DELETE",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d34f",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "create offer",
+      "method": "POST",
+      "path": "/api/offers",
+      "status": 201,
+      "ok": true,
+      "expected": [
+        201
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "share offer",
+      "method": "PATCH",
+      "path": "/api/offers/6ac8fa5fe67a54b49851d350",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "public offer preview",
+      "method": "GET",
+      "path": "/api/portal/ef4ce8d7d3bc4e2523f5850acd9cfc2fc7f19330978ed9572f7a95e4aa4acdfb",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "accept offer",
+      "method": "POST",
+      "path": "/api/portal/ef4ce8d7d3bc4e2523f5850acd9cfc2fc7f19330978ed9572f7a95e4aa4acdfb/decision",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "reject stale offer decision",
+      "method": "POST",
+      "path": "/api/portal/ef4ce8d7d3bc4e2523f5850acd9cfc2fc7f19330978ed9572f7a95e4aa4acdfb/decision",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "convert accepted offer to order",
+      "method": "POST",
+      "path": "/api/offers/6ac8fa5fe67a54b49851d350/convert",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject repeated offer conversion",
+      "method": "POST",
+      "path": "/api/offers/6ac8fa5fe67a54b49851d350/convert",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "invoice order with mixed VAT",
+      "method": "POST",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d352/convert",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject duplicate order invoice",
+      "method": "POST",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d352/convert",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "protect billed order edit",
+      "method": "PUT",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d352",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "protect billed order deletion",
+      "method": "DELETE",
+      "path": "/api/orders/6ac8fa5fe67a54b49851d352",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject invalid promised payment date",
+      "method": "POST",
+      "path": "/api/portal/3d15bb39a5b197b7d6f6814bfb230779/declare-payment",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "declare promised payment",
+      "method": "POST",
+      "path": "/api/portal/3d15bb39a5b197b7d6f6814bfb230779/declare-payment",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "KSeF download requires login",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354",
+      "status": 401,
+      "ok": true,
+      "expected": [
+        401
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "KSeF missing UPO is not fabricated",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=upo",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "KSeF missing XML is not fabricated",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=xml",
+      "status": 409,
+      "ok": true,
+      "expected": [
+        409
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "KSeF invalid export format",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=invalid",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "download original KSeF XML",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=xml",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "download original KSeF UPO",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=upo",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "download KSeF JSON",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "reject malformed invoice email id",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 400,
+      "ok": true,
+      "expected": [
+        400
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "send invoice PDF XML UPO by SMTP",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "send draft preview without issuing",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "owner email history",
+      "method": "GET",
+      "path": "/api/invoices/6ac8fa5fe67a54b49851d354/email-history",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-owner"
+    },
+    {
+      "label": "deny outsider invoice email",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "deny outsider email history",
+      "method": "GET",
+      "path": "/api/invoices/6ac8fa5fe67a54b49851d354/email-history",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "deny outsider KSeF XML",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=xml",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "accountant KSeF XML export",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=xml",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "read-only accountant cannot send invoice",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 403,
+      "ok": true,
+      "expected": [
+        403
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "sales member can send shared invoice",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "KSeF export permission enforced",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=upo",
+      "status": 403,
+      "ok": true,
+      "expected": [
+        403
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "shared team email history",
+      "method": "GET",
+      "path": "/api/invoices/6ac8fa5fe67a54b49851d354/email-history",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "revoked invoice email access",
+      "method": "POST",
+      "path": "/api/invoices/send-email",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "revoked KSeF XML access",
+      "method": "GET",
+      "path": "/api/ksef/invoices/download/6ac8fa5fe67a54b49851d354?format=xml",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "revoked email history",
+      "method": "GET",
+      "path": "/api/invoices/6ac8fa5fe67a54b49851d354/email-history",
+      "status": 404,
+      "ok": true,
+      "expected": [
+        404
+      ],
+      "assertion": "expected-status",
+      "actor": "fixture-other"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/cennik",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/demo",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/pomoc",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/vat",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/narzedzia",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/narzedzia/kalkulator-vat",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/narzedzia/limit-ksef",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/regulamin",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/polityka-prywatnosci",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/polityka-cookies",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/powierzenie-danych",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/podwykonawcy",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/jak-wystawic",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/bez-vat",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/zaliczkowa",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/koncowa",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/korygujaca",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/faktury/dla-osoby-prywatnej",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/jdg",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/limit-10000-zl",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/numer-faktury",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/offline24",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/vat/stawki",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/fa3",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/upo",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/odrzucona-faktura",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/kody-qr",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/poradnik-ksef/2027",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur/dla-jdg",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur/dla-freelancerow",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur/dla-biur-rachunkowych",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur/dla-firm-uslugowych",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/program-do-faktur/na-telefonie",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/fakturownia",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/ifirma",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/wfirma",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/infakt",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/comarch",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/aplikacja-mf",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/fakturowo",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    },
+    {
+      "label": "public sitemap page",
+      "method": "GET",
+      "path": "/porownania/faktura-pl",
+      "status": 200,
+      "ok": true,
+      "expected": [
+        200
+      ],
+      "assertion": "expected-status",
+      "actor": "anonymous"
+    }
+  ]
+}

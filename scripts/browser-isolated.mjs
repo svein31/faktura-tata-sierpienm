@@ -4,13 +4,16 @@ import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { PrismaClient } from '@prisma/client';
+import { MongoClient } from 'mongodb';
 import { browserChecks } from './browser-checks.mjs';
+import { migrateData } from './migrate-data.mjs';
 
 // A separate browser regression entrypoint avoids rerunning the complete API suite.
 // Neither the inherited DATABASE_URL nor an external target can be used.
 const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 }, instanceOpts: process.platform === 'win32' ? [] : [{ args: ['--nounixsocket'] }] });
 const uri = mongo.getUri('fakturo_browser_integration');
 const db = new PrismaClient({ datasources: { db: { url: uri } } });
+const native = new MongoClient(uri);
 const port = 44000 + Math.floor(Math.random() * 1000), base = `http://127.0.0.1:${port}`;
 const guard = fileURLToPath(new URL('./performance/loopback-only.cjs', import.meta.url));
 const env = { ...process.env, DATABASE_URL: uri, NODE_ENV: 'production', COOKIE_SECURE: 'false',
@@ -21,6 +24,8 @@ let server, logs = '';
 try {
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env, stdio: 'inherit', timeout: 60000 });
   assert.equal((await once(push, 'exit'))[0], 0);
+  await native.connect();
+  await migrateData(native.db(), 'up', '022-subscription-nullable-identifiers');
   server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; }); server.stderr.on('data', data => { logs += data; });
   let ready = false;
@@ -43,5 +48,5 @@ finally {
     const timer = setTimeout(() => server.kill('SIGKILL'), 5000);
     await stopped; clearTimeout(timer);
   }
-  await db.$disconnect(); await mongo.stop();
+  await native.close(); await db.$disconnect(); await mongo.stop();
 }

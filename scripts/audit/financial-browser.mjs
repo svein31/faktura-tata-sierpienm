@@ -22,7 +22,11 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
   const result = { scope: 'isolated-loopback-synthetic', viewport: { width: 390, height: 844 }, checks };
   try {
     await db.session.create({ data: { userId: owner.id, sessionToken: sessionTokenHash(token), authenticatedAt: new Date(), expiresAt: new Date(Date.now() + 3600000) } });
-    await db.subscription.create({ data: { userId: owner.id, plan: 'yearly', status: 'active', currentPeriodEnd: new Date(Date.now() + 86400000) } });
+    // The integrated suite shares its database with other synthetic Pro owners.
+    // MongoDB's non-sparse nullable unique indexes also index missing values.
+    // Give this fixture distinct inert Stripe identifiers so it can coexist
+    // with the HTTP suite's provider-free subscription without Stripe calls.
+    await db.subscription.create({ data: { userId: owner.id, stripeCustomerId: `cus_qa_financial_${marker}`, stripeSubscriptionId: `sub_qa_financial_${marker}`, plan: 'yearly', status: 'active', currentPeriodEnd: new Date(Date.now() + 86400000) } });
     const company = await db.companyProfile.create({ data: { userId: owner.id, nip: '5260301706', companyName: 'Finansowa firma QA', street: 'Testowa 1', city: 'Warszawa', postalCode: '00-001', isDefault: true } });
     const buyer = await db.contractor.create({ data: { userId: owner.id, companyId: company.id, name: 'Finansowy nabywca Żółć', nip: '5250001003', country: 'PL', taxIdType: 'nip', address: { country: 'PL', street: 'Testowa 2', city: 'Warszawa', postal: '00-001' } } });
     context = await browser.newContext({ baseURL: base, viewport: result.viewport, reducedMotion: 'reduce', serviceWorkers: 'block', extraHTTPHeaders: { Origin: base } });

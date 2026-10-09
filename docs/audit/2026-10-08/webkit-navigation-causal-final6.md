@@ -1,5 +1,7 @@
 # Diagnoza WebKit podczas nawigacji — final6
 
+**Tożsamość dowodów:** poniższe wyniki final6 zachowują historyczny BUILD_ID i fingerprint. Aktualizację zależności oraz odrębne kontrole final7 opisuje [dependency-followup-final7.md](dependency-followup-final7.md); wyników final6 nie przenosi się na nowy build.
+
 Build aplikacji: `21f_lBaQA8Ww--YiYgN1t`. SHA-256 źródeł: `14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc`. Kod aplikacji nie został zmieniony w ramach diagnozy.
 
 Surowy test ruchu zachowuje 1 komunikat WebKit `Fetch API cannot load ... due to access control checks.`; Chromium i Firefox miały 0. Nie nadpisano tego wyniku jako 0 błędów. Przy pierwotnym komunikacie brak pasującego `requestfailed` dla wyszukiwania faktur, więc samo powiązanie czasowe z innymi anulowaniami nie wystarczało do wyjaśnienia.

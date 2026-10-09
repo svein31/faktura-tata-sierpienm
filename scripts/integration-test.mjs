@@ -23,6 +23,7 @@ import { checkFinancialHttp } from './newqa-financial-regression.mjs';
 import { checkInvoiceApprovalHttp } from './audit-invoice-approval-regression.mjs';
 import { checkAuthenticationProofFencing } from './audit-auth-proof-regression.mjs';
 import { checkInvitationProofHttp } from './audit-invitation-proof-regression.mjs';
+import { checkSubscriptionNullableIndexes } from './subscription-nullable-index-regression.mjs';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -154,12 +155,13 @@ try {
     await migrateData(migrationDb, 'up', migration);
   }
   await checkPerformanceIndexes(migrationDb);
+  await checkSubscriptionNullableIndexes(mongoClient, { databaseUrl });
   const push = spawn(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--skip-generate'], { env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit', timeout: 60000 });
   const [pushCode] = await once(push, 'exit');
   assert.equal(pushCode, 0, 'Test schema initialization must succeed');
   await migrateData(mongoClient.db('fakturo_integration'),'up','015-auth-rate-limit');
   await migrateData(mongoClient.db('fakturo_integration'),'up','017-launch-safety');
-  for (const migration of ['018-performance-indexes', '019-email-safety', '020-pilot-metrics', '021-queue-throughput']) {
+  for (const migration of ['018-performance-indexes', '019-email-safety', '020-pilot-metrics', '021-queue-throughput', '022-subscription-nullable-identifiers']) {
     await migrateData(mongoClient.db('fakturo_integration'), 'up', migration);
   }
   await checkPasswordResetAtomic(db);

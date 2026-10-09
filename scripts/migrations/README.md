@@ -55,3 +55,11 @@ Dodaje TTL `expiresAt` i indeks daty na `PilotMetric`, TTL oraz indeks pseudonim
 ### 021-queue-throughput
 
 Dodaje pięć indeksów najstarszych zadań, wygasłych blokad i automatycznych e-maili. Nie zmienia statusów ani dokumentów. Down usuwa wyłącznie indeksy utworzone przez checkpoint. Operator obserwuje agregat kolejki i wiek zaległości; sama migracja nie zwiększa limitu czasu ani liczby instancji Netlify.
+
+### 022-subscription-nullable-identifiers
+
+Naprawia unikalność opcjonalnych identyfikatorów Stripe: stare indeksy niesparse indeksują także brak pola, a indeksy sparse nadal indeksują jawne `null`. Dwa oczekujące konta Checkout lub dwa przyznane dostępy mogły więc powodować błąd duplikatu. Nowe indeksy `Subscription_stripeCustomerId_string_key` i `Subscription_stripeSubscriptionId_string_key` są unikalne wyłącznie dla wartości tekstowych (`partialFilterExpression: { pole: { $type: 'string' } }`). Migracja najpierw buduje oba nowe indeksy, a potem usuwa rozpoznane stare indeksy; nie zmienia żadnego konta, subskrypcji ani danych Stripe.
+
+Przed uruchomieniem płatności wykonaj `npm run db:migrate -- up` po ewentualnym przygotowaniu schematu. `prisma db push` nie odwzorowuje tych indeksów częściowych i może przywrócić wadliwe indeksy; po takim kroku trzeba osobno sprawdzić stan indeksów oraz checkpoint migracji. Nie uruchamiaj `db push` na produkcji jako zamiennika migracji.
+
+Checkpoint zapisuje rzeczywiste poprzednie opcje indeksów. Rollback odtwarza je przed usunięciem nowych indeksów, ale zostaje jawnie zablokowany, jeśli obecne dane zawierają wiele wartości `null` lub brakujących pól niezgodnych ze starym indeksem. Cofnięcie nigdy nie usuwa danych, aby wymusić unikalność. Nieznane nazwy indeksów, zmienione definicje, duplikaty rzeczywistych identyfikatorów oraz niepoprawne typy wymagają wyjaśnienia przed zmianą indeksów.

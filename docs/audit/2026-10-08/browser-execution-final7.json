@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "invocation": "RUN_ALL_MOBILE_CHECKS=1 RUN_WEBKIT_CHECKS=1 RUN_FIREFOX_CHECKS=1 PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1 NODE_OPTIONS=--require=/tmp/launch-webkit-preload.cjs npm run test:mobile",
+  "selectedBrowserFilterUnset": true,
+  "startedAt": "2026-10-09T13:59:42.687Z",
+  "finishedAt": "2026-10-09T14:19:19.264Z",
+  "before": {
+    "phase": "before-full-matrix",
+    "checkedAt": "2026-10-09T13:59:42.582Z",
+    "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+    "buildId": "EtIKJoZ6X52nNorRlxheE"
+  },
+  "after": {
+    "phase": "after-full-matrix",
+    "checkedAt": "2026-10-09T14:19:19.042Z",
+    "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+    "buildId": "EtIKJoZ6X52nNorRlxheE"
+  },
+  "unchanged": true,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "memoryBefore": {
+    "memory.current": "6251712512",
+    "memory.max": "8589934592",
+    "memory.peak": "8589967360",
+    "memory.events": "low 0\nhigh 0\nmax 145238\noom 2\noom_kill 1\noom_group_kill 0"
+  },
+  "memoryAfter": {
+    "memory.current": "4056506368",
+    "memory.max": "8589934592",
+    "memory.peak": "8589967360",
+    "memory.events": "low 0\nhigh 0\nmax 157551\noom 2\noom_kill 1\noom_group_kill 0"
+  },
+  "artifact": {
+    "bytes": 24697452,
+    "sha256": "46630610257fbc7dc431b903fa8baa08fb916a23f7ca6576523e533ccf3a5930",
+    "sourceSha256": "202ad9a2ba265177355cbaf5318a9a91837744b89727ebc42f8fdaa49588a716",
+    "buildId": "EtIKJoZ6X52nNorRlxheE",
+    "selectedEngines": [
+      "chromium",
+      "webkit",
+      "firefox"
+    ],
+    "engines": [
+      {
+        "engine": "chromium",
+        "status": "passed"
+      },
+      {
+        "engine": "webkit",
+        "status": "passed"
+      },
+      {
+        "engine": "firefox",
+        "status": "passed"
+      }
+    ],
+    "completedEngines": [
+      "chromium",
+      "webkit",
+      "firefox"
+    ],
+    "layoutChecks": 1010,
+    "layoutFailures": [],
+    "totals": {
+      "observations": 1010,
+      "visibleControlInstances": 33863,
+      "checkedScenarios": 246
+    },
+    "networkIssues": 131,
+    "consoleIssues": 91,
+    "browserLifecycle": [
+      {
+        "engine": "firefox",
+        "event": "between-layout-viewports",
+        "layoutChecks": 803,
+        "storageStatePreserved": true,
+        "privateViewport": {
+          "width": 390,
+          "height": 844
+        },
+        "publicViewport": {
+          "width": 390,
+          "height": 844
+        }
+      },
+      {
+        "engine": "firefox",
+        "event": "between-layout-viewports",
+        "layoutChecks": 893,
+        "storageStatePreserved": true,
+        "privateViewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "publicViewport": {
+          "width": 768,
+          "height": 1024
+        }
+      },
+      {
+        "engine": "firefox",
+        "event": "before-interaction-phase",
+        "layoutChecks": 983,
+        "storageStatePreserved": true,
+        "privateViewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "publicViewport": {
+          "width": 1280,
+          "height": 900
+        }
+      }
+    ]
+  },
+  "log": "/tmp/faktura-qa-matrix-final7.log",
+  "evidence": {
+    "raw": {
+      "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage.json",
+      "bytes": 24697452,
+      "sha256": "46630610257fbc7dc431b903fa8baa08fb916a23f7ca6576523e533ccf3a5930"
+    },
+    "summary": {
+      "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage-summary.json",
+      "bytes": 389328,
+      "sha256": "da18745968544dff33f93bbeb638f322e65cb413e12f693f9dea25aa4387ddbc"
+    },
+    "log": {
+      "path": "/tmp/faktura-qa-matrix-final7.log",
+      "bytes": 26522,
+      "sha256": "4b4f104738997f71139c0af7f7bcf2ead18eaf1ed211830dcaa9607fe83e0568"
+    }
+  },
+  "scope": "One genuine complete all3 invocation; isolated synthetic database; providers blocked; observed controls do not certify every unclicked state; raw network and console diagnostics preserved without reclassification.",
+  "harnessProvenance": {
+    "capturedAt": "2026-10-09 during full final7 before announced harness mutation",
+    "files": [
+      {
+        "path": "scripts/audit/financial-browser.mjs",
+        "committedSha256": "7808edd1d91e511e0fbba7c33698e1f3e00db18645af4d0cf3a4c53675a36bd5",
+        "currentSha256": "7808edd1d91e511e0fbba7c33698e1f3e00db18645af4d0cf3a4c53675a36bd5",
+        "currentlyMatchesCommitted": true,
+        "afterMatrixSha256": "8e59e0ffb9a11deabb38682cce426d0d3236e5219f7e785834eee211a09ea6d5",
+        "changedDuringMatrix": true
+      },
+      {
+        "path": "scripts/browser-checks.mjs",
+        "committedSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+        "currentSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+        "currentlyMatchesCommitted": true,
+        "afterMatrixSha256": "29a576fdb5e2036b5799050df2c241ad1d508a965b0ea0d30e61b8fe62c2de76",
+        "changedDuringMatrix": false
+      },
+      {
+        "path": "scripts/mobile-audit.mjs",
+        "committedSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+        "currentSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+        "currentlyMatchesCommitted": true,
+        "afterMatrixSha256": "74956fd39b8bb9738e819afaec9f9afb0e15340aed25116865017755af294d30",
+        "changedDuringMatrix": false
+      }
+    ],
+    "runtimeInference": "Financial browser module was imported and passed in Chromium and WebKit before mutation; later engines reuse Node cached ESM import. This is not a replay of the failing coupled HTTP database precondition.",
+    "scope": "The financial helper was already loaded by Chromium before the later announced test-only fixture patch; the same Node ESM module is cached for WebKit and Firefox. This full matrix uses the original isolated financial fixture. It does not retest the distinct coupled HTTP database fixture precondition.",
+    "coupledHttpDatabasePreconditionRetestedByThisMatrix": false
+  },
+  "cleanup": {
+    "activeRelevantProcesses": [],
+    "historicalZombiesByName": {
+      "next-server (v1": 5,
+      "chrome-headless": 258,
+      "chrome_crashpad": 24,
+      "chrome": 144,
+      "WPENetworkProce": 53,
+      "WPEWebProcess": 78,
+      "mongod-x64-debi": 4,
+      "MiniBrowser": 1
+    },
+    "scope": "Procfs command-name scan after own runner exited; zombies are terminated processes, not active browser work. No credentials or command arguments inspected."
+  }
+}
