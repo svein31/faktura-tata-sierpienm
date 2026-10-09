@@ -1,0 +1,2602 @@
+{
+  "schemaVersion": 1,
+  "scope": "Synthetic loopback only; no production writes. Generic API statuses below 500 are smoke observations, not business-function verification.",
+  "completedRuns": [
+    {
+      "runName": "final2-http-and-unit",
+      "createdAt": "2026-10-08T19:35:49.956Z",
+      "sourceSha256": "dbe43b72c44b7570be29682677f14c8e424553a3c6ce356ffbc536e6858249e9",
+      "buildId": "bssOBG1BBwruzKi48pC-w",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "ab4d930625a4892e5e6e878765bc9e16ea92edd90ca1e0945a099d01448d01b8",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "200": 120,
+        "201": 7,
+        "204": 3,
+        "400": 91,
+        "401": 180,
+        "403": 4,
+        "404": 28,
+        "409": 8,
+        "429": 1
+      },
+      "additionalExplicitSuiteResults": {
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS",
+        "ksefAutoEmailOutboxControlledProvider": "PASS"
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-http-final2.log": {
+          "sha256": "b9cf7db61573d29c162ea934afc6edc1aec51734303bdd2149edc0006e468ccf"
+        },
+        "faktura-qa-tests-final2.log": {
+          "sha256": "b2770a274e9f334a0b1bd9ca0d3dbf0e7cf013835314ca639cb1dbb4869c16c4"
+        }
+      },
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+        "axeVersion": "4.14.0",
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 8,
+          "manualReviewScreens": 86
+        },
+        "result": "FAIL",
+        "artifactSha256": "61bccc45e5b8420c2c726ca9ebaba37c6231f7ff0f551e6d90d931bf42188ba2",
+        "failedScreens": [
+          {
+            "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "light",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 2
+              }
+            ]
+          },
+          {
+            "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "light",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 1
+              }
+            ]
+          },
+          {
+            "route": "/invite/qa_axe_invite_capability_xxxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "light",
+            "violations": [
+              {
+                "id": "link-in-text-block",
+                "nodes": 1
+              }
+            ]
+          },
+          {
+            "route": "/offers",
+            "theme": "light",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 1
+              }
+            ]
+          },
+          {
+            "route": "/settings/team",
+            "theme": "light",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 1
+              }
+            ]
+          },
+          {
+            "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "dark",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 6
+              }
+            ]
+          },
+          {
+            "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "dark",
+            "violations": [
+              {
+                "id": "color-contrast",
+                "nodes": 5
+              }
+            ]
+          },
+          {
+            "route": "/invite/qa_axe_invite_capability_xxxxxxxxxxxxxxxxxxxxxxx",
+            "theme": "dark",
+            "violations": [
+              {
+                "id": "link-in-text-block",
+                "nodes": 1
+              }
+            ]
+          }
+        ],
+        "note": "Actual compiled final2 run. The expanded valid-capability fixture exposed remaining contrast and link-distinction defects. A later pass must be recorded under its own build/source fingerprint."
+      },
+      "browserMatrix": {
+        "result": "INCOMPLETE_FAIL",
+        "completedEngines": [],
+        "chromiumCompletedWorkflowSuites": {
+          "featureControls": 15,
+          "financial": 6,
+          "invitation": 4,
+          "publicCalculators": 18
+        },
+        "observedLayoutFailures": [
+          {
+            "engine": "chromium",
+            "viewportWidth": 320,
+            "route": "/expenses",
+            "pageScrollWidth": 683
+          },
+          {
+            "engine": "chromium",
+            "viewportWidth": 320,
+            "route": "/expenses expanded",
+            "pageScrollWidth": 683
+          },
+          {
+            "engine": "chromium",
+            "viewportWidth": 320,
+            "route": "/settings/team",
+            "pageScrollWidth": 332
+          },
+          {
+            "engine": "chromium",
+            "viewportWidth": 320,
+            "route": "/settings/team expanded",
+            "pageScrollWidth": 332
+          }
+        ],
+        "runnerFailure": "Password-reset helper getByRole(alert) matched both its intended error and the Next route-announcer; no complete three-engine pass was produced.",
+        "logSha256": "b0197e62f2880bc63b95ab2a7ffb5b5f1e7aa05b16ea7062555910d389eaa122"
+      }
+    },
+    {
+      "runName": "final3-http-and-unit",
+      "createdAt": "2026-10-08T19:50:12.687Z",
+      "sourceSha256": "5df5f2df95df7702dbe6b22ea18451f9013c659b01e64d8d5e816ff379480d49",
+      "buildId": "FB7qc27HCnU-XhBqEUIZ9",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "7d726ecc737f4027c8cd0e44723293741660c71987799d483f2d9bea5bcc3458",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "200": 120,
+        "201": 7,
+        "204": 3,
+        "400": 91,
+        "401": 180,
+        "403": 4,
+        "404": 28,
+        "409": 8,
+        "429": 1
+      },
+      "additionalExplicitSuiteResults": {
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "build": "PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS",
+        "ksefAutoEmailOutboxControlledProvider": "PASS"
+      },
+      "homeCspHeader": {
+        "checkedAt": "2026-10-08T19:51:53.792Z",
+        "scope": "Read-only home response from isolated loopback server",
+        "status": 200,
+        "buildId": "FB7qc27HCnU-XhBqEUIZ9",
+        "csp": "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        "cspReportOnly": null
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-http-final3.log": {
+          "sha256": "4a45590114a1756e82d3fdf86c14c9f92eb7ee368c7f8a84e48793ee7203f02f"
+        },
+        "faktura-qa-tests-final3.log": {
+          "sha256": "5470d6f0be1a03c8d9804ba43d6d17d2464d4ff191cf2602214891bd371ca343"
+        },
+        "faktura-qa-build-final3.log": {
+          "sha256": "b75515bc6e65579457d99b726066f709245f3887317e6f7a27ab01c0564df1ac"
+        },
+        "faktura-qa-type-final3.log": {
+          "sha256": "5641064464eb168562f6cd869ba598baab9a292b17dbf958bbaefc9c8b412ac7"
+        },
+        "faktura-qa-lint-final3.log": {
+          "sha256": "e449b760ff9dca0a1e6c8d82126284d7d498a47fb6fe367bb67caa5c1d3fb69e"
+        }
+      },
+      "browserAndAxeStatus": "HISTORICAL_AUTOMATED_AXE_PASS_WITH_MANUAL_DEFECT_AND_INCOMPLETE_BROWSER_MATRIX",
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+        "axeVersion": "4.14.0",
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 0,
+          "manualReviewScreens": 86
+        },
+        "result": "AUTOMATED_PASS_WITH_MANUAL_DEFECT",
+        "artifactSha256": "fab3d9574c5ea1fd606ca50941e78288f7f65ae4ce65465ee2e75e71598cc119",
+        "manualKnownDefect": "Active expense status-filter text was white on a transparent background because raw HSL CSS custom property was used as a color. Axe kept this in incomplete/manual-review, rather than a violation. Root validated it manually and ordered a source fix and new build.",
+        "manualKnownDefectEvidence": "Root actual computed-style/manual verification; final3 automated 0 violations does not mean manual accessibility or every UI state passed."
+      },
+      "browserMatrix": {
+        "result": "INCOMPLETE",
+        "completedEngines": [
+          "chromium"
+        ],
+        "layoutChecksInLastPublishedPartialArtifact": 582,
+        "layoutFailuresInLastPublishedPartialArtifact": [],
+        "artifactSha256": "3ac677d242911d88061e9a8fe82c186c186720173801c796b9c20f7b1f4823db",
+        "note": "Root stopped the run in WebKit to fix the manually confirmed expense filter. Chromium completed. No full three-engine PASS is claimed."
+      }
+    },
+    {
+      "runName": "final4-historical-full-regression-with-later-cookie-defects",
+      "createdAt": "2026-10-09T05:23:49.500Z",
+      "sourceSha256": "c746318e97074899cf0c9a0e4772fb5c8163e57ee687483e393d39bbd111e6e9",
+      "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "61d77816bdb61e8e03a4fb9112bab8af8c5b9a82580b793d2c1d08ebfd644488",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "401": 180,
+        "200": 120,
+        "429": 1,
+        "400": 91,
+        "404": 28,
+        "204": 3,
+        "403": 4,
+        "201": 7,
+        "409": 8
+      },
+      "additionalExplicitSuiteResults": {
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "build": "PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS",
+        "ksefAutoEmailOutboxControlledProvider": "PASS",
+        "privateResponsiveScreens": 36,
+        "teamClipboardScenarios": 9,
+        "expenseFilterStates": 24
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-build-final4.log": {
+          "sha256": "e8962eefc03ac1a24b966fb3576aa215bb84c1cecae6ef73cd1e6af6e68a5736"
+        },
+        "faktura-qa-type-final4.log": {
+          "sha256": "5641064464eb168562f6cd869ba598baab9a292b17dbf958bbaefc9c8b412ac7"
+        },
+        "faktura-qa-lint-final4.log": {
+          "sha256": "e449b760ff9dca0a1e6c8d82126284d7d498a47fb6fe367bb67caa5c1d3fb69e"
+        },
+        "faktura-qa-tests-final4.log": {
+          "sha256": "7831beeed73bc91abaf210acc6ddb7c2a2f34b42a0ccd1a902e25ba5341cf09b"
+        },
+        "faktura-qa-http-final4.log": {
+          "sha256": "f5ce196209036aefe910dc88e5341bd73150995ab59c9553014bd04170227ae7"
+        },
+        "faktura-qa-axe-final4.log": {
+          "sha256": "eadb5ab242a271d742c0e6b962a6182e9a539d69a26aeca5fae94ef33da39648"
+        },
+        "faktura-qa-matrix-final4.log": {
+          "sha256": "6a88d2a1dcdb7a456c69402fb8b28967d4a5de2351030db315facacd8918094a"
+        }
+      },
+      "artifactReferences": {
+        "http": {
+          "path": "docs/audit/2026-10-08/http-audit-final4.json",
+          "sha256": "61d77816bdb61e8e03a4fb9112bab8af8c5b9a82580b793d2c1d08ebfd644488"
+        },
+        "accessibility": {
+          "path": "docs/audit/2026-10-08/accessibility-routes-final4.json",
+          "sha256": "cdeb9b8d3cab6e0a4731e04157c478dc3b4541962bd28edfcc986c37304e1d39"
+        },
+        "browser": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final4.json",
+          "sha256": "b6b9cd73be0a197dec7457877d77921b5807a06230ca19d0efaa49cf9a4752ab"
+        },
+        "portalPrint": {
+          "path": "docs/audit/2026-10-08/portal-print-final4.json",
+          "sha256": "8711bfb7adacf5b40e7e56f2134c2d0dc9fb533d9c3f23a8b52ea36d8ac0cc29"
+        },
+        "cookieFocus": {
+          "path": "docs/audit/2026-10-08/cookie-focus-final4.json",
+          "sha256": "fe2702d4381b7e9cb6eb2134c8e6e4c7770adf352730317fefb6f76fd7f214a1"
+        }
+      },
+      "browserAndAxeStatus": "HISTORICAL_COMPLETE_BROWSER_PASS_AND_AUTOMATED_AXE_PASS_WITH_LATER_PRINT_AND_FOCUS_DEFECTS",
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+        "axeVersion": "4.14.0",
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 0,
+          "manualReviewScreens": 86
+        },
+        "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+        "artifactSha256": "cdeb9b8d3cab6e0a4731e04157c478dc3b4541962bd28edfcc986c37304e1d39",
+        "manualReviewLimit": "86 screens still have incomplete groups; targeted filter regression passes its own 24 states, not every manual state."
+      },
+      "browserMatrix": {
+        "result": "PASS_OF_RECORDED_SCENARIOS",
+        "completedEngines": [
+          "chromium",
+          "webkit",
+          "firefox"
+        ],
+        "engines": [
+          {
+            "engine": "chromium",
+            "status": "passed"
+          },
+          {
+            "engine": "webkit",
+            "status": "passed"
+          },
+          {
+            "engine": "firefox",
+            "status": "passed"
+          }
+        ],
+        "layoutChecks": 1010,
+        "layoutFailures": [],
+        "totals": {
+          "observations": 1010,
+          "visibleControlInstances": 33855,
+          "checkedScenarios": 189
+        },
+        "artifactSha256": "b6b9cd73be0a197dec7457877d77921b5807a06230ca19d0efaa49cf9a4752ab",
+        "note": "The later print and banner-origin focus scenarios were absent from this matrix and failed when added. This is not final-release approval."
+      },
+      "laterExplicitDefects": {
+        "portalPrint": {
+          "result": "FAIL_FIRST_VISIT_COOKIE_BANNER_PRINTED",
+          "summary": {
+            "documentCases": 4,
+            "documentAssertions": 88,
+            "documentFailures": 0,
+            "firstVisitPrintIssues": 4,
+            "renderedPdfPagesActuallyViewed": 8,
+            "sourceEdits": 0,
+            "externalRequestsBlocked": 0,
+            "localMutationsBlocked": 4
+          }
+        },
+        "cookieBannerFocus": {
+          "result": "FAIL_TRIGGER_DISCONNECTED_FOCUS_RESTORED_TO_BODY"
+        },
+        "resolution": "Source reopened for narrow cookie-only print and focus fixes. New build and full rechecks required."
+      }
+    },
+    {
+      "runName": "final5-historical-http-axe-targeted-pass-full-browser-stopped",
+      "createdAt": "2026-10-09T05:45:21.073Z",
+      "buildId": "ZjS2_AKTU791vZrYv_n4s",
+      "sourceSha256": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "61411b7654fcfc313662edf69f4f9ddc9aaf66b422ecf9f6f77eee96d91662f9",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "401": 180,
+        "200": 120,
+        "429": 1,
+        "400": 91,
+        "404": 28,
+        "204": 3,
+        "403": 4,
+        "201": 7,
+        "409": 8
+      },
+      "additionalExplicitSuiteResults": {
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "build": "PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS",
+        "ksefAutoEmailOutboxControlledProvider": "PASS",
+        "privateResponsiveScreens": 36,
+        "cookiePrintAndFocusTargetedScenarios": 24,
+        "portalA4PrintCases": 4,
+        "portalA4PrintAssertions": 92,
+        "portalA4RenderedPagesActuallyViewed": 8
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-http-final5.log": {
+          "sha256": "169a3d75fb252a3e5ac46ac32a84b597f523b2957255ce3b9b5b1acf29abf984"
+        },
+        "faktura-qa-tests-final5.log": {
+          "sha256": "231910eba2366abfcc4d9309bd449e919487e66448ceb30652ff0955ffb5062d"
+        },
+        "faktura-qa-build-final5.log": {
+          "sha256": "83a61a80561858c252ee00509cd4b83b1b643c862052d0a602597adccedf68be"
+        },
+        "faktura-qa-type-final5.log": {
+          "sha256": "5641064464eb168562f6cd869ba598baab9a292b17dbf958bbaefc9c8b412ac7"
+        },
+        "faktura-qa-lint-final5.log": {
+          "sha256": "e449b760ff9dca0a1e6c8d82126284d7d498a47fb6fe367bb67caa5c1d3fb69e"
+        },
+        "faktura-qa-axe-final5.log": {
+          "sha256": "35ca928c8ae791e1a9664fcdb8083b994f533f064a8219f6a83dfc543e0fa72f"
+        },
+        "faktura-qa-matrix-final5.log": {
+          "sha256": "83c04bf831341ebf547259553b6b0b6dda50aee70bf686a258394b996abba5c4"
+        },
+        "faktura-private-layout-final5-proof.log": {
+          "sha256": "768fb02655f4e0d440a47760fd1db7ad5b29a130ea8770a3eb0bb05b87da6d64"
+        },
+        "faktura-cookie-print-final5.log": {
+          "sha256": "acaeeff055c931b8630421fb9b115fdc242fbb5d380765aebfc2d5738e701a5b"
+        },
+        "faktura-portal-print-final5.log": {
+          "sha256": "871bf608ecabc777fb0936b5bab067e02d963f253f64c17d7c0f5dc74c5a2ba1"
+        }
+      },
+      "artifactReferences": {
+        "http": {
+          "path": "docs/audit/2026-10-08/http-audit-final5.json",
+          "sha256": "61411b7654fcfc313662edf69f4f9ddc9aaf66b422ecf9f6f77eee96d91662f9"
+        },
+        "accessibility": {
+          "path": "docs/audit/2026-10-08/accessibility-routes-final5.json",
+          "sha256": "14472ed9ac9cccd88e5db6bf3f132c2b09a2d9890f8d9395d1f99572d23b5424"
+        },
+        "browserStopped": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final5-stopped.json",
+          "sha256": "cb51cb2c9016f339f4c9e9fb365cc15bc7e357430d01ef2d541fd9b0855bf60d"
+        },
+        "print": {
+          "path": "docs/audit/2026-10-08/portal-print-final5.json",
+          "sha256": "ff56fb7377384b662faf0b0593c1a8f55f6451d8b42a8c252fe38b49bd69d2b8"
+        },
+        "privateLayout": {
+          "path": "docs/audit/2026-10-08/private-layout-final5.json",
+          "sha256": "8c986dfdfe395843741baa2952eb3c193256cf838a048e2635c073f36d5c8aa0"
+        }
+      },
+      "browserAndAxeStatus": "HISTORICAL_HTTP_AND_AUTOMATED_AXE_PASS_WITH_FULL_BROWSER_FAILURE_IN_WEBKIT",
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 0,
+          "manualReviewScreens": 86
+        },
+        "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+        "artifactSha256": "14472ed9ac9cccd88e5db6bf3f132c2b09a2d9890f8d9395d1f99572d23b5424",
+        "manualReviewLimit": "86 screens contain incomplete axe groups; no complete human or screen-reader certification."
+      },
+      "browserMatrix": {
+        "result": "STOPPED_WITH_PAGEERROR_FAILURE",
+        "completedEngines": [
+          "chromium"
+        ],
+        "engines": [
+          {
+            "engine": "chromium",
+            "status": "passed"
+          },
+          {
+            "engine": "webkit",
+            "status": "failed"
+          }
+        ],
+        "layoutChecks": 713,
+        "layoutFailures": [],
+        "totals": {
+          "observations": 713,
+          "visibleControlInstances": 23929,
+          "checkedScenarios": 142
+        },
+        "pageErrorFailure": {
+          "engine": "webkit",
+          "page": "/invoices",
+          "count": 5,
+          "backgroundRscPaths": [
+            "/reminders",
+            "/ksef",
+            "/help",
+            "/settings/account",
+            "/invoices/recurring"
+          ],
+          "message": "Fetch API cannot load RSC prefetch due to access control checks.",
+          "evidenceLog": "/tmp/faktura-qa-matrix-final5.log",
+          "sourceDiagnosis": "Automatic navigation prefetch observed; final6 disables default automatic link prefetch and requires fresh compiled regression evidence. Exact browser internals are not inferred from the message."
+        },
+        "artifactSha256": "cb51cb2c9016f339f4c9e9fb365cc15bc7e357430d01ef2d541fd9b0855bf60d",
+        "note": "Layout success in visited screens and completed Chromium do not establish an all-engine browser PASS. Firefox full matrix did not run; pageerrors remained fatal."
+      }
+    },
+    {
+      "runName": "final6-initial-browser-harness-opaque-origin-failure",
+      "createdAt": "2026-10-09T10:48:19.379Z",
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+      "browserAndAxeStatus": "HISTORICAL_BROWSER_HARNESS_STOPPED_BEFORE_LAYOUTS",
+      "productionOrLaterBuildVerified": false,
+      "browserMatrix": {
+        "result": "STOPPED_WITH_HARNESS_INITIALIZATION_ERROR",
+        "engines": [
+          {
+            "engine": "chromium",
+            "status": "failed"
+          }
+        ],
+        "completedEngines": [],
+        "layoutChecks": 0,
+        "layoutFailures": [],
+        "totals": {
+          "observations": 0,
+          "visibleControlInstances": 0,
+          "checkedScenarios": 0
+        },
+        "failure": {
+          "engine": "chromium",
+          "phase": "dashboard-load",
+          "message": "Failed to read the 'localStorage' property from 'Window': Access is denied for this document.",
+          "cause": "Private-prefetch fixture init script accessed localStorage in an opaque-origin initial document.",
+          "fix": "Guard fixture initialization against opaque/non-HTTP origin; retain every live pageerror assertion. No application source changed."
+        }
+      },
+      "artifactReferences": {
+        "browserStopped": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final6-initial-harness-failure.json",
+          "sha256": "b92e283067a76fa93bfd7bfa9541c9bb448b73093095a8ef199987b670215333"
+        }
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-matrix-initial-harness-failure-final6.log": {
+          "sha256": "c90152582e2c9f01f6ca574435674f65b5f1e1e0cd8e36ba28945a61919589a0"
+        }
+      },
+      "note": "This failed harness run proves neither an application defect nor a completed browser matrix. The accepted repeat must have separate current-build evidence; source fingerprint alone does not turn this failure into a PASS."
+    },
+    {
+      "runName": "final6-partial-chromium-webkit-pass-firefox-process-closed",
+      "createdAt": "2026-10-09T11:15:08.363Z",
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+      "browserAndAxeStatus": "HISTORICAL_COMPLETED_CHROMIUM_WEBKIT_WITH_FIREFOX_PROCESS_FAILURE",
+      "productionOrLaterBuildVerified": false,
+      "browserMatrix": {
+        "result": "PARTIAL_COMPLETED_ENGINES_FIREFOX_STOPPED",
+        "completedEngines": [
+          "chromium",
+          "webkit"
+        ],
+        "engines": [
+          {
+            "engine": "chromium",
+            "status": "passed"
+          },
+          {
+            "engine": "webkit",
+            "status": "passed"
+          },
+          {
+            "engine": "firefox",
+            "status": "failed"
+          }
+        ],
+        "layoutChecks": 983,
+        "layoutFailures": [],
+        "totals": {
+          "observations": 983,
+          "visibleControlInstances": 32338,
+          "checkedScenarios": 224
+        },
+        "failure": {
+          "engine": "firefox",
+          "message": "Target page, context or browser has been closed",
+          "phase": "public calculator tail / final viewport restoration",
+          "cause": "Browser process closed; root cause not proven. Cgroup8GB memory peak/counter without a before-run baseline does not establish OOM causality.",
+          "nextAction": "Repeat all Firefox scopes on a fresh isolated fixture using bounded browser recycling between full viewport groups and before calculator tail. Preserve live fatal-error assertions and browser default BFCache.",
+          "applicationSourceChanged": false
+        }
+      },
+      "artifactReferences": {
+        "browserStopped": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary-final6-stopped-firefox-process.json",
+          "sha256": "b17a79795d435e29fb194c2c90e201b00861a3ae8b27622f5c7b7285ca1e6586"
+        }
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-matrix-stopped-firefox-process-final6.log": {
+          "sha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+        }
+      },
+      "note": "Only completed Chromium/WebKit engine evidence can contribute to a later compatible two-run composition. Stopped Firefox controls/scenarios are retained as raw history and must not be promoted as passed or pooled with a new Firefox run."
+    },
+    {
+      "runName": "final6-complete-local-regression",
+      "createdAt": "2026-10-09T10:48:05.003Z",
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+      "routeCatalogSha256": "089a01c63c6dd3fb68f13f560a3c0cd95475bd090d703c256c8c1d1e5eb045eb",
+      "routeCount": 135,
+      "methodCount": 193,
+      "checks": 442,
+      "failures": [],
+      "catalogArtifactSha256": "be57fb85fa6f673731db4f205b38eef2a990d7f9112cfb69fecb33f08b798a41",
+      "assertionCounts": {
+        "no-server-error-smoke": 268,
+        "expected-status": 174
+      },
+      "actorCounts": {
+        "anonymous": 245,
+        "fixture-owner": 186,
+        "fixture-other": 11
+      },
+      "statusCounts": {
+        "401": 180,
+        "200": 120,
+        "429": 1,
+        "400": 91,
+        "404": 28,
+        "204": 3,
+        "403": 4,
+        "201": 7,
+        "409": 8
+      },
+      "additionalExplicitSuiteResults": {
+        "publicHtmlSeoUrls": 46,
+        "productSecurityChecks": 42,
+        "unitNamedTests": 275,
+        "testFixes": 7,
+        "unitTotal": 282,
+        "build": "PASS",
+        "typecheck": "PASS",
+        "lint": "PASS",
+        "httpAccount": "PASS",
+        "httpInvoiceApproval": "PASS",
+        "httpInvitation": "PASS",
+        "authProofFencing": "PASS",
+        "financialMongoAndHttp": "PASS",
+        "manualSmtpEightConcurrentIntentsOneAcceptance": "PASS",
+        "ksefAutoEmailOutboxControlledProvider": "PASS",
+        "privateResponsiveScreens": 36,
+        "teamClipboardScenarios": 9,
+        "expenseFilterStates": 24,
+        "cookiePrintAndFocusScenarios": 24,
+        "portalA4PrintCases": 4,
+        "portalA4PrintAssertions": 92,
+        "privatePrefetchIntentScenarios": 33,
+        "privatePrefetchIntentAssertions": 36,
+        "actualAppearanceAndCompanyDesktopChecks": 33
+      },
+      "evidenceLogDigests": {
+        "faktura-qa-http-final6.log": {
+          "sha256": "8e174155246231179f38ea3e50c44035ee8e8934f790d81ff53904d7f5eaa580"
+        },
+        "faktura-qa-tests-final6.log": {
+          "sha256": "7dac7295c79fdc623ea602d8e9450d43c432cb38e533f707185be095d1d6f340"
+        },
+        "faktura-qa-build-final6.log": {
+          "sha256": "295a877888996645b6f025157e75f822e1c8c96c5c6a4656ee05abb658fb6694"
+        },
+        "faktura-qa-type-final6.log": {
+          "sha256": "5641064464eb168562f6cd869ba598baab9a292b17dbf958bbaefc9c8b412ac7"
+        },
+        "faktura-qa-lint-final6.log": {
+          "sha256": "e449b760ff9dca0a1e6c8d82126284d7d498a47fb6fe367bb67caa5c1d3fb69e"
+        },
+        "faktura-qa-axe-final6.log": {
+          "sha256": "22174ac4ccda2824de54f2dc76135c5591955fb308e6eca3077cb2da4f8ba685"
+        },
+        "faktura-qa-matrix-final6.log": {
+          "sha256": "c42ce5a4a28bb6942626efe642732a092f5d6fcb9af45dd6b3b7d6b8ad6a98b2"
+        },
+        "faktura-private-layout-final6.log": {
+          "sha256": "1c4d5c74c8de77fababb626fa5d82d5c2d55a2b14a20677859d4f10c78c0f60f"
+        },
+        "faktura-portal-print-final6.log": {
+          "sha256": "871bf608ecabc777fb0936b5bab067e02d963f253f64c17d7c0f5dc74c5a2ba1"
+        },
+        "faktura-cookie-print-final6.log": {
+          "sha256": "acaeeff055c931b8630421fb9b115fdc242fbb5d380765aebfc2d5738e701a5b"
+        },
+        "faktura-private-prefetch-final6.log": {
+          "sha256": "c504b7198794f5b689c96b0d80681028a83c39e77dd8f6746d8fc81a11f8d263"
+        },
+        "faktura-private-prefetch-traffic-final6.log": {
+          "sha256": "cc22d449440f9d22f9e4e83e4831a35d3bb1a566bd53a07a1ae09422c91000dd"
+        },
+        "faktura-theme-company-final6.log": {
+          "sha256": "6e494139643b839f6b1ea225c82fc24f12a0a14ab67f8dd6a88f74161ffbe0a7"
+        },
+        "faktura-qa-matrix-stopped-firefox-process-final6.log": {
+          "sha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+        },
+        "faktura-qa-firefox-final6.log": {
+          "sha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c"
+        }
+      },
+      "artifactReferences": {
+        "http": {
+          "path": "docs/audit/2026-10-08/http-audit.json",
+          "sha256": "be57fb85fa6f673731db4f205b38eef2a990d7f9112cfb69fecb33f08b798a41"
+        },
+        "accessibility": {
+          "path": "docs/audit/2026-10-08/accessibility-routes.json",
+          "sha256": "d5e807f34af828744eb1db325ceca21033459973e1bc5df8b6d8828492bf0c09"
+        },
+        "browser": {
+          "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+          "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+        },
+        "privateLayout": {
+          "path": "docs/audit/2026-10-08/private-layout-final6.json",
+          "sha256": "d6060487df94b0fdcb69ceaaf36101c3d86bb7d3b284a706863ed236de72ad8c"
+        },
+        "a4Print": {
+          "path": "docs/audit/2026-10-08/portal-print-final6.json",
+          "sha256": "fb77f9277117098eb1487d6ed539dbf6a68d0fc064d638858d622bdbfc9c86ad"
+        },
+        "cookieStandalone": {
+          "path": "docs/audit/2026-10-08/cookie-print-final6.json",
+          "sha256": "ada96045c060bea80deed63b3277cb1f7dc059bdba2341bfb1497f1830adc1f6"
+        },
+        "privatePrefetchStandalone": {
+          "path": "docs/audit/2026-10-08/private-prefetch-final6.json",
+          "sha256": "c7064b63ff6255d8b86ced5030d657cceb5d1a553dfca66a9b498392318980c7"
+        },
+        "privatePrefetchTraffic": {
+          "path": "docs/audit/2026-10-08/private-prefetch-traffic-final6.json",
+          "sha256": "4542504804bedceffcea1283d8dafc9d307df0f285a80b488ed404dc8dbb5a79"
+        },
+        "privatePrefetchReview": {
+          "path": "docs/audit/2026-10-08/private-prefetch-review.json",
+          "sha256": "77f42c4e9f0ea73975be7d7bea7c429a04702d4257cfc28e1cd2f4ebe59df35d"
+        },
+        "themeAndCompanyDesktop": {
+          "path": "docs/audit/2026-10-08/theme-company-final6.json",
+          "sha256": "7d8116d82841617df282dbb65e7938d020b5b956b9ffab75f02e89e6acc47ed0"
+        },
+        "webkitCausalDiagnosis": {
+          "path": "docs/audit/2026-10-08/webkit-navigation-causal-final6.json",
+          "sha256": "6e50da773c17f47317dc2405ec97e83df13097335f970513f1ee714b1ea806a8"
+        },
+        "browserDiagnosticReview": {
+          "path": "docs/audit/2026-10-08/browser-diagnostics-review-final6.json",
+          "sha256": "5de15e19b4ed106f14433ddd7d6c46731421a03344fac7f42bf0f64b0d1e91ac"
+        }
+      },
+      "browserAndAxeStatus": "COMPLETE_BROWSER_PASS_AND_AUTOMATED_AXE_PASS_WITH_MANUAL_REVIEW_REMAINING",
+      "productionOrLaterBuildVerified": false,
+      "accessibility": {
+        "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+        "axeVersion": "4.14.0",
+        "summary": {
+          "routes": 90,
+          "screenChecks": 180,
+          "failedScreens": 0,
+          "manualReviewScreens": 86
+        },
+        "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+        "artifactSha256": "d5e807f34af828744eb1db325ceca21033459973e1bc5df8b6d8828492bf0c09",
+        "manualKnownExpenseFilterDefect": "Fixed in app final4 and reverified by the full final6 matrix in 24 actual filter states across three engines and two themes.",
+        "manualReviewLimit": "Remaining incomplete axe groups are not automatically passed. The historical avatar pixel measurement proves one earlier-build gradient; targeted final6 filter styles prove this filter only. No complete human or screen-reader certification."
+      },
+      "browserMatrix": {
+        "result": "PASS",
+        "completedEngines": [
+          "chromium",
+          "webkit",
+          "firefox"
+        ],
+        "executionNote": "Three engines completed in two explicitly compatible runs; this is not a single all-engine successful process. Only completed engine proofs are composed.",
+        "composition": {
+          "method": "Only complete passed engines from two independent isolated runs of the exact same application source and compiled build; no partial failed Firefox proof is promoted.",
+          "executionNote": "Chromium and WebKit completed in the first run; Firefox completed in a fresh isolated database run with browser process recycling between viewports and before interactions. This is not a claim that one full three-engine invocation exited successfully.",
+          "applicationIdentity": {
+            "buildId": "21f_lBaQA8Ww--YiYgN1t",
+            "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc"
+          },
+          "runs": [
+            {
+              "rawPath": "/tmp/faktura-browser-coverage-stopped-firefox-process-final6.json",
+              "rawSha256": "8441b6c6d0c97f41ad505185b09cbe5c0af95f90dd793d5943bc9cfd46183a48",
+              "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-final6-stopped-firefox-process.json",
+              "summarySha256": "b17a79795d435e29fb194c2c90e201b00861a3ae8b27622f5c7b7285ca1e6586",
+              "acceptedCompletedEngines": [
+                "chromium",
+                "webkit"
+              ],
+              "excludedEngine": "firefox",
+              "invocationExitCode": 1,
+              "logPath": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+              "logSha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+            },
+            {
+              "rawPath": "artifacts/audit/browser-coverage-firefox-final6.json",
+              "rawSha256": "130e8bb9c7f1d1d289d7dd3f3277cb2ddfb5b1b16c33953c94bac4cf5cfa7422",
+              "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-firefox-final6.json",
+              "summarySha256": "66c23418c02ef5d41e0bbba9deec3ad5d4778b3d31cffdb7f3843a346d720683",
+              "acceptedCompletedEngines": [
+                "firefox"
+              ],
+              "invocationExitCode": 0,
+              "logPath": "/tmp/faktura-qa-firefox-final6.log",
+              "logSha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c"
+            }
+          ],
+          "harnessChanges": "Validated optional engine filter; Firefox process/context recycling preserves cookies/localStorage/auth, touch/viewport/service-worker settings and collected observations; browser history preferences unchanged. Every live document pageerror remains fatal. Calculator cleanup preserves the original failure.",
+          "priorFailureCauseLimit": "The previous Firefox process closed during tail interactions. An 8 GiB container limit and cumulative OOM counters were observed, but no counter baseline for that invocation exists; the exact cause is not asserted."
+        },
+        "engines": [
+          {
+            "engine": "chromium",
+            "status": "passed"
+          },
+          {
+            "engine": "webkit",
+            "status": "passed"
+          },
+          {
+            "engine": "firefox",
+            "status": "passed"
+          }
+        ],
+        "layoutChecks": 1010,
+        "layoutFailures": [],
+        "totals": {
+          "observations": 1010,
+          "visibleControlInstances": 33498,
+          "checkedScenarios": 246
+        },
+        "artifactSha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913",
+        "networkIssues": [
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "path": "/qa-audit-definitely-missing-page",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "chromium",
+            "page": "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "chromium",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "chromium",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "webkit",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "path": "/qa-audit-definitely-missing-page",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "webkit",
+            "page": "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "webkit",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "firefox",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/register",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/settings/currencies",
+            "path": "/api/nbp",
+            "method": "GET",
+            "status": 502,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/login",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/login",
+            "path": "/qa-audit-definitely-missing-page",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "firefox",
+            "page": "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "firefox",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/auth/me",
+            "method": "GET",
+            "status": 401,
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "path": "/api/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "method": "GET",
+            "status": 404,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "firefox",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          },
+          {
+            "engine": "firefox",
+            "page": "/reset-password",
+            "path": "/api/auth/reset-password",
+            "method": "POST",
+            "status": 400,
+            "classification": "expected-negative-test"
+          }
+        ],
+        "consoleIssues": [
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/qa-audit-definitely-missing-page",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/reset-password",
+            "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "chromium",
+            "page": "/reset-password",
+            "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/register",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/settings/currencies",
+            "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invoices/6ac8c82d6443dd6132f7c56c",
+            "message": "Failed to fetch RSC payload for http://127.0.0.1:44899/invoices/new. Falling back to browser navigation. TypeError: Load failed",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/login",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/reset-password",
+            "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "webkit",
+            "page": "/reset-password",
+            "message": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+            "classification": "requires-review"
+          },
+          {
+            "engine": "firefox",
+            "page": "/dashboard",
+            "message": "[JavaScript Error: \"InvalidStateError: Navigated away from page\"]",
+            "classification": "requires-review"
+          }
+        ],
+        "note": "Conditional unseen controls and unclicked actions remain unverified; observed controls are inventory, not individually passed interaction states.",
+        "diagnosticReview": {
+          "summary": {
+            "networkEntries": 130,
+            "expectedNetworkEntries": 130,
+            "unclassifiedNetworkEntries": 0,
+            "consoleEntries": 92,
+            "resourceFailureConsoleEntries": 90,
+            "specificReviewedWebKitRscDiagnostics": 1,
+            "firefoxNavigationDiagnosticWithUnprovenRootCause": 1,
+            "unclassifiedOtherConsoleEntries": 0,
+            "unexpectedFatalLivePageErrors": 0,
+            "cleanConsoleClaim": false
+          },
+          "artifact": {
+            "path": "docs/audit/2026-10-08/browser-diagnostics-review-final6.json",
+            "sha256": "5de15e19b4ed106f14433ddd7d6c46731421a03344fac7f42bf0f64b0d1e91ac"
+          },
+          "limitation": "Firefox navigation diagnostic precise cause remains unproven; no clean-console or all-error-free claim."
+        }
+      },
+      "performance": {
+        "scope": "Quiet sequential loopback lab after QA; three CDP applied mobile contexts, three Lighthouse mobile simulated runs, isolated Mongo load with 1000 synthetic accounts and 30000 seeded invoices; no production capacity or field-INP claim.",
+        "buildId": "21f_lBaQA8Ww--YiYgN1t",
+        "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+        "artifacts": [
+          {
+            "path": "docs/performance/results-2026-10-09.json",
+            "sha256": "6bc631738c8996887cb7cc575cf4a97116a1512464fa3623958b3ec0b047f35b"
+          },
+          {
+            "path": "docs/performance/WYNIKI-2026-10-09.md",
+            "sha256": "c5800d23026f1a9413d97d0ccc0b82fbba0388efde8d9cd57733263ba7b6aa79"
+          }
+        ],
+        "summary": {
+          "cdpMedianLcpMs": 616,
+          "cdpMedianDocumentTtfbMs": 11.3,
+          "lighthouseMedianPerformance": 97,
+          "lighthouseMedianLcpMs": 2423.92,
+          "initialJavaScriptGzipEstimateBytes": 116537,
+          "labClsAllSixRuns": 0,
+          "loadRequests": 1419,
+          "loadRequestErrors": 0,
+          "loadMaximumClosedModelWorkers": 20,
+          "loadAtTwentyWorkersP95Ms": 474.99,
+          "loadAtTwentyWorkersP95TtfbMs": 474.87
+        },
+        "limitations": "Lighthouse 100, Lighthouse LCP below 1s and initial JavaScript below 100000 bytes are unmet. Field INP, Internet/edge TTFB and thousands of concurrent users are unverified."
+      }
+    }
+  ]
+}

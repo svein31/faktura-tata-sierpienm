@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/seo/metadata";
 import { LegalPageLayout } from "@/components/legal/legal-page-layout";
 import { PRIVACY_POLICY } from "@/lib/legal/content";
 
-export const metadata: Metadata = {
-  title: "Polityka prywatności i ochrona danych (RODO) | FakturaProsto",
-  description: "Zasady przetwarzania danych osobowych, cele, podstawy prawne, prawa użytkowników oraz procedury bezpieczeństwa w FakturaProsto.",
-};
+export const metadata = publicMetadata(
+  "/polityka-prywatnosci",
+  "Polityka prywatności i RODO | FakturaProsto",
+  "Zasady przetwarzania danych osobowych w FakturaProsto: cele, podstawy prawne, prawa użytkowników i bezpieczeństwo danych.",
+);
 
 export default function PolitykaPrywatnosciPage() {
   return <LegalPageLayout document={PRIVACY_POLICY} />;

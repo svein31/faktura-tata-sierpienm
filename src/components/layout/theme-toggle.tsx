@@ -9,6 +9,8 @@ export function ThemeToggle({ className }: { className?: string }) {
 
   return (
     <div
+      role="group"
+      aria-label="Wygląd aplikacji"
       className={cn(
         "inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-2xs backdrop-blur-md",
         className
@@ -19,6 +21,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         return (
           <button
             key={t}
+            type="button"
             onClick={() => setTheme(t)}
             aria-pressed={active}
             aria-label={t === "light" ? "Jasny" : t === "dark" ? "Ciemny" : "Systemowy"}

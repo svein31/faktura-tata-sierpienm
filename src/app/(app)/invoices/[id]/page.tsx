@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   Copy,
+  FilePenLine,
   Download,
   FileCode2,
   FileText,
@@ -36,7 +37,7 @@ import { PrintVersions } from "@/components/invoice/print-versions";
 import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
 import { ksefProgress } from "@/lib/ksef/progress";
 import { useInvoiceExports } from "@/lib/invoice-actions";
-import { formatDateTime, invoiceTotals, formatMoney } from "@/lib/format";
+import { formatDateTime, invoiceTotals, formatMoney, round2 } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
 import { EMPTY_COMPANY } from "@/lib/types";
@@ -110,7 +111,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const router = useRouter();
   const toast = useToast();
   useKsefStatusPolling([invoice]);
-  const { contractors, company, setDraft, deleteInvoice, updateInvoice, setInvoiceKsef, ksef } =
+  const { contractors, company, setDraft, deleteInvoice, setInvoiceKsef, ksef } =
     useAppStore();
 
   const [confirmDelete, setConfirmDelete] = React.useState(false);
@@ -120,6 +121,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const [issuingOffline, setIssuingOffline] = React.useState(false);
   const [checkingStatus, setCheckingStatus] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
+  const [recordingPayment, setRecordingPayment] = React.useState(false);
   const [emailModalOpen, setEmailModalOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"preview" | "history">("preview");
 
@@ -161,7 +163,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   const status = effectiveStatus(invoice);
   const totals = invoiceTotals(invoice);
   const transferAccount = invoice.bankAccountSnapshot?.accountNumber || companySafe.bankAccount || companySafe.iban;
-  const amountDue = Math.max(0, Math.round((totals.gross - (invoice.paidAmount || 0)) * 100) / 100);
+  const amountDue = Math.max(0, round2(totals.gross - (invoice.paidAmount || 0)));
   const canCopyTransfer = invoice.type === "sale" && invoice.paymentMethod === "transfer" && Boolean(transferAccount) && status !== "paid" && amountDue > 0;
 
   const handleCopyTransfer = async () => {
@@ -180,11 +182,26 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     }
   };
 
-  const handleMarkPaid = () => {
-    if (invoice.type === 'purchase') return;
-    void updateInvoice(invoice.id, { status: "paid" })
-      .then(() => toast("success", "Oznaczono jako opłaconą", invoice.number))
-      .catch((e: Error) => toast("error", "Nie udało się zapisać", e.message));
+  const handleMarkPaid = async () => {
+    if (invoice.type !== "sale" || amountDue <= 0 || actionBusy.current) return;
+    actionBusy.current = true;
+    setRecordingPayment(true);
+    try {
+      const response = await fetch(`/api/invoices/${invoice.id}/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amountDue, method: invoice.paymentMethod }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Nie udało się zapisać wpłaty.");
+      useAppStore.getState().applyInvoice(data.invoice);
+      toast("success", "Zarejestrowano wpłatę", data.message);
+    } catch (error) {
+      toast("error", "Nie udało się zapisać", error instanceof Error ? error.message : "Błąd połączenia.");
+    } finally {
+      actionBusy.current = false;
+      setRecordingPayment(false);
+    }
   };
 
   const handleSendKsef = async () => {
@@ -271,6 +288,12 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     router.push("/invoices/new");
   };
 
+  const handleCreateCorrection = () => {
+    setDraft(null, true);
+    if (invoice.sellerCompanyId) useAppStore.getState().setSelectedCompanyId(invoice.sellerCompanyId);
+    router.push(`/invoices/new?correctionFrom=${encodeURIComponent(invoice.id)}`);
+  };
+
   const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
   const progress = ksefProgress(invoice);
 
@@ -331,8 +354,14 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             <Pencil className="h-3.5 w-3.5" /> Edytuj
           </Button>)}
 
-          {invoice.type !== "purchase" && status !== "paid" && status !== "draft" && (
-            <Button variant="subtle" size="sm" onClick={handleMarkPaid} className="rounded-xl gap-1.5 text-xs">
+          {invoice.type === "sale" && !invoice.isProforma && status !== "draft" && invoice.documentStatus !== "cancelled" && invoice.documentKind !== "advance" && invoice.documentKind !== "final" && (
+            <Button variant="outline" size="sm" onClick={handleCreateCorrection} className="rounded-xl gap-1.5 text-xs">
+              <FilePenLine className="h-3.5 w-3.5" /> Wystaw korektę
+            </Button>
+          )}
+
+          {invoice.type === "sale" && !invoice.isProforma && invoice.documentStatus !== "cancelled" && amountDue > 0 && status !== "paid" && status !== "draft" && (
+            <Button variant="subtle" size="sm" onClick={handleMarkPaid} disabled={recordingPayment} className="rounded-xl gap-1.5 text-xs">
               <CheckCircle2 className="h-3.5 w-3.5" /> Oznacz opłaconą
             </Button>
           )}
@@ -376,6 +405,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             variant="ghost"
             size="icon"
             onClick={() => setConfirmDelete(true)}
+            aria-label="Usuń fakturę"
             className="rounded-xl text-muted-foreground hover:text-rose-500 h-9 w-9"
           >
             <Trash2 className="h-4 w-4" />
@@ -434,8 +464,8 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
               <div className="flex items-center gap-3.5">
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ${
                   invoice.approvalStatus === "approved"
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-emerald-500/30"
-                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-amber-500/30"
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-emerald-500/30"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-amber-500/30"
                 }`}>
                   {invoice.approvalStatus === "approved" ? (
                     <CheckCircle2 className="h-6 w-6" />
@@ -511,7 +541,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
                       {invoice.ksef?.environment || "Środowisko nie zapisane"}
                     </Badge>
                   </div>
-                  <p className="mt-1 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 break-all">
+                  <p className="mt-1 font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400 break-all">
                     Numer KSeF: {ksefNum}
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -603,7 +633,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
         </Card>
         <Card className="rounded-2xl border border-primary/30 bg-primary/5 shadow-xs">
           <CardContent className="p-4 text-center">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-primary/80">Wartość Brutto</p>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-primary">Wartość Brutto</p>
             <p className="mt-1 text-lg font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>
           </CardContent>
         </Card>

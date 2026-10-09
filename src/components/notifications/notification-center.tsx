@@ -23,6 +23,7 @@ import { playNotificationSound, unlockAudio, audioSupported } from "@/lib/sound"
 import { formatDateTime } from "@/lib/format";
 import type { AppNotification } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { containModalFocus } from "@/lib/overlay-focus";
 
 const POLL_INTERVAL_MS = 20_000; // 20 s (wymagane 15–30 s)
 const kindIcon = (k: AppNotification["kind"]) => {
@@ -43,6 +44,9 @@ export function NotificationBell() {
   const toast = useToast();
   const [open, setOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [markingRead, setMarkingRead] = React.useState(false);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const popupId = React.useId();
   const [perm, setPerm] = React.useState<NotificationPermission | "unsupported">("unsupported");
   const seenRef = React.useRef<Set<string>>(new Set());
   const soundUnlockedRef = React.useRef(false);
@@ -51,6 +55,10 @@ export function NotificationBell() {
   const prefs = useAppStore((s) => s.notificationPrefs);
   const hydrated = useAppStore((s) => s.hydrated);
   const unread = notifications.filter((n) => !n.read).length;
+  React.useLayoutEffect(() => {
+    if (!open || !panelRef.current) return;
+    return containModalFocus(panelRef.current, () => setOpen(false));
+  }, [open]);
 
   /* ── Wsparcie Notification API ─────────────────────────────────────── */
   const notifSupported = React.useMemo(
@@ -200,13 +208,19 @@ export function NotificationBell() {
   };
 
   const markAllRead = async () => {
+    if (markingRead) return;
     const ids = notifications.filter((n) => !n.read).map((n) => n.id);
-    await Promise.all(ids.map((id) => useAppStore.getState().markNotificationRead(id, true).catch(() => undefined)));
-    toast("success", "Oznaczono jako przeczytane");
+    setMarkingRead(true);
+    try {
+      const results = await Promise.allSettled(ids.map(id => useAppStore.getState().markNotificationRead(id, true)));
+      const failures = results.filter(result => result.status === "rejected").length;
+      if (failures) toast("error", "Nie oznaczono wszystkich powiadomień", `Nie udało się zapisać ${failures} z ${ids.length} zmian. Spróbuj ponownie.`);
+      else toast("success", "Oznaczono jako przeczytane");
+    } finally { setMarkingRead(false); }
   };
 
   const markReadAndGo = (n: AppNotification) => {
-    if (!n.read) void useAppStore.getState().markNotificationRead(n.id, true).catch(() => undefined);
+    if (!n.read) void useAppStore.getState().markNotificationRead(n.id, true).catch(() => toast("error", "Nie oznaczono powiadomienia jako przeczytane", "Sprawdź połączenie i spróbuj ponownie."));
     setOpen(false);
     if (n.link) router.push(n.link);
   };
@@ -216,7 +230,11 @@ export function NotificationBell() {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls={open ? popupId : undefined}
+        aria-haspopup="dialog"
         aria-label={`Powiadomienia${unread ? ` (${unread} nieprzeczytanych)` : ""}`}
         className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
@@ -233,6 +251,12 @@ export function NotificationBell() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <motion.div
+              ref={panelRef}
+              id={popupId}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Powiadomienia"
+              tabIndex={-1}
               initial={{ opacity: 0, y: -6, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
@@ -244,7 +268,10 @@ export function NotificationBell() {
                 <div className="flex items-center gap-1">
                   {unread > 0 && (
                     <button
+                      type="button"
                       onClick={markAllRead}
+                      disabled={markingRead}
+                      aria-busy={markingRead}
                       className="flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                       <CheckCheck className="h-3.5 w-3.5" /> Przeczytane
@@ -396,7 +423,7 @@ export function NotificationBell() {
                   </p>
                 )}
                 <p className="text-[10.5px] text-muted-foreground">
-                  <Link href="/invoices" onClick={() => setOpen(false)} className="underline underline-offset-2 hover:text-foreground">
+                  <Link prefetch={false} href="/invoices" onClick={() => setOpen(false)} className="underline underline-offset-2 hover:text-foreground">
                     Przycisk „Symuluj FZ z KSeF” na liście faktur
                   </Link>{" "}
                   tworzy fakturę zakupową + powiadomienie do przetestowania.

@@ -1,0 +1,2191 @@
+{
+  "checkedAt": "2026-10-09T10:46:34.930Z",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+  "axeVersion": "4.14.0",
+  "results": [
+    {
+      "route": "/",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/cennik",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/demo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/bez-vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/dla-osoby-prywatnej",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/jak-wystawic",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/koncowa",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/korygujaca",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/zaliczkowa",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/login",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "route": "/narzedzia",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/kalkulator-vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/limit-ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/podwykonawcy",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-cookies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-prywatnosci",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/pomoc",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/2027",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/fa3",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/jdg",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/kody-qr",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/limit-10000-zl",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/numer-faktury",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/odrzucona-faktura",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/offline24",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/upo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/aplikacja-mf",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/comarch",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/faktura-pl",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturownia",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturowo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/ifirma",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/infakt",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/wfirma",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/powierzenie-danych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-biur-rachunkowych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-firm-uslugowych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-freelancerow",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-jdg",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/na-telefonie",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/register",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "route": "/regulamin",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/reset-password",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/vat/stawki",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/verify-email",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invite/qa_axe_invite_capability_xxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/accountant",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/accountant/portal",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/advances",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/analytics",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/audit",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/calendar",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/contractors",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cost-reviews",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 22
+        }
+      ]
+    },
+    {
+      "route": "/documents",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/expenses",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/finances",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/help",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 20
+        }
+      ]
+    },
+    {
+      "route": "/invoices/new",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 29,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/recurring",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/jpk",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 28,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/offers",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/orders",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/products",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "th-has-data-cells",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/projects",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/recurring",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/reminders",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/account",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/appearance",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/companies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/currencies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/health",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/integrations",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/settings/pdf-templates",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/team",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/tax-estimate",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/warehouse",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/6ac8c5f8ae72282f6670fb5c",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/cennik",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/demo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/bez-vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/dla-osoby-prywatnej",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/jak-wystawic",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/koncowa",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/korygujaca",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/zaliczkowa",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/login",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "route": "/narzedzia",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/kalkulator-vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/limit-ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/podwykonawcy",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-cookies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-prywatnosci",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/pomoc",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/2027",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/fa3",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/jdg",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/kody-qr",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/limit-10000-zl",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/numer-faktury",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/odrzucona-faktura",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/offline24",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/upo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/aplikacja-mf",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/comarch",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/faktura-pl",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturownia",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturowo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/ifirma",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/infakt",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/wfirma",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/powierzenie-danych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-biur-rachunkowych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-firm-uslugowych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-freelancerow",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-jdg",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/na-telefonie",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/register",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "route": "/regulamin",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/reset-password",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/vat/stawki",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/verify-email",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "route": "/invite/qa_axe_invite_capability_xxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/accountant",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/accountant/portal",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/advances",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/analytics",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/audit",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/calendar",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/contractors",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cost-reviews",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 22
+        }
+      ]
+    },
+    {
+      "route": "/documents",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/expenses",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/finances",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/help",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 20
+        }
+      ]
+    },
+    {
+      "route": "/invoices/new",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 29,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/recurring",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/jpk",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 28,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/offers",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/orders",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/products",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "th-has-data-cells",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/projects",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/recurring",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/reminders",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/account",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/appearance",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/companies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/currencies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/health",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/integrations",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/settings/pdf-templates",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/team",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/tax-estimate",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/warehouse",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/6ac8c5f8ae72282f6670fb5c",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "routes": 90,
+    "screenChecks": 180,
+    "failedScreens": 0,
+    "manualReviewScreens": 86
+  }
+}

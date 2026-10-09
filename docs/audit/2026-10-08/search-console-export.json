@@ -1,0 +1,75 @@
+{
+  "source": "User-provided Google Search Console export",
+  "files": [
+    {
+      "name": "1-Problemy-krytyczne.csv",
+      "sha256": "c0a92181778634ce895664646dc3debfc13e9faf6b3915adfd82c75ebc3b6991",
+      "rows": []
+    },
+    {
+      "name": "2-Metadane.csv",
+      "sha256": "1db0037e485ede4ebb80af6538c07261c9cb5e49545e1033bfbb4a52ec53d0b5",
+      "rows": [
+        {
+          "Usługa": "Sitemap",
+          "Wartość": "Wszystkie znane strony"
+        }
+      ]
+    },
+    {
+      "name": "3-Wykres.csv",
+      "sha256": "e5a19b46083767ee88c7ccb8a13a3e6a42d5ca6ec5b2172b01b6d6a82b453513",
+      "rows": [
+        {
+          "Data": "2026-09-30",
+          "Nie zindeksowano": "",
+          "Zindeksowano": "",
+          "Wyświetlenia": "0"
+        },
+        {
+          "Data": "2026-10-01",
+          "Nie zindeksowano": "",
+          "Zindeksowano": "",
+          "Wyświetlenia": "0"
+        },
+        {
+          "Data": "2026-10-02",
+          "Nie zindeksowano": "",
+          "Zindeksowano": "",
+          "Wyświetlenia": "0"
+        },
+        {
+          "Data": "2026-10-03",
+          "Nie zindeksowano": "",
+          "Zindeksowano": "",
+          "Wyświetlenia": "0"
+        },
+        {
+          "Data": "2026-10-04",
+          "Nie zindeksowano": "0",
+          "Zindeksowano": "2",
+          "Wyświetlenia": "0"
+        }
+      ]
+    },
+    {
+      "name": "4-Problemy-niekrytyczne.csv",
+      "sha256": "c0a92181778634ce895664646dc3debfc13e9faf6b3915adfd82c75ebc3b6991",
+      "rows": []
+    }
+  ],
+  "interpretation": {
+    "criticalIssuesListed": 0,
+    "nonCriticalIssuesListed": 0,
+    "chartLastDate": "2026-10-04",
+    "indexedPages": 2,
+    "excludedPages": 0,
+    "impressions": 0,
+    "limitations": [
+      "No inspected URL list",
+      "No queries, clicks, positions or live Search Console access",
+      "Blank historical cells remain unknown, not zero",
+      "No sitemap-submission receipt; metadata says All known pages"
+    ]
+  }
+}

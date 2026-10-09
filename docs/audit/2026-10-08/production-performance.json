@@ -1,0 +1,1148 @@
+{
+  "date": "2026-10-08T14:47:16.574Z",
+  "profile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "cpuSlowdown": 4,
+    "downloadMbps": 1.6,
+    "uploadMbps": 0.75,
+    "latencyMs": 150,
+    "runs": 3,
+    "cacheDisabled": true,
+    "serviceWorker": "blocked",
+    "proxy": "inherited configured proxy"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "lcp": 1832,
+      "cls": 0,
+      "maxSession": 0,
+      "eventSamples": [],
+      "navigation": [
+        {
+          "ttfb": 587.7999999970198,
+          "startToResponse": 682.6999999992549,
+          "domContentLoaded": 1293.199999999255,
+          "load": 2740,
+          "transferSize": 13729
+        }
+      ],
+      "resources": [
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/8e9860b6e62d6359-s.p.woff2",
+          "initiator": "link",
+          "transfer": 85572,
+          "encoded": 85272,
+          "decoded": 85272,
+          "start": 731.1000000014901,
+          "end": 2342
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "initiator": "link",
+          "transfer": 48732,
+          "encoded": 48432,
+          "decoded": 48432,
+          "start": 737.5,
+          "end": 1448
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/ea3a9d58e7859fa0.css",
+          "initiator": "link",
+          "transfer": 926,
+          "encoded": 626,
+          "decoded": 2121,
+          "start": 738.1000000014901,
+          "end": 927.4000000022352
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/6a25768231b3bf53.css",
+          "initiator": "link",
+          "transfer": 14001,
+          "encoded": 13701,
+          "decoded": 86321,
+          "start": 738.4000000022352,
+          "end": 1233.6000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js",
+          "initiator": "link",
+          "transfer": 2068,
+          "encoded": 1768,
+          "decoded": 3607,
+          "start": 738.8000000007451,
+          "end": 1455.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "initiator": "script",
+          "transfer": 43911,
+          "encoded": 43611,
+          "decoded": 174198,
+          "start": 738.8000000007451,
+          "end": 2472.800000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "initiator": "script",
+          "transfer": 52396,
+          "encoded": 52096,
+          "decoded": 173025,
+          "start": 738.8000000007451,
+          "end": 2509
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "initiator": "script",
+          "transfer": 6732,
+          "encoded": 6432,
+          "decoded": 20164,
+          "start": 738.9000000022352,
+          "end": 1792.6000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+          "initiator": "script",
+          "transfer": 872,
+          "encoded": 572,
+          "decoded": 572,
+          "start": 738.9000000022352,
+          "end": 1800.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "initiator": "script",
+          "transfer": 3613,
+          "encoded": 3313,
+          "decoded": 8564,
+          "start": 742.3000000007451,
+          "end": 1720.1000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "initiator": "script",
+          "transfer": 20650,
+          "encoded": 20350,
+          "decoded": 66580,
+          "start": 742.3000000007451,
+          "end": 2163.10000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+          "initiator": "script",
+          "transfer": 22941,
+          "encoded": 22641,
+          "decoded": 66136,
+          "start": 742.3000000007451,
+          "end": 2228.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+          "initiator": "script",
+          "transfer": 2579,
+          "encoded": 2279,
+          "decoded": 5263,
+          "start": 743.1999999992549,
+          "end": 1626.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+          "initiator": "script",
+          "transfer": 9919,
+          "encoded": 9619,
+          "decoded": 31201,
+          "start": 743.4000000022352,
+          "end": 1913.4000000022352
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+          "initiator": "script",
+          "transfer": 2954,
+          "encoded": 2654,
+          "decoded": 6873,
+          "start": 743.5,
+          "end": 1589.6000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+          "initiator": "script",
+          "transfer": 10288,
+          "encoded": 9988,
+          "decoded": 34481,
+          "start": 804.6999999992549,
+          "end": 1899.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/login?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8381,
+          "start": 2914.199999999255,
+          "end": 3192.60000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/register?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8394,
+          "start": 2914.400000002235,
+          "end": 3128.800000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/demo?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2943,
+          "encoded": 2643,
+          "decoded": 8737,
+          "start": 2918,
+          "end": 3107.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-cookies?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 5144,
+          "encoded": 4844,
+          "decoded": 13449,
+          "start": 3096.10000000149,
+          "end": 3689.400000002235
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-prywatnosci?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 8009,
+          "encoded": 7709,
+          "decoded": 20050,
+          "start": 3096.5,
+          "end": 3588.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/aaea2bcf-e608f17bc5063115.js",
+          "initiator": "script",
+          "transfer": 86494,
+          "encoded": 86194,
+          "decoded": 325455,
+          "start": 3116.60000000149,
+          "end": 4151.800000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/857-cf98fa8fe00981bd.js",
+          "initiator": "script",
+          "transfer": 38379,
+          "encoded": 38079,
+          "decoded": 133533,
+          "start": 3117.10000000149,
+          "end": 3893.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2599-a03957dd513ca1c3.js",
+          "initiator": "script",
+          "transfer": 4156,
+          "encoded": 3856,
+          "decoded": 11422,
+          "start": 3117.300000000745,
+          "end": 3343.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/6425-04fc0d6711690693.js",
+          "initiator": "script",
+          "transfer": 7480,
+          "encoded": 7180,
+          "decoded": 23104,
+          "start": 3117.5,
+          "end": 3443.60000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/demo/page-15d44259c1f4255e.js",
+          "initiator": "script",
+          "transfer": 6609,
+          "encoded": 6309,
+          "decoded": 23349,
+          "start": 3117.699999999255,
+          "end": 3491
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/register/page-99155224e69df191.js",
+          "initiator": "script",
+          "transfer": 6203,
+          "encoded": 5903,
+          "decoded": 18297,
+          "start": 3130.60000000149,
+          "end": 3496.10000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/login/page-04826da8bd465721.js",
+          "initiator": "script",
+          "transfer": 5452,
+          "encoded": 5152,
+          "decoded": 15122,
+          "start": 3198.699999999255,
+          "end": 3522.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/7622-8a6a7146b963e628.js",
+          "initiator": "script",
+          "transfer": 7165,
+          "encoded": 6865,
+          "decoded": 21618,
+          "start": 3458.900000002235,
+          "end": 3787.900000002235
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-prywatnosci/page-21b9c6023568a65b.js",
+          "initiator": "script",
+          "transfer": 439,
+          "encoded": 139,
+          "decoded": 139,
+          "start": 3459,
+          "end": 3681.60000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-cookies/page-5e28edf8ea2e816b.js",
+          "initiator": "script",
+          "transfer": 440,
+          "encoded": 140,
+          "decoded": 140,
+          "start": 3631.400000002235,
+          "end": 3794.699999999255
+        }
+      ],
+      "scriptedEventSamples": [
+        {
+          "name": "pointerdown",
+          "interactionId": 6090,
+          "duration": 96
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 6090,
+          "duration": 96
+        },
+        {
+          "name": "click",
+          "interactionId": 6090,
+          "duration": 96
+        },
+        {
+          "name": "pointerdown",
+          "interactionId": 6097,
+          "duration": 24
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 6097,
+          "duration": 24
+        },
+        {
+          "name": "click",
+          "interactionId": 6097,
+          "duration": 24
+        }
+      ],
+      "blockedRequests": [],
+      "pageErrors": [],
+      "encodedJSObservationBytes": 325152,
+      "encodedInitialScriptBytes": 165335,
+      "initialScriptURLs": [
+        "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+        "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+        "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+        "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+        "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+        "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+        "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+        "https://fakturaprosto.pl/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js"
+      ],
+      "initialScriptsObserved": 11
+    },
+    {
+      "run": 2,
+      "lcp": 1888,
+      "cls": 0,
+      "maxSession": 0,
+      "eventSamples": [],
+      "navigation": [
+        {
+          "ttfb": 402.70000000298023,
+          "startToResponse": 471.5,
+          "domContentLoaded": 993.6999999992549,
+          "load": 2972.199999999255,
+          "transferSize": 13729
+        }
+      ],
+      "resources": [
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/8e9860b6e62d6359-s.p.woff2",
+          "initiator": "link",
+          "transfer": 85572,
+          "encoded": 85272,
+          "decoded": 85272,
+          "start": 562.2999999970198,
+          "end": 2355.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "initiator": "link",
+          "transfer": 48732,
+          "encoded": 48432,
+          "decoded": 48432,
+          "start": 564.2999999970198,
+          "end": 1789.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/ea3a9d58e7859fa0.css",
+          "initiator": "link",
+          "transfer": 926,
+          "encoded": 626,
+          "decoded": 2121,
+          "start": 564.5,
+          "end": 974.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/6a25768231b3bf53.css",
+          "initiator": "link",
+          "transfer": 13952,
+          "encoded": 13652,
+          "decoded": 86321,
+          "start": 564.5999999977648,
+          "end": 956
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js",
+          "initiator": "link",
+          "transfer": 2068,
+          "encoded": 1768,
+          "decoded": 3607,
+          "start": 564.6999999992549,
+          "end": 1283
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "initiator": "script",
+          "transfer": 43911,
+          "encoded": 43611,
+          "decoded": 174198,
+          "start": 565.8999999985099,
+          "end": 2293.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "initiator": "script",
+          "transfer": 52404,
+          "encoded": 52104,
+          "decoded": 173025,
+          "start": 565.8999999985099,
+          "end": 2373.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+          "initiator": "script",
+          "transfer": 872,
+          "encoded": 572,
+          "decoded": 572,
+          "start": 566,
+          "end": 1278.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "initiator": "script",
+          "transfer": 6732,
+          "encoded": 6432,
+          "decoded": 20164,
+          "start": 566,
+          "end": 1518.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "initiator": "script",
+          "transfer": 3612,
+          "encoded": 3312,
+          "decoded": 8564,
+          "start": 566.0999999977648,
+          "end": 1396
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+          "initiator": "script",
+          "transfer": 22941,
+          "encoded": 22641,
+          "decoded": 66136,
+          "start": 566.0999999977648,
+          "end": 1990.3999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "initiator": "script",
+          "transfer": 20662,
+          "encoded": 20362,
+          "decoded": 66580,
+          "start": 566.6999999992549,
+          "end": 1957.3999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+          "initiator": "script",
+          "transfer": 2579,
+          "encoded": 2279,
+          "decoded": 5263,
+          "start": 566.7999999970198,
+          "end": 1295.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+          "initiator": "script",
+          "transfer": 2954,
+          "encoded": 2654,
+          "decoded": 6873,
+          "start": 566.7999999970198,
+          "end": 1356.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+          "initiator": "script",
+          "transfer": 9919,
+          "encoded": 9619,
+          "decoded": 31201,
+          "start": 566.7999999970198,
+          "end": 1662.3999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+          "initiator": "script",
+          "transfer": 10386,
+          "encoded": 10086,
+          "decoded": 34481,
+          "start": 579.8999999985099,
+          "end": 1675.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/login?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8381,
+          "start": 3194,
+          "end": 3378
+        },
+        {
+          "name": "https://fakturaprosto.pl/register?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8394,
+          "start": 3197.89999999851,
+          "end": 3486.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/demo?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2943,
+          "encoded": 2643,
+          "decoded": 8737,
+          "start": 3198.099999997765,
+          "end": 3480.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-cookies?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 5144,
+          "encoded": 4844,
+          "decoded": 13449,
+          "start": 3392.39999999851,
+          "end": 3793.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-prywatnosci?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 8009,
+          "encoded": 7709,
+          "decoded": 20050,
+          "start": 3392.5,
+          "end": 3655.7999999970198
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2599-a03957dd513ca1c3.js",
+          "initiator": "script",
+          "transfer": 4156,
+          "encoded": 3856,
+          "decoded": 11422,
+          "start": 3399,
+          "end": 3677.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/login/page-04826da8bd465721.js",
+          "initiator": "script",
+          "transfer": 5456,
+          "encoded": 5156,
+          "decoded": 15122,
+          "start": 3407.7999999970198,
+          "end": 3759.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/aaea2bcf-e608f17bc5063115.js",
+          "initiator": "script",
+          "transfer": 86286,
+          "encoded": 85986,
+          "decoded": 325455,
+          "start": 3491.5,
+          "end": 4486.599999997765
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/857-cf98fa8fe00981bd.js",
+          "initiator": "script",
+          "transfer": 38379,
+          "encoded": 38079,
+          "decoded": 133533,
+          "start": 3493.5,
+          "end": 4256
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/6425-04fc0d6711690693.js",
+          "initiator": "script",
+          "transfer": 7540,
+          "encoded": 7240,
+          "decoded": 23104,
+          "start": 3496,
+          "end": 3861.2999999970198
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/demo/page-15d44259c1f4255e.js",
+          "initiator": "script",
+          "transfer": 6600,
+          "encoded": 6300,
+          "decoded": 23349,
+          "start": 3496.199999999255,
+          "end": 3920.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/register/page-99155224e69df191.js",
+          "initiator": "script",
+          "transfer": 6211,
+          "encoded": 5911,
+          "decoded": 18297,
+          "start": 3505.89999999851,
+          "end": 3956.599999997765
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/7622-8a6a7146b963e628.js",
+          "initiator": "script",
+          "transfer": 7074,
+          "encoded": 6774,
+          "decoded": 21618,
+          "start": 3614.39999999851,
+          "end": 3997.099999997765
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-prywatnosci/page-21b9c6023568a65b.js",
+          "initiator": "script",
+          "transfer": 439,
+          "encoded": 139,
+          "decoded": 139,
+          "start": 3617.099999997765,
+          "end": 3872.7999999970198
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-cookies/page-5e28edf8ea2e816b.js",
+          "initiator": "script",
+          "transfer": 440,
+          "encoded": 140,
+          "decoded": 140,
+          "start": 3719.199999999255,
+          "end": 3965.2999999970198
+        }
+      ],
+      "scriptedEventSamples": [
+        {
+          "name": "pointerdown",
+          "interactionId": 2434,
+          "duration": 80
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 2434,
+          "duration": 80
+        },
+        {
+          "name": "click",
+          "interactionId": 2434,
+          "duration": 80
+        },
+        {
+          "name": "pointerdown",
+          "interactionId": 2441,
+          "duration": 24
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 2441,
+          "duration": 24
+        },
+        {
+          "name": "click",
+          "interactionId": 2441,
+          "duration": 24
+        }
+      ],
+      "blockedRequests": [],
+      "pageErrors": [],
+      "encodedJSObservationBytes": 324935,
+      "encodedInitialScriptBytes": 165354,
+      "initialScriptURLs": [
+        "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+        "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+        "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+        "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+        "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+        "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+        "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+        "https://fakturaprosto.pl/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js"
+      ],
+      "initialScriptsObserved": 11
+    },
+    {
+      "run": 3,
+      "lcp": 1516,
+      "cls": 0,
+      "maxSession": 0,
+      "eventSamples": [],
+      "navigation": [
+        {
+          "ttfb": 48.5,
+          "startToResponse": 67,
+          "domContentLoaded": 715.5,
+          "load": 2415,
+          "transferSize": 13710
+        }
+      ],
+      "resources": [
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/8e9860b6e62d6359-s.p.woff2",
+          "initiator": "link",
+          "transfer": 85572,
+          "encoded": 85272,
+          "decoded": 85272,
+          "start": 275.6000000014901,
+          "end": 2066.39999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+          "initiator": "link",
+          "transfer": 48732,
+          "encoded": 48432,
+          "decoded": 48432,
+          "start": 275.8999999985099,
+          "end": 1431.300000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/ea3a9d58e7859fa0.css",
+          "initiator": "link",
+          "transfer": 926,
+          "encoded": 626,
+          "decoded": 2121,
+          "start": 276,
+          "end": 474.1000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/css/6a25768231b3bf53.css",
+          "initiator": "link",
+          "transfer": 13952,
+          "encoded": 13652,
+          "decoded": 86321,
+          "start": 278.8999999985099,
+          "end": 680.1000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js",
+          "initiator": "link",
+          "transfer": 2031,
+          "encoded": 1731,
+          "decoded": 3607,
+          "start": 279,
+          "end": 923.1999999992549
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "initiator": "script",
+          "transfer": 52416,
+          "encoded": 52116,
+          "decoded": 173025,
+          "start": 279,
+          "end": 2081.60000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+          "initiator": "script",
+          "transfer": 872,
+          "encoded": 572,
+          "decoded": 572,
+          "start": 279.1000000014901,
+          "end": 971.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "initiator": "script",
+          "transfer": 6723,
+          "encoded": 6423,
+          "decoded": 20164,
+          "start": 279.1000000014901,
+          "end": 1281
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "initiator": "script",
+          "transfer": 43581,
+          "encoded": 43281,
+          "decoded": 174198,
+          "start": 279.1000000014901,
+          "end": 2017.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "initiator": "script",
+          "transfer": 3612,
+          "encoded": 3312,
+          "decoded": 8564,
+          "start": 280.5,
+          "end": 1131.1000000014901
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "initiator": "script",
+          "transfer": 20745,
+          "encoded": 20445,
+          "decoded": 66580,
+          "start": 281,
+          "end": 1674.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+          "initiator": "script",
+          "transfer": 22982,
+          "encoded": 22682,
+          "decoded": 66136,
+          "start": 281,
+          "end": 1724
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+          "initiator": "script",
+          "transfer": 2579,
+          "encoded": 2279,
+          "decoded": 5263,
+          "start": 281.1000000014901,
+          "end": 1067.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+          "initiator": "script",
+          "transfer": 2954,
+          "encoded": 2654,
+          "decoded": 6873,
+          "start": 281.19999999925494,
+          "end": 1102
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+          "initiator": "script",
+          "transfer": 9919,
+          "encoded": 9619,
+          "decoded": 31201,
+          "start": 281.19999999925494,
+          "end": 1387.8999999985099
+        },
+        {
+          "name": "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+          "initiator": "script",
+          "transfer": 10346,
+          "encoded": 10046,
+          "decoded": 34481,
+          "start": 283,
+          "end": 1395.199999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/login?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8381,
+          "start": 2630.699999999255,
+          "end": 2866.699999999255
+        },
+        {
+          "name": "https://fakturaprosto.pl/register?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2781,
+          "encoded": 2481,
+          "decoded": 8394,
+          "start": 2631.699999999255,
+          "end": 2868.10000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/demo?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 2943,
+          "encoded": 2643,
+          "decoded": 8737,
+          "start": 2632.39999999851,
+          "end": 2870.10000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-cookies?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 5144,
+          "encoded": 4844,
+          "decoded": 13449,
+          "start": 2733.300000000745,
+          "end": 2968.300000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/polityka-prywatnosci?_rsc=1p-R_iEY6bj0jY31",
+          "initiator": "fetch",
+          "transfer": 8009,
+          "encoded": 7709,
+          "decoded": 20050,
+          "start": 2734.199999999255,
+          "end": 2990
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/2599-a03957dd513ca1c3.js",
+          "initiator": "script",
+          "transfer": 4156,
+          "encoded": 3856,
+          "decoded": 11422,
+          "start": 2848.60000000149,
+          "end": 3140.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/login/page-04826da8bd465721.js",
+          "initiator": "script",
+          "transfer": 5452,
+          "encoded": 5152,
+          "decoded": 15122,
+          "start": 2851.699999999255,
+          "end": 3183.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/register/page-99155224e69df191.js",
+          "initiator": "script",
+          "transfer": 6211,
+          "encoded": 5911,
+          "decoded": 18297,
+          "start": 2871.39999999851,
+          "end": 3265.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/aaea2bcf-e608f17bc5063115.js",
+          "initiator": "script",
+          "transfer": 86286,
+          "encoded": 85986,
+          "decoded": 325455,
+          "start": 2882.10000000149,
+          "end": 3842.60000000149
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/857-cf98fa8fe00981bd.js",
+          "initiator": "script",
+          "transfer": 38379,
+          "encoded": 38079,
+          "decoded": 133533,
+          "start": 2883.10000000149,
+          "end": 3611.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/6425-04fc0d6711690693.js",
+          "initiator": "script",
+          "transfer": 7457,
+          "encoded": 7157,
+          "decoded": 23104,
+          "start": 2883.60000000149,
+          "end": 3305.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/demo/page-15d44259c1f4255e.js",
+          "initiator": "script",
+          "transfer": 6600,
+          "encoded": 6300,
+          "decoded": 23349,
+          "start": 2885.300000000745,
+          "end": 3290.300000000745
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/7622-8a6a7146b963e628.js",
+          "initiator": "script",
+          "transfer": 7165,
+          "encoded": 6865,
+          "decoded": 21618,
+          "start": 2942.699999999255,
+          "end": 3326.5
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-cookies/page-5e28edf8ea2e816b.js",
+          "initiator": "script",
+          "transfer": 440,
+          "encoded": 140,
+          "decoded": 140,
+          "start": 2944.89999999851,
+          "end": 3176.89999999851
+        },
+        {
+          "name": "https://fakturaprosto.pl/_next/static/chunks/app/polityka-prywatnosci/page-21b9c6023568a65b.js",
+          "initiator": "script",
+          "transfer": 439,
+          "encoded": 139,
+          "decoded": 139,
+          "start": 2968.800000000745,
+          "end": 3191.39999999851
+        }
+      ],
+      "scriptedEventSamples": [
+        {
+          "name": "pointerdown",
+          "interactionId": 8686,
+          "duration": 32
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 8686,
+          "duration": 32
+        },
+        {
+          "name": "click",
+          "interactionId": 8686,
+          "duration": 32
+        },
+        {
+          "name": "pointerdown",
+          "interactionId": 8693,
+          "duration": 32
+        },
+        {
+          "name": "pointerup",
+          "interactionId": 8693,
+          "duration": 32
+        },
+        {
+          "name": "click",
+          "interactionId": 8693,
+          "duration": 32
+        },
+        {
+          "name": "keydown",
+          "interactionId": 8700,
+          "duration": 208
+        },
+        {
+          "name": "keyup",
+          "interactionId": 8700,
+          "duration": 272
+        }
+      ],
+      "blockedRequests": [],
+      "pageErrors": [],
+      "encodedJSObservationBytes": 324699,
+      "encodedInitialScriptBytes": 165114,
+      "initialScriptURLs": [
+        "https://fakturaprosto.pl/.netlify/scripts/hud?variant=public",
+        "https://fakturaprosto.pl/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+        "https://fakturaprosto.pl/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+        "https://fakturaprosto.pl/_next/static/chunks/2619-04bc32f026a0d946.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4909-5833c0da806d22ce.js",
+        "https://fakturaprosto.pl/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+        "https://fakturaprosto.pl/_next/static/chunks/5595-8471cdc090cadac8.js",
+        "https://fakturaprosto.pl/_next/static/chunks/9361-10c5acf2f83ea40a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/layout-d8c1bb5b259f73fd.js",
+        "https://fakturaprosto.pl/_next/static/chunks/app/page-6bd5d030a55a9599.js",
+        "https://fakturaprosto.pl/_next/static/chunks/main-app-c859c9eb0418cd93.js",
+        "https://fakturaprosto.pl/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "https://fakturaprosto.pl/_next/static/chunks/webpack-5fa04553705202b8.js"
+      ],
+      "initialScriptsObserved": 11
+    }
+  ],
+  "controls": [
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "boundary-input",
+      "value": "2000",
+      "status": [
+        "Suma po wystawieniu: 10 000,00 złTa faktura nie przekracza jeszcze progu w opisanym przypadku.Dokładnie 10 000 zł nie oznacza przekroczenia; sprawdź kolejną fakturę."
+      ],
+      "validBoundaryConclusion": true
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "boundary-input",
+      "value": "2000,01",
+      "status": [
+        "Suma po wystawieniu: 10 000,01 złTa faktura wymaga KSeF w opisanym przypadku.Próg przekracza właśnie ta faktura; dalsze faktury objęte obowiązkiem również trafiają do KSeF."
+      ],
+      "validBoundaryConclusion": true
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "boundary-input",
+      "value": "0",
+      "status": [],
+      "validBoundaryConclusion": null
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "boundary-input",
+      "value": "-1",
+      "status": [],
+      "validBoundaryConclusion": null
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "boundary-input",
+      "value": "ąęł<script>",
+      "status": [],
+      "validBoundaryConclusion": null
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "previous-threshold-crossing",
+      "status": [
+        "Suma po wystawieniu: 8001,00 złTa faktura wymaga KSeF w opisanym przypadku.Po wcześniejszym przekroczeniu progu niższa suma w kolejnym miesiącu nie przywraca wyjątku."
+      ]
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "back-navigation",
+      "url": "https://fakturaprosto.pl/narzedzia/limit-ksef"
+    },
+    {
+      "path": "/narzedzia/limit-ksef",
+      "kind": "reload",
+      "url": "https://fakturaprosto.pl/narzedzia/limit-ksef",
+      "h1": "Kalkulator limitu KSeF 10 000 zł w 2026 roku"
+    }
+  ],
+  "limitations": [
+    "Single executor location and inherited proxy; network latency includes proxy. This is lab evidence, not direct edge measurement or real-user Core Web Vitals.",
+    "CPU throttling shares executor resources with other QA tasks; timings are provisional.",
+    "Event Timing samples measure only these scripted clicks and are not field INP.",
+    "No production load test or authenticated performance probe was run."
+  ],
+  "summary": {
+    "medianLcpMs": 1832,
+    "medianProxyLabTtfbMs": 402.70000000298023,
+    "cls": 0,
+    "medianInitialScriptEncodedBytes": 165335,
+    "medianObservationJSEncodedBytes": 324935
+  }
+}

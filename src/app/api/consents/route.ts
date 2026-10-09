@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { recordLegalConsent } from "@/lib/legal/record-consent";
 import { LEGAL_VERSIONS } from "@/lib/legal/config";
 
@@ -34,8 +34,7 @@ export async function GET() {
 
     return json({ consents });
   } catch (error) {
-    console.error("[Consents GET] Błąd:", error);
-    return json({ error: "Nie udało się pobrać zgód." }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -53,6 +52,7 @@ export async function POST(req: Request) {
 
     const body = await readJson(req);
     const documentType = body.documentType as string;
+    if (typeof body.accepted !== "boolean") throw new ApiError(400, "Pole zgody musi mieć wartość tak lub nie.", "INVALID_INPUT");
     const accepted = body.accepted === true;
 
     // Nie pozwalaj na wycofanie regulaminu tą drogą
@@ -77,19 +77,19 @@ export async function POST(req: Request) {
     const result = await recordLegalConsent({
       userId: user.id,
       documentType: documentType as "marketing_email" | "cookie_functional" | "cookie_analytics" | "cookie_marketing",
-      documentVersion: LEGAL_VERSIONS.terms,
+      documentVersion: documentType.startsWith("cookie_") ? LEGAL_VERSIONS.cookies : LEGAL_VERSIONS.terms,
       accepted,
       rawIp: clientIp,
       userAgent: clientUa,
       context: "settings",
     });
+    if (!result.success) throw new ApiError(503, "Nie udało się zapisać zgody. Spróbuj ponownie.", "CONSENT_UNAVAILABLE");
 
     return json({
       success: result.success,
       message: accepted ? "Zgoda udzielona." : "Zgoda wycofana.",
     });
   } catch (error) {
-    console.error("[Consents POST] Błąd:", error);
-    return json({ error: "Nie udało się zaktualizować zgody." }, { status: 500 });
+    return handleApiError(error);
   }
 }

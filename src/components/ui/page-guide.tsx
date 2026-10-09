@@ -45,13 +45,14 @@ export function PageGuide({
   storageKey,
 }: PageGuideProps) {
   const [open, setOpen] = React.useState(defaultOpen);
+  const panelId = React.useId();
 
   React.useEffect(() => {
     if (storageKey && typeof window !== "undefined") {
-      const saved = localStorage.getItem(`guide_${storageKey}`);
-      if (saved !== null) {
-        setOpen(saved === "true");
-      }
+      try {
+        const saved = localStorage.getItem(`guide_${storageKey}`);
+        if (saved !== null) setOpen(saved === "true");
+      } catch { /* Optional preference storage can be blocked by the browser. */ }
     }
   }, [storageKey]);
 
@@ -59,7 +60,7 @@ export function PageGuide({
     setOpen((prev) => {
       const next = !prev;
       if (storageKey && typeof window !== "undefined") {
-        localStorage.setItem(`guide_${storageKey}`, String(next));
+        try { localStorage.setItem(`guide_${storageKey}`, String(next)); } catch { /* Keep the guide usable without storage. */ }
       }
       return next;
     });
@@ -67,32 +68,33 @@ export function PageGuide({
 
   return (
     <div className={cn("rounded-2xl border border-border/60 bg-card/40 backdrop-blur p-4 text-xs shadow-sm", className)}>
-      <div className="flex items-center justify-between cursor-pointer select-none" onClick={toggle}>
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <button type="button" className="flex w-full items-center justify-between text-left cursor-pointer select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={toggle} aria-expanded={open} aria-controls={open && steps.length ? panelId : undefined}>
+        <span className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
+          </span>
+          <span>
+            <span className="flex items-center gap-2">
               <span className="font-semibold text-foreground text-sm">{title}</span>
               {badge && (
                 <Badge tone="primary" className="text-[10px] py-0 px-2">
                   {badge}
                 </Badge>
               )}
-            </div>
-            {description && <p className="text-muted-foreground mt-0.5">{description}</p>}
-          </div>
-        </div>
+            </span>
+            {description && <span className="block text-muted-foreground mt-0.5">{description}</span>}
+          </span>
+        </span>
 
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
+        <span aria-hidden="true" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-0 text-muted-foreground">
           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
-      </div>
+        </span>
+      </button>
 
       <AnimatePresence>
         {open && steps.length > 0 && (
           <motion.div
+            id={panelId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -110,7 +112,7 @@ export function PageGuide({
                   </div>
                 </div>
                 {step.action && (
-                  <Link
+                  <Link prefetch={false}
                     href={step.action.href} onClick={() => { if (step.action?.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}
                     className="shrink-0 text-[11px] font-medium text-primary hover:underline flex items-center gap-1"
                   >
@@ -140,15 +142,14 @@ export function OnboardingBanner({
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      const isDismissed = localStorage.getItem("fakturo_onboarding_banner_dismissed") === "true";
-      setDismissed(isDismissed);
+      try { setDismissed(localStorage.getItem("fakturo_onboarding_banner_dismissed") === "true"); } catch { /* Optional preference. */ }
     }
   }, []);
 
   const handleDismiss = () => {
     setDismissed(true);
     if (typeof window !== "undefined") {
-      localStorage.setItem("fakturo_onboarding_banner_dismissed", "true");
+      try { localStorage.setItem("fakturo_onboarding_banner_dismissed", "true"); } catch { /* The current-page dismissal still works. */ }
     }
   };
 
@@ -211,7 +212,7 @@ export function OnboardingBanner({
       {/* Mini checklist kroki */}
       <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-border/40 pt-3">
         {checklist.map((item, idx) => (
-          <Link
+          <Link prefetch={false}
             key={idx}
             href={item.href} onClick={() => { if (item.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}
             className={cn(

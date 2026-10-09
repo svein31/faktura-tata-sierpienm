@@ -165,7 +165,7 @@ export default function CompaniesSettingsPage() {
 
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                 <Star className="h-5 w-5" />
               </div>
               <div>
@@ -318,7 +318,7 @@ export default function CompaniesSettingsPage() {
                               <Star className="h-3.5 w-3.5 mr-1" /> Ustaw jako domyślną
                             </Button>
                           ) : (
-                            <span className="text-[11.5px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <span className="text-[11.5px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                               <CheckCircle2 className="h-3.5 w-3.5" /> Aktywna jako domyślna
                             </span>
                           )}

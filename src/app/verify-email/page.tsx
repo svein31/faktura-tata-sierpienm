@@ -6,9 +6,12 @@ export default function VerifyEmailPage() {
   const [token, setToken] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [result, setResult] = React.useState<{ success?: boolean; emailChanged?: boolean; message: string } | null>(null);
+  const linkCaptured = React.useRef(false);
   React.useEffect(() => {
+    if (linkCaptured.current) return;
+    linkCaptured.current = true;
     setToken(new URLSearchParams(window.location.hash.slice(1)).get("token") ?? "");
-    window.history.replaceState(null, "", "/verify-email");
+    window.history.replaceState(window.history.state, "", "/verify-email");
   }, []);
   async function confirm() {
     setBusy(true);

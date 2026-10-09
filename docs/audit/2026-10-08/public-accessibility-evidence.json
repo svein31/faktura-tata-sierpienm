@@ -1,0 +1,2364 @@
+{
+  "scope": "Automated axe-core WCAG A/AA on actual rendered anonymous public pages and synthetic-account common header; not a manual screen-reader certification",
+  "beforeBuildId": "jsxMHSE78zccNCkWm_bA2",
+  "beforePublic": [
+    {
+      "route": "/",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80\">VAT &amp; KSeF 2.0</p>",
+              "target": [
+                ".text-muted-foreground\\/80.mt-1.uppercase"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<span>Faktury FA(3) i integracja z KSeF 2.0</span>",
+              "target": [
+                ".max-w-full > span"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.28 (foreground color: #059669, background color: #e1f3f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#059669",
+                    "bgColor": "#e1f3f0",
+                    "contrastRatio": 3.28,
+                    "fontSize": "9.0pt (12px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.28 (foreground color: #059669, background color: #e1f3f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<span class=\"rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400\">KSeF: Przyjęta (200 OK)</span>",
+              "target": [
+                ".bg-emerald-500\\/15"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.25 (foreground color: #059669, background color: #dbf4ec, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#059669",
+                    "bgColor": "#dbf4ec",
+                    "contrastRatio": 3.25,
+                    "fontSize": "7.9pt (10.5px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.25 (foreground color: #059669, background color: #dbf4ec, font size: 7.9pt (10.5px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<p class=\"text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium\">Przykładowy status podatnika VAT</p>",
+              "target": [
+                ".mt-0\\.5.text-emerald-600.dark\\:text-emerald-400"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.66 (foreground color: #059669, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#059669",
+                    "bgColor": "#fbfcfc",
+                    "contrastRatio": 3.66,
+                    "fontSize": "9.0pt (12px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.66 (foreground color: #059669, background color: #fbfcfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<a class=\"hover:text-foreground transition-colors\" href=\"/regulamin\">Regulamin</a>",
+              "target": [
+                ".hover\\:text-foreground.transition-colors[href$=\"regulamin\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<a class=\"hover:text-foreground transition-colors\" href=\"/polityka-prywatnosci\">Polityka prywatności</a>",
+              "target": [
+                "a[href$=\"polityka-prywatnosci\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<a class=\"hover:text-foreground transition-colors\" href=\"/polityka-cookies\">Cookies</a>",
+              "target": [
+                "a[href$=\"polityka-cookies\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<a class=\"hover:text-foreground transition-colors\" href=\"/powierzenie-danych\">DPA (art. 28)</a>",
+              "target": [
+                "a[href$=\"powierzenie-danych\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<a class=\"hover:text-foreground transition-colors\" href=\"/podwykonawcy\">Podwykonawcy</a>",
+              "target": [
+                "a[href$=\"podwykonawcy\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<button type=\"button\" class=\"hover:text-foreground transition-colors cursor-pointer\">Ustawienia prywatności</button>",
+              "target": [
+                ".cursor-pointer"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3 w-full shrink-0 sm:w-auto\" href=\"/\">",
+              "target": [
+                ".shrink-0.sm\\:w-auto[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/demo",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80\">VAT &amp; KSeF 2.0</p>",
+              "target": [
+                ".text-\\[10px\\]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<span class=\"text-[11px] font-medium text-emerald-600 dark:text-emerald-400\">Edytowalny</span>",
+              "target": [
+                ".text-emerald-600"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.76 (foreground color: #059669, background color: #ffffff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#059669",
+                    "bgColor": "#ffffff",
+                    "contrastRatio": 3.76,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.76 (foreground color: #059669, background color: #ffffff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3.flex-wrap.min-w-0 > a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/cennik",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80\">VAT &amp; KSeF 2.0</p>",
+              "target": [
+                ".mt-1"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#848c9b",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 3.21,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.21 (foreground color: #848c9b, background color: #f8f9fc, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3 w-full shrink-0 sm:w-auto\" href=\"/\">",
+              "target": [
+                ".shrink-0.sm\\:w-auto[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/demo",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3.flex-wrap.min-w-0 > a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/cennik",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "beforeAnonymousForms": [
+    {
+      "route": "/login",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"mt-5 text-center text-[11px] leading-relaxed text-muted-foreground/70 px-4\">Konta są izolowane — każdy użytkownik widzi wyłącznie własne faktury i dane.</p>",
+              "target": [
+                ".mt-5"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 2.68 (foreground color: #939aa7, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#939aa7",
+                    "bgColor": "#f8f9fc",
+                    "contrastRatio": 2.68,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 2.68 (foreground color: #939aa7, background color: #f8f9fc, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/register",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"text-[11px] text-muted-foreground/80 pl-6\">Informacje o przetwarzaniu danych osobowych znajdziesz w<!-- --> <a target=\"_blank\" class=\"text-primary underline\" href=\"/polityka-prywatnosci\">Polityce prywatności</a>.</p>",
+              "target": [
+                ".text-\\[11px\\]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.31 (foreground color: #858d9c, background color: #fefeff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#858d9c",
+                    "bgColor": "#fefeff",
+                    "contrastRatio": 3.31,
+                    "fontSize": "8.3pt (11px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.31 (foreground color: #858d9c, background color: #fefeff, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/reset-password",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/verify-email",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/login",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/register",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                ".gap-3"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/reset-password",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/verify-email",
+      "theme": "dark",
+      "violations": []
+    }
+  ],
+  "beforePrivateCommonHeader": [
+    {
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<p class=\"mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80\">VAT &amp; KSeF 2.0</p>",
+              "target": [
+                ".uppercase"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 3.34 (foreground color: #858d9c, background color: #ffffff, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#858d9c",
+                    "bgColor": "#ffffff",
+                    "contrastRatio": 3.34,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 3.34 (foreground color: #858d9c, background color: #ffffff, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<kbd aria-hidden=\"true\" class=\"hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline\">⌘K</kbd>",
+              "target": [
+                "kbd"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.46 (foreground color: #677183, background color: #f2f4f7, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#677183",
+                    "bgColor": "#f2f4f7",
+                    "contrastRatio": 4.46,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 4.46 (foreground color: #677183, background color: #f2f4f7, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            },
+            {
+              "html": "<span class=\"shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-muted-foreground\">Free</span>",
+              "target": [
+                ".bg-muted\\/70.px-1.rounded-md"
+              ],
+              "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.42 (foreground color: #677183, background color: #f1f3f6, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "any": [
+                {
+                  "data": {
+                    "fgColor": "#677183",
+                    "bgColor": "#f1f3f6",
+                    "contrastRatio": 4.42,
+                    "fontSize": "7.5pt (10px)",
+                    "fontWeight": "normal",
+                    "messageKey": null,
+                    "expectedContrastRatio": "4.5:1"
+                  },
+                  "message": "Element has insufficient color contrast of 4.42 (foreground color: #677183, background color: #f1f3f6, font size: 7.5pt (10px), font weight: normal). Expected contrast ratio of 4.5:1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            },
+            {
+              "html": "<button type=\"button\" aria-label=\"Wybierz firmę: QA sy...\" aria-expanded=\"false\" class=\"flex min-h-11 w-full...\">",
+              "target": [
+                ".sm\\:w-auto"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            },
+            {
+              "html": "<button type=\"button\" title=\"Szukaj lub polecenie...\" aria-label=\"Szukaj faktur, kontr...\" class=\"flex min-h-9 min-w-9...\">",
+              "target": [
+                ".min-h-9"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "nodes": [
+            {
+              "html": "<a aria-label=\"FakturaProsto VAT & KSeF 2.0 — strona główna\" class=\"flex items-center gap-3\" href=\"/\">",
+              "target": [
+                "a[href=\"/\"]"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            },
+            {
+              "html": "<button type=\"button\" aria-label=\"Wybierz firmę: QA sy...\" aria-expanded=\"false\" class=\"flex min-h-11 w-full...\">",
+              "target": [
+                ".sm\\:w-auto"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            },
+            {
+              "html": "<button type=\"button\" title=\"Szukaj lub polecenie...\" aria-label=\"Szukaj faktur, kontr...\" class=\"flex min-h-9 min-w-9...\">",
+              "target": [
+                ".min-h-9"
+              ],
+              "failureSummary": "Fix any of the following:\n  Text inside the element is not included in the accessible name",
+              "any": [
+                {
+                  "data": null,
+                  "message": "Text inside the element is not included in the accessible name"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "domProposal": {
+    "method": "DOM-equivalent source proposals applied to previous compiled public pages. This is not an authoritative new-build pass.",
+    "buildId": "jsxMHSE78zccNCkWm_bA2",
+    "results": [
+      {
+        "route": "/",
+        "theme": "light",
+        "violations": []
+      },
+      {
+        "route": "/demo",
+        "theme": "light",
+        "violations": []
+      },
+      {
+        "route": "/cennik",
+        "theme": "light",
+        "violations": []
+      },
+      {
+        "route": "/",
+        "theme": "dark",
+        "violations": []
+      },
+      {
+        "route": "/demo",
+        "theme": "dark",
+        "violations": []
+      },
+      {
+        "route": "/cennik",
+        "theme": "dark",
+        "violations": []
+      }
+    ]
+  },
+  "compiledAfter": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "checkedAt": "2026-10-09T10:46:34.930Z",
+    "scope": "Actual final6 public pages plus synthetic-account common header in both themes. Earlier public subset and gradient pixels remain historical evidence.",
+    "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+    "axeVersion": "4.14.0",
+    "screenCount": 104,
+    "violationCount": 0,
+    "manualReviewScreens": 10,
+    "results": [
+      {
+        "route": "/",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/cennik",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/demo",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 25,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/bez-vat",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/dla-osoby-prywatnej",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/jak-wystawic",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/koncowa",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/korygujaca",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/zaliczkowa",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/forgot-password",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 4
+          }
+        ]
+      },
+      {
+        "route": "/login",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 5
+          }
+        ]
+      },
+      {
+        "route": "/narzedzia",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/narzedzia/kalkulator-vat",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/narzedzia/limit-ksef",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/podwykonawcy",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/polityka-cookies",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/polityka-prywatnosci",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/pomoc",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 20,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/2027",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/fa3",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/jdg",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/kody-qr",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/limit-10000-zl",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/numer-faktury",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/odrzucona-faktura",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/offline24",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/upo",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/aplikacja-mf",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/comarch",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/faktura-pl",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/fakturownia",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/fakturowo",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/ifirma",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/infakt",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/wfirma",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/powierzenie-danych",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 20,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-biur-rachunkowych",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-firm-uslugowych",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-freelancerow",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-jdg",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/na-telefonie",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/register",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 25,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 7
+          }
+        ]
+      },
+      {
+        "route": "/regulamin",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/reset-password",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 4
+          }
+        ]
+      },
+      {
+        "route": "/vat",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/vat/stawki",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/verify-email",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/dashboard",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 22
+          }
+        ]
+      },
+      {
+        "route": "/",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/cennik",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/demo",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 25,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/bez-vat",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/dla-osoby-prywatnej",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/jak-wystawic",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/koncowa",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/korygujaca",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/faktury/zaliczkowa",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/forgot-password",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 4
+          }
+        ]
+      },
+      {
+        "route": "/login",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 5
+          }
+        ]
+      },
+      {
+        "route": "/narzedzia",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/narzedzia/kalkulator-vat",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/narzedzia/limit-ksef",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/podwykonawcy",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/polityka-cookies",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/polityka-prywatnosci",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/pomoc",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 20,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/2027",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/fa3",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/jdg",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/kody-qr",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/limit-10000-zl",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/numer-faktury",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/odrzucona-faktura",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/offline24",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/poradnik-ksef/upo",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/aplikacja-mf",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/comarch",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/faktura-pl",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/fakturownia",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/fakturowo",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/ifirma",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/infakt",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/porownania/wfirma",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/powierzenie-danych",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 20,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-biur-rachunkowych",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-firm-uslugowych",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-freelancerow",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/dla-jdg",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/program-do-faktur/na-telefonie",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/register",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 25,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 7
+          }
+        ]
+      },
+      {
+        "route": "/regulamin",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/reset-password",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 4
+          }
+        ]
+      },
+      {
+        "route": "/vat",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 18,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/vat/stawki",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 22,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/verify-email",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "route": "/dashboard",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 24,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 22
+          }
+        ]
+      }
+    ],
+    "rawArtifact": {
+      "path": "docs/audit/2026-10-08/accessibility-routes.json",
+      "sha256": "d5e807f34af828744eb1db325ceca21033459973e1bc5df8b6d8828492bf0c09"
+    },
+    "evidenceLog": {
+      "path": "/tmp/faktura-qa-axe-final6.log",
+      "sha256": "22174ac4ccda2824de54f2dc76135c5591955fb308e6eca3077cb2da4f8ba685"
+    }
+  },
+  "compiledAfterHistory": [
+    {
+      "buildId": "XFTUDaJKpJjPxMMF_oitO",
+      "sourceSha256": "cbc96713f8c7fb6160b846bdec2e099c9a3838619716d85010e86f96c60f676b",
+      "sourceFingerprintMethod": "scripts/qa-inventory.mjs sourceFingerprint: application src, prisma schema and build/package configuration contents. Application sources were frozen throughout this compiled run.",
+      "engine": "Chromium (Playwright headless)",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "axeTags": [
+        "wcag2a",
+        "wcag2aa",
+        "wcag21a",
+        "wcag21aa"
+      ],
+      "method": "Actual compiled page DOM after uiReady and cookie rejection. Public/auth screens used separate anonymous contexts per theme. Private dashboard used a synthetic test-account cookie. No DOM color/name proposal mutation in these axe runs.",
+      "public": [
+        {
+          "route": "/",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/demo",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/cennik",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/demo",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/cennik",
+          "theme": "dark",
+          "violations": []
+        }
+      ],
+      "anonymousForms": [
+        {
+          "route": "/login",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/register",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/forgot-password",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/reset-password",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/verify-email",
+          "theme": "light",
+          "violations": []
+        },
+        {
+          "route": "/login",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/register",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/forgot-password",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/reset-password",
+          "theme": "dark",
+          "violations": []
+        },
+        {
+          "route": "/verify-email",
+          "theme": "dark",
+          "violations": []
+        }
+      ],
+      "privateCommonHeader": [
+        {
+          "route": "/dashboard",
+          "theme": "light",
+          "names": {
+            "company": 1,
+            "search": 1
+          },
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": [
+                {
+                  "html": "<div class=\"flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-emerald-700 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20\">QT</div>",
+                  "target": [
+                    ".from-indigo-700"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"relative\">Kup Pro</span>",
+                  "target": [
+                    ".border-violet-300\\/60 > .relative:nth-child(3)"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<h4 class=\"font-semibold text-sm text-foreground\">Witaj w FakturaProsto! Ukończ szybką konfigurację konta</h4>",
+                  "target": [
+                    "h4"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 font-medium tracking-tight shadow-2xs transition-colors bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-[10px]\">Start</span>",
+                  "target": [
+                    ".whitespace-nowrap"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<p class=\"mt-0.5 text-xs text-muted-foreground\">Skorzystaj z interaktywnego samouczka, aby przygotować system do zgodności z KSeF 2.0 i wystawić pierwszą fakturę.</p>",
+                  "target": [
+                    "div:nth-child(2) > .mt-0\\.5"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Profil i dane firmy</span>",
+                  "target": [
+                    ".border-emerald-500\\/30.bg-emerald-500\\/5[href$=\"companies\"] > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Autoryzacja KSeF 2.0</span>",
+                  "target": [
+                    ".border-border\\/50 > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"text-[10px] text-muted-foreground\">Do zrobienia</span>",
+                  "target": [
+                    ".border-border\\/50 > .text-\\[10px\\].text-muted-foreground"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Pierwsza faktura VAT</span>",
+                  "target": [
+                    ".border-emerald-500\\/30.bg-emerald-500\\/5.text-emerald-400:nth-child(3) > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<tspan x=\"56\" dy=\"0.71em\">maj 26</tspan>",
+                  "target": [
+                    "tspan[dy=\"0.71em\"][x=\"56\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"165.2\" dy=\"0.71em\">cze 26</tspan>",
+                  "target": [
+                    "tspan[x=\"165.2\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"274.4\" dy=\"0.71em\">lip 26</tspan>",
+                  "target": [
+                    "tspan[x=\"274.4\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"383.6\" dy=\"0.71em\">sie 26</tspan>",
+                  "target": [
+                    "tspan[x=\"383.6\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"492.8\" dy=\"0.71em\">wrz 26</tspan>",
+                  "target": [
+                    "tspan[x=\"492.8\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"593.75\" dy=\"0.71em\">paź 26</tspan>",
+                  "target": [
+                    "tspan[x=\"593.75\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">0</tspan>",
+                  "target": [
+                    "text[y=\"129\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">1</tspan>",
+                  "target": [
+                    "text[y=\"99.75\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">2</tspan>",
+                  "target": [
+                    "text[y=\"70.5\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">3</tspan>",
+                  "target": [
+                    "text[y=\"41.25\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">4</tspan>",
+                  "target": [
+                    ".recharts-cartesian-axis-tick.recharts-layer:nth-child(5) > text[orientation=\"left\"][width=\"64\"][text-anchor=\"end\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<span class=\"recharts-legend-item-text\" style=\"color: rgb(99, 102, 241);\">Netto</span>",
+                  "target": [
+                    ".legend-item-0 > .recharts-legend-item-text"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<span class=\"recharts-legend-item-text\" style=\"color: rgb(16, 185, 129);\">Brutto</span>",
+                  "target": [
+                    ".legend-item-1 > .recharts-legend-item-text"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "route": "/dashboard",
+          "theme": "dark",
+          "names": {
+            "company": 1,
+            "search": 1
+          },
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": [
+                {
+                  "html": "<div class=\"flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-emerald-700 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20\">QT</div>",
+                  "target": [
+                    ".from-indigo-700"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"relative\">Kup Pro</span>",
+                  "target": [
+                    ".border-violet-300\\/60 > .relative:nth-child(3)"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<h4 class=\"font-semibold text-sm text-foreground\">Witaj w FakturaProsto! Ukończ szybką konfigurację konta</h4>",
+                  "target": [
+                    "h4"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 font-medium tracking-tight shadow-2xs transition-colors bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-[10px]\">Start</span>",
+                  "target": [
+                    ".whitespace-nowrap"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<p class=\"mt-0.5 text-xs text-muted-foreground\">Skorzystaj z interaktywnego samouczka, aby przygotować system do zgodności z KSeF 2.0 i wystawić pierwszą fakturę.</p>",
+                  "target": [
+                    "div:nth-child(2) > .mt-0\\.5"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Profil i dane firmy</span>",
+                  "target": [
+                    ".border-emerald-500\\/30.bg-emerald-500\\/5[href$=\"companies\"] > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Autoryzacja KSeF 2.0</span>",
+                  "target": [
+                    ".border-border\\/50 > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span class=\"text-[10px] text-muted-foreground\">Do zrobienia</span>",
+                  "target": [
+                    ".border-border\\/50 > .text-\\[10px\\].text-muted-foreground"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<span>Pierwsza faktura VAT</span>",
+                  "target": [
+                    ".border-emerald-500\\/30.bg-emerald-500\\/5.text-emerald-400:nth-child(3) > .gap-2.flex.items-center > span"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a background gradient"
+                },
+                {
+                  "html": "<tspan x=\"56\" dy=\"0.71em\">maj 26</tspan>",
+                  "target": [
+                    "tspan[dy=\"0.71em\"][x=\"56\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"165.2\" dy=\"0.71em\">cze 26</tspan>",
+                  "target": [
+                    "tspan[x=\"165.2\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"274.4\" dy=\"0.71em\">lip 26</tspan>",
+                  "target": [
+                    "tspan[x=\"274.4\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"383.6\" dy=\"0.71em\">sie 26</tspan>",
+                  "target": [
+                    "tspan[x=\"383.6\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"492.8\" dy=\"0.71em\">wrz 26</tspan>",
+                  "target": [
+                    "tspan[x=\"492.8\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"593.75\" dy=\"0.71em\">paź 26</tspan>",
+                  "target": [
+                    "tspan[x=\"593.75\"][dy=\"0.71em\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">0</tspan>",
+                  "target": [
+                    "text[y=\"129\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">1</tspan>",
+                  "target": [
+                    "text[y=\"99.75\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">2</tspan>",
+                  "target": [
+                    "text[y=\"70.5\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">3</tspan>",
+                  "target": [
+                    "text[y=\"41.25\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<tspan x=\"48\" dy=\"0.355em\">4</tspan>",
+                  "target": [
+                    ".recharts-cartesian-axis-tick.recharts-layer:nth-child(5) > text[orientation=\"left\"][width=\"64\"][text-anchor=\"end\"] > tspan[dy=\"0.355em\"][x=\"48\"]"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                },
+                {
+                  "html": "<span class=\"recharts-legend-item-text\" style=\"color: rgb(99, 102, 241);\">Netto</span>",
+                  "target": [
+                    ".legend-item-0 > .recharts-legend-item-text"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                },
+                {
+                  "html": "<span class=\"recharts-legend-item-text\" style=\"color: rgb(16, 185, 129);\">Brutto</span>",
+                  "target": [
+                    ".legend-item-1 > .recharts-legend-item-text"
+                  ],
+                  "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because element contains an image node"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "violationCount": 0,
+      "screenCount": 18,
+      "incompleteReporting": "Detailed private run captured 22 color-contrast incomplete nodes per theme (gradients/charts/short numeric text); public quick scripts preserved violations only, so their incomplete count was not recorded. Root full-route audit records all incomplete checks separately.",
+      "manualGradientEvidence": "avatar-contrast-evidence.json"
+    }
+  ]
+}

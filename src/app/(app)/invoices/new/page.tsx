@@ -50,7 +50,7 @@ export default function NewInvoicePage() {
             {uploading ? "Wczytywanie…" : "Wczytaj fakturę zakupową"}
             <input className="sr-only" type="file" accept="application/pdf,image/jpeg,image/png" disabled={uploading || !companyId} onChange={e => { void uploadPurchase(e.target.files?.[0]); e.target.value = ""; }} />
           </label>
-          <Link className="text-sm text-primary underline" href="/documents">Skrzynka dokumentów</Link>
+          <Link prefetch={false} className="text-sm text-primary underline" href="/documents">Skrzynka dokumentów</Link>
         </div>
         {!companyId && <p className="mt-2 text-sm">Wybierz firmę, aby dodać dokument.</p>}
         {uploadError && <p className="mt-2 text-sm text-rose-600" role="alert">{uploadError}</p>}

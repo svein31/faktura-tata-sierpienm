@@ -285,18 +285,18 @@ export function PaymentCalendar() {
 
   return (
     <div className="space-y-6">
-      {expensesError && <p role="alert" className="rounded-lg border border-rose-500/40 p-3 text-sm text-rose-400">Nie udało się wczytać kosztów. Odśwież stronę, aby ponowić próbę.</p>}
+      {expensesError && <p role="alert" className="rounded-lg border border-rose-500/40 p-3 text-sm text-rose-700 dark:text-rose-400">Nie udało się wczytać kosztów. Odśwież stronę, aby ponowić próbę.</p>}
       <p className="text-xs text-muted-foreground">Podsumowanie obejmuje tylko PLN. Daty podatkowe są ogólne; obowiązki zależą od sposobu rozliczania firmy.</p>
       {/* Pasek podsumowania finansowego */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Planowane wpływy</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
               <TrendingUp className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-emerald-400">
+          <p className="text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
             <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -307,11 +307,11 @@ export function PaymentCalendar() {
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Planowane wydatki</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400 ring-1 ring-inset ring-rose-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-1 ring-inset ring-rose-500/20">
               <TrendingDown className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-rose-400">
+          <p className="text-2xl font-bold tracking-tight text-rose-700 dark:text-rose-400">
             <AnimatedCounter value={monthStats.totalExpenses} format={(v: number) => `-${formatMoney(v, "PLN")}`} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -328,7 +328,7 @@ export function PaymentCalendar() {
           </div>
           <p className={cn(
             "text-2xl font-bold tracking-tight",
-            monthStats.balance >= 0 ? "text-primary" : "text-amber-400"
+            monthStats.balance >= 0 ? "text-primary" : "text-amber-700 dark:text-amber-400"
           )}>
             <AnimatedCounter
               value={monthStats.balance}
@@ -343,16 +343,16 @@ export function PaymentCalendar() {
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Termin urzędowy</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
               <Landmark className="h-4 w-4" />
             </div>
           </div>
           {nextTaxDeadline ? (
             <div>
-              <p className="text-lg font-bold tracking-tight text-indigo-400 truncate">
+              <p className="text-lg font-bold tracking-tight text-indigo-700 dark:text-indigo-400 truncate">
                 {nextTaxDeadline.title}
               </p>
-              <p className="mt-1 text-xs font-medium text-amber-300">
+              <p className="mt-1 text-xs font-medium text-amber-800 dark:text-amber-300">
                 {nextTaxDeadline.diffDays === 0
                   ? "Dzisiaj jest ostateczny termin!"
                   : nextTaxDeadline.diffDays === 1
@@ -441,7 +441,7 @@ export function PaymentCalendar() {
           {/* Dni tygodnia */}
           <div className="grid grid-cols-7 gap-1.5 text-center text-xs font-semibold text-muted-foreground mb-2">
             {weekDays.map((w, idx) => (
-              <div key={w} className={cn("py-1", idx >= 5 && "text-muted-foreground/60")}>
+              <div key={w} className={cn("py-1", idx >= 5 && "text-muted-foreground")}>
                 {w}
               </div>
             ))}
@@ -522,21 +522,21 @@ export function PaymentCalendar() {
                   <div className="mt-1.5 space-y-1 overflow-hidden">
                     {/* Urzędy */}
                     {hasTaxes && (filterType === "all" || filterType === "taxes") && (
-                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-medium bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border border-indigo-500/30">
                         {data?.taxes.map((tax) => tax.title).join(" · ")}
                       </div>
                     )}
 
                     {/* Wpływy */}
                     {hasIncomes && (filterType === "all" || filterType === "incomes" || filterType === "unpaid") && (
-                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-400">
+                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                         {dayIncomeTotal ? `+${formatMoney(dayIncomeTotal, "PLN")}` : "Wpływ"}{hasOtherIncomeCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
 
                     {/* Wydatki */}
                     {hasExpenses && (filterType === "all" || filterType === "expenses" || filterType === "unpaid") && (
-                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-rose-500/15 text-rose-400">
+                      <div className="truncate rounded px-1 py-0.5 text-[10px] font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-400">
                         {dayExpenseTotal ? `-${formatMoney(dayExpenseTotal, "PLN")}` : "Wydatek"}{hasOtherExpenseCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
@@ -575,7 +575,7 @@ export function PaymentCalendar() {
                 {/* Lista terminów urzędowych */}
                 {filteredDayTaxes.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
                       <Landmark className="h-3.5 w-3.5" />
                       <span>Terminy ustawowe</span>
                     </p>
@@ -584,9 +584,9 @@ export function PaymentCalendar() {
                         key={tax.id}
                         className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-xs"
                       >
-                        <div className="flex items-center justify-between font-semibold text-indigo-300">
+                        <div className="flex items-center justify-between font-semibold text-indigo-800 dark:text-indigo-300">
                           <span>{tax.title}</span>
-                          <Badge tone="outline" className="border-indigo-400/40 text-indigo-300 text-[10px]">
+                          <Badge tone="outline" className="border-indigo-400/40 text-indigo-800 dark:text-indigo-300 text-[10px]">
                             {tax.deadlineText}
                           </Badge>
                         </div>
@@ -601,7 +601,7 @@ export function PaymentCalendar() {
                 {/* Lista faktur przychodowych */}
                 {filteredDayInvoices.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
                       <TrendingUp className="h-3.5 w-3.5" />
                       <span>Wpływy ze sprzedaży ({filteredDayInvoices.length})</span>
                     </p>
@@ -613,7 +613,7 @@ export function PaymentCalendar() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-foreground">{inv.number}</span>
-                            <span className="font-bold text-emerald-400">
+                            <span className="font-bold text-emerald-700 dark:text-emerald-400">
                               +{formatMoney(invoiceGross(inv), inv.currency || "PLN")}
                             </span>
                           </div>
@@ -624,12 +624,12 @@ export function PaymentCalendar() {
                             <span className={cn(
                               "text-[10px] font-medium px-1.5 py-0.5 rounded",
                               inv.paymentStatus === "paid" || inv.status === "paid"
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-amber-500/10 text-amber-400"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                             )}>
                               {inv.paymentStatus === "paid" || inv.status === "paid" ? "Opłacona" : "Do zapłaty"}
                             </span>
-                            <Link
+                            <Link prefetch={false}
                               href={`/invoices/${inv.id}`}
                               className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1"
                             >
@@ -646,7 +646,7 @@ export function PaymentCalendar() {
                 {/* Lista wydatków / kosztów */}
                 {filteredDayExpenses.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
                       <TrendingDown className="h-3.5 w-3.5" />
                       <span>Wydatki i koszty ({filteredDayExpenses.length})</span>
                     </p>
@@ -658,7 +658,7 @@ export function PaymentCalendar() {
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-foreground">{exp.number}</span>
-                            <span className="font-bold text-rose-400">
+                            <span className="font-bold text-rose-700 dark:text-rose-400">
                               -{formatMoney(exp.totalGross, (exp.currency as any) || "PLN")}
                             </span>
                           </div>
@@ -669,12 +669,12 @@ export function PaymentCalendar() {
                             <span className={cn(
                               "text-[10px] font-medium px-1.5 py-0.5 rounded",
                               exp.paymentStatus === "paid"
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-rose-500/10 text-rose-400"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                                : "bg-rose-500/10 text-rose-700 dark:text-rose-400"
                             )}>
                               {exp.paymentStatus === "paid" ? "Opłacone" : "Do zapłaty"}
                             </span>
-                            <Link
+                            <Link prefetch={false}
                               href="/expenses"
                               className="text-[11px] font-medium text-primary hover:underline flex items-center gap-1"
                             >
@@ -715,13 +715,13 @@ export function PaymentCalendar() {
 
             {/* Szybkie akcje na dole panelu */}
             <div className="border-t border-border/50 pt-4 mt-4 flex items-center gap-2">
-              <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="flex-1">
+              <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="flex-1">
                 <Button variant="outline" size="sm" className="w-full gap-1 text-xs border-border/60">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Wystaw fakturę</span>
                 </Button>
               </Link>
-              <Link href="/expenses" className="flex-1">
+              <Link prefetch={false} href="/expenses" className="flex-1">
                 <Button variant="outline" size="sm" className="w-full gap-1 text-xs border-border/60">
                   <Receipt className="h-3.5 w-3.5" />
                   <span>Dodaj koszt</span>

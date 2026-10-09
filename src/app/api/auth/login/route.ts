@@ -10,7 +10,7 @@ import {
   toPublicUser,
 } from "@/lib/auth";
 import { json, readJson, str, ApiError } from "@/lib/api";
-import { rateLimitShared } from "@/lib/rate-limit";
+import { rateLimitShared, rateLimitSubject } from "@/lib/rate-limit";
 import { reportUnexpectedError } from "@/lib/error-report";
 
 export const dynamic = "force-dynamic";
@@ -47,12 +47,14 @@ export async function POST(req: Request) {
     const cleanEmail = rawEmail.trim().toLowerCase();
     const password = str(body.password);
 
-    if (!cleanEmail || !password) {
+    if (!cleanEmail || cleanEmail.length > 254 || !password || password.length > 128) {
       return json(
         { error: "Nieprawidłowy e-mail lub hasło.", code: "INVALID_CREDENTIALS" },
         { status: 401 }
       );
     }
+    const accountLimit = await rateLimitSubject(cleanEmail, { windowMs: 15 * 60 * 1000, max: 30 }, "login-address");
+    if (!accountLimit.allowed) return json({ error: "Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.", code: "RATE_LIMITED" }, { status: 429, headers: { "Retry-After": String(accountLimit.retryAfterSeconds ?? 60) } });
 
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
@@ -80,7 +82,7 @@ export async function POST(req: Request) {
       if (!proof) return json({ error: "Nieprawidłowy lub już użyty kod 2FA.", code: "MFA_INVALID" }, { status: 401 });
       mfaVerifiedAt = proof.record.enabledAt!;
     }
-    const metadata = { ...extractRequestMetadata(req), mfaVerifiedAt };
+    const metadata = { ...extractRequestMetadata(req), mfaVerifiedAt, expectedPasswordHash: user.password, expectedLoginEmail: user.email };
     const { token } = await createSession(user.id, metadata);
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 

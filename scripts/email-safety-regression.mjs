@@ -29,7 +29,8 @@ export async function checkEmailSafety(db) {
     // A pending address change preserves the current login until ownership is proved.
     await db.user.update({ where: { id: user.id }, data: { emailVerificationSentAt: new Date(0) } });
     await db.session.create({ data: { userId: user.id, sessionToken: `synthetic-${suffix}`, expiresAt: new Date(Date.now() + 3600000) } });
-    await requestEmailVerification(user.id, { db, deliver, targetEmail: `changed-${suffix}@example.test` });
+    const emailChangeSession = await db.session.create({ data: { userId: user.id, sessionToken: randomBytes(32).toString("hex"), expiresAt: new Date(Date.now() + 3600000) } });
+    await requestEmailVerification(user.id, { db, deliver, targetEmail: `changed-${suffix}@example.test`, expectedPasswordHash: user.password, expectedSessionId: emailChangeSession.id });
     assert.equal((await db.user.findUnique({ where: { id: user.id } })).email, user.email);
     assert.equal((await confirmEmailVerification(rawToken(messages.at(-1)), db)).emailChanged, true);
     assert.equal((await db.user.findUnique({ where: { id: user.id } })).email, `changed-${suffix}@example.test`);
@@ -54,11 +55,29 @@ export async function checkEmailSafety(db) {
     const concurrentInput = input();
     const claims = await Promise.allSettled(Array.from({ length: 8 }, () => claimManualEmail(concurrentInput, db)));
     assert.equal(claims.filter(result => result.status === 'fulfilled').length, 1, 'Only one serverless instance can prepare a manual send');
+    assert.ok(claims.filter(result => result.status === 'rejected').every(result => result.reason.status === 409 && ['DUPLICATE_REQUEST', 'EMAIL_BUSY'].includes(result.reason.code)), 'Competing claims report a safe conflict, never raw Prisma P2034');
     const lease = claims.find(result => result.status === 'fulfilled').value;
+    let forbiddenFenceAttempts = 0;
+    const readOnlyClaimDb = { $transaction: callback => db.$transaction(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key !== 'user') return Reflect.get(target, key);
+      return new Proxy(target.user, { get(delegate, operation) {
+        if (operation === 'update') return async () => { forbiddenFenceAttempts++; throw new Error('Read-only duplicate claim acquired the user write lock'); };
+        return Reflect.get(delegate, operation);
+      } });
+    } }))) };
+    const assertReadOnlyConflict = async (claimInput, code) => {
+      const attempts = await Promise.allSettled(Array.from({ length: 8 }, () => claimManualEmail(claimInput, readOnlyClaimDb)));
+      assert.ok(attempts.every(result => result.status === 'rejected' && result.reason.status === 409 && result.reason.code === code));
+      assert.equal(forbiddenFenceAttempts, 0, 'Eight duplicate decisions do not contend with the rightful sender');
+    };
+    await assertReadOnlyConflict(concurrentInput, 'DUPLICATE_REQUEST');
     await startManualEmail(lease, log, db);
+    await assertReadOnlyConflict(concurrentInput, 'DUPLICATE_REQUEST');
     const replay = { success: true, provider: 'smtp', sentToEmail: log.to, sentAt: new Date().toISOString() };
     await finishManualEmail(lease, { status: 'accepted', provider: 'smtp', sentToEmail: log.to, response: replay }, db);
-    assert.deepEqual((await claimManualEmail(concurrentInput, db)).replay, replay, 'Response loss replays accepted state without provider contact');
+    const acceptedReplays = await Promise.all(Array.from({ length: 8 }, () => claimManualEmail(concurrentInput, readOnlyClaimDb)));
+    for (const accepted of acceptedReplays) assert.deepEqual(accepted.replay, replay, 'Response loss replays accepted state without provider contact');
+    assert.equal(forbiddenFenceAttempts, 0, 'Accepted response replay never writes the user fence');
     assert.equal(await db.invoiceEmailLog.count({ where: { id: lease.id, status: 'accepted' } }), 1);
     await assert.rejects(claimManualEmail({ ...concurrentInput, requestHash: 'different-body' }, db), error => error.code === 'IDEMPOTENCY_CONFLICT');
 
@@ -72,6 +91,7 @@ export async function checkEmailSafety(db) {
     const ambiguousInput = input();
     const ambiguousLease = await claimManualEmail(ambiguousInput, db); await startManualEmail(ambiguousLease, log, db);
     await finishManualEmail(ambiguousLease, { status: 'verify_needed', error: 'Provider timeout after DATA' }, db);
+    await assertReadOnlyConflict(ambiguousInput, 'EMAIL_DELIVERY_UNCERTAIN');
     await assert.rejects(claimManualEmail(ambiguousInput, db), error => error.code === 'EMAIL_DELIVERY_UNCERTAIN');
     await assert.rejects(claimManualEmail({ ...ambiguousInput, key: 'fresh-key', requestHash: 'edited-body' }, db), error => error.code === 'EMAIL_DELIVERY_UNCERTAIN');
     const resolved = await resolveManualEmail({ userId: user.id, invoiceId: invoice.id, deliveryId: ambiguousLease.id, result: 'not-sent' }, db);

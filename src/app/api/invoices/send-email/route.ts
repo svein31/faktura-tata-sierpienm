@@ -22,6 +22,12 @@ import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function diagnosticErrorCode(error: unknown): string {
+  const failure = error as { code?: unknown; name?: unknown } | null;
+  const identity = failure?.code ?? failure?.name;
+  return typeof identity === "string" && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(identity) ? identity : "EMAIL_SEND_FAILED";
+}
+
 /**
  * GET /api/invoices/send-email
  * Zwraca status konfiguracji serwera pocztowego dla interfejsu użytkownika.
@@ -309,9 +315,9 @@ export async function POST(req: Request) {
           size: pdfBuffer.length,
           contentType: "application/pdf",
         });
-      } catch (pdfError: any) {
-        console.error("EMAIL_SEND_ERROR [PDF generation]:", pdfError);
-        throw new Error(`Błąd generowania pliku PDF faktury: ${pdfError.message || pdfError}`);
+      } catch (pdfError: unknown) {
+        console.error("EMAIL_SEND_ERROR [PDF generation]:", diagnosticErrorCode(pdfError));
+        throw pdfError;
       }
     }
 
@@ -340,10 +346,10 @@ export async function POST(req: Request) {
           size: xmlBuffer.length,
           contentType: "application/xml",
         });
-      } catch (xmlError: any) {
+      } catch (xmlError: unknown) {
         if (xmlError instanceof ApiError) throw xmlError;
-        console.error("EMAIL_SEND_ERROR [XML generation]:", xmlError);
-        throw new Error(`Błąd generowania pliku XML KSeF: ${xmlError.message || xmlError}`);
+        console.error("EMAIL_SEND_ERROR [XML generation]:", diagnosticErrorCode(xmlError));
+        throw xmlError;
       }
     }
 
@@ -400,15 +406,16 @@ export async function POST(req: Request) {
     } }).catch(() => undefined);
 
     return NextResponse.json({ ...resultPayload, log: emailLogRecord ? emailLogToDto(emailLogRecord) : null }, { headers: { "Cache-Control": "no-store" } });
-  } catch (error: any) {
-    const uncertain = providerAttempted && !deliveryCompleted && error.deliveryUncertain !== false;
-    const errorMessage = uncertain ? DELIVERY_UNCERTAIN_MESSAGE : error instanceof Error ? error.message : "Nie udało się przygotować wiadomości.";
+  } catch (error: unknown) {
+    const uncertain = providerAttempted && !deliveryCompleted && (error as { deliveryUncertain?: boolean } | null)?.deliveryUncertain !== false;
+    const publicCode = uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : error instanceof ApiError ? error.code || "EMAIL_SEND_FAILED" : "EMAIL_SEND_FAILED";
+    const errorMessage = uncertain ? DELIVERY_UNCERTAIN_MESSAGE : error instanceof ApiError ? error.message : "Nie udało się wysłać wiadomości. Spróbuj ponownie później.";
     if (deliveryLease && !deliveryLease.replay && !deliveryCompleted) {
       await finishManualEmail(deliveryLease, { status: uncertain ? "verify_needed" : "failed", error: errorMessage }).catch(() => undefined);
     }
     // Provider exceptions can contain credentials or complete invoice bodies; never dump them into logs.
-    console.error("EMAIL_SEND_ERROR:", uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : error.code || error.name || "EMAIL_SEND_FAILED");
+    console.error("EMAIL_SEND_ERROR:", uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : diagnosticErrorCode(error));
     const statusCode = uncertain ? 409 : error instanceof ApiError ? error.status : 500;
-    return NextResponse.json({ error: uncertain ? "EMAIL_DELIVERY_UNCERTAIN" : error.code || "EMAIL_SEND_FAILED", details: errorMessage, message: errorMessage }, { status: statusCode, headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ error: publicCode, details: errorMessage, message: errorMessage }, { status: statusCode, headers: { "Cache-Control": "no-store" } });
   }
 }

@@ -35,7 +35,7 @@ async function transactionRetry<T>(db: PrismaClient, callback: (tx: Prisma.Trans
 /** Persist a hashed one-use link before exactly one provider attempt. Previous working links survive delivery failure. */
 export async function requestEmailVerification(
   userId: string,
-  options: { targetEmail?: string; db?: PrismaClient; deliver?: typeof sendEmail; now?: Date } = {}
+  options: { targetEmail?: string; expectedPasswordHash?: string; expectedSessionId?: string; db?: PrismaClient; deliver?: typeof sendEmail; now?: Date } = {}
 ): Promise<{ delivery: VerificationDelivery }> {
   const db = options.db ?? prisma, now = options.now ?? new Date();
   const rawToken = randomBytes(32).toString("hex");
@@ -43,6 +43,12 @@ export async function requestEmailVerification(
   const token = await transactionRetry<{ id: string; email: string; purpose: string } | null>(db, async tx => {
     const user = await tx.user.findUnique({ where: { id: userId } });
     if (!user) throw new ApiError(401, "Nie jesteś zalogowany.", "UNAUTHENTICATED");
+    if (options.targetEmail) {
+      if (!options.expectedPasswordHash || user.password !== options.expectedPasswordHash || !options.expectedSessionId)
+        throw new ApiError(401, "Dane logowania zostały zmienione. Zaloguj się ponownie.", "INVALID_CREDENTIALS");
+      const proof = await tx.session.updateMany({ where: { id: options.expectedSessionId, userId, expiresAt: { gt: now } }, data: { authenticatedAt: now } });
+      if (proof.count !== 1) throw new ApiError(401, "Sesja wygasła. Zaloguj się ponownie.", "UNAUTHENTICATED");
+    }
     if (!options.targetEmail && isEmailVerifiedForSending(user)) return null;
     if (user.emailVerificationSentAt && now.getTime() - user.emailVerificationSentAt.getTime() < 60_000)
       throw new ApiError(429, "Poczekaj minutę przed zamówieniem kolejnego linku.", "VERIFICATION_COOLDOWN");

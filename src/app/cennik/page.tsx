@@ -17,13 +17,13 @@ export default function PricingPage() {
           <h2 className="text-xl font-semibold">Free</h2>
           <p className="my-4 text-3xl font-bold">0 zł</p>
           <p className="text-sm leading-relaxed text-muted-foreground">Do 5 faktur miesięcznie. Konto pozwala zapisywać dokumenty swojej firmy.</p>
-          <Link href="/register" className="mt-6 inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Załóż konto Free</Link>
+          <Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold">Załóż konto Free</Link>
         </article>
         {SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} id={plan.id} className="scroll-mt-8 rounded-2xl border border-primary/30 bg-card p-6">
           <h2 className="text-xl font-semibold">Pro {plan.id === "yearly" ? "roczny" : "miesięczny"}</h2>
           <p className="my-4 text-3xl font-bold">{plan.amountPln} zł <span className="text-sm font-normal">brutto / {plan.period}</span></p>
           <p className="text-sm leading-relaxed text-muted-foreground">Faktury bez limitu planu Free. {plan.id === "yearly" ? "Jedna opłata za cały rok: 59 zł. W porównaniu z 12 opłatami po 7 zł oszczędzasz 25 zł." : "Opłata za każdy miesiąc subskrypcji: 7 zł."}</p>
-          <Link href="/register" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Załóż konto i wybierz Pro</Link>
+          <Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Załóż konto i wybierz Pro</Link>
         </article>)}
       </section>
       <section aria-labelledby="plan-features-title" className="mt-10">
@@ -48,9 +48,9 @@ export default function PricingPage() {
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Limit Free obejmuje łącznie faktury sprzedaży firm przypisanych do konta w miesiącu kalendarzowym; szkice i proformy nie zużywają limitu. KSeF wymaga uprawnień wystawcy. Usługi zewnętrzne i operacje na dużych paczkach dokumentów mają własne ograniczenia, niezależne od planu.</p>
       </section>
       <section className="mt-10 space-y-6">
-        <div><h2 className="text-xl font-semibold">Czy subskrypcja odnawia się automatycznie?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Tak. Pro odnawia się automatycznie w wybranym okresie rozliczeniowym. Możesz anulować odnowienie w ustawieniach konta. Warunki świadczenia usług i rozliczeń znajdziesz w <Link className="text-primary underline" href="/regulamin">regulaminie FakturaProsto</Link>.</p></div>
-        <div><h2 className="text-xl font-semibold">Czym różni się demo od konta Free?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Demo działa bez rejestracji i karty, na przykładowych danych. Nie wysyła rzeczywistych faktur do KSeF. Konto Free pozwala pracować z dokumentami swojej firmy. Integracja z KSeF wymaga konfiguracji i odpowiednich uprawnień.</p><Link href="/demo" className="mt-3 inline-block text-primary underline">Sprawdź formularz faktury w demo</Link></div>
-        <div><h2 className="text-xl font-semibold">Który plan wybrać?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Jeśli wystawiasz najwyżej 5 faktur w miesiącu, zacznij od Free. Przy większej liczbie dokumentów porównaj Pro miesięczny i roczny. Przed zakupem sprawdź <Link className="text-primary underline" href="/program-do-faktur">opis programu i obsługę KSeF</Link> oraz <Link className="text-primary underline" href="/porownania">kryteria wyboru programu do faktur</Link>.</p></div>
+        <div><h2 className="text-xl font-semibold">Czy subskrypcja odnawia się automatycznie?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Tak. Pro odnawia się automatycznie w wybranym okresie rozliczeniowym. Możesz anulować odnowienie w ustawieniach konta. Warunki świadczenia usług i rozliczeń znajdziesz w <Link prefetch={false} className="text-primary underline" href="/regulamin">regulaminie FakturaProsto</Link>.</p></div>
+        <div><h2 className="text-xl font-semibold">Czym różni się demo od konta Free?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Demo działa bez rejestracji i karty, na przykładowych danych. Nie wysyła rzeczywistych faktur do KSeF. Konto Free pozwala pracować z dokumentami swojej firmy. Integracja z KSeF wymaga konfiguracji i odpowiednich uprawnień.</p><Link prefetch={false} href="/demo" className="mt-3 inline-block text-primary underline">Sprawdź formularz faktury w demo</Link></div>
+        <div><h2 className="text-xl font-semibold">Który plan wybrać?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Jeśli wystawiasz najwyżej 5 faktur w miesiącu, zacznij od Free. Przy większej liczbie dokumentów porównaj Pro miesięczny i roczny. Przed zakupem sprawdź <Link prefetch={false} className="text-primary underline" href="/program-do-faktur">opis programu i obsługę KSeF</Link> oraz <Link prefetch={false} className="text-primary underline" href="/porownania">kryteria wyboru programu do faktur</Link>.</p></div>
       </section>
     </main>
   </PublicShell>;

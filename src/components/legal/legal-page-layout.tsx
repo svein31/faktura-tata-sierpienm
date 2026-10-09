@@ -122,7 +122,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
       <header className="print:hidden sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-            <Link
+            <Link prefetch={false}
               href="/"
               className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
             >
@@ -178,7 +178,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
-                <Link
+                <Link prefetch={false}
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -258,7 +258,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-2">
               <div className="font-semibold text-slate-700 dark:text-slate-300">Operator serwisu:</div>
               <div>{OPERATOR_CONFIG.companyName}</div>
-              <div className="text-slate-400">Kontakt: {OPERATOR_CONFIG.emailContact}</div>
+              <div className="text-slate-600 dark:text-slate-400">Kontakt: {OPERATOR_CONFIG.emailContact}</div>
             </div>
           </aside>
 
@@ -285,21 +285,21 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <span className="font-semibold text-slate-700 dark:text-slate-300">{OPERATOR_CONFIG.serviceName}</span> — oficjalny system dokumentacji prawnej i ochrony prywatności.
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
               Dokumenty sporządzone zgodnie z RODO (UE 2016/679), Prawem komunikacji elektronicznej (PKE) oraz Ustawą o prawach konsumenta.
             </p>
           </div>
           <div className="flex max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
             <button
               onClick={handleOpenCookieSettings}
-              className="text-blue-600 hover:underline inline-flex items-center gap-1"
+              className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
             >
               <Sliders className="w-3 h-3" /> Zmień zgody cookies
             </button>
             <span>•</span>
             <a
               href={`mailto:${OPERATOR_CONFIG.emailPrivacy}`}
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
             >
               Kontakt IOD / Prywatność
             </a>

@@ -173,14 +173,19 @@ export default function TeamSettingsPage() {
   };
 
   // Kopiowanie linku zaproszenia
-  const copyInviteLink = (id: string) => {
+  const copyInviteLink = async (id: string) => {
     const path = invitationLinks[id]; if (!path) return;
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const url = origin + path;
-    navigator.clipboard.writeText(url);
-    setCopiedToken(id);
-    toast("success", "Skopiowano link", "Link zaproszenia został skopiowany do schowka.");
-    setTimeout(() => setCopiedToken(null), 3000);
+    setCopiedToken(null);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedToken(id);
+      toast("success", "Skopiowano link", "Link zaproszenia został skopiowany do schowka.");
+      setTimeout(() => setCopiedToken(null), 3000);
+    } catch {
+      toast("error", "Nie udało się skopiować linku", "Schowek jest niedostępny. Sprawdź uprawnienia przeglądarki i spróbuj ponownie.");
+    }
   };
 
   // Anulowanie zaproszenia
@@ -526,13 +531,13 @@ export default function TeamSettingsPage() {
                   const isCopied = copiedToken === inv.id;
                   return (
                     <div key={inv.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-foreground">{inv.email}</p>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="min-w-0 break-all text-xs font-bold text-foreground">{inv.email}</p>
                           <Badge tone={roleCfg.badgeTone} className="text-[10px] px-1.5 py-0">
                             {roleCfg.label}
                           </Badge>
-                          <span className="text-[10px] text-amber-500 font-medium">Oczekuje na akceptację</span>
+                          <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Oczekuje na akceptację</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-0.5">
                           Ważne do: {new Date(inv.expiresAt).toLocaleDateString("pl-PL")}

@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { lockBodyScroll } from "@/lib/overlay-scroll";
+import { containModalFocus } from "@/lib/overlay-focus";
+import { useToast } from "@/components/toast";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -51,6 +53,7 @@ interface CommandItem {
 
 export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
+  const toast = useToast();
   const { contractors, products } = useAppStore();
   const companyId = useAppStore(s => s.selectedCompanyId);
 
@@ -62,23 +65,24 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [visualBounds,setVisualBounds] = React.useState({top:0,height:0});
   const listRef = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef(setOpen);
+  closeRef.current = setOpen;
 
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!open) return;
-    const previous = document.activeElement as HTMLElement | null;
     const unlock = lockBodyScroll();
+    const releaseFocus = panelRef.current ? containModalFocus(panelRef.current, () => closeRef.current(false), inputRef.current) : () => {};
     const update = () => setVisualBounds({top:window.visualViewport?.offsetTop || 0,height:window.visualViewport?.height || innerHeight});
     update();
     window.visualViewport?.addEventListener("resize",update);
     window.visualViewport?.addEventListener("scroll",update);
     setQuery(""); setActiveCategory("all"); setSelectedIndex(0);
-    const timer = setTimeout(() => inputRef.current?.focus(),50);
     return () => {
-      clearTimeout(timer); unlock();
+      unlock(); releaseFocus();
       window.visualViewport?.removeEventListener("resize",update);
       window.visualViewport?.removeEventListener("scroll",update);
-      if (previous?.isConnected) previous.focus({preventScroll:true});
     };
   },[open]);
 
@@ -363,20 +367,17 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
   const handleKeyNavigation = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (!filtered.length) return;
       setSelectedIndex((prev) => (prev + 1 < filtered.length ? prev + 1 : 0));
       scrollSelectedIntoView((selectedIndex + 1) % filtered.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      if (!filtered.length) return;
       setSelectedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : filtered.length - 1));
       scrollSelectedIntoView((selectedIndex - 1 + filtered.length) % filtered.length);
     } else if (e.key === "Enter" && filtered[selectedIndex]) {
       e.preventDefault();
       filtered[selectedIndex].onSelect();
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      const categories: SearchCategory[] = ["all", "invoices", "contractors", "actions"];
-      const nextIdx = (categories.indexOf(activeCategory) + (e.shiftKey ? -1 : 1) + categories.length) % categories.length;
-      setActiveCategory(categories[nextIdx]);
     }
   };
 
@@ -388,11 +389,15 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
     }
   };
 
-  const copyNip = (e: React.MouseEvent, nip: string, id: string) => {
+  const copyNip = async (e: React.MouseEvent, nip: string, id: string) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(nip);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+    try {
+      await navigator.clipboard.writeText(nip);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      toast("error", "Nie udało się skopiować NIP", "Zaznacz i skopiuj numer ręcznie lub zezwól na dostęp do schowka.");
+    }
   };
 
   const prefersReducedMotion = useReducedMotion();
@@ -415,6 +420,8 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
             exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -6 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             role="dialog"
+            ref={panelRef}
+            tabIndex={-1}
             aria-modal="true"
             aria-label="Wyszukiwanie i polecenia"
             className="w-full min-w-0 max-w-2xl max-h-full rounded-2xl border border-border/70 bg-card/95 backdrop-blur-2xl shadow-apple-lg overflow-hidden flex flex-col"
@@ -426,6 +433,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               <input
                 ref={inputRef}
                 type="text"
+                aria-label="Szukaj faktur, kontrahentów i poleceń"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyNavigation}
@@ -435,6 +443,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               {query && (
                 <button
                   type="button"
+                  aria-label="Wyczyść wyszukiwanie"
                   onClick={() => setQuery("")}
                   className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 >
@@ -461,6 +470,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                 <button
                   key={tab.key}
                   type="button"
+                  aria-pressed={activeCategory === tab.key}
                   onClick={() => setActiveCategory(tab.key as SearchCategory)}
                   className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                     activeCategory === tab.key
@@ -493,15 +503,15 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                   return (
                     <div
                       key={item.id}
-                      onClick={() => item.onSelect()}
                       onMouseEnter={() => setSelectedIndex(idx)}
-                      className={`flex items-center justify-between gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
+                      className={`relative flex items-center justify-between gap-3 p-2.5 rounded-xl transition-all ${
                         isSelected
                           ? "bg-primary/10 border border-primary/25 shadow-2xs"
                           : "hover:bg-muted/40 border border-transparent"
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <button type="button" onClick={() => item.onSelect()} aria-label={item.title} className="absolute inset-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+                      <div className="pointer-events-none relative flex items-center gap-3 min-w-0 flex-1" aria-hidden="true">
                         <div
                           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
                             isSelected
@@ -546,7 +556,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                       </div>
 
                       {/* Prawa strona: kwota, data, akcja */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="pointer-events-none relative flex items-center gap-2 shrink-0">
                         {item.amount && (
                           <span className="text-xs font-bold text-foreground tabular-nums">
                             {item.amount}
@@ -558,7 +568,8 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                             type="button"
                             onClick={(e) => copyNip(e, item.nip!, item.id)}
                             title="Kopiuj NIP"
-                            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                            aria-label={`Kopiuj NIP: ${item.nip}`}
+                            className="pointer-events-auto p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             {copiedId === item.id ? (
                               <Check className="h-3.5 w-3.5 text-emerald-500" />
@@ -568,9 +579,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                           </button>
                         )}
 
-                        {isSelected && (
-                          <ArrowRight className="h-3.5 w-3.5 text-primary ml-1" />
-                        )}
+                        <ArrowRight aria-hidden="true" className={`h-3.5 w-3.5 text-primary ml-1 ${isSelected ? "opacity-100" : "opacity-0"}`} />
                       </div>
                     </div>
                   );
@@ -583,7 +592,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               <div className="flex flex-wrap items-center gap-3">
                 <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↑↓</kbd> Nawiguj</span>
                 <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↵</kbd> Otwórz</span>
-                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">Tab</kbd> Zmień filtr</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">Tab</kbd> Następny element</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

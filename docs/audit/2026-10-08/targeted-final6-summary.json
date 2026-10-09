@@ -1,0 +1,113 @@
+{
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "productionWrites": false,
+  "targetedResults": {
+    "privatePrefetch": {
+      "evidencePath": "/tmp/faktura-private-prefetch-final6.json",
+      "sha256": "c7064b63ff6255d8b86ced5030d657cceb5d1a553dfca66a9b498392318980c7",
+      "summary": {
+        "engines": 3,
+        "checks": 36,
+        "scenarios": 33,
+        "failures": 0
+      }
+    },
+    "cookiePrint": {
+      "evidencePath": "/tmp/faktura-cookie-print-final6.json",
+      "sha256": "ada96045c060bea80deed63b3277cb1f7dc059bdba2341bfb1497f1830adc1f6",
+      "summary": {
+        "engines": 3,
+        "checks": 24,
+        "scenarios": 24,
+        "failures": 0
+      }
+    },
+    "privateLayout": {
+      "evidencePath": "/tmp/faktura-private-layout-final6.json",
+      "sha256": "d6060487df94b0fdcb69ceaaf36101c3d86bb7d3b284a706863ed236de72ad8c",
+      "summary": {
+        "screens": 36,
+        "overflowScreens": 0,
+        "accessibilityFailedScreens": 0
+      }
+    },
+    "portalPrint": {
+      "evidencePath": "/tmp/faktura-portal-print-final6.json",
+      "sha256": "fb77f9277117098eb1487d6ed539dbf6a68d0fc064d638858d622bdbfc9c86ad",
+      "summary": {
+        "documentCases": 4,
+        "documentAssertions": 92,
+        "documentFailures": 0,
+        "firstVisitPrintIssues": 0,
+        "renderedPdfPagesActuallyViewed": 8,
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 4,
+        "sourceEdits": 0
+      }
+    }
+  },
+  "privateStartupComparison": {
+    "beforeBuildId": "ZjS2_AKTU791vZrYv_n4s",
+    "beforeSourceSha256": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417",
+    "afterBuildId": "21f_lBaQA8Ww--YiYgN1t",
+    "afterSourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "measure": "Identical cold-context synthetic desktop dashboard plus3historycycles; estimates from gzip of decoded scripts, wire bytes separately retained in raw evidence; concurrent QA means no quiet timing conclusions.",
+    "engines": [
+      {
+        "engine": "chromium",
+        "beforeInitialNavigationWarmups": 13,
+        "afterInitialNavigationWarmups": 0,
+        "beforeInitialScriptRequests": 26,
+        "afterInitialScriptRequests": 22,
+        "beforeInitialDecodedScriptBytes": 1177880,
+        "afterInitialDecodedScriptBytes": 1095832,
+        "beforeInitialScriptGzipEstimateBytes": 348893,
+        "afterInitialScriptGzipEstimateBytes": 322964,
+        "estimatedGzipBytesSaved": 25929,
+        "estimatedGzipPercentSaved": 7.43,
+        "beforeRawStressPlaywrightPageErrors": 0,
+        "afterRawStressPlaywrightPageErrors": 0,
+        "afterRawStressFailedPageSteps": 0
+      },
+      {
+        "engine": "webkit",
+        "beforeInitialNavigationWarmups": 13,
+        "afterInitialNavigationWarmups": 0,
+        "beforeInitialScriptRequests": 26,
+        "afterInitialScriptRequests": 22,
+        "beforeInitialDecodedScriptBytes": 1177880,
+        "afterInitialDecodedScriptBytes": 1095832,
+        "beforeInitialScriptGzipEstimateBytes": 348893,
+        "afterInitialScriptGzipEstimateBytes": 322964,
+        "estimatedGzipBytesSaved": 25929,
+        "estimatedGzipPercentSaved": 7.43,
+        "beforeRawStressPlaywrightPageErrors": 4,
+        "afterRawStressPlaywrightPageErrors": 1,
+        "afterRawStressFailedPageSteps": 0
+      },
+      {
+        "engine": "firefox",
+        "beforeInitialNavigationWarmups": 13,
+        "afterInitialNavigationWarmups": 0,
+        "beforeInitialScriptRequests": 26,
+        "afterInitialScriptRequests": 22,
+        "beforeInitialDecodedScriptBytes": 1177880,
+        "afterInitialDecodedScriptBytes": 1095832,
+        "beforeInitialScriptGzipEstimateBytes": 348893,
+        "afterInitialScriptGzipEstimateBytes": 322964,
+        "estimatedGzipBytesSaved": 25929,
+        "estimatedGzipPercentSaved": 7.43,
+        "beforeRawStressPlaywrightPageErrors": 0,
+        "afterRawStressPlaywrightPageErrors": 0,
+        "afterRawStressFailedPageSteps": 0
+      }
+    ],
+    "rawAfterStressStatus": "Raw Playwright stress retains1WebKit access-control diagnostic; no claim of zero raw errors. Separate independent causal evidence confirms WebKit console-adapter promotion for caught fetches during document teardown, with real DOM sentinel controls."
+  },
+  "limits": [
+    "Not physical Chrome/Safari/Firefox devices or cellular network latency; engine builds and hint overrides only.",
+    "Private layout axe incomplete/manual-review groups retained; no assertion of universal accessibility.",
+    "Portal PDF only1shortsyntheticinvoice+1shortsyntheticoffer; long/multipage exports and other print engines untested."
+  ]
+}

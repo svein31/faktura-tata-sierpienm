@@ -7,15 +7,16 @@ import {
   sessionCookieOptions,
   toPublicUser,
   validateCredentials,
-  MIN_PASSWORD_LENGTH,
 } from "@/lib/auth";
-import { json, readJson, str, ApiError } from "@/lib/api";
+import { json, readJson, str, cleanStr, ApiError } from "@/lib/api";
 import { rateLimitShared } from "@/lib/rate-limit";
 import { reportUnexpectedError } from "@/lib/error-report";
 import { recordLegalConsent } from "@/lib/legal/record-consent";
 import { LEGAL_VERSIONS } from "@/lib/legal/config";
 import { requestEmailVerification } from "@/lib/email/verification";
 import { recordPilotEvent } from "@/lib/pilot-metrics";
+import { PASSWORD_LENGTH_MESSAGE } from "@/lib/password-policy";
+import { normalizeNip, isValidNipFormat } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -54,9 +55,11 @@ export async function POST(req: Request) {
     const rawEmail = str(body.email);
     const cleanEmail = rawEmail.trim().toLowerCase();
     const password = str(body.password);
-    const rawName = str(body.name).trim();
-    const nip = str(body.nip).replace(/[^0-9]/g, "").trim();
-    const companyName = str(body.companyName).trim();
+    const rawName = cleanStr(body.name, 100, "name");
+    const nip = normalizeNip(cleanStr(body.nip, 20, "nip"));
+    const companyName = cleanStr(body.companyName, 250, "companyName");
+    if (nip && !isValidNipFormat(nip)) throw new ApiError(400, "NIP ma nieprawidłowy format lub sumę kontrolną.", "INVALID_INPUT");
+    if (body.company !== undefined && (typeof body.company !== "object" || body.company === null || Array.isArray(body.company))) throw new ApiError(400, "Nieprawidłowe dane firmy.", "INVALID_INPUT");
     const acceptTerms = body.acceptTerms === true;
     const acceptMarketing = body.acceptMarketing === true;
 
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
           error:
             v.reason === "invalid_email"
               ? "Podano nieprawidłowy adres e-mail."
-              : `Hasło musi mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków.`,
+              : PASSWORD_LENGTH_MESSAGE,
           code: "INVALID_INPUT",
         },
         { status: 400 }
@@ -112,12 +115,12 @@ export async function POST(req: Request) {
                 create: {
                   nip: nip || "",
                   companyName: companyName || rawName,
-                  street: str(companyBody.street) || null,
-                  buildingNumber: str(companyBody.buildingNumber) || null,
-                  flatNumber: str(companyBody.flatNumber) || null,
-                  city: str(companyBody.city) || null,
-                  postalCode: str(companyBody.postal) || str(companyBody.postalCode) || null,
-                  bankAccount: str(companyBody.iban) || str(companyBody.bankAccount) || null,
+                  street: cleanStr(companyBody.street, 200, "company.street") || null,
+                  buildingNumber: cleanStr(companyBody.buildingNumber, 30, "company.buildingNumber") || null,
+                  flatNumber: cleanStr(companyBody.flatNumber, 30, "company.flatNumber") || null,
+                  city: cleanStr(companyBody.city, 100, "company.city") || null,
+                  postalCode: cleanStr(companyBody.postal ?? companyBody.postalCode, 20, "company.postalCode") || null,
+                  bankAccount: cleanStr(companyBody.iban ?? companyBody.bankAccount, 60, "company.bankAccount") || null,
                   isDefault: true,
                 },
               },
@@ -132,7 +135,7 @@ export async function POST(req: Request) {
     });
 
     // 8. Utworzenie 30-dniowej sesji
-    const metadata = extractRequestMetadata(req);
+    const metadata = { ...extractRequestMetadata(req), expectedPasswordHash: user.password, expectedLoginEmail: user.email };
     const { token } = await createSession(user.id, metadata);
     const cookieOpts = sessionCookieOptions({ maxAge: 30 * 24 * 60 * 60 }, req);
 

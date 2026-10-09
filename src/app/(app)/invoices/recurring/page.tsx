@@ -181,13 +181,13 @@ export default function RecurringInvoicesPage() {
         description="Automatyczne generowanie i wysyłka faktur w stałych interwałach (miesięcznych, kwartalnych, rocznych)."
         actions={
           <div className="flex items-center gap-2">
-            <Link href="/invoices">
+            <Link prefetch={false} href="/invoices">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs border-border/70">
                 <FileText className="h-3.5 w-3.5" />
                 <span>Wszystkie faktury</span>
               </Button>
             </Link>
-            <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
+            <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
               <Button size="sm" className="gap-1.5 text-xs shadow-sm">
                 <Plus className="h-4 w-4" />
                 <span>Nowy szablon cykliczny</span>
@@ -202,11 +202,11 @@ export default function RecurringInvoicesPage() {
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Szablony aktywne</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
               <Repeat className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-emerald-400">
+          <p className="text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
             <AnimatedCounter value={stats.activeCount} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -232,11 +232,11 @@ export default function RecurringInvoicesPage() {
         <Card className="border border-border/70 bg-card/75 p-4.5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-apple-md">
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Roczny przychód (ARR)</span>
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20">
               <DollarSign className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-indigo-400">
+          <p className="text-2xl font-bold tracking-tight text-indigo-700 dark:text-indigo-400">
             <AnimatedCounter value={stats.monthlyVolume * 12} format={(v: number) => formatMoney(v, "PLN")} />
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -280,7 +280,7 @@ export default function RecurringInvoicesPage() {
             title="Brak zdefiniowanych faktur cyklicznych"
             description="Faktury cykliczne pozwalają automatycznie wystawiać dokumenty dla stałych klientów (np. abonamenty, hosting, opieka IT, wynajem)."
             action={
-              <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
+              <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
                 <Button size="sm" className="gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
                   <span>Stwórz pierwszy szablon</span>
@@ -342,8 +342,8 @@ export default function RecurringInvoicesPage() {
                             className={cn(
                               "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium",
                               isPaused
-                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                                : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
                             )}
                           >
                             {isPaused ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}

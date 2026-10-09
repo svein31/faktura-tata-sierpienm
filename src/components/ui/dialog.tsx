@@ -3,6 +3,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { lockBodyScroll } from "@/lib/overlay-scroll";
+import { containModalFocus } from "@/lib/overlay-focus";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export interface DialogProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   dismissible?: boolean;
+  hideOnPrint?: boolean;
 }
 
 const sizes = { sm: "max-w-sm", md: "max-w-lg", lg: "max-w-2xl" };
@@ -32,6 +34,7 @@ export function Dialog({
   className,
   size = "md",
   dismissible = true,
+  hideOnPrint = false,
 }: DialogProps) {
   const panel = React.useRef<HTMLDivElement>(null);
   const close = React.useRef(onClose);
@@ -42,38 +45,21 @@ export function Dialog({
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
   const [viewport, setViewport] = React.useState<{ top: number; left: number; width: number; height: number } | null>(null);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!open || !mounted) return;
-    const previous = document.activeElement as HTMLElement | null;
     const unlock = lockBodyScroll();
     const updateViewport = () => setViewport({ top: window.visualViewport?.offsetTop || 0, left: window.visualViewport?.offsetLeft || 0, width: window.visualViewport?.width || document.documentElement.clientWidth, height: window.visualViewport?.height || window.innerHeight });
     updateViewport();
-    const focusables = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),[tabindex="0"]') || []).filter(element => element.getClientRects().length && element.getAttribute("type") !== "hidden");
-    const frame = requestAnimationFrame(() => focusables()[0]?.focus({ preventScroll: true }));
-    const onKey = (event: KeyboardEvent) => {
-      if (event.defaultPrevented) return;
-      const dialogs = document.querySelectorAll('[data-app-dialog="true"]');
-      if (dialogs[dialogs.length - 1] !== panel.current) return;
-      if (event.key === "Escape" && canDismiss.current) { event.preventDefault(); close.current(); }
-      if (event.key === "Tab") {
-        const list = focusables(), first = list[0], last = list[list.length - 1];
-        if (!first) { event.preventDefault(); panel.current?.focus(); return; }
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-      }
-    };
-    document.addEventListener("keydown", onKey);
+    const releaseFocus = panel.current ? containModalFocus(panel.current, () => { if (canDismiss.current) close.current(); }) : () => {};
     window.visualViewport?.addEventListener("resize", updateViewport);
     window.visualViewport?.addEventListener("scroll", updateViewport);
     window.addEventListener("resize", updateViewport);
     return () => {
-      cancelAnimationFrame(frame);
-      document.removeEventListener("keydown", onKey);
       window.visualViewport?.removeEventListener("resize", updateViewport);
       window.visualViewport?.removeEventListener("scroll", updateViewport);
       window.removeEventListener("resize", updateViewport);
       unlock();
-      if (previous?.isConnected) previous.focus({ preventScroll: true });
+      releaseFocus();
     };
   }, [open, mounted]);
 
@@ -81,7 +67,7 @@ export function Dialog({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed z-50 flex items-end justify-center p-2 sm:items-center sm:p-4" style={{ top: viewport?.top || 0, left: viewport?.left || 0, width: viewport?.width || "100%", maxWidth: "100vw", height: viewport?.height || "100dvh" }}>
+        <div className={cn("fixed z-50 flex items-end justify-center p-2 sm:items-center sm:p-4", hideOnPrint && "no-print")} style={{ top: viewport?.top || 0, left: viewport?.left || 0, width: viewport?.width || "100%", maxWidth: "100vw", height: viewport?.height || "100dvh" }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -122,7 +108,7 @@ export function Dialog({
                 type="button"
                 onClick={onClose}
                 aria-label="Zamknij"
-                className="absolute right-4 top-4 z-20 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground active:scale-90"
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
               </button>}

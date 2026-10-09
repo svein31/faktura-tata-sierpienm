@@ -1,0 +1,172 @@
+{
+  "scope": "isolated-loopback-synthetic",
+  "recordedAt": "2026-10-09T11:31:04.676508+00:00",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "totalScenarios": 12,
+  "status": "passed",
+  "engines": {
+    "chromium": {
+      "scope": "isolated-loopback-synthetic",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+        "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+        "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+        "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+      ],
+      "status": "passed"
+    },
+    "webkit": {
+      "scope": "isolated-loopback-synthetic",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+        "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+        "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+        "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+      ],
+      "status": "passed"
+    },
+    "firefox": {
+      "scope": "isolated-loopback-synthetic",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+        "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+        "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+        "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+      ],
+      "status": "passed"
+    }
+  },
+  "artifactSha256": {
+    "chromium": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8",
+    "webkit": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8",
+    "firefox": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8"
+  },
+  "logs": [
+    {
+      "path": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+      "sha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989",
+      "acceptedCompletedEngines": [
+        "chromium",
+        "webkit"
+      ]
+    },
+    {
+      "path": "/tmp/faktura-qa-firefox-final6.log",
+      "sha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c",
+      "acceptedCompletedEngines": [
+        "firefox"
+      ]
+    }
+  ],
+  "composition": {
+    "method": "Only complete passed engines from two independent isolated runs of the exact same application source and compiled build; no partial failed Firefox proof is promoted.",
+    "executionNote": "Chromium and WebKit completed in the first run; Firefox completed in a fresh isolated database run with browser process recycling between viewports and before interactions. This is not a claim that one full three-engine invocation exited successfully.",
+    "applicationIdentity": {
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc"
+    },
+    "runs": [
+      {
+        "rawPath": "/tmp/faktura-browser-coverage-stopped-firefox-process-final6.json",
+        "rawSha256": "8441b6c6d0c97f41ad505185b09cbe5c0af95f90dd793d5943bc9cfd46183a48",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-final6-stopped-firefox-process.json",
+        "summarySha256": "b17a79795d435e29fb194c2c90e201b00861a3ae8b27622f5c7b7285ca1e6586",
+        "acceptedCompletedEngines": [
+          "chromium",
+          "webkit"
+        ],
+        "excludedEngine": "firefox",
+        "invocationExitCode": 1,
+        "logPath": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+        "logSha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+      },
+      {
+        "rawPath": "artifacts/audit/browser-coverage-firefox-final6.json",
+        "rawSha256": "130e8bb9c7f1d1d289d7dd3f3277cb2ddfb5b1b16c33953c94bac4cf5cfa7422",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-firefox-final6.json",
+        "summarySha256": "66c23418c02ef5d41e0bbba9deec3ad5d4778b3d31cffdb7f3843a346d720683",
+        "acceptedCompletedEngines": [
+          "firefox"
+        ],
+        "invocationExitCode": 0,
+        "logPath": "/tmp/faktura-qa-firefox-final6.log",
+        "logSha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c"
+      }
+    ],
+    "harnessChanges": "Validated optional engine filter; Firefox process/context recycling preserves cookies/localStorage/auth, touch/viewport/service-worker settings and collected observations; browser history preferences unchanged. Every live document pageerror remains fatal. Calculator cleanup preserves the original failure.",
+    "priorFailureCauseLimit": "The previous Firefox process closed during tail interactions. An 8 GiB container limit and cumulative OOM counters were observed, but no counter baseline for that invocation exists; the exact cause is not asserted."
+  },
+  "historicalRuns": [
+    {
+      "scope": "isolated-loopback-synthetic",
+      "recordedAt": "2026-10-08T19:38:13.076Z",
+      "buildId": "bssOBG1BBwruzKi48pC-w",
+      "sourceSha256": "dbe43b72c44b7570be29682677f14c8e424553a3c6ce356ffbc536e6858249e9",
+      "totalScenarios": 12,
+      "status": "passed",
+      "engines": {
+        "chromium": {
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+            "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+            "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+            "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+          ],
+          "status": "passed"
+        },
+        "webkit": {
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+            "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+            "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+            "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+          ],
+          "status": "passed"
+        },
+        "firefox": {
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Valid flat GET DTO renders company, role and existing-account form; wrong password shows error without consuming invitation",
+            "Existing anonymous recipient logs in, joins, receives session and selects response companyId over a previous default company",
+            "New recipient cannot submit without terms; explicit checked terms create account, legal proof and company membership through the real API",
+            "Authenticated wrong account sees explicit email mismatch and no acceptance form; server denies forged acceptance without membership or invitation consumption"
+          ],
+          "status": "passed"
+        }
+      },
+      "log": "/tmp/qa-invite-browser-final2.log",
+      "initialHarnessIssue": "Next route announcer also uses role=alert; scoped wrong-password assertion to the visible error message. No application changes were needed for this locator correction."
+    }
+  ],
+  "rawMatrix": {
+    "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+    "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+  }
+}

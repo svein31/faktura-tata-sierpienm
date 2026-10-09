@@ -15,8 +15,8 @@
     --secondary: 220 25% 95%;
     --secondary-foreground: 224 47% 15%;
     --muted: 220 20% 94%;
-    --muted-foreground: 220 12% 46%;
-    --accent: 155 75% 38%;
+    --muted-foreground: 220 12% 42%;
+    --accent: 155 75% 27%;
     --accent-foreground: 0 0% 100%;
     --destructive: 350 84% 54%;
     --destructive-foreground: 0 0% 100%;
@@ -39,19 +39,19 @@
     --card-foreground: 220 25% 97%;
     --popover: 224 40% 7%;
     --popover-foreground: 220 25% 97%;
-    --primary: 243 85% 66%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 243 85% 74%;
+    --primary-foreground: 224 47% 10%;
     --secondary: 224 28% 13%;
     --secondary-foreground: 220 25% 92%;
     --muted: 224 26% 12%;
-    --muted-foreground: 220 14% 64%;
+    --muted-foreground: 220 14% 70%;
     --accent: 155 72% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 224 47% 10%;
     --destructive: 350 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 224 47% 10%;
     --border: 224 24% 15.5%;
     --input: 224 24% 17%;
-    --ring: 243 85% 66%;
+    --ring: 243 85% 74%;
 
     /* Semantic Status Tokens */
     --status-paid: 155 72% 45%;

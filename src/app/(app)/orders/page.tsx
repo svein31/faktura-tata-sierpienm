@@ -313,13 +313,13 @@ export default function OrdersPage() {
           <p className="text-xs text-muted-foreground mt-1">Zalogowany czas pracy w projektach</p>
         </Card>
         <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
             Wartość zleceń w toku
           </p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
             {formatMoney(totalValueActive, summaryCurrency)}
           </p>
-          <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">Projekty do rozliczenia</p>
+          <p className="text-xs text-emerald-700 dark:text-emerald-300/80 mt-1">Projekty do rozliczenia</p>
         </Card>
       </div>
 
@@ -428,13 +428,13 @@ export default function OrdersPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleConvertToInvoice(order.id)}
-                              className="h-7 text-[10.5px] px-2 rounded-lg font-medium text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                              className="h-7 text-[10.5px] px-2 rounded-lg font-medium text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
                               title="Wystaw fakturę ze zlecenia"
                             >
                               Faktura
                             </Button>
                           ) : (
-                            <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-0.5">
+                            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-0.5">
                               <CheckCircle2 className="h-3 w-3" /> Rozliczone
                             </span>
                           )}
@@ -457,7 +457,7 @@ export default function OrdersPage() {
                   ))}
 
                   {statusOrders.length === 0 && (
-                    <div className="py-8 text-center text-xs text-muted-foreground/60">Brak zleceń</div>
+                    <div className="py-8 text-center text-xs text-muted-foreground">Brak zleceń</div>
                   )}
                 </div>
               </div>

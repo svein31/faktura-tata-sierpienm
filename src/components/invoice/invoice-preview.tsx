@@ -130,7 +130,7 @@ export function InvoicePreview({
           <p className="text-[12px] font-semibold text-foreground">{L.currency}: {invoice.currency}</p>
           <p className="mt-0.5 text-[12px] text-muted-foreground">
             {L.paymentMethod}: {paymentMethodLabel(invoice.paymentMethod, invoice.language)}
-            <span className="ml-1 text-muted-foreground/70">({invoice.paymentTermDays} dni)</span>
+            <span className="ml-1 text-muted-foreground">({invoice.paymentTermDays} dni)</span>
           </p>
         </div>
       </div>
@@ -178,7 +178,7 @@ export function InvoicePreview({
       </div>
 
       {/* Pozycje */}
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 overflow-x-auto" role="region" aria-label="Pozycje podglądu faktury" tabIndex={0}>
         <table className="w-full min-w-[620px] text-[12.5px]">
           <thead>
             <tr className="border-b border-border text-left text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">

@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
 import { useSession } from "@/lib/session-context";
-
-const MIN_PASSWORD_LENGTH = 8;
+import { MIN_PASSWORD_LENGTH, PASSWORD_LENGTH_MESSAGE, validNewPasswordLength } from "@/lib/password-policy";
 
 function PasswordStrength({ password }: { password: string }) {
   const strength = password.length === 0 ? 0
@@ -71,8 +70,8 @@ function RegisterForm() {
       setError("Podaj prawidłowy adres e-mail.");
       return;
     }
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Hasło musi mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków.`);
+    if (!validNewPasswordLength(password)) {
+      setError(PASSWORD_LENGTH_MESSAGE);
       return;
     }
     if (password !== confirm) {
@@ -157,6 +156,7 @@ function RegisterForm() {
                 placeholder="jan@firma.pl"
                 className="h-11 pl-10 text-sm rounded-xl"
                 autoComplete="email"
+                maxLength={254}
                 required
               />
             </div>
@@ -175,6 +175,7 @@ function RegisterForm() {
                 placeholder="••••••••"
                 className="h-11 pl-10 pr-10 text-sm rounded-xl"
                 autoComplete="new-password"
+                maxLength={72}
                 required
               />
               <button
@@ -202,6 +203,7 @@ function RegisterForm() {
                 placeholder="••••••••"
                 className="h-11 pl-10 text-sm rounded-xl"
                 autoComplete="new-password"
+                maxLength={72}
                 required
               />
               {confirm && password && (
@@ -228,16 +230,16 @@ function RegisterForm() {
               />
               <span className="text-[12px] leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors">
                 Zapoznałem/am się z treścią{" "}
-                <Link href="/regulamin" target="_blank" className="text-primary font-semibold underline-offset-2 hover:underline">
+                <Link prefetch={false} href="/regulamin" target="_blank" className="text-primary font-semibold underline-offset-2 hover:underline">
                   Regulaminu serwisu
                 </Link>{" "}
                 i akceptuję jego postanowienia. <span className="text-rose-500">*</span>
               </span>
             </label>
 
-            <p className="text-[11px] text-muted-foreground/80 pl-6">
+            <p className="text-[11px] text-muted-foreground pl-6">
               Informacje o przetwarzaniu danych osobowych znajdziesz w{" "}
-              <Link href="/polityka-prywatnosci" target="_blank" className="text-primary hover:underline">
+              <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-primary underline">
                 Polityce prywatności
               </Link>.
             </p>
@@ -281,7 +283,7 @@ function RegisterForm() {
         <div className="mt-5 border-t border-border/60 pt-4">
           <p className="text-center text-[12.5px] text-muted-foreground">
             Masz konto?{" "}
-            <Link
+            <Link prefetch={false}
               href="/login"
               className="font-semibold text-primary underline-offset-4 hover:underline transition-colors"
             >

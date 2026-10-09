@@ -8,9 +8,9 @@ export default function NotFound() {
       <h1 className="mt-3 text-3xl font-bold tracking-tight">Nie znaleźliśmy tej strony</h1>
       <p className="mt-4 leading-relaxed text-muted-foreground">Sprawdź adres lub wybierz jeden z dostępnych tematów FakturaProsto.</p>
       <div className="mt-7 flex flex-wrap gap-3">
-        <Link href="/" className="rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground">Strona główna</Link>
-        <Link href="/poradnik-ksef" className="rounded-xl border border-border px-5 py-3">Poradnik KSeF</Link>
-        <Link href="/pomoc" className="rounded-xl border border-border px-5 py-3">Pomoc i kontakt</Link>
+        <Link prefetch={false} href="/" className="rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground">Strona główna</Link>
+        <Link prefetch={false} href="/poradnik-ksef" className="rounded-xl border border-border px-5 py-3">Poradnik KSeF</Link>
+        <Link prefetch={false} href="/pomoc" className="rounded-xl border border-border px-5 py-3">Pomoc i kontakt</Link>
       </div>
     </main>
   </PublicShell>;

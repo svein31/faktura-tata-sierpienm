@@ -68,7 +68,8 @@ export async function POST(req: Request) {
 
     // Konstrukcja linku
     const baseUrl = process.env.NEXTAUTH_URL || "https://fakturaprosto.pl";
-    const resetLink = `${baseUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
+    // A fragment is not sent to the application/CDN logs or in a Referer header.
+    const resetLink = `${new URL(baseUrl).origin}/reset-password#token=${rawToken}`;
 
     // Próba wysyłki wiadomości e-mail
     try {

@@ -4,7 +4,7 @@ import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { consumeMfaCode } from "@/lib/mfa";
 import { generateTotpSecret, encryptMfaSecret, decryptMfaSecret, generateRecoveryCodes, recoveryHash } from "@/lib/totp";
 import { recordAuditLog } from "@/lib/audit";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitSubject } from "@/lib/rate-limit";
 import QRCode from "qrcode";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   try {
     const session = await getSession();
     if (!session) throw new ApiError(401, "Nieautoryzowany.");
-    if (!rateLimit(req, { max: 30, windowMs: 15 * 60_000 }).allowed) throw new ApiError(429, "Zbyt wiele prób. Spróbuj później.");
+    if (!(await rateLimitSubject(session.user.id, { max: 30, windowMs: 15 * 60_000 }, "mfa-account")).allowed) throw new ApiError(429, "Zbyt wiele prób. Spróbuj później.");
     const body = await readJson(req), action = str(body.action), password = str(body.password), code = str(body.code).trim();
     const { user, sessionId } = session;
     if (password.length > 128 || !await verifyPassword(password, user.password)) throw new ApiError(401, "Nieprawidłowe hasło.");

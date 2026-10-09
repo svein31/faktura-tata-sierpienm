@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-09T10:48:19.379Z",
+  "scope": "isolated app fixture; conditional unseen controls and unclicked actions remain unverified",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "engines": [
+    {
+      "engine": "chromium",
+      "status": "failed"
+    }
+  ],
+  "completedEngines": [],
+  "layoutChecks": 0,
+  "layoutFailures": [],
+  "networkIssues": [],
+  "consoleIssues": [],
+  "totals": {
+    "observations": 0,
+    "visibleControlInstances": 0,
+    "checkedScenarios": 0
+  },
+  "visited": [],
+  "scenarios": []
+}

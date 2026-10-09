@@ -259,14 +259,14 @@ export default function DemoPage() {
           </div>
 
           <div className="flex w-full items-center justify-between gap-2 lg:w-auto lg:justify-end sm:gap-3">
-            <Link
+            <Link prefetch={false}
               href="/"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Strona główna</span>
             </Link>
-            <Link
+            <Link prefetch={false}
               href="/register"
               className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all"
             >
@@ -299,7 +299,7 @@ export default function DemoPage() {
             <Button
               onClick={handleSimulateKsefSend}
               disabled={ksefStatus === "sending" || !validationResult.ok}
-              className="h-10 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md shadow-emerald-600/20"
+              className="h-10 gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shadow-md shadow-emerald-600/20"
             >
               {ksefStatus === "sending" ? (
                 <>
@@ -390,46 +390,51 @@ export default function DemoPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Nabywca (Kontrahent)
                   </span>
-                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
                     Edytowalny
                   </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="sm:col-span-2">
-                    <Label className="text-[11px]">Nazwa kontrahenta</Label>
+                    <Label htmlFor="demo-buyer-name" className="text-[11px]">Nazwa kontrahenta</Label>
                     <Input
+                      id="demo-buyer-name"
                       value={buyerName}
                       onChange={(e) => setBuyerName(e.target.value)}
                       className="h-8 text-xs mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-[11px]">NIP</Label>
+                    <Label htmlFor="demo-buyer-nip" className="text-[11px]">NIP</Label>
                     <Input
+                      id="demo-buyer-nip"
                       value={buyerNip}
                       onChange={(e) => setBuyerNip(e.target.value)}
                       className="h-8 text-xs mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-[11px]">Ulica i numer</Label>
+                    <Label htmlFor="demo-buyer-street" className="text-[11px]">Ulica i numer</Label>
                     <Input
+                      id="demo-buyer-street"
                       value={buyerStreet}
                       onChange={(e) => setBuyerStreet(e.target.value)}
                       className="h-8 text-xs mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-[11px]">Kod pocztowy</Label>
+                    <Label htmlFor="demo-buyer-postal" className="text-[11px]">Kod pocztowy</Label>
                     <Input
+                      id="demo-buyer-postal"
                       value={buyerPostal}
                       onChange={(e) => setBuyerPostal(e.target.value)}
                       className="h-8 text-xs mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-[11px]">Miasto</Label>
+                    <Label htmlFor="demo-buyer-city" className="text-[11px]">Miasto</Label>
                     <Input
+                      id="demo-buyer-city"
                       value={buyerCity}
                       onChange={(e) => setBuyerCity(e.target.value)}
                       className="h-8 text-xs mt-1"
@@ -476,6 +481,7 @@ export default function DemoPage() {
                         <tr key={line.id} className="hover:bg-muted/20">
                           <td className="py-2 px-2">
                             <Input
+                              aria-label={`Nazwa pozycji ${line.name}`}
                               value={line.name}
                               onChange={(e) => updateLine(line.id, { name: e.target.value })}
                               className="h-8 text-xs"
@@ -483,6 +489,7 @@ export default function DemoPage() {
                           </td>
                           <td className="py-2 px-2">
                             <Input
+                              aria-label={`Ilość pozycji ${line.name}`}
                               type="number"
                               min="1"
                               value={line.quantity}
@@ -494,6 +501,7 @@ export default function DemoPage() {
                           </td>
                           <td className="py-2 px-2">
                             <Input
+                              aria-label={`Jednostka pozycji ${line.name}`}
                               value={line.unit}
                               onChange={(e) => updateLine(line.id, { unit: e.target.value })}
                               className="h-8 text-xs"
@@ -501,6 +509,7 @@ export default function DemoPage() {
                           </td>
                           <td className="py-2 px-2">
                             <Input
+                              aria-label={`Cena netto pozycji ${line.name}`}
                               type="number"
                               min="0"
                               step="0.01"
@@ -609,8 +618,8 @@ export default function DemoPage() {
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                     validationResult.ok
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                      : "bg-rose-500/15 text-rose-600 border border-rose-500/30"
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+                      : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30"
                   }`}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -655,7 +664,7 @@ export default function DemoPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Przykładowy kod odpowiedzi:</p>
-                      <p className="font-bold text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      <p className="font-bold text-sm text-emerald-700 dark:text-emerald-400 mt-0.5">
                         200 — symulacja przyjęcia dokumentu
                       </p>
                     </div>

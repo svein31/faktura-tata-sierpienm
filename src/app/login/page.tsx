@@ -135,7 +135,7 @@ function LoginForm() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-xs font-medium">Hasło</Label>
-              <Link
+              <Link prefetch={false}
                 href="/forgot-password"
                 className="text-[11.5px] font-medium text-primary hover:underline transition-colors"
               >
@@ -185,7 +185,7 @@ function LoginForm() {
         <div className="mt-6 border-t border-border/60 pt-5">
           <p className="text-center text-[12.5px] text-muted-foreground">
             Nie masz konta?{" "}
-            <Link
+            <Link prefetch={false}
               href="/register"
               className="font-semibold text-primary underline-offset-4 hover:underline transition-colors"
             >
@@ -195,7 +195,7 @@ function LoginForm() {
         </div>
       </motion.div>
 
-      <p className="mt-5 text-center text-[11px] leading-relaxed text-muted-foreground/70 px-4">
+      <p className="mt-5 text-center text-[11px] leading-relaxed text-muted-foreground px-4">
         Konta są izolowane — każdy użytkownik widzi wyłącznie własne faktury i dane.
       </p>
     </div>

@@ -2,15 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle2, Eye, EyeOff, Lock, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
-
-const MIN_PASSWORD_LENGTH = 8;
+import { MIN_PASSWORD_LENGTH, PASSWORD_LENGTH_MESSAGE, readPasswordResetLink, validNewPasswordLength } from "@/lib/password-policy";
 
 function PasswordStrength({ password }: { password: string }) {
   const strength =
@@ -61,11 +60,20 @@ function PasswordStrength({ password }: { password: string }) {
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const toast = useToast();
-
-  const token = searchParams.get("token") || "";
-  const emailParam = searchParams.get("email") || "";
+  const [token, setToken] = React.useState("");
+  const [emailParam, setEmailParam] = React.useState("");
+  const [linkReady, setLinkReady] = React.useState(false);
+  const linkCaptured = React.useRef(false);
+  React.useEffect(() => {
+    if (linkCaptured.current) return;
+    linkCaptured.current = true;
+    const captured = readPasswordResetLink(new URL(window.location.href));
+    setToken(captured.token);
+    setEmailParam(captured.email);
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+    setLinkReady(true);
+  }, []);
 
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
@@ -83,8 +91,8 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Hasło musi mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków.`);
+    if (!validNewPasswordLength(password)) {
+      setError(PASSWORD_LENGTH_MESSAGE);
       return;
     }
 
@@ -147,7 +155,7 @@ function ResetPasswordForm() {
             </div>
             <p className="text-sm font-semibold text-foreground">Hasło zostało pomyślnie zmienione!</p>
             <p className="text-xs text-muted-foreground">Przekierowywanie do strony logowania…</p>
-            <Link
+            <Link prefetch={false}
               href="/login"
               className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary text-xs font-semibold text-primary-foreground"
             >
@@ -156,7 +164,7 @@ function ResetPasswordForm() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            {!token && (
+            {linkReady && !token && (
               <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-400">
                 Brak tokena resetującego. Otwórz link bezpośrednio z otrzymanej wiadomości e-mail.
               </div>
@@ -176,6 +184,7 @@ function ResetPasswordForm() {
                   placeholder="••••••••"
                   className="h-11 pl-10 pr-10 text-sm rounded-xl"
                   autoComplete="new-password"
+                  maxLength={72}
                   required
                 />
                 <button
@@ -204,13 +213,14 @@ function ResetPasswordForm() {
                   placeholder="••••••••"
                   className="h-11 pl-10 text-sm rounded-xl"
                   autoComplete="new-password"
+                  maxLength={72}
                   required
                 />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
+              <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
                 {error}
               </div>

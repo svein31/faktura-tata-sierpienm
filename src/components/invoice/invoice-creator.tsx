@@ -39,6 +39,8 @@ import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
 import { roundHalfUp } from "@/lib/tax/money";
+import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
+import { convertToPln, isIsoCalendarDate } from "@/lib/nbp";
 import { currencyNames } from "@/lib/i18n";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
 import { EMPTY_COMPANY } from "@/lib/types";
@@ -230,10 +232,15 @@ export function InvoiceCreator() {
 
   const searchParams = useSearchParams();
   const [tabConflict, setTabConflict] = React.useState(false);
-  const [nbpRate, setNbpRate] = React.useState<{ rate: number; tableNumber: string; effectiveDate: string; source: string } | null>(null);
-  const [isManualRate, setIsManualRate] = React.useState(false);
-  const [manualRateInput, setManualRateInput] = React.useState("");
-  const [manualJustification, setManualJustification] = React.useState("");
+  const [nbpRate, setNbpRate] = React.useState<{ key: string; rate: number; tableNumber: string; effectiveDate: string; source: string } | null>(null);
+  const rateRequest = React.useRef<AbortController | null>(null);
+  const [nbpError, setNbpError] = React.useState("");
+  const [nbpLoading, setNbpLoading] = React.useState(false);
+  const activeRateKey = `${form.currency}:${form.issueDate}:${form.saleDate || form.issueDate}`;
+  const activeNbpRate = nbpRate?.key === activeRateKey ? nbpRate : null;
+  const [isManualRate, setIsManualRate] = React.useState(draftInvoice?.exchangeRateRule === "manual");
+  const [manualRateInput, setManualRateInput] = React.useState(draftInvoice?.exchangeRateRule === "manual" && draftInvoice.exchangeRate ? String(draftInvoice.exchangeRate) : "");
+  const [manualJustification, setManualJustification] = React.useState(draftInvoice?.exchangeRateJustification || "");
   const [selectedBankAccountId, setSelectedBankAccountId] = React.useState<string>(() =>
     draftInvoice && !draftInvoiceIsNew && draftInvoice.sellerCompanyId === defaultCompany.id
       ? draftInvoice.bankAccountSnapshot ? "saved" : draftInvoice.bankAccountId || "primary" : "auto"
@@ -266,13 +273,14 @@ export function InvoiceCreator() {
 
   // Clone from existing invoice (?cloneFrom=<id>)
   const clonedFrom = React.useRef("");
-  const cloneId = searchParams.get("cloneFrom");
+  const correctionId = searchParams.get("correctionFrom");
+  const cloneId = correctionId || searchParams.get("cloneFrom");
   const [cloneLoading, setCloneLoading] = React.useState(Boolean(cloneId));
   const [cloneError, setCloneError] = React.useState("");
   const [cloneAttempt, setCloneAttempt] = React.useState(0);
   React.useEffect(() => {
     if (!cloneId) { setCloneLoading(false); setCloneError(""); return; }
-    const cloneKey = `${defaultCompany.id}:${cloneId}`;
+    const cloneKey = `${defaultCompany.id}:${correctionId ? "correction" : "clone"}:${cloneId}`;
     if (clonedFrom.current === cloneKey) return;
     const controller = new AbortController();
     setCloneLoading(true); setCloneError("");
@@ -283,58 +291,69 @@ export function InvoiceCreator() {
         if (!response.ok) throw new Error(data.error || "Nie udało się wczytać faktury do sklonowania.");
         if (controller.signal.aborted) return;
         const src: Invoice = data.invoice;
+        if (correctionId && (src.type !== "sale" || src.isProforma || src.status === "draft" || src.documentStatus === "draft" || src.documentStatus === "cancelled" || src.sellerCompanyId !== defaultCompany.id || src.documentKind === "advance" || src.documentKind === "final")) throw new Error("Otwórz wystawioną zwykłą fakturę sprzedaży w jej firmie, aby przygotować korektę.");
         clonedFrom.current = cloneKey;
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
           sellerCompanyId: defaultCompany.id,
           contractorId: src.sellerCompanyId === defaultCompany.id ? src.contractorId : "",
           number: "",
-          isCorrection: false,
+          isCorrection: Boolean(correctionId),
           correctionReason: "",
-          originalInvoiceId: "",
-          originalInvoiceNumber: "",
-          originalIssueDate: "",
-          originalKsefNumber: "",
+          originalInvoiceId: correctionId ? src.id : "",
+          originalInvoiceNumber: correctionId ? src.number : "",
+          originalIssueDate: correctionId ? src.issueDate : "",
+          originalKsefNumber: correctionId ? src.ksefNumber || src.ksef?.number || "" : "",
+          // A correction contains differences. Zero placeholders require a deliberate
+          // user input and cannot accidentally copy another full sale or refund.
+          lines: src.lines.map(line => ({ ...line, quantity: correctionId ? 0 : line.quantity })),
+          isProforma: correctionId ? false : src.isProforma,
+          isRecurring: correctionId ? false : src.isRecurring,
+          recurringAutoSend: correctionId ? false : src.recurringAutoSend,
+          isOffline: correctionId ? false : src.isOffline,
           issueDate: todayISO(),
           saleDate: todayISO(),
           dueDate: addDaysISO(todayISO(), src.paymentTermDays || 14),
           dueTouched: false,
         });
-        toast("info", "Sklonowano dane faktury", `Utworzono nowy dokument na wzór ${src.number}`);
+        toast("info", correctionId ? "Przygotowano korektę" : "Sklonowano dane faktury", correctionId ? `Wpisz różnice do faktury ${src.number}. Oryginał pozostaje bez zmian.` : `Utworzono nowy dokument na wzór ${src.number}`);
       } catch (failure) {
         if (!controller.signal.aborted) setCloneError(failure instanceof Error ? failure.message : "Nie udało się sklonować faktury.");
       } finally { if (!controller.signal.aborted) setCloneLoading(false); }
     })();
     return () => controller.abort();
-  }, [cloneId, cloneAttempt, defaultCompany.id]);
+  }, [cloneId, correctionId, cloneAttempt, defaultCompany.id]);
 
   // NBP rate fetcher zgodny z art. 31a ust. 1 i 2
   const fetchNbpRate = React.useCallback(async (curr: string, issueDate: string, saleDate: string) => {
+    rateRequest.current?.abort();
+    const controller = new AbortController();
+    rateRequest.current = controller;
+    setNbpRate(null); setNbpError("");
     if (curr === "PLN") {
-      setNbpRate(null);
+      setNbpLoading(false);
       return;
     }
+    setNbpLoading(true);
     try {
-      const rule = (issueDate && saleDate && issueDate < saleDate) ? "issue_before_tax_point" : "standard";
-      const res = await fetch(`/api/nbp?currency=${curr}&issueDate=${issueDate}&saleDate=${saleDate || issueDate}&rule=${rule}`);
-      if (res.ok) {
-        const data = await res.json();
-        setNbpRate(data);
-        if (!isManualRate) {
-          setManualRateInput(data.rate ? String(data.rate) : "");
-        }
-      }
-    } catch {
-      // Ignored
+      const rule = issueDate < saleDate ? "art_31a_issue_date" : "art_31a_sale_date";
+      const params = new URLSearchParams({ currency: curr, issueDate, saleDate: saleDate || issueDate, rule });
+      const res = await fetch(`/api/nbp?${params}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]) });
+      const data = await res.json();
+      if (!res.ok || !Number.isFinite(data.rate) || data.rate <= 0) throw new Error(data.error || "Nie udało się pobrać poprawnego kursu NBP.");
+      if (controller.signal.aborted || rateRequest.current !== controller) return;
+      setNbpRate({ ...data, key: `${curr}:${issueDate}:${saleDate || issueDate}` });
+      if (!isManualRate) setManualRateInput(String(data.rate));
+    } catch (error) {
+      if (!controller.signal.aborted && rateRequest.current === controller) setNbpError(error instanceof Error ? error.message : "Sprawdź połączenie z NBP.");
+    } finally {
+      if (rateRequest.current === controller) setNbpLoading(false);
     }
   }, [isManualRate]);
 
   React.useEffect(() => {
-    if (form.currency !== "PLN") {
-      fetchNbpRate(form.currency, form.issueDate, form.saleDate);
-    } else {
-      setNbpRate(null);
-    }
+    void fetchNbpRate(form.currency, form.issueDate, form.saleDate);
+    return () => rateRequest.current?.abort();
   }, [form.currency, form.issueDate, form.saleDate, fetchNbpRate]);
 
   // ── Autosave stanu roboczego w localStorage ──
@@ -418,7 +437,9 @@ export function InvoiceCreator() {
 
   const showValidation = (messages: string[], fromServer?: Record<string,string>) => {
     const fields: Record<string,string> = { ...fromServer };
-    if (!form.issueDate) fields.issueDate = "Podaj datę wystawienia.";
+    for (const [key, label] of [["issueDate", "wystawienia"], ["saleDate", "sprzedaży"], ["dueDate", "płatności"]] as const) {
+      if (!isIsoCalendarDate(form[key])) fields[key] = `Podaj poprawną datę ${label}.`;
+    }
     if (!form.useNewContractor && !form.contractorId) fields.contractorId = "Wybierz kontrahenta.";
     if (form.isOffline && !form.offlineReason) fields.offlineReason = "Wybierz powód.";
     if (form.isOffline && !form.offlineDeadline) fields.offlineDeadline = "Podaj termin przesłania.";
@@ -562,7 +583,11 @@ export function InvoiceCreator() {
     notes: form.notes,
     isSplitPayment: form.isSplitPayment,
     exemptionBasis: form.exemptionBasis,
-    lines: form.lines,
+    lines: form.lines.map(normalizeInvoiceLineAmounts),
+    exchangeRate: form.currency === "PLN" ? null : isManualRate ? Number(manualRateInput.trim().replace(",", ".")) || null : activeNbpRate?.rate || null,
+    exchangeRateRule: form.currency === "PLN" ? null : isManualRate ? "manual" : form.issueDate < form.saleDate ? "art_31a_issue_date" : "art_31a_sale_date",
+    exchangeRateDate: form.currency === "PLN" ? null : isManualRate ? form.issueDate : activeNbpRate?.effectiveDate || null,
+    exchangeRateTable: form.currency === "PLN" ? null : isManualRate ? "Kurs własny podatnika" : activeNbpRate?.tableNumber || null,
     createdAt: new Date().toISOString(),
     isCorrection: form.isCorrection,
     correctionReason: form.correctionReason,
@@ -595,7 +620,9 @@ export function InvoiceCreator() {
     if (numberMode === "auto" && numberLoading) errs.push("Poczekaj na sprawdzenie numeracji firmy.");
     if (!invoiceNumber.trim()) errs.push("Wpisz numer faktury.");
     if (editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id) errs.push("Ta faktura należy do innej firmy. Otwórz ją we właściwym kontekście.");
-    if (!form.issueDate) errs.push("Data wystawienia jest wymagana.");
+    for (const [value, label] of [[form.issueDate, "wystawienia"], [form.saleDate, "sprzedaży"], [form.dueDate, "płatności"]]) {
+      if (!isIsoCalendarDate(value)) errs.push(`Podaj poprawną datę ${label}.`);
+    }
     if (form.isOffline && (!form.offlineReason || !form.offlineDeadline)) errs.push("Tryb offline wymaga wskazania przyczyny i terminu przesłania.");
     if (form.isCorrection && !form.correctionReason?.trim()) {
       errs.push("Faktura korygująca wymaga podania przyczyny korekty.");
@@ -617,22 +644,24 @@ export function InvoiceCreator() {
     if (companies.length === 0 && !effectiveSellerCompany?.companyName && !effectiveSellerCompany?.nip) {
       errs.push("Dodaj profil firmy Sprzedawcy (w 'Moje Firmy'), aby Twoje dane pojawiły się na fakturze.");
     }
-    const validLines = form.lines.filter((l) => l.name.trim() && l.quantity > 0);
+    const validLines = form.lines.filter((l) => l.name.trim() && (form.isCorrection ? l.quantity !== 0 : l.quantity > 0));
     if (validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
-    if (form.lines.some((l) => l.quantity < 0 || l.netPrice < 0)) errs.push("Ilość i cena nie mogą być ujemne.");
-    if (form.lines.some((l) => l.name.trim() && l.quantity > 0 && roundHalfUp(l.quantity, 6) === 0)) errs.push("Ilość wymaga najwyżej sześciu miejsc po przecinku.");
+    if (form.lines.some((l) => (!form.isCorrection && l.quantity < 0) || l.netPrice < 0)) errs.push("Cena nie może być ujemna. Ujemna ilość jest dostępna tylko dla korekt.");
+    if (form.lines.some((l) => !Number.isFinite(l.quantity) || Math.abs(l.quantity) > 1e9 || !Number.isFinite(l.netPrice) || l.netPrice > 1e9)) errs.push("Sprawdź zakres ilości i cen pozycji.");
+    if (validLines.length > 200) errs.push("Faktura może zawierać najwyżej 200 pozycji.");
+    if (validLines.some(l => roundHalfUp(l.quantity, 6) === 0)) errs.push("Ilość wymaga najwyżej sześciu miejsc po przecinku.");
 
     // Walidacja kursu walutowego dla walut obcych (art. 31a ustawy o VAT)
     if (form.currency !== "PLN") {
       if (isManualRate) {
-        const parsedRate = parseFloat(manualRateInput.replace(",", "."));
-        if (isNaN(parsedRate) || parsedRate <= 0) {
+        const parsedRate = Number(manualRateInput.trim().replace(",", "."));
+        if (!Number.isFinite(parsedRate) || parsedRate <= 0) {
           errs.push("Wpisz poprawny kurs waluty (większy od zera).");
         }
         if (!manualJustification.trim()) {
           errs.push("Wpisz uzasadnienie zastosowania własnego kursu waluty (wymóg art. 31a ustawy o VAT).");
         }
-      } else if (!nbpRate) {
+      } else if (!activeNbpRate) {
         errs.push("Pobierz oficjalny kurs waluty z NBP dla tego dokumentu.");
       }
     }
@@ -669,10 +698,10 @@ export function InvoiceCreator() {
     }
 
     const effectiveRate = form.currency !== "PLN"
-      ? (isManualRate ? parseFloat(manualRateInput.replace(",", ".")) || null : nbpRate?.rate || null)
+      ? (isManualRate ? Number(manualRateInput.trim().replace(",", ".")) || null : activeNbpRate?.rate || null)
       : null;
 
-    const totalsCalc = invoiceTotals({ lines: form.lines as any });
+    const totalsCalc = invoiceTotals({ lines: form.lines.map(normalizeInvoiceLineAmounts) });
     const netPln = effectiveRate ? round2(totalsCalc.net * effectiveRate) : null;
     const vatPln = effectiveRate ? round2(totalsCalc.vat * effectiveRate) : null;
     const grossPln = effectiveRate ? round2(totalsCalc.gross * effectiveRate) : null;
@@ -700,8 +729,8 @@ export function InvoiceCreator() {
       offlineReason: form.isOffline ? form.offlineReason : undefined,
       offlineDeadline: form.isOffline && form.offlineDeadline ? new Date(form.offlineDeadline).toISOString() : undefined,
       lines: form.lines
-        .filter((l) => l.name.trim() && l.quantity > 0)
-        .map((l) => ({ ...l, netPrice: round2(Number(l.netPrice) || 0), quantity: roundHalfUp(Number(l.quantity) || 0, 6) })),
+        .filter((l) => l.name.trim() && (form.isCorrection ? l.quantity !== 0 : l.quantity > 0))
+        .map(normalizeInvoiceLineAmounts),
       isCorrection: form.isCorrection,
       correctionReason: form.correctionReason?.trim() || undefined,
       originalInvoiceId: form.originalInvoiceId || undefined,
@@ -715,9 +744,9 @@ export function InvoiceCreator() {
       recurringAutoSend: form.recurringAutoSend,
       // Pola walutowe i kursowe NBP
       exchangeRate: effectiveRate,
-      exchangeRateTable: form.currency !== "PLN" ? (isManualRate ? "Kurs własny podatnika" : nbpRate?.tableNumber || null) : null,
-      exchangeRateDate: form.currency !== "PLN" ? (isManualRate ? form.issueDate : nbpRate?.effectiveDate || null) : null,
-      exchangeRateSource: form.currency !== "PLN" ? (isManualRate ? "Własny kurs podatnika" : nbpRate?.source || null) : null,
+      exchangeRateTable: form.currency !== "PLN" ? (isManualRate ? "Kurs własny podatnika" : activeNbpRate?.tableNumber || null) : null,
+      exchangeRateDate: form.currency !== "PLN" ? (isManualRate ? form.issueDate : activeNbpRate?.effectiveDate || null) : null,
+      exchangeRateSource: form.currency !== "PLN" ? (isManualRate ? "Własny kurs podatnika" : activeNbpRate?.source || null) : null,
       exchangeRateRule: form.currency !== "PLN" ? (isManualRate ? "manual" : (form.issueDate < form.saleDate ? "art_31a_issue_date" : "art_31a_sale_date")) : null,
       exchangeRateJustification: form.currency !== "PLN" && isManualRate ? manualJustification.trim() : null,
       totalNetPln: netPln,
@@ -751,7 +780,7 @@ export function InvoiceCreator() {
     if (errors.length) { toast("error", "Popraw dane faktury", errors[0]); return; }
     assistantBusy.current = true; setCheckingInvoice(true);
     try {
-      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: draftInvoiceIsNew ? undefined : draftInvoice?.id, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
+      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, lines: form.lines.filter(line => line.name.trim() && (form.isCorrection ? line.quantity !== 0 : line.quantity > 0)).map(normalizeInvoiceLineAmounts), companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: draftInvoiceIsNew ? undefined : draftInvoice?.id, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Nie udało się sprawdzić faktury.");
       setAssistant({ ...result, action, snapshot: invoiceSnapshot });
@@ -956,12 +985,12 @@ export function InvoiceCreator() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">Status wersji roboczej:</span>
             {autosaveStatus === "saving" ? (
-              <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
                 <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                 Zapisywanie w tle…
               </span>
             ) : autosaveStatus === "saved" ? (
-              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 Zapisano lokalnie
               </span>
@@ -991,7 +1020,7 @@ export function InvoiceCreator() {
         {/* Ostrzeżenie o równoczesnej edycji w innej karcie */}
         {tabConflict && (
           <div className="flex items-center gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
             <span>
               <b>Wykryto edycję w innej karcie:</b> Ta faktura jest jednocześnie otwarta w innej karcie przeglądarki. Aby uniknąć nadpisania danych, zalecamy edycję tylko w jednej karcie.
             </span>
@@ -1020,7 +1049,7 @@ export function InvoiceCreator() {
 
         {isKsefRegistered && (
           <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-[12.5px] text-emerald-800 dark:text-emerald-300">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
             <div>
               <p className="font-semibold">Faktura zarejestrowana w KSeF (numer: {draftInvoice?.ksefNumber || draftInvoice?.ksef?.number})</p>
               <p className="text-[11.5px] opacity-90 mt-0.5">
@@ -1043,11 +1072,13 @@ export function InvoiceCreator() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <p className="text-sm">Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</p>
               <div className="space-y-1.5">
-                <Label className="text-rose-900 dark:text-rose-300 font-semibold">
+                <Label htmlFor="invoice-correctionReason" className="text-rose-900 dark:text-rose-300 font-semibold">
                   Przyczyna korekty (pole wymagane w schemacie FA(3)) *
                 </Label>
                 <Input
+                  id="invoice-correctionReason"
                   value={form.correctionReason || ""}
                   onChange={(e) => set({ correctionReason: e.target.value })}
                   placeholder="np. Udzielenie rabatu potransakcyjnego, zwrot towaru, korekta ilości"
@@ -1284,8 +1315,8 @@ export function InvoiceCreator() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label>Nazwa firmy *</Label>
-                    <Input
+                    <Label htmlFor="invoice-new-name">Nazwa firmy *</Label>
+                    <Input id="invoice-new-name"
                       value={form.newContractor.name}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, name: e.target.value } })}
                       placeholder="np. DemoIT Solutions Sp. z o.o."
@@ -1293,8 +1324,8 @@ export function InvoiceCreator() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2 sm:col-span-2">
                     <div className="space-y-1.5">
-                      <Label>Kraj kontrahenta</Label>
-                      <Select
+                      <Label htmlFor="invoice-new-country-choice">Kraj kontrahenta</Label>
+                      <Select id="invoice-new-country-choice"
                         value={form.newContractor.country}
                         onChange={(e) => {
                           const c = e.target.value;
@@ -1319,8 +1350,8 @@ export function InvoiceCreator() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Typ identyfikatora podatkowego</Label>
-                      <Select
+                      <Label htmlFor="invoice-new-tax-type">Typ identyfikatora podatkowego</Label>
+                      <Select id="invoice-new-tax-type"
                         value={newContractorTaxIdType}
                         onChange={(e) => setNewContractorTaxIdType(e.target.value as any)}
                       >
@@ -1334,7 +1365,7 @@ export function InvoiceCreator() {
 
                   {newContractorTaxIdType !== "none" && (
                     <div className="space-y-1.5 sm:col-span-2">
-                      <Label>
+                      <Label htmlFor={newContractorTaxIdType === "nip" ? undefined : "invoice-new-tax-id"}>
                         {newContractorTaxIdType === "nip"
                           ? "NIP *"
                           : newContractorTaxIdType === "vat_eu"
@@ -1361,7 +1392,7 @@ export function InvoiceCreator() {
                           }
                         />
                       ) : (
-                        <Input
+                        <Input id="invoice-new-tax-id"
                           value={form.newContractor.nip}
                           onChange={(e) => set({ newContractor: { ...form.newContractor, nip: e.target.value } })}
                           placeholder={
@@ -1377,16 +1408,16 @@ export function InvoiceCreator() {
                   )}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <Label>Kod pocztowy *</Label>
-                      <Input
+                      <Label htmlFor="invoice-new-postal">Kod pocztowy *</Label>
+                      <Input id="invoice-new-postal"
                         value={form.newContractor.postal}
                         onChange={(e) => set({ newContractor: { ...form.newContractor, postal: e.target.value } })}
                         placeholder="00-001"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Miasto *</Label>
-                      <Input
+                      <Label htmlFor="invoice-new-city">Miasto *</Label>
+                      <Input id="invoice-new-city"
                         value={form.newContractor.city}
                         onChange={(e) => set({ newContractor: { ...form.newContractor, city: e.target.value } })}
                         placeholder="Warszawa"
@@ -1394,24 +1425,24 @@ export function InvoiceCreator() {
                     </div>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
-                    <Label>Ulica i numer *</Label>
-                    <Input
+                    <Label htmlFor="invoice-new-street">Ulica i numer *</Label>
+                    <Input id="invoice-new-street"
                       value={form.newContractor.street}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, street: e.target.value } })}
                       placeholder="ul. Przykładowa 1"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Kraj</Label>
-                    <Input
+                    <Label htmlFor="invoice-new-country">Kraj</Label>
+                    <Input id="invoice-new-country"
                       value={form.newContractor.country}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, country: e.target.value } })}
                       placeholder="PL"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Nr konta (IBAN)</Label>
-                    <Input
+                    <Label htmlFor="invoice-new-iban">Nr konta (IBAN)</Label>
+                    <Input id="invoice-new-iban"
                       value={form.newContractor.iban}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, iban: e.target.value } })}
                       placeholder="PL00 0000 0000 0000 0000 0000 0000"
@@ -1438,6 +1469,7 @@ export function InvoiceCreator() {
               lines={form.lines}
               onChange={(lines) => set({ lines })}
               currency={form.currency}
+              correction={Boolean(form.isCorrection)}
               products={products}
             />
           </CardContent>
@@ -1455,17 +1487,17 @@ export function InvoiceCreator() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <Label>Data wystawienia *</Label>
+                <Label htmlFor="invoice-issueDate">Data wystawienia *</Label>
                 <Input id="invoice-issueDate" type="date" value={form.issueDate} aria-invalid={Boolean(fieldErrors.issueDate)} aria-describedby={fieldErrors.issueDate ? "invoice-issueDate-error" : undefined} onChange={(e) => set({ issueDate: e.target.value })} />
                 {fieldErrors.issueDate && <p id="invoice-issueDate-error" className="text-xs text-destructive">{fieldErrors.issueDate}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>Data sprzedaży</Label>
+                <Label htmlFor="invoice-saleDate">Data sprzedaży</Label>
                 <Input id="invoice-saleDate" type="date" value={form.saleDate} aria-invalid={Boolean(fieldErrors.saleDate)} aria-describedby={fieldErrors.saleDate ? "invoice-saleDate-error" : undefined} onChange={(e) => set({ saleDate: e.target.value })} />
                 {fieldErrors.saleDate && <p id="invoice-saleDate-error" className="text-xs text-destructive">{fieldErrors.saleDate}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>
+                <Label htmlFor="invoice-dueDate">
                   Termin płatności{" "}
                   {!form.dueTouched && <span className="font-normal text-muted-foreground">(auto)</span>}
                 </Label>
@@ -1500,8 +1532,8 @@ export function InvoiceCreator() {
             </details>}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <Label>Metoda płatności</Label>
-                <Select
+                <Label htmlFor="invoice-paymentMethod">Metoda płatności</Label>
+                <Select id="invoice-paymentMethod"
                   value={form.paymentMethod}
                   onChange={(e) => set({ paymentMethod: e.target.value as PaymentMethod })}
                 >
@@ -1513,8 +1545,8 @@ export function InvoiceCreator() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Termin (dni)</Label>
-                <Select value={form.paymentTermDays} onChange={(e) => onTermChange(Number(e.target.value))}>
+                <Label htmlFor="invoice-paymentTermDays">Termin (dni)</Label>
+                <Select id="invoice-paymentTermDays" value={form.paymentTermDays} onChange={(e) => onTermChange(Number(e.target.value))}>
                   {[7, 14, 21, 30, 45, 60].map((d) => (
                     <option key={d} value={d}>
                       {d} dni
@@ -1523,8 +1555,8 @@ export function InvoiceCreator() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Waluta</Label>
-                <Select value={form.currency} onChange={(e) => set({ currency: e.target.value as Currency })}>
+                <Label htmlFor="invoice-currency">Waluta</Label>
+                <Select id="invoice-currency" value={form.currency} onChange={(e) => set({ currency: e.target.value as Currency })}>
                   {(["PLN", "EUR", "USD", "GBP", "CHF", "NOK", "SEK", "CAD"] as const).map((c) => (
                     <option key={c} value={c}>
                       {currencyNames[c] || c}
@@ -1557,10 +1589,10 @@ export function InvoiceCreator() {
                     <p className="break-all">IBAN / numer konta: <b className="font-mono">{chosenBankAccount?.accountNumber || "Brak rachunku"}</b></p>
                     <p>Waluta rachunku: <b>{chosenBankAccount?.currency || "—"}</b> · Bank: <b>{chosenBankAccount?.bankName || "Nie podano nazwy banku"}</b></p>
                     <p>{selectedBankAccountId === "saved" ? "Rachunek zapisany podczas wystawienia tej faktury." : chosenBankAccount === primaryBankAccount ? "Źródło: główny rachunek w profilu firmy." : "Źródło: rachunki wybranej firmy."}</p>
-                    <Link className="inline-block text-primary underline" href="/settings/currencies">Zarządzaj rachunkami i nazwą banku</Link>
+                    <Link prefetch={false} className="inline-block text-primary underline" href="/settings/currencies">Zarządzaj rachunkami i nazwą banku</Link>
                   </div>
                   {form.currency !== "PLN" && !companyAccounts.some((b) => b.currency === form.currency || b.currency === "MULTI") && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
+                    <p className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-1 mt-1">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       Uwaga: firma nie posiada dedykowanego konta w walucie {form.currency}. Środki wpłyną na konto PLN z możliwym przewalutowaniem banku.
                     </p>
@@ -1582,6 +1614,7 @@ export function InvoiceCreator() {
                     variant="ghost"
                     size="sm"
                     className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10"
+                    disabled={nbpLoading}
                     onClick={() => fetchNbpRate(form.currency, form.issueDate, form.saleDate)}
                   >
                     Odśwież kurs z NBP
@@ -1595,32 +1628,32 @@ export function InvoiceCreator() {
                     : "art. 31a ust. 1 (kurs z ostatniego dnia roboczego poprzedzającego datę sprzedaży / powstania obowiązku)"}
                 </div>
 
-                {nbpRate && !isManualRate ? (
+                {activeNbpRate && !isManualRate ? (
                   <div className="p-3 bg-card rounded-lg border border-border/80 space-y-1.5">
                     <p className="font-medium text-foreground">
-                      Tabela NBP: <span className="font-bold text-primary">{nbpRate.tableNumber}</span> z dnia{" "}
-                      <span className="font-bold">{nbpRate.effectiveDate}</span>
+                      Tabela NBP: <span className="font-bold text-primary">{activeNbpRate.tableNumber}</span> z dnia{" "}
+                      <span className="font-bold">{activeNbpRate.effectiveDate}</span>
                     </p>
                     <p className="text-xs">
-                      Oficjalny średni kurs: <b className="text-foreground">1 {form.currency} = {nbpRate.rate.toFixed(4)} PLN</b>
+                      Oficjalny średni kurs: <b className="text-foreground">1 {form.currency} = {activeNbpRate.rate.toFixed(4)} PLN</b>
                     </p>
                     <div className="pt-1.5 border-t border-border/60 grid grid-cols-3 gap-2 text-[11.5px]">
                       <div>
                         <span className="text-muted-foreground">Netto w PLN: </span>
-                        <b className="text-foreground">{formatMoney(totals.net * nbpRate.rate, "PLN")}</b>
+                        <b className="text-foreground">{formatMoney(convertToPln(totals.net, activeNbpRate.rate), "PLN")}</b>
                       </div>
                       <div>
                         <span className="text-muted-foreground">VAT w PLN: </span>
-                        <b className="text-primary">{formatMoney(totals.vat * nbpRate.rate, "PLN")}</b>
+                        <b className="text-primary">{formatMoney(convertToPln(totals.vat, activeNbpRate.rate), "PLN")}</b>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Brutto w PLN: </span>
-                        <b className="text-foreground">{formatMoney(totals.gross * nbpRate.rate, "PLN")}</b>
+                        <b className="text-foreground">{formatMoney(convertToPln(totals.gross, activeNbpRate.rate), "PLN")}</b>
                       </div>
                     </div>
                   </div>
                 ) : !isManualRate ? (
-                  <p className="text-muted-foreground italic">Pobieranie tabeli kursowej z NBP...</p>
+                  <p className={nbpError ? "text-destructive" : "text-muted-foreground italic"} role={nbpError ? "alert" : "status"}>{nbpError || (nbpLoading ? "Pobieranie tabeli kursowej z NBP..." : "Brak kursu dla wybranych dat. Odśwież kurs lub podaj uzasadniony kurs ręczny.")}</p>
                 ) : null}
 
                 {/* Przełącznik kursu ręcznego */}
@@ -1631,8 +1664,8 @@ export function InvoiceCreator() {
                       checked={isManualRate}
                       onChange={(e) => {
                         setIsManualRate(e.target.checked);
-                        if (!e.target.checked && nbpRate) {
-                          setManualRateInput(String(nbpRate.rate));
+                        if (!e.target.checked && activeNbpRate) {
+                          setManualRateInput(String(activeNbpRate.rate));
                         }
                       }}
                       className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary"
@@ -1645,8 +1678,8 @@ export function InvoiceCreator() {
                   {isManualRate && (
                     <div className="grid gap-3 sm:grid-cols-2 p-3 bg-card rounded-lg border border-border/80">
                       <div className="space-y-1">
-                        <Label className="text-[11.5px]">Zastosowany kurs (PLN) *</Label>
-                        <Input
+                        <Label htmlFor="invoice-manualRate" className="text-[11.5px]">Zastosowany kurs (PLN) *</Label>
+                        <Input id="invoice-manualRate"
                           type="text"
                           value={manualRateInput}
                           onChange={(e) => setManualRateInput(e.target.value)}
@@ -1655,10 +1688,10 @@ export function InvoiceCreator() {
                         />
                       </div>
                       <div className="space-y-1 sm:col-span-2">
-                        <Label className="text-[11.5px]">
+                        <Label htmlFor="invoice-manualJustification" className="text-[11.5px]">
                           Uzasadnienie zastosowania własnego kursu * (wymóg art. 31a ustawy o VAT)
                         </Label>
-                        <Input
+                        <Input id="invoice-manualJustification"
                           type="text"
                           value={manualJustification}
                           onChange={(e) => setManualJustification(e.target.value)}
@@ -1676,11 +1709,13 @@ export function InvoiceCreator() {
             <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-foreground">Faktura cykliczna (automatyczne odnawianie)</p>
+                  <label htmlFor="invoice-isRecurring" className="text-xs font-semibold text-foreground">Faktura cykliczna (automatyczne odnawianie)</label>
                   <p className="text-[11px] text-muted-foreground">Generuj kolejne dokumenty w zadanym cyklu czasowym</p>
                 </div>
                 <input
+                  id="invoice-isRecurring"
                   type="checkbox"
+                  disabled={Boolean(form.isCorrection)}
                   checked={Boolean(form.isRecurring)}
                   onChange={(e) => set({ isRecurring: e.target.checked })}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
@@ -1690,8 +1725,8 @@ export function InvoiceCreator() {
               {form.isRecurring && (
                 <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-border/50">
                   <div className="space-y-1">
-                    <Label className="text-[11.5px]">Interwał odnawiania</Label>
-                    <Select
+                    <Label htmlFor="invoice-recurringInterval" className="text-[11.5px]">Interwał odnawiania</Label>
+                    <Select id="invoice-recurringInterval"
                       value={form.recurringInterval || "monthly"}
                       onChange={(e) => set({ recurringInterval: e.target.value })}
                     >
@@ -1701,8 +1736,8 @@ export function InvoiceCreator() {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11.5px]">Data kolejnego wystawienia</Label>
-                    <Input
+                    <Label htmlFor="invoice-recurringNextDate" className="text-[11.5px]">Data kolejnego wystawienia</Label>
+                    <Input id="invoice-recurringNextDate"
                       type="date"
                       value={form.recurringNextDate || ""}
                       onChange={(e) => set({ recurringNextDate: e.target.value })}
@@ -1713,12 +1748,13 @@ export function InvoiceCreator() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Język dokumentu</Label>
-              <div className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium gap-1 flex-wrap">
+              <p className="text-[12.5px] font-medium">Język dokumentu</p>
+              <div role="group" aria-label="Język dokumentu" className="inline-flex rounded-lg bg-muted/70 p-1 text-[13px] font-medium gap-1 flex-wrap">
                 {(["PL", "EN", "PL/EN"] as const).map((l) => (
                   <button
                     key={l}
                     type="button"
+                    aria-pressed={form.language === l}
                     onClick={() => set({ language: l })}
                     className={
                       form.language === l
@@ -1734,8 +1770,8 @@ export function InvoiceCreator() {
 
             <div className="space-y-1.5">
               <details className="mb-4 rounded-xl border p-3"><summary className="cursor-pointer text-sm font-semibold">Oznaczenia VAT i JPK</summary><div className="mt-3 space-y-3"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isSplitPayment} onChange={e=>setForm(f=>({...f,isSplitPayment:e.target.checked}))}/>Mechanizm podzielonej płatności (MPP)</label><label className="block text-sm">Podstawa prawna zwolnienia VAT<Input value={form.exemptionBasis||""} onChange={e=>setForm(f=>({...f,exemptionBasis:e.target.value}))} placeholder="np. art. 113 ust. 1 ustawy o VAT"/></label><label className="block text-sm">Kody GTU, oddzielone przecinkami<Input value={form.gtuText ?? (form.gtuCodes||[]).join(", ")} onChange={e=>setForm(f=>({...f,gtuText:e.target.value}))} placeholder="GTU_01, GTU_02"/></label><label className="block text-sm">Procedury JPK, oddzielone przecinkami<Input value={form.proceduresText ?? (form.jpkProcedures||[]).join(", ")} onChange={e=>setForm(f=>({...f,proceduresText:e.target.value}))} placeholder="np. TP"/></label><p className="text-xs text-muted-foreground">Obowiązek MPP zależy m.in. od progu 15 000 zł i towarów/usług z załącznika 15. Oznaczenia ustal z księgowością. Bieżący eksport JPK obsługuje zwykłe transakcje i odrzuca procedury szczególne.</p></div></details>
-              <Label>Uwagi / Informacje dodatkowe</Label>
-              <Textarea
+              <Label htmlFor="invoice-notes">Uwagi / Informacje dodatkowe</Label>
+              <Textarea id="invoice-notes"
                 value={form.notes}
                 onChange={(e) => set({ notes: e.target.value })}
                 placeholder="np. numer zamówienia, numer umowy, szczegóły dostawy…"

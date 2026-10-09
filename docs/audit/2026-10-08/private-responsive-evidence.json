@@ -1,0 +1,3705 @@
+{
+  "checkedAt": "2026-10-08",
+  "buildIdBefore": "bssOBG1BBwruzKi48pC-w",
+  "scope": "Local QA build; isolated synthetic expense and pending invitation; Chromium viewport 320x740",
+  "productionWrites": false,
+  "recordsCreatedByProbeRemoved": true,
+  "expenses": {
+    "viewportWidth": 320,
+    "documentScrollWidthBefore": 683,
+    "tableWidthBefore": 858.21875,
+    "tableScrollViewportWidth": 286,
+    "nativeSelectRectBefore": {
+      "left": 681.5,
+      "right": 682.5,
+      "width": 1
+    },
+    "nativeSelectPositionBefore": "absolute",
+    "nativeSelectContainingBlockBefore": "body",
+    "causalExperiment": {
+      "change": "Set only table.parentElement.style.position to relative on the previous compiled UI",
+      "documentScrollWidthAfter": 320,
+      "compiledSourceVerification": false
+    }
+  },
+  "pendingInvitation": {
+    "viewportWidth": 320,
+    "documentScrollWidthBefore": 333,
+    "statusRightBefore": 332.734375,
+    "axeViolationBefore": {
+      "id": "color-contrast",
+      "foreground": "#f59e0b",
+      "background": "#ffffff",
+      "fontSizePx": 10,
+      "actualContrast": 2.14,
+      "requiredContrast": 4.5
+    }
+  },
+  "afterCompiledVerification": {
+    "status": "passed",
+    "proof": {
+      "checkedAt": "2026-10-09T11:00:48.537Z",
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+      "productionWrites": false,
+      "scope": "Isolated synthetic positive expenses and pending invitation; Chromium, WebKit and Firefox;320,768,1280px;light and dark",
+      "results": [
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "tableScrollWidth": 944,
+          "tableViewportWidth": 286,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "tableScrollWidth": 944,
+          "tableViewportWidth": 718,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "tableScrollWidth": 958,
+          "tableViewportWidth": 958,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "light",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "tableScrollWidth": 944,
+          "tableViewportWidth": 286,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "tableScrollWidth": 944,
+          "tableViewportWidth": 718,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "tableScrollWidth": 958,
+          "tableViewportWidth": 958,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "chromium",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 314,
+          "tableScrollWidth": 940,
+          "tableViewportWidth": 280,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 314,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 762,
+          "tableScrollWidth": 940,
+          "tableViewportWidth": 712,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 762,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1274,
+          "tableScrollWidth": 952,
+          "tableViewportWidth": 952,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "light",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1274,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 314,
+          "tableScrollWidth": 940,
+          "tableViewportWidth": 280,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 314,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 762,
+          "tableScrollWidth": 940,
+          "tableViewportWidth": 712,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 762,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1274,
+          "tableScrollWidth": 952,
+          "tableViewportWidth": 952,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "webkit",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1274,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "tableScrollWidth": 850,
+          "tableViewportWidth": 286,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "tableScrollWidth": 850,
+          "tableViewportWidth": 718,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "tableScrollWidth": 958,
+          "tableViewportWidth": 958,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "light",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 320,
+          "route": "/expenses",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "tableScrollWidth": 850,
+          "tableViewportWidth": 286,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 320,
+          "route": "/settings/team",
+          "viewportWidth": 320,
+          "documentScrollWidth": 320,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 768,
+          "route": "/expenses",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "tableScrollWidth": 850,
+          "tableViewportWidth": 718,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 768,
+          "route": "/settings/team",
+          "viewportWidth": 768,
+          "documentScrollWidth": 768,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/expenses",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "tableScrollWidth": 958,
+          "tableViewportWidth": 958,
+          "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        },
+        {
+          "engine": "firefox",
+          "theme": "dark",
+          "width": 1280,
+          "route": "/settings/team",
+          "viewportWidth": 1280,
+          "documentScrollWidth": 1280,
+          "violations": [],
+          "manualReviewGroups": 1,
+          "pageErrors": []
+        }
+      ],
+      "summary": {
+        "screens": 36,
+        "overflowScreens": 0,
+        "accessibilityFailedScreens": 0
+      }
+    },
+    "recordsCreatedByProbeRemoved": true,
+    "buildAndSourceGuards": "Runner asserted exact compiled build and source fingerprint before and after; own synthetic records removed in finally.",
+    "artifacts": [
+      {
+        "path": "docs/audit/2026-10-08/private-layout-final6.json",
+        "sha256": "d6060487df94b0fdcb69ceaaf36101c3d86bb7d3b284a706863ed236de72ad8c"
+      }
+    ]
+  },
+  "clipboardRegression": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "summary": {
+      "engines": 3,
+      "scenarios": 9,
+      "failures": 0
+    },
+    "results": [
+      {
+        "engine": "chromium",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+        ],
+        "status": "passed"
+      },
+      {
+        "engine": "webkit",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+        ],
+        "status": "passed"
+      },
+      {
+        "engine": "firefox",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+          "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+        ],
+        "status": "passed"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "artifacts/audit/team-clipboard-chromium.json",
+        "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+      },
+      {
+        "path": "artifacts/audit/team-clipboard-webkit.json",
+        "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+      },
+      {
+        "path": "artifacts/audit/team-clipboard-firefox.json",
+        "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+      }
+    ],
+    "association": "Engine helper files from the explicitly composed completed Chromium/WebKit and fresh Firefox runs; no independent fingerprint is inferred from a helper alone.",
+    "rawMatrix": {
+      "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+      "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+    }
+  },
+  "activeExpenseFilterComputedStyle": {
+    "buildId": "FB7qc27HCnU-XhBqEUIZ9",
+    "theme": "light",
+    "label": "Wszystkie statusy",
+    "foreground": "rgb(255, 255, 255)",
+    "background": "rgba(0, 0, 0, 0)",
+    "cardBackground": "rgb(255, 255, 255)",
+    "rawPrimaryToken": "243 75% 58%",
+    "status": "source-fixed-awaiting-new-compiled-verification",
+    "automatedAxeViolation": false
+  },
+  "afterCompiledVerificationHistory": [
+    {
+      "status": "passed",
+      "proof": {
+        "checkedAt": "2026-10-08T19:50:22.726Z",
+        "buildId": "FB7qc27HCnU-XhBqEUIZ9",
+        "sourceSha256": "5df5f2df95df7702dbe6b22ea18451f9013c659b01e64d8d5e816ff379480d49",
+        "productionWrites": false,
+        "scope": "Isolated synthetic positive expenses and pending invitation; Chromium, WebKit and Firefox;320,768,1280px;light and dark",
+        "results": [
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          }
+        ],
+        "summary": {
+          "screens": 36,
+          "overflowScreens": 0,
+          "accessibilityFailedScreens": 0
+        }
+      },
+      "recordsCreatedByProbeRemoved": true
+    },
+    {
+      "status": "passed",
+      "proof": {
+        "checkedAt": "2026-10-08T20:02:50.625Z",
+        "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+        "sourceSha256": "c746318e97074899cf0c9a0e4772fb5c8163e57ee687483e393d39bbd111e6e9",
+        "productionWrites": false,
+        "scope": "Isolated synthetic positive expenses and pending invitation; Chromium, WebKit and Firefox;320,768,1280px;light and dark",
+        "results": [
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 939,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          }
+        ],
+        "summary": {
+          "screens": 36,
+          "overflowScreens": 0,
+          "accessibilityFailedScreens": 0
+        }
+      },
+      "recordsCreatedByProbeRemoved": true,
+      "artifacts": [
+        {
+          "path": "/tmp/faktura-private-layout-after-proof.json",
+          "sha256": "6ea4c81c1307d4929905c97afb7226554021d7be68423fc3586573a13bbc5bb9"
+        },
+        {
+          "path": "/tmp/faktura-private-layout-final4.log",
+          "sha256": "a9b1ba2a01a6316b59a1da66e0321fb64bc401330f7a85ec04f1b3a815394f43"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "proof": {
+        "checkedAt": "2026-10-09T05:48:46.591Z",
+        "buildId": "ZjS2_AKTU791vZrYv_n4s",
+        "sourceSha256": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417",
+        "productionWrites": false,
+        "scope": "Isolated synthetic positive expenses and pending invitation; Chromium, WebKit and Firefox;320,768,1280px;light and dark",
+        "results": [
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 944,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "chromium",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 940,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 940,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "tableScrollWidth": 940,
+            "tableViewportWidth": 280,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 314,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "tableScrollWidth": 940,
+            "tableViewportWidth": 712,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 762,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "tableScrollWidth": 952,
+            "tableViewportWidth": 952,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "webkit",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1274,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "light",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/expenses",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 286,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 320,
+            "route": "/settings/team",
+            "viewportWidth": 320,
+            "documentScrollWidth": 320,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/expenses",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "tableScrollWidth": 850,
+            "tableViewportWidth": 718,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 768,
+            "route": "/settings/team",
+            "viewportWidth": 768,
+            "documentScrollWidth": 768,
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/expenses",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "tableScrollWidth": 958,
+            "tableViewportWidth": 958,
+            "tableContainingBlock": "Dokumenty kosztowe — przewijana tabela",
+            "violations": [],
+            "manualReviewGroups": 1
+          },
+          {
+            "engine": "firefox",
+            "theme": "dark",
+            "width": 1280,
+            "route": "/settings/team",
+            "viewportWidth": 1280,
+            "documentScrollWidth": 1280,
+            "violations": [],
+            "manualReviewGroups": 1
+          }
+        ],
+        "summary": {
+          "screens": 36,
+          "overflowScreens": 0,
+          "accessibilityFailedScreens": 0
+        }
+      },
+      "recordsCreatedByProbeRemoved": true,
+      "buildAndSourceGuards": "Runner asserted exact expected build ID and source fingerprint before and after the proof; synthetic expenses and invitation removed in finally.",
+      "artifacts": [
+        {
+          "path": "docs/audit/2026-10-08/private-layout-final5.json",
+          "sha256": "8c986dfdfe395843741baa2952eb3c193256cf838a048e2635c073f36d5c8aa0"
+        },
+        {
+          "path": "/tmp/faktura-private-layout-final5-proof.json",
+          "sha256": "8c986dfdfe395843741baa2952eb3c193256cf838a048e2635c073f36d5c8aa0"
+        },
+        {
+          "path": "/tmp/faktura-private-layout-final5-proof.log",
+          "sha256": "768fb02655f4e0d440a47760fd1db7ad5b29a130ea8770a3eb0bb05b87da6d64"
+        }
+      ]
+    }
+  ],
+  "clipboardRegressionHistory": [
+    {
+      "buildId": "FB7qc27HCnU-XhBqEUIZ9",
+      "sourceSha256": "5df5f2df95df7702dbe6b22ea18451f9013c659b01e64d8d5e816ff379480d49",
+      "summary": {
+        "engines": 3,
+        "scenarios": 9,
+        "failures": 0
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "webkit",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "firefox",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+      "sourceSha256": "c746318e97074899cf0c9a0e4772fb5c8163e57ee687483e393d39bbd111e6e9",
+      "summary": {
+        "engines": 3,
+        "scenarios": 9,
+        "failures": 0
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "webkit",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "firefox",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "Denied clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Unavailable clipboard shows an explicit error without copied state, success notification or unhandled rejection",
+            "Successful clipboard write receives the actual API invitation URL; copied state and success appear only after the write resolves"
+          ],
+          "status": "passed"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/tmp/faktura-team-clipboard-final4.log",
+          "sha256": "7513ecb30ab19c802354e3c09c3cae2d88796b23343d68c9126c1e82bbda9df7"
+        },
+        {
+          "path": "/tmp/faktura-team-clipboard-chromium.json",
+          "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+        },
+        {
+          "path": "/tmp/faktura-team-clipboard-webkit.json",
+          "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+        },
+        {
+          "path": "/tmp/faktura-team-clipboard-firefox.json",
+          "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+        }
+      ]
+    }
+  ],
+  "activeExpenseFilterRegression": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "status": "passed",
+    "scope": "isolated-loopback-synthetic",
+    "summary": {
+      "engines": 3,
+      "themeScenarios": 6,
+      "filterColorRowStates": 24,
+      "failures": 0,
+      "minimumSelectedContrast": 5.848950379810627
+    },
+    "results": [
+      {
+        "engine": "chromium",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+          "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+        ],
+        "colors": [
+          {
+            "theme": "light",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          }
+        ],
+        "status": "passed"
+      },
+      {
+        "engine": "webkit",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+          "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+        ],
+        "colors": [
+          {
+            "theme": "light",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          }
+        ],
+        "status": "passed"
+      },
+      {
+        "engine": "firefox",
+        "scope": "isolated-loopback-synthetic",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "checks": [
+          "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+          "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+        ],
+        "colors": [
+          {
+            "theme": "light",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "light",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(76, 68, 228)",
+            "foreground": "rgb(255, 255, 255)",
+            "expected": {
+              "primary": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "muted": "rgb(94, 103, 120)"
+            },
+            "selectedContrast": 6.452730849640502,
+            "cardBackground": "rgb(255, 255, 255)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(94, 103, 120)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Wszystkie statusy",
+            "renderedRows": 3,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Do sprawdzenia",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Sprawdzone",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Przekazane księgowej",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          },
+          {
+            "theme": "dark",
+            "filter": "Przekazane księgowej",
+            "renderedRows": 1,
+            "background": "rgb(138, 132, 245)",
+            "foreground": "rgb(14, 20, 37)",
+            "expected": {
+              "primary": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "muted": "rgb(168, 175, 189)"
+            },
+            "selectedContrast": 5.848950379810627,
+            "cardBackground": "rgb(12, 16, 27)",
+            "inactive": [
+              {
+                "label": "Wszystkie statusy",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Do sprawdzenia",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              },
+              {
+                "label": "Sprawdzone",
+                "color": "rgb(168, 175, 189)",
+                "background": "rgba(0, 0, 0, 0)"
+              }
+            ]
+          }
+        ],
+        "status": "passed"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "artifacts/audit/expenses-filter-chromium.json",
+        "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+      },
+      {
+        "path": "artifacts/audit/expenses-filter-webkit.json",
+        "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+      },
+      {
+        "path": "artifacts/audit/expenses-filter-firefox.json",
+        "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+      }
+    ],
+    "buildAssociation": "Engine helper files from the explicitly composed completed Chromium/WebKit and fresh Firefox runs; fixture computed-style probe is stable before append and disables probe transitions.",
+    "rawMatrix": {
+      "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+      "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+    }
+  },
+  "historicalSnapshotFields": [
+    "activeExpenseFilterComputedStyle",
+    "clipboardRegression",
+    "activeExpenseFilterRegression"
+  ],
+  "activeExpenseFilterRegressionHistory": [
+    {
+      "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+      "sourceSha256": "c746318e97074899cf0c9a0e4772fb5c8163e57ee687483e393d39bbd111e6e9",
+      "status": "passed",
+      "scope": "isolated-loopback-synthetic",
+      "buildAssociation": "Harness revision final5 reran against the unchanged final4 application build K1PnMgLCZsBdb7_09rpDQ; association confirmed by the root audit owner.",
+      "summary": {
+        "engines": 3,
+        "themeScenarios": 6,
+        "filterColorRowStates": 24,
+        "failures": 0,
+        "minimumSelectedContrast": 5.848950379810627
+      },
+      "results": [
+        {
+          "engine": "chromium",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+            "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+          ],
+          "colors": [
+            {
+              "theme": "light",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            }
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "webkit",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+            "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+          ],
+          "colors": [
+            {
+              "theme": "light",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            }
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "firefox",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "light: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5",
+            "dark: all four filters expose pressed state, render their exact synthetic rows, support keyboard activation, and have visible semantic colors with contrast >=4.5"
+          ],
+          "colors": [
+            {
+              "theme": "light",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "light",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(76, 68, 228)",
+              "foreground": "rgb(255, 255, 255)",
+              "expected": {
+                "primary": "rgb(76, 68, 228)",
+                "foreground": "rgb(255, 255, 255)",
+                "muted": "rgb(94, 103, 120)"
+              },
+              "selectedContrast": 6.452730849640502,
+              "cardBackground": "rgb(255, 255, 255)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(94, 103, 120)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Wszystkie statusy",
+              "renderedRows": 3,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Do sprawdzenia",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Sprawdzone",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Przekazane księgowej",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            },
+            {
+              "theme": "dark",
+              "filter": "Przekazane księgowej",
+              "renderedRows": 1,
+              "background": "rgb(138, 132, 245)",
+              "foreground": "rgb(14, 20, 37)",
+              "expected": {
+                "primary": "rgb(138, 132, 245)",
+                "foreground": "rgb(14, 20, 37)",
+                "muted": "rgb(168, 175, 189)"
+              },
+              "selectedContrast": 5.848950379810627,
+              "cardBackground": "rgb(12, 16, 27)",
+              "inactive": [
+                {
+                  "label": "Wszystkie statusy",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Do sprawdzenia",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                },
+                {
+                  "label": "Sprawdzone",
+                  "color": "rgb(168, 175, 189)",
+                  "background": "rgba(0, 0, 0, 0)"
+                }
+              ]
+            }
+          ],
+          "status": "passed"
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "/tmp/faktura-expense-filter-final5.log",
+          "sha256": "72448fb6df8ffed748e64ea9669bdc960efa60455d2690d62c95e642519ac472"
+        },
+        {
+          "path": "/tmp/faktura-expense-filter-chromium.json",
+          "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+        },
+        {
+          "path": "/tmp/faktura-expense-filter-webkit.json",
+          "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+        },
+        {
+          "path": "/tmp/faktura-expense-filter-firefox.json",
+          "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+        }
+      ],
+      "historicalHarnessAttempt": {
+        "artifact": {
+          "path": "/tmp/faktura-expense-filter-final4.log",
+          "sha256": "6c6d72226332b7d0da9aba760ef9caea2dca36c839566bc76cbe55bad418caf1"
+        },
+        "result": "Chromium passed; WebKit assertion stopped initial harness on semantic token resolution. Corrected harness rerun passed all three engines without changing the application build."
+      }
+    }
+  ]
+}

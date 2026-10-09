@@ -1,0 +1,684 @@
+{
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "checkedAt": "2026-10-09T11:31:04.676508+00:00",
+  "scope": "Actual fresh anonymous cookie UI in light/dark themes, print-media CSS visibility, screen return and Escape/close-button focus recovery; three browser engines.",
+  "status": "passed",
+  "totalScenarios": 24,
+  "engines": {
+    "chromium": {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 2
+      },
+      "status": "passed"
+    },
+    "webkit": {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 0
+      },
+      "status": "passed"
+    },
+    "firefox": {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "firefox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 2
+      },
+      "status": "passed"
+    }
+  },
+  "artifactSha256": {
+    "chromium": "9a8c9131fa647e228a5c64f79358ca62b7e62896e619554937214883d59ce01d",
+    "webkit": "5c949d14e5ffd475ad30881a260c32d5d093ec6febf92aed30fce57b8c2a12a4",
+    "firefox": "a69d49b231f29b0ec685bbdb2acf1e428251cf3fbb7670c892244b6af38d3ce0"
+  },
+  "rawMatrix": {
+    "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+    "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+  },
+  "actualA4Print": {
+    "path": "docs/audit/2026-10-08/portal-print-final6.json",
+    "sha256": "fb77f9277117098eb1487d6ed539dbf6a68d0fc064d638858d622bdbfc9c86ad",
+    "cases": 4,
+    "assertions": 92
+  },
+  "logs": [
+    {
+      "path": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+      "sha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989",
+      "acceptedCompletedEngines": [
+        "chromium",
+        "webkit"
+      ]
+    },
+    {
+      "path": "/tmp/faktura-qa-firefox-final6.log",
+      "sha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c",
+      "acceptedCompletedEngines": [
+        "firefox"
+      ]
+    }
+  ],
+  "composition": {
+    "method": "Only complete passed engines from two independent isolated runs of the exact same application source and compiled build; no partial failed Firefox proof is promoted.",
+    "executionNote": "Chromium and WebKit completed in the first run; Firefox completed in a fresh isolated database run with browser process recycling between viewports and before interactions. This is not a claim that one full three-engine invocation exited successfully.",
+    "applicationIdentity": {
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc"
+    },
+    "runs": [
+      {
+        "rawPath": "/tmp/faktura-browser-coverage-stopped-firefox-process-final6.json",
+        "rawSha256": "8441b6c6d0c97f41ad505185b09cbe5c0af95f90dd793d5943bc9cfd46183a48",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-final6-stopped-firefox-process.json",
+        "summarySha256": "b17a79795d435e29fb194c2c90e201b00861a3ae8b27622f5c7b7285ca1e6586",
+        "acceptedCompletedEngines": [
+          "chromium",
+          "webkit"
+        ],
+        "excludedEngine": "firefox",
+        "invocationExitCode": 1,
+        "logPath": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+        "logSha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+      },
+      {
+        "rawPath": "artifacts/audit/browser-coverage-firefox-final6.json",
+        "rawSha256": "130e8bb9c7f1d1d289d7dd3f3277cb2ddfb5b1b16c33953c94bac4cf5cfa7422",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-firefox-final6.json",
+        "summarySha256": "66c23418c02ef5d41e0bbba9deec3ad5d4778b3d31cffdb7f3843a346d720683",
+        "acceptedCompletedEngines": [
+          "firefox"
+        ],
+        "invocationExitCode": 0,
+        "logPath": "/tmp/faktura-qa-firefox-final6.log",
+        "logSha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c"
+      }
+    ],
+    "harnessChanges": "Validated optional engine filter; Firefox process/context recycling preserves cookies/localStorage/auth, touch/viewport/service-worker settings and collected observations; browser history preferences unchanged. Every live document pageerror remains fatal. Calculator cleanup preserves the original failure.",
+    "priorFailureCauseLimit": "The previous Firefox process closed during tail interactions. An 8 GiB container limit and cumulative OOM counters were observed, but no counter baseline for that invocation exists; the exact cause is not asserted."
+  },
+  "before": {
+    "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+    "sourceSha256": "c746318e97074899cf0c9a0e4772fb5c8163e57ee687483e393d39bbd111e6e9",
+    "focusArtifact": {
+      "path": "docs/audit/2026-10-08/cookie-focus-final4.json",
+      "sha256": "fe2702d4381b7e9cb6eb2134c8e6e4c7770adf352730317fefb6f76fd7f214a1"
+    },
+    "printArtifact": {
+      "path": "docs/audit/2026-10-08/portal-print-final4.json",
+      "sha256": "8711bfb7adacf5b40e7e56f2134c2d0dc9fb533d9c3f23a8b52ea36d8ac0cc29"
+    }
+  },
+  "limit": "Print-media visibility in three engines is separate from actual A4 PDF text/geometry/render checks. Long multipage printouts, hardware printers and physical devices remain unverified."
+}

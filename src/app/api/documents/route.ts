@@ -27,7 +27,9 @@ export async function POST(req: Request) {
     const reader = req.body?.getReader(); if (!reader) throw new ApiError(400, "Brak pliku.");
     const chunks: Uint8Array[] = []; let size = 0;
     while (true) { const { done, value } = await reader.read(); if (done) break; size += value.byteLength; if (size > MAX_DOCUMENT_BYTES + 65536) { await reader.cancel(); throw new ApiError(413, "Plik przekracza limit 3 MB."); } chunks.push(value); }
-    const form = await new Response(Buffer.concat(chunks), { headers: { "Content-Type": req.headers.get("content-type") || "" } }).formData();
+    let form: FormData;
+    try { form = await new Response(Buffer.concat(chunks), { headers: { "Content-Type": req.headers.get("content-type") || "" } }).formData(); }
+    catch { throw new ApiError(400, "Nieprawidłowy formularz pliku. Wybierz plik i ponów wysyłkę.", "INVALID_MULTIPART"); }
     const file = form.get("file"); if (!(file instanceof File)) throw new ApiError(400, "Wybierz plik.");
     const bytes = Buffer.from(await file.arrayBuffer()), mimeType = documentMime(bytes), identity = documentIdentity(companyId, bytes);
     const existing = await prisma.expenseScan.findUnique({ where: { id: identity.id } });

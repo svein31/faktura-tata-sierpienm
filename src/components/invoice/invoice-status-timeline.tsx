@@ -146,13 +146,13 @@ export function InvoiceStatusTimeline({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-bold text-foreground">Wizualna oś czasu KSeF 2.0</h3>
             {ksefNum && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25">
                 <ShieldCheck className="h-3 w-3" />
                 <span>{hasUpo ? "Przyjęta · UPO pobrane" : "Przyjęta · oczekuje na UPO"}</span>
               </span>
             )}
             {isOffline && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/25">
                 <QrCode className="h-3 w-3" />
                 <span>Tryb offline / QR</span>
               </span>
@@ -246,11 +246,11 @@ export function InvoiceStatusTimeline({
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
                       isDone
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                        ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
                         : isCurrent
                         ? "bg-primary/20 text-primary border border-primary/40"
                         : isError
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30"
+                        ? "bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30"
                         : "bg-muted/60 text-muted-foreground border border-border/50"
                     }`}
                   >
@@ -291,12 +291,12 @@ export function InvoiceStatusTimeline({
                   <span
                     className={`text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${
                       isDone
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                         : isCurrent
                         ? "bg-primary/10 text-primary"
                         : isError
-                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                        : "text-muted-foreground/60"
+                        ? "bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {isDone ? "Sukces" : isCurrent ? "W toku" : isError ? "Błąd" : "Oczekuje"}

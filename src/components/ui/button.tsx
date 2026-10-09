@@ -49,6 +49,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className
       )}
       {...props}
+      aria-busy={loading || props["aria-busy"] || undefined}
     >
       {loading && (
         <svg

@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-09T11:31:04.676508+00:00",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "scope": "Post-run review of retained diagnostics in explicitly composed completed Chromium/WebKit and fresh Firefox scope; raw classifications remain unchanged.",
+  "artifactReferences": {
+    "browser": {
+      "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+      "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+    }
+  },
+  "composition": {
+    "method": "Only complete passed engines from two independent isolated runs of the exact same application source and compiled build; no partial failed Firefox proof is promoted.",
+    "executionNote": "Chromium and WebKit completed in the first run; Firefox completed in a fresh isolated database run with browser process recycling between viewports and before interactions. This is not a claim that one full three-engine invocation exited successfully.",
+    "applicationIdentity": {
+      "buildId": "21f_lBaQA8Ww--YiYgN1t",
+      "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc"
+    },
+    "runs": [
+      {
+        "rawPath": "/tmp/faktura-browser-coverage-stopped-firefox-process-final6.json",
+        "rawSha256": "8441b6c6d0c97f41ad505185b09cbe5c0af95f90dd793d5943bc9cfd46183a48",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-final6-stopped-firefox-process.json",
+        "summarySha256": "b17a79795d435e29fb194c2c90e201b00861a3ae8b27622f5c7b7285ca1e6586",
+        "acceptedCompletedEngines": [
+          "chromium",
+          "webkit"
+        ],
+        "excludedEngine": "firefox",
+        "invocationExitCode": 1,
+        "logPath": "/tmp/faktura-qa-matrix-stopped-firefox-process-final6.log",
+        "logSha256": "0488e5166e0015432ca895a49d6a7ea7c1a82f832017480660599b4a4560b989"
+      },
+      {
+        "rawPath": "artifacts/audit/browser-coverage-firefox-final6.json",
+        "rawSha256": "130e8bb9c7f1d1d289d7dd3f3277cb2ddfb5b1b16c33953c94bac4cf5cfa7422",
+        "summaryPath": "docs/audit/2026-10-08/browser-coverage-summary-firefox-final6.json",
+        "summarySha256": "66c23418c02ef5d41e0bbba9deec3ad5d4778b3d31cffdb7f3843a346d720683",
+        "acceptedCompletedEngines": [
+          "firefox"
+        ],
+        "invocationExitCode": 0,
+        "logPath": "/tmp/faktura-qa-firefox-final6.log",
+        "logSha256": "78afe538e53905a0bda822c351d53e1f27292ebd9fbd2f185b9f62ca78a1c67c"
+      }
+    ],
+    "harnessChanges": "Validated optional engine filter; Firefox process/context recycling preserves cookies/localStorage/auth, touch/viewport/service-worker settings and collected observations; browser history preferences unchanged. Every live document pageerror remains fatal. Calculator cleanup preserves the original failure.",
+    "priorFailureCauseLimit": "The previous Firefox process closed during tail interactions. An 8 GiB container limit and cumulative OOM counters were observed, but no counter baseline for that invocation exists; the exact cause is not asserted."
+  },
+  "summary": {
+    "networkEntries": 130,
+    "expectedNetworkEntries": 130,
+    "unclassifiedNetworkEntries": 0,
+    "consoleEntries": 92,
+    "resourceFailureConsoleEntries": 90,
+    "specificReviewedWebKitRscDiagnostics": 1,
+    "firefoxNavigationDiagnosticWithUnprovenRootCause": 1,
+    "unclassifiedOtherConsoleEntries": 0,
+    "unexpectedFatalLivePageErrors": 0,
+    "cleanConsoleClaim": false
+  },
+  "networkGroups": [
+    {
+      "status": 401,
+      "path": "/api/auth/me",
+      "count": 52,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/",
+        "/invite/qa_invite_browser_capability_xxxxxxxxxxxxxxxxxxx",
+        "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "/login",
+        "/register"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "Anonymous session checks in the isolated browser scenarios; authorization refusal is expected, not evidence that a real session failed."
+    },
+    {
+      "status": 502,
+      "path": "/api/nbp",
+      "count": 63,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/settings/currencies"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "NBP provider calls deliberately blocked by the loopback-only environment; currencies settings preserve the failure response. This does not verify real provider uptime."
+    },
+    {
+      "status": 404,
+      "path": "/qa-audit-definitely-missing-page",
+      "count": 3,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/login"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "Deliberate unknown public URL or missing synthetic capability; negative route/authorization states are intentionally tested."
+    },
+    {
+      "status": 404,
+      "path": "/api/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "count": 3,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/portal/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "Deliberate unknown public URL or missing synthetic capability; negative route/authorization states are intentionally tested."
+    },
+    {
+      "status": 404,
+      "path": "/api/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "count": 3,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/invite/qa_missing_capability_xxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "Deliberate unknown public URL or missing synthetic capability; negative route/authorization states are intentionally tested."
+    },
+    {
+      "status": 400,
+      "path": "/api/auth/reset-password",
+      "count": 6,
+      "engines": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ],
+      "observedPages": [
+        "/reset-password"
+      ],
+      "reviewResult": "EXPECTED_CONTROLLED_RESPONSE",
+      "reason": "Controlled negative reset-password requests; browser fixture asserts the visible error and address-token cleanup."
+    }
+  ],
+  "httpConsoleReview": {
+    "count": 90,
+    "reason": "Resource failure console messages corresponding to the intentionally tested HTTP negative/provider-blocked cases. Their presence remains visible; expected responses do not make the console empty.",
+    "result": "EXPECTED_RESPONSE_DIAGNOSTICS_RETAINED"
+  },
+  "otherConsoleReview": [
+    {
+      "original": {
+        "engine": "webkit",
+        "page": "/invoices/6ac8c82d6443dd6132f7c56c",
+        "message": "Failed to fetch RSC payload for http://127.0.0.1:44899/invoices/new. Falling back to browser navigation. TypeError: Load failed",
+        "classification": "requires-review"
+      },
+      "reviewResult": "DOCUMENT_TEARDOWN_RSC_DIAGNOSTIC",
+      "reason": "Observed in the outgoing invoice-detail document after programmatic CTA focus/manual form warmup and intentional page closure. Separate exact6 intent proof gets200 in all three engines with no live errors. Causal WebKit evidence establishes adapter diagnostics during document destruction, but raw message is retained and no global error filter is added.",
+      "causalLimit": "The causal minimal-server proof matches the teardown mechanism, not direct observation of every internal Next RSC catch.",
+      "supportingArtifacts": [
+        "docs/audit/2026-10-08/private-prefetch-final6.json",
+        "docs/audit/2026-10-08/webkit-navigation-causal-final6.json"
+      ]
+    },
+    {
+      "original": {
+        "engine": "firefox",
+        "page": "/dashboard",
+        "message": "[JavaScript Error: \"InvalidStateError: Navigated away from page\"]",
+        "classification": "requires-review"
+      },
+      "reviewResult": "OBSERVED_NAVIGATION_DIAGNOSTIC_ROOT_CAUSE_UNPROVEN",
+      "reason": "Single JavaScript console diagnostic on dashboard during history/navigation in the completed fresh Firefox run. It did not appear as a fatal live pageerror and the tested interactions/layouts completed.",
+      "causalLimit": "No independent causal reproduction establishes the precise producer or application-versus-browser origin. It is retained as an unresolved diagnostic; this audit does not claim an empty console or all-error absence.",
+      "supportingArtifacts": [
+        "docs/audit/2026-10-08/browser-coverage-summary-firefox-final6.json"
+      ]
+    }
+  ],
+  "remainingLimit": "The one Firefox InvalidStateError is not independently explained or fixed. All microelements, physical devices and source variants remain outside the performed scope; composition does not make them passed."
+}

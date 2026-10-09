@@ -8,6 +8,7 @@ import type { CompanyProfile, Contractor, Invoice, InvoiceLine, VatRate } from "
 import { lineGross, lineNet, lineVat, round2 } from "../format";
 import { EU_COUNTRIES } from "../validation";
 import { warsawDate } from "../scheduling";
+import { isIsoCalendarDate } from "../nbp";
 
 const EU_COUNTRIES_LIST = Array.from(EU_COUNTRIES);
 
@@ -150,6 +151,7 @@ export function mapVatRateToP12(rate: VatRate): string {
  */
 export function buildFa3Xml(options: Fa3BuildOptions): string {
   const { invoice, seller, buyer, systemInfo = "FakturaProsto KSeF 2.0", generationDate = new Date() } = options;
+  if (invoice.isCorrection && (!invoice.correctionReason?.trim() || !invoice.originalInvoiceNumber?.trim() || !isIsoCalendarDate(invoice.originalIssueDate || ""))) throw new Error("Korekta wymaga przyczyny oraz numeru i poprawnej daty korygowanej faktury.");
   const totals = calculateFa3Totals(invoice.lines);
   const sellerNip = cleanNip(seller.nip);
   const buyerNip = buyer ? cleanNip(buyer.nip) : "";
@@ -178,40 +180,40 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
 
   // Sumy wg stawek VAT (P_13_x oraz P_14_x, oraz P_14_xW dla walut obcych)
   const rateSummaries: string[] = [];
-  if (totals.rate23.net > 0 || totals.rate23.vat > 0) {
+  if (totals.rate23.net !== 0 || totals.rate23.vat !== 0) {
     rateSummaries.push(`    <P_13_1>${totals.rate23.net.toFixed(2)}</P_13_1>`);
     rateSummaries.push(`    <P_14_1>${totals.rate23.vat.toFixed(2)}</P_14_1>`);
-    if (effectiveRate && totals.rate23.vat > 0) {
+    if (effectiveRate && totals.rate23.vat !== 0) {
       const vatPln = round2(totals.rate23.vat * effectiveRate);
       rateSummaries.push(`    <P_14_1W>${vatPln.toFixed(2)}</P_14_1W>`);
     }
   }
-  if (totals.rate8.net > 0 || totals.rate8.vat > 0) {
+  if (totals.rate8.net !== 0 || totals.rate8.vat !== 0) {
     rateSummaries.push(`    <P_13_2>${totals.rate8.net.toFixed(2)}</P_13_2>`);
     rateSummaries.push(`    <P_14_2>${totals.rate8.vat.toFixed(2)}</P_14_2>`);
-    if (effectiveRate && totals.rate8.vat > 0) {
+    if (effectiveRate && totals.rate8.vat !== 0) {
       const vatPln = round2(totals.rate8.vat * effectiveRate);
       rateSummaries.push(`    <P_14_2W>${vatPln.toFixed(2)}</P_14_2W>`);
     }
   }
-  if (totals.rate5.net > 0 || totals.rate5.vat > 0) {
+  if (totals.rate5.net !== 0 || totals.rate5.vat !== 0) {
     rateSummaries.push(`    <P_13_3>${totals.rate5.net.toFixed(2)}</P_13_3>`);
     rateSummaries.push(`    <P_14_3>${totals.rate5.vat.toFixed(2)}</P_14_3>`);
-    if (effectiveRate && totals.rate5.vat > 0) {
+    if (effectiveRate && totals.rate5.vat !== 0) {
       const vatPln = round2(totals.rate5.vat * effectiveRate);
       rateSummaries.push(`    <P_14_3W>${vatPln.toFixed(2)}</P_14_3W>`);
     }
   }
-  if (totals.rate0.net > 0) {
+  if (totals.rate0.net !== 0) {
     rateSummaries.push(`    <P_13_6_1>${totals.rate0.net.toFixed(2)}</P_13_6_1>`);
   }
-  if (totals.rateZw.net > 0) {
+  if (totals.rateZw.net !== 0) {
     rateSummaries.push(`    <P_13_7>${totals.rateZw.net.toFixed(2)}</P_13_7>`);
   }
-  if (totals.rateNp.net > 0) {
+  if (totals.rateNp.net !== 0) {
     rateSummaries.push(`    <P_13_8>${totals.rateNp.net.toFixed(2)}</P_13_8>`);
   }
-  if (totals.rateOo.net > 0) {
+  if (totals.rateOo.net !== 0) {
     rateSummaries.push(`    <P_13_10>${totals.rateOo.net.toFixed(2)}</P_13_10>`);
   }
 
@@ -328,10 +330,10 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
     <Adnotacje>
       <P_16>2</P_16>
       <P_17>2</P_17>
-      <P_18>${totals.rateOo.net > 0 ? "1" : "2"}</P_18>
+      <P_18>${invoice.lines.some(line => line.vatRate === "oo") ? "1" : "2"}</P_18>
       <P_18A>${invoice.isSplitPayment ? "1" : "2"}</P_18A>
       <Zwolnienie>
-        ${totals.rateZw.net > 0 ? `<P_19>1</P_19><P_19A>${esc(invoice.exemptionBasis || "")}</P_19A>` : `<P_19N>1</P_19N>`}
+        ${invoice.lines.some(line => line.vatRate === "zw") ? `<P_19>1</P_19><P_19A>${esc(invoice.exemptionBasis || "")}</P_19A>` : `<P_19N>1</P_19N>`}
       </Zwolnienie>
       <NoweSrodkiTransportu>
         <P_22N>1</P_22N>
@@ -342,10 +344,10 @@ ${rateSummariesXml}    <P_15>${totals.totalGross.toFixed(2)}</P_15>
       </PMarzy>
     </Adnotacje>
     <RodzajFaktury>${invoice.isCorrection ? "KOR" : invoice.documentKind === "advance" ? "ZAL" : invoice.documentKind === "final" && invoice.settlementMetadata?.advances.length ? "ROZ" : "VAT"}</RodzajFaktury>
-${invoice.isCorrection ? `    <PrzyczynaKorekty>${esc(invoice.correctionReason || "Korekta pozycji faktury")}</PrzyczynaKorekty>
+${invoice.isCorrection ? `    <PrzyczynaKorekty>${esc(invoice.correctionReason)}</PrzyczynaKorekty>
     <DaneFaKorygowanej>
-      <DataWystFaKorygowanej>${invoice.originalIssueDate || invoice.issueDate}</DataWystFaKorygowanej>
-      <NrFaKorygowanej>${esc(invoice.originalInvoiceNumber || "FA/ORYG")}</NrFaKorygowanej>
+      <DataWystFaKorygowanej>${invoice.originalIssueDate}</DataWystFaKorygowanej>
+      <NrFaKorygowanej>${esc(invoice.originalInvoiceNumber)}</NrFaKorygowanej>
       ${invoice.originalKsefNumber ? `<NrKSeF>1</NrKSeF><NrKSeFFaKorygowanej>${esc(invoice.originalKsefNumber)}</NrKSeFFaKorygowanej>` : `<NrKSeFN>1</NrKSeFN>`}
     </DaneFaKorygowanej>
 ` : ""}${(invoice.settlementMetadata?.advances || []).map(a => `<FakturaZaliczkowa>${a.ksefNumber ? `<NrKSeFFaZaliczkowej>${esc(a.ksefNumber)}</NrKSeFFaZaliczkowej>` : `<NrKSeFZN>1</NrKSeFZN><NrFaZaliczkowej>${esc(a.number)}</NrFaZaliczkowej>`}</FakturaZaliczkowa>`).join("")}${invoice.documentKind === "advance" ? "" : faWierszeXml}

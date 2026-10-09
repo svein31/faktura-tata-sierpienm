@@ -404,7 +404,7 @@ export default function InvoicesPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {<Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
-            <Link href="/invoices/recurring">
+            <Link prefetch={false} href="/invoices/recurring">
               <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs border-border/70">
                 <Repeat className="h-3.5 w-3.5 text-purple-400" />
                 <span>Cykliczne (MRR)</span>
@@ -479,11 +479,11 @@ export default function InvoicesPage() {
               onClick={() => setTypeFilter("purchase")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                 typeFilter === "purchase"
-                  ? "bg-background text-emerald-600 dark:text-emerald-400 shadow-xs ring-1 ring-border/80"
+                  ? "bg-background text-emerald-700 dark:text-emerald-400 shadow-xs ring-1 ring-border/80"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <CloudDownload className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <CloudDownload className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>Wydatki / Zakupy (FZ)</span>
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 typeFilter === "purchase" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
@@ -623,7 +623,7 @@ export default function InvoicesPage() {
                 size="sm"
                 onClick={() => setConfirmBulkPayment(true)}
                 loading={markingPaid}
-                className="rounded-xl text-xs h-8 gap-1.5 font-medium text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 shadow-2xs"
+                className="rounded-xl text-xs h-8 gap-1.5 font-medium text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 shadow-2xs"
                 title="Oznacz zaznaczone faktury jako opłacone"
               >
                 <Check className="h-3.5 w-3.5" /> Oznacz opłacone
@@ -737,7 +737,7 @@ export default function InvoicesPage() {
               <div className="flex items-start gap-3">
                 <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={selectedIds.includes(inv.id)} onChange={e => setSelectedIds(ids => e.target.checked ? [...ids, inv.id] : ids.filter(id => id !== inv.id))} className="mt-2 h-5 w-5 accent-primary" />
                 <div className="min-w-0 flex-1">
-                  <Link href={`/invoices/${inv.id}`} className="block min-h-11 font-semibold text-primary break-words py-1">{inv.number}</Link>
+                  <Link prefetch={false} href={`/invoices/${inv.id}`} className="block min-h-11 font-semibold text-primary break-words py-1">{inv.number}</Link>
                   <p className="text-xs text-muted-foreground break-words">{contractor?.name || "Klient detaliczny"}</p>
                 </div>
                 <span className="shrink-0 text-xs font-medium">{inv.currency}</span>
@@ -748,7 +748,7 @@ export default function InvoicesPage() {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge className={status.color}>{status.label}</Badge>
-                <Link href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
+                <Link prefetch={false} href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
               </div>
             </article>;
           })}
@@ -760,6 +760,7 @@ export default function InvoicesPage() {
                 <th className="py-3 px-3 w-8 text-center">
                   <input
                     type="checkbox"
+                    aria-label="Zaznacz wszystkie widoczne faktury"
                     checked={filtered.length > 0 && selectedIds.length === filtered.length}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -803,6 +804,7 @@ export default function InvoicesPage() {
                       <td className="py-3.5 px-3 text-center">
                         <input
                           type="checkbox"
+                          aria-label={`Zaznacz fakturę ${inv.number}`}
                           checked={isSelected}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -816,7 +818,7 @@ export default function InvoicesPage() {
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <Link href={`/invoices/${inv.id}`} className="group flex items-center gap-2.5">
+                        <Link prefetch={false} href={`/invoices/${inv.id}`} className="group flex items-center gap-2.5">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                             <FileText className="h-4 w-4" />
                           </div>
@@ -838,7 +840,7 @@ export default function InvoicesPage() {
 
                       <td className="py-3.5 px-3 text-muted-foreground">
                         <p>{formatDate(inv.issueDate)}</p>
-                        <p className="text-[10.5px] opacity-75">termin: {formatDate(inv.dueDate)}</p>
+                        <p className="text-[10.5px]">termin: {formatDate(inv.dueDate)}</p>
                       </td>
 
                       <td className="py-3.5 px-3 text-right font-bold tabular-nums text-foreground text-[13px]">
@@ -862,7 +864,7 @@ export default function InvoicesPage() {
                           <div className="flex items-center gap-1.5">
                             <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
                             <div className="min-w-0">
-                              <span className="block font-mono text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 truncate max-w-[120px]" title={ksefNum}>
+                              <span className="block font-mono text-[10.5px] font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-[120px]" title={ksefNum}>
                                 {ksefNum}
                               </span>
                               <span className="text-[10px] text-muted-foreground uppercase">
@@ -871,7 +873,7 @@ export default function InvoicesPage() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground/40 text-[11px]">— nie wysłano —</span>
+                          <span className="text-muted-foreground text-[11px]">— nie wysłano —</span>
                         )}
                       </td>
 
@@ -880,21 +882,21 @@ export default function InvoicesPage() {
                         {inv.type === "purchase" ? (
                           isApproved ? (
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25"
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25"
                               title="Faktura zatwierdzona do księgowości"
                             >
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Zaakceptowana
                             </span>
                           ) : (
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25"
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25"
                               title="Wersja robocza — oczekuje na ręczne zatwierdzenie"
                             >
                               <Clock className="h-3.5 w-3.5 text-amber-500" /> Do akceptacji
                             </span>
                           )
                         ) : (
-                          <span className="text-muted-foreground/40 text-[11px]">—</span>
+                          <span className="text-muted-foreground text-[11px]">—</span>
                         )}
                       </td>
 
@@ -907,7 +909,7 @@ export default function InvoicesPage() {
                               size="sm"
                               onClick={() => handleSingleApprove(inv.id, "approved")}
                               title="Zatwierdź dla księgowości"
-                              className="h-8 px-2.5 text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 gap-1 rounded-xl font-medium"
+                              className="h-8 px-2.5 text-xs text-emerald-700 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 gap-1 rounded-xl font-medium"
                             >
                               <Check className="h-3 w-3" /> Akceptuj
                             </Button>
@@ -968,7 +970,7 @@ export default function InvoicesPage() {
                               {inv.type !== "purchase" && <>
                                 <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-3.5 w-3.5" /> Edytuj</button>
                                 <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-3.5 w-3.5" /> Duplikuj</button>
-                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-rose-600 hover:bg-muted" onClick={() => setToDelete(inv.id)}><Trash2 className="h-3.5 w-3.5" /> Usuń</button>
+                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-rose-700 hover:bg-muted" onClick={() => setToDelete(inv.id)}><Trash2 className="h-3.5 w-3.5" /> Usuń</button>
                               </>}
                             </div>
                           </details>}

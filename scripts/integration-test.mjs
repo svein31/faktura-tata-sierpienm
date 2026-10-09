@@ -18,6 +18,12 @@ import { checkKsefAutoEmail } from './ksef-auto-email-regression.mjs';
 import { checkDataPerformance, checkPerformanceIndexes } from './data-performance-regression.mjs';
 import { checkQueueHealth } from './queue-health-regression.mjs';
 import { checkEmailSafety } from './email-safety-regression.mjs';
+import { checkPasswordChangeAtomic, checkAccountSecurityHttp } from './audit-account-regression.mjs';
+import { checkFinancialHttp } from './newqa-financial-regression.mjs';
+import { checkInvoiceApprovalHttp } from './audit-invoice-approval-regression.mjs';
+import { checkAuthenticationProofFencing } from './audit-auth-proof-regression.mjs';
+import { checkInvitationProofHttp } from './audit-invitation-proof-regression.mjs';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 require('./register-ts.cjs');
@@ -157,6 +163,8 @@ try {
     await migrateData(mongoClient.db('fakturo_integration'), 'up', migration);
   }
   await checkPasswordResetAtomic(db);
+  await checkPasswordChangeAtomic(db);
+  await checkAuthenticationProofFencing(db);
   await checkAccountDeletionAtomic(db);
   await checkBillingSafety(db);
   await checkKsefAutoEmail(db);
@@ -169,7 +177,8 @@ try {
   });
   assert.equal((await once(pilotCheck, 'exit'))[0], 0, 'Consent withdrawal must fence concurrent measurement writes');
   console.log('[integration] Starting application');
-  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '', WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const providerGuard = fileURLToPath(new URL('./performance/loopback-only.cjs', import.meta.url));
+  server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '-p', String(port), '-H', '127.0.0.1'], { env: { ...process.env, DATABASE_URL: databaseUrl, NODE_ENV: 'production', COOKIE_SECURE: 'false', CRON_SECRET: 'integration-cron-secret', NEXTAUTH_SECRET: 'integration-auth-secret-long-enough-for-hmac', MFA_ENCRYPTION_KEY: '', WEBHOOK_ENCRYPTION_KEY: '22'.repeat(32), RESEND_API_KEY: '', STRIPE_SECRET_KEY: '', SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtp.address().port), SMTP_SECURE: 'false', SMTP_USER: '', SMTP_PASS: '', EMAIL_FROM: 'test@example.com', NODE_OPTIONS: `--require=${JSON.stringify(providerGuard)}` }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stdout.on('data', data => { logs += data; });
   server.stderr.on('data', data => { logs += data; });
   let ready = false;
@@ -223,6 +232,7 @@ try {
   const companyId = company.data.company.id;
   const contractor = await api('POST', '/api/contractors', { name: 'Nabywca', nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } }, a.cookie);
   assert.equal(contractor.res.status, 201, JSON.stringify(contractor.data));
+  await checkFinancialHttp({ api, db, owner: a, other: b, contractorId: contractor.data.contractor.id, companyId });
   const invoice = await api('POST', '/api/invoices', {
     number: 'FS/2026/1', type: 'sale', status: 'draft', sellerCompanyId: companyId, contractorId: contractor.data.contractor.id,
     issueDate: '2026-09-15', saleDate: '2026-09-15', dueDate: '2026-09-29', currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 14,
@@ -1071,6 +1081,9 @@ try {
   console.log('PASS: atomic shared auth limit, scoped attempts, hashed identity and TTL migration');
   await auditProductSecurity(base, db);
   if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerCookie:a.cookie,companyId,otherCookie:b.cookie,otherUserId:b.data.user.id});
+  await checkAccountSecurityHttp(base, db);
+  await checkInvoiceApprovalHttp(base, db);
+  await checkInvitationProofHttp(base, db);
   if (process.env.SKIP_BROWSER_CHECKS !== '1') await browserChecks(base, db);
 } catch (error) { console.error(logs); throw error; }
 finally {

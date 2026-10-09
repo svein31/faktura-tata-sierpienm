@@ -85,7 +85,7 @@ export function TermsUpdateModal() {
           </p>
 
           <div className="space-y-2">
-            <Link
+            <Link prefetch={false}
               href="/regulamin"
               target="_blank"
               className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
@@ -98,7 +98,7 @@ export function TermsUpdateModal() {
                 <p className="text-[11px] text-slate-500">Otwórz w nowej karcie</p>
               </div>
             </Link>
-            <Link
+            <Link prefetch={false}
               href="/polityka-prywatnosci"
               target="_blank"
               className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"

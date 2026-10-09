@@ -11,4 +11,6 @@ test('CSV import rejects broken quoting, inconsistent rows and large batches', (
   assert.throws(() => parseImportCsv('name,nip\n"broken,5250001003'), /Niezamknięte/);
   assert.throws(() => parseImportCsv('name,nip\nOnly name'), /różną liczbę/);
   assert.throws(() => parseImportCsv('name,nip\n' + 'a,1234563218\n'.repeat(201)), /200/);
+  assert.throws(() => parseImportCsv('name,nip\n"name"tampered,1234563218'), /po zamknięciu/);
+  assert.deepEqual(parseImportCsv('name,nip\n"quoted name" ,1234563218'), { headers: ['name', 'nip'], rows: [['quoted name', '1234563218']] });
 });

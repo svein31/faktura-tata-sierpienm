@@ -228,6 +228,7 @@ export default function AccountantPage() {
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Input
               type="month"
+              aria-label="Miesiąc zestawienia"
               value={currentMonth}
               onChange={(e) => setCurrentMonth(e.target.value)}
               className="w-full sm:w-auto"

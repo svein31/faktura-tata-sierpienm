@@ -1,5 +1,6 @@
 import { round2, roundHalfUp } from "./tax/money";
 import { parseInvoiceTaxFields } from "./invoice-tax-fields";
+import { normalizeInvoiceLineAmounts } from "./invoice-input";
 /**
  * Współdzielone parsery body dla route handlerów (server-only).
  * Oddzielone od plików route, bo Next.js wymaga, by route eksportowały
@@ -106,7 +107,7 @@ interface Line {
   settlementVat?: number;
 }
 
-function parseLines(v: unknown, allowSettlementLines = false): Line[] {
+function parseLines(v: unknown, allowSettlementLines = false, correction = false): Line[] {
   if (!Array.isArray(v) || v.length === 0 || v.length > 200) {
     throw new ApiError(400, "Faktura musi zawierać od 1 do 200 pozycji.");
   }
@@ -116,8 +117,8 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
     if (!name) throw new ApiError(400, `Pozycja #${idx + 1}: podaj nazwę towaru/usługi.`);
 
     const quantity = typeof l.quantity === "number" ? l.quantity : Number(l.quantity ?? 0);
-    if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 1e9 || roundHalfUp(quantity, 6) <= 0) {
-      throw new ApiError(400, `Pozycja #${idx + 1}: ilość musi być większa od zera.`);
+    if (!Number.isFinite(quantity) || (correction ? quantity === 0 : quantity <= 0) || Math.abs(quantity) > 1e9 || roundHalfUp(quantity, 6) === 0) {
+      throw new ApiError(400, `Pozycja #${idx + 1}: podaj ${correction ? "niezerową różnicę ilości" : "ilość większą od zera"}.`);
     }
 
     const netPrice = typeof l.netPrice === "number" ? l.netPrice : Number(l.netPrice ?? 0);
@@ -136,15 +137,15 @@ function parseLines(v: unknown, allowSettlementLines = false): Line[] {
       throw new ApiError(400, `Pozycja #${idx + 1}: nieprawidłowa stawka VAT (${vatRate}).`);
     }
 
-    return {
+    return normalizeInvoiceLineAmounts({
       id: typeof l.id === "string" && l.id ? l.id : undefined,
       name,
-      quantity: roundHalfUp(quantity, 6),
+      quantity,
       unit: cleanStr(l.unit, 30, `lines[${idx}].unit`) || "szt.",
-      netPrice: round2(netPrice),
+      netPrice,
       vatRate,
       ...(hasSettlement ? { settlementNet: round2(settlementNet), settlementVat: round2(settlementVat) } : {}),
-    };
+    });
   });
 }
 
@@ -191,6 +192,9 @@ export async function parseInvoiceBody(
     allowSettlementLines?: boolean;
   }
 ) {
+  for (const key of ["isCorrection", "isProforma", "isOffline", "isRecurring", "recurringPaused", "recurringAutoSend"] as const) {
+    if (body[key] !== undefined && typeof body[key] !== "boolean") throw new FieldError(key, "Pole wymaga wartości tak/nie.");
+  }
   const type = cleanStr(body.type, 10, "type") as (typeof TYPES)[number];
   if (!TYPES.includes(type)) throw new ApiError(400, "Nieprawidłowy typ faktury.");
 
@@ -229,15 +233,29 @@ export async function parseInvoiceBody(
   const currency = currencyRaw;
 
   const languageRaw = cleanStr(body.language, 10, "language") || "PL";
-  const language = LANGUAGES.includes(languageRaw as any) ? languageRaw : "PL";
+  if (!LANGUAGES.includes(languageRaw as any)) throw new FieldError("language", "Wybierz poprawny język dokumentu.");
+  const language = languageRaw;
 
   const paymentMethod = cleanStr(body.paymentMethod, 20, "paymentMethod") as (typeof PAYMENT_METHODS)[number];
   if (!PAYMENT_METHODS.includes(paymentMethod)) throw new ApiError(400, "Nieprawidłowa metoda płatności.");
 
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  const dates: Record<"issueDate" | "saleDate" | "dueDate", string> = { issueDate: "", saleDate: "", dueDate: "" };
   for (const f of ["issueDate", "saleDate", "dueDate"] as const) {
     const v = cleanStr(body[f], 10, f);
     if (!dateRe.test(v) || !isIsoCalendarDate(v)) throw new FieldError(f, `Nieprawidłowa data: ${f}.`);
+    dates[f] = v;
+  }
+  const correction = body.isCorrection === true;
+  const correctionReason = cleanStr(body.correctionReason, 1000, "correctionReason") || null;
+  const originalInvoiceNumber = cleanStr(body.originalInvoiceNumber, 100, "originalInvoiceNumber") || null;
+  const originalIssueDate = cleanStr(body.originalIssueDate, 10, "originalIssueDate") || null;
+  if (correction) {
+    if (type !== "sale" || body.isProforma) throw new ApiError(400, "Korekta wymaga faktury sprzedaży i nie może być proformą.");
+    if (!correctionReason) throw new FieldError("correctionReason", "Uzupełnij przyczynę korekty.");
+    if (!originalInvoiceNumber) throw new FieldError("originalInvoiceNumber", "Podaj numer korygowanej faktury.");
+    if (!originalIssueDate || !isIsoCalendarDate(originalIssueDate)) throw new FieldError("originalIssueDate", "Podaj poprawną datę korygowanej faktury.");
+    if (originalIssueDate > dates.issueDate) throw new FieldError("originalIssueDate", "Data korekty nie może poprzedzać wystawienia korygowanej faktury.");
   }
 
   if (body.isRecurring) {
@@ -247,7 +265,7 @@ export async function parseInvoiceBody(
   }
 
   // Rate provenance and PLN totals are authoritative on the server.
-  const lines = parseLines(body.lines, opts.allowSettlementLines === true);
+  const lines = parseLines(body.lines, opts.allowSettlementLines === true, correction);
   const taxPointDate = cleanStr(body.taxPointDate, 10, "taxPointDate") || null;
   if (taxPointDate && !isIsoCalendarDate(taxPointDate)) throw new ApiError(400, "Nieprawidłowa data obowiązku podatkowego.");
   let exchangeRate: number | null = null, exchangeRateUnit = 1;
@@ -261,13 +279,13 @@ export async function parseInvoiceBody(
       exchangeRate = body.exchangeRate;
       exchangeRateUnit = body.exchangeRateUnit === undefined ? 1 : Number(body.exchangeRateUnit);
       if (!Number.isFinite(exchangeRateUnit) || exchangeRateUnit <= 0) throw new ApiError(400, "Nieprawidłowa jednostka kursu.");
-      exchangeRateDate = cleanStr(body.exchangeRateDate, 10, "exchangeRateDate") || String(body.issueDate);
+      exchangeRateDate = cleanStr(body.exchangeRateDate, 10, "exchangeRateDate") || dates.issueDate;
       if (!isIsoCalendarDate(exchangeRateDate)) throw new ApiError(400, "Nieprawidłowa data kursu ręcznego.");
       exchangeRateTable = "Kurs własny podatnika"; exchangeRateSource = "Własny kurs podatnika";
     } else {
       if (exchangeRateRule === "art_31a_tax_point" && !taxPointDate) throw new ApiError(400, "Podaj datę obowiązku podatkowego.");
       try {
-        const rate = await getEffectiveNbpRate({ currency, issueDate: String(body.issueDate), saleDate: String(body.saleDate), taxPointDate: taxPointDate || undefined, rule: exchangeRateRule as ExchangeRateRule | undefined });
+        const rate = await getEffectiveNbpRate({ currency, issueDate: dates.issueDate, saleDate: dates.saleDate, taxPointDate: taxPointDate || undefined, rule: exchangeRateRule as ExchangeRateRule | undefined });
         exchangeRate = rate.rate; exchangeRateUnit = rate.unit; exchangeRateDate = rate.effectiveDate;
         exchangeRateTable = rate.tableNumber; exchangeRateSource = rate.source; exchangeRateRule = rate.rule;
         exchangeRateJustification = null;
@@ -286,6 +304,11 @@ export async function parseInvoiceBody(
   const bankAccountSnapshot = body.bankAccountSnapshot ? (body.bankAccountSnapshot as unknown as Prisma.InputJsonValue) : undefined;
   const buyerTaxIdType = cleanStr(body.buyerTaxIdType, 20, "buyerTaxIdType") || null;
   const buyerCountry = cleanStr(body.buyerCountry, 10, "buyerCountry") || null;
+  const paymentStatus = cleanStr(body.paymentStatus, 20, "paymentStatus") || (status === "paid" ? "paid" : "unpaid");
+  if (!["unpaid", "partially_paid", "paid", "overdue"].includes(paymentStatus)) throw new FieldError("paymentStatus", "Nieprawidłowy status płatności.");
+  if (body.paidAmount !== undefined && body.paidAmount !== null && (typeof body.paidAmount !== "number" || !Number.isFinite(body.paidAmount) || body.paidAmount < 0 || body.paidAmount > 1e12)) throw new FieldError("paidAmount", "Nieprawidłowa kwota wpłat.");
+  const approvalStatus = body.approvalStatus === undefined ? undefined : cleanStr(body.approvalStatus, 30, "approvalStatus") || "pending";
+  if (approvalStatus !== undefined && !["pending", "approved"].includes(approvalStatus)) throw new FieldError("approvalStatus", "Nieprawidłowy status akceptacji.");
 
   return {
     number,
@@ -294,30 +317,30 @@ export async function parseInvoiceBody(
     // The browser may merge an old draft snapshot into an issue request.
     // Lifecycle classification follows the validated command, never the stale client field.
     documentStatus: status === "draft" ? "draft" : "issued",
-    paymentStatus: typeof body.paymentStatus === "string" ? cleanStr(body.paymentStatus, 20, "paymentStatus") : (status === "paid" ? "paid" : "unpaid"),
+    paymentStatus,
     paidAmount: typeof body.paidAmount === "number" ? Math.max(0, body.paidAmount) : (status === "paid" ? undefined : 0),
     contractorId,
     sellerCompanyId,
-    issueDate: body.issueDate as string,
-    saleDate: body.saleDate as string,
-    dueDate: body.dueDate as string,
+    issueDate: dates.issueDate,
+    saleDate: dates.saleDate,
+    dueDate: dates.dueDate,
     currency,
     language,
     paymentMethod,
     paymentTermDays: Math.min(Math.max(Math.round(num(body.paymentTermDays)), 0), 365),
     notes: cleanStr(body.notes, 4000, "notes") || null,
     lines: lines as unknown as Prisma.InputJsonValue,
-    approvalStatus: typeof body.approvalStatus === "string" ? cleanStr(body.approvalStatus, 30, "approvalStatus") : undefined,
+    approvalStatus,
     // Proforma & Udostępnianie
     isProforma: Boolean(body.isProforma),
     shareToken: typeof body.shareToken === "string" && body.shareToken.trim() ? cleanStr(body.shareToken, 64, "shareToken") : undefined,
     // Korekty
-    isCorrection: Boolean(body.isCorrection),
-    correctionReason: cleanStr(body.correctionReason, 1000, "correctionReason") || null,
+    isCorrection: correction,
+    correctionReason,
     originalInvoiceId: cleanStr(body.originalInvoiceId, 100, "originalInvoiceId") || null,
-    originalInvoiceNumber: cleanStr(body.originalInvoiceNumber, 100, "originalInvoiceNumber") || null,
+    originalInvoiceNumber,
     originalKsefNumber: cleanStr(body.originalKsefNumber, 100, "originalKsefNumber") || null,
-    originalIssueDate: cleanStr(body.originalIssueDate, 20, "originalIssueDate") || null,
+    originalIssueDate,
     originalLines: Array.isArray(body.originalLines) ? (body.originalLines as unknown as Prisma.InputJsonValue) : undefined,
     // Offline
     isOffline: Boolean(body.isOffline),

@@ -203,7 +203,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Link
+                      <Link prefetch={false}
                         href={`/invoices/${invoice.id}`}
                         className="text-xs font-bold text-foreground hover:text-primary transition-colors"
                       >
@@ -236,7 +236,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                  <Link
+                  <Link prefetch={false}
                     href={`/invoices/${invoice.id}`}
                     className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-2.5 text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
                   >
@@ -252,7 +252,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
 
       {items.length > 8 && (
         <div className="mt-3 pt-2.5 border-t border-border/60 text-center">
-          <Link
+          <Link prefetch={false}
             href="/invoices"
             className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
           >

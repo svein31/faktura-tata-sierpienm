@@ -26,7 +26,7 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
   setFunctionalConsent, setAnalyticsConsent, setMarketingConsent, handleRejectOptional,
   handleSaveCustom, handleAcceptAll, onClose }: CookiePreferencesDialogProps) {
   return (
-      <Dialog open onClose={onClose} title="Ustawienia prywatności i plików cookies" description="Zgodność z art. 399 Prawa komunikacji elektronicznej (PKE) i RODO" size="lg" footer={
+      <Dialog open hideOnPrint onClose={onClose} title="Ustawienia prywatności i plików cookies" description="Zgodność z art. 399 Prawa komunikacji elektronicznej (PKE) i RODO" size="lg" footer={
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Button
                 variant="ghost"
@@ -175,9 +175,9 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
 
               <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
                 Więcej informacji:{" "}
-                <Link prefetch={false} href="/polityka-cookies" target="_blank" className="text-blue-600 hover:underline font-semibold">Polityka cookies</Link>{" "}
+                <Link prefetch={false} href="/polityka-cookies" target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Polityka cookies</Link>{" "}
                 oraz{" "}
-                <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-blue-600 hover:underline font-semibold">Polityka prywatności</Link>.
+                <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Polityka prywatności</Link>.
                 {" "}Możesz zmienić te ustawienia w dowolnej chwili za pomocą linku w stopce serwisu lub w ustawieniach konta.
               </div>
             </div>

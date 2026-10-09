@@ -41,7 +41,8 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
 }, forwardedRef) {
   const options = parseOptions(children);
   const controlled = value !== undefined;
-  const [internalValue, setInternalValue] = React.useState(String(defaultValue ?? options[0]?.value ?? ""));
+  const firstEnabledValue = options.find(option => !option.disabled)?.value ?? "";
+  const [internalValue, setInternalValue] = React.useState(String(defaultValue ?? firstEnabledValue));
   const selected = controlled ? String(value) : internalValue;
   const selectedOption = options.find(option => option.value === selected);
   const segment = display === "segmented" || (display === "auto" && options.length >= 2 && options.length <= 3 && options.every(option => option.value !== ""));
@@ -54,6 +55,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
   const typeAhead = React.useRef("");
   const typeTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const listId = React.useId();
+  const errorId = React.useId();
   const optionId = (index: number) => `${listId}-option-${index}`;
 
   const setRef = React.useCallback((element: HTMLButtonElement | null) => {
@@ -116,10 +118,10 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
   React.useEffect(() => {
     const parentForm = trigger.current?.form;
     if (!parentForm || controlled) return;
-    const reset = () => { setInternalValue(String(defaultValue ?? options[0]?.value ?? "")); setInvalid(false); setOpen(false); };
+    const reset = () => { setInternalValue(String(defaultValue ?? firstEnabledValue)); setInvalid(false); setOpen(false); };
     parentForm.addEventListener("reset", reset);
     return () => parentForm.removeEventListener("reset", reset);
-  }, [controlled, defaultValue, options]);
+  }, [controlled, defaultValue, firstEnabledValue]);
   React.useEffect(() => () => { if (typeTimer.current) clearTimeout(typeTimer.current); }, []);
   React.useEffect(() => {
     const panel = menu.current;
@@ -136,6 +138,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
     if (event.key === "Tab") { setOpen(false); return; }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
+      if (!enabled.length) return;
       const next = move(index, event.key === "ArrowDown" ? 1 : -1);
       if (segment) { trigger.current?.parentElement?.querySelectorAll<HTMLButtonElement>("[data-segment]")[next]?.focus(); choose(options[next].value, false); }
       else { setActive(next); setOpen(true); }
@@ -165,41 +168,38 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(function 
     }
   };
 
-  React.useEffect(() => {
-    if (!required || !trigger.current) return;
-    const parentForm = trigger.current.form;
-    if (!parentForm) return;
-    const check = (event: Event) => {
-      if (selected) return;
-      event.preventDefault();
-      setInvalid(true);
-      trigger.current?.focus();
-    };
-    parentForm.addEventListener("submit", check, true);
-    return () => parentForm.removeEventListener("submit", check, true);
-  }, [name, required, selected]);
-
   const ariaProps = {
     "aria-label": props["aria-label"],
     "aria-labelledby": props["aria-labelledby"],
-    "aria-describedby": props["aria-describedby"],
+    "aria-describedby": [props["aria-describedby"], invalid ? errorId : undefined].filter(Boolean).join(" ") || undefined,
     "aria-required": required || undefined,
     "aria-invalid": invalid || props["aria-invalid"] || undefined,
   } as const;
-  const hiddenInput = name ? <input type="hidden" name={name} value={selected} form={form} disabled={disabled} /> : null;
+  // A real select preserves native constraint validation before React's submit
+  // handler, form data and resets. Hidden inputs cannot enforce `required`.
+  // Explicit coordinates keep the clipped proxy inside its containing block.
+  // Its default static position can otherwise escape a scrolling table and
+  // enlarge the page despite the control being visually hidden.
+  const nativeControl = <select name={name} value={selected} form={form} disabled={disabled} required={required} tabIndex={-1} aria-hidden="true" className="sr-only pointer-events-none" style={{ left: 0, top: 0 }} onChange={event => choose(event.target.value, false)} onInvalid={event => {
+    event.preventDefault();
+    setInvalid(true);
+    trigger.current?.focus();
+  }}>{children}</select>;
+  const validationMessage = invalid ? <span id={errorId} role="alert" className="mt-1 block text-xs text-destructive">Wybierz opcję.</span> : null;
 
-  if (segment) return <div className={cn("relative inline-flex min-h-9 w-full min-w-0 items-stretch gap-0.5 rounded-lg border border-border/80 bg-card p-0.5 shadow-2xs dark:bg-[#0f172a]", className)} style={style} role="group" aria-label={props["aria-label"] || "Wybierz jedną opcję"} aria-labelledby={props["aria-labelledby"]}>
-    {hiddenInput}
-    {options.map((option, index) => <button key={`${option.value}-${index}`} type="button" id={index === 0 ? id : undefined} data-segment data-index={index} ref={index === 0 ? setRef : undefined} disabled={disabled || option.disabled} title={option.label} aria-label={option.label} aria-pressed={selected === option.value} tabIndex={index === (options.findIndex(item => item.value === selected && !item.disabled) >= 0 ? options.findIndex(item => item.value === selected && !item.disabled) : enabled[0]) ? 0 : -1} className={cn("min-w-0 flex-1 rounded-md px-2 py-1.5 text-center text-[12px] font-medium leading-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40", selected === option.value ? "bg-primary/20 text-primary ring-1 ring-primary/35" : "text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-slate-800")} onKeyDown={onKeyDown} onClick={() => choose(option.value, false)}>{option.label}</button>)}
-  </div>;
+  if (segment) return <><div className={cn("relative inline-flex min-h-9 w-full min-w-0 items-stretch gap-0.5 rounded-lg border border-border/80 bg-card p-0.5 shadow-2xs dark:bg-[#0f172a]", className)} style={style} role="group" aria-label={props["aria-label"] || "Wybierz jedną opcję"} aria-labelledby={props["aria-labelledby"]} aria-describedby={ariaProps["aria-describedby"]}>
+    {nativeControl}
+    {options.map((option, index) => <button key={`${option.value}-${index}`} type="button" form={form} id={index === enabled[0] ? id : undefined} data-segment data-index={index} ref={index === enabled[0] ? setRef : undefined} disabled={disabled || option.disabled} title={option.label} aria-label={option.label} aria-pressed={selected === option.value} aria-invalid={invalid || undefined} tabIndex={index === (options.findIndex(item => item.value === selected && !item.disabled) >= 0 ? options.findIndex(item => item.value === selected && !item.disabled) : enabled[0]) ? 0 : -1} className={cn("min-w-0 flex-1 rounded-md px-2 py-1.5 text-center text-[12px] font-medium leading-tight transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40", selected === option.value ? "bg-primary/20 text-primary ring-1 ring-primary/35" : "text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-slate-800")} onKeyDown={onKeyDown} onClick={() => choose(option.value, false)}>{option.label}</button>)}
+  </div>{validationMessage}</>;
 
   return <>
-    {hiddenInput}
+    {nativeControl}
     <button type="button" id={id} ref={setRef} form={form} disabled={disabled} autoFocus={autoFocus} title={title || selectedOption?.label} style={style} role="combobox" aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? listId : undefined} aria-activedescendant={open ? optionId(active) : undefined} {...ariaProps} className={cn("flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-border/80 bg-card px-3.5 text-left text-[13px] text-foreground shadow-2xs transition-colors duration-150 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-45", className)} onClick={() => { setActive(options.findIndex(option => option.value === selected && !option.disabled) >= 0 ? options.findIndex(option => option.value === selected && !option.disabled) : enabled[0] ?? 0); setOpen(previous => !previous); }} onKeyDown={onKeyDown}>
       <span className={cn("truncate", selected === "" && "text-muted-foreground")}>{selectedOption?.label || selected || "Wybierz opcję"}</span><ChevronDown aria-hidden="true" className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150", open && "rotate-180")} />
     </button>
+    {validationMessage}
     {open && typeof document !== "undefined" && createPortal(<div ref={menu} id={listId} role="listbox" aria-label={props["aria-label"] || selectedOption?.label || "Opcje"} className="z-[10000] overflow-y-auto rounded-xl border border-primary/20 bg-popover p-1.5 text-popover-foreground shadow-xl ring-1 ring-black/5 motion-safe:animate-[select-enter_150ms_ease-out] overscroll-contain" style={position}>
-      {options.map((option, index) => <div key={`${option.value}-${index}`} id={optionId(index)} data-index={index} role="option" aria-selected={selected === option.value} aria-disabled={option.disabled || undefined} onMouseEnter={() => !option.disabled && setActive(index)} onMouseDown={event => event.preventDefault()} onClick={() => !option.disabled && choose(option.value)} className={cn("flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors", option.disabled ? "cursor-not-allowed opacity-40" : index === active ? "bg-primary/10 text-primary" : "hover:bg-muted/70", selected === option.value && "font-semibold")}><span className="min-w-0 break-words leading-relaxed" title={option.label}>{option.label}</span>{selected === option.value && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />}</div>)}
+      {options.map((option, index) => <div key={`${option.value}-${index}`} id={optionId(index)} data-index={index} role="option" aria-selected={selected === option.value} aria-disabled={option.disabled || undefined} onMouseMove={() => !option.disabled && setActive(index)} onMouseDown={event => event.preventDefault()} onClick={() => !option.disabled && choose(option.value)} className={cn("flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors", option.disabled ? "cursor-not-allowed opacity-40" : index === active ? "bg-primary/10 text-primary" : "hover:bg-muted/70", selected === option.value && "font-semibold")}><span className="min-w-0 break-words leading-relaxed" title={option.label}>{option.label}</span>{selected === option.value && <Check aria-hidden="true" className="h-4 w-4 shrink-0" />}</div>)}
     </div>, trigger.current?.closest('[role="dialog"]') || document.body)}
   </>;
 });

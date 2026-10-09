@@ -58,12 +58,12 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
         <p className="text-sm font-medium">Gotowość miesiąca: {state.readiness.progress.completed}/{state.readiness.progress.total} kontroli zakończonych</p>
         <progress className="h-2 w-full accent-primary" aria-label="Postęp kontroli miesiąca" value={state.readiness.progress.completed} max={state.readiness.progress.total} />
         <ul className="grid gap-2 sm:grid-cols-2">{Object.entries(state.readiness.blockers).map(([key, count]) => <li key={key} className="min-w-0 rounded-lg border p-3 text-sm">
-          <p className={count ? "font-medium text-amber-600 dark:text-amber-400" : "text-muted-foreground"}>{count ? "Do sprawdzenia" : "Gotowe"} · {labels[key] || key}: {count}</p>
-          {(state.readiness.details[key] || []).map(item => <Link key={item.id} href={item.href} className="mt-2 block break-words text-primary underline underline-offset-4">{item.label} →</Link>)}
+          <p className={count ? "font-medium text-amber-700 dark:text-amber-400" : "text-muted-foreground"}>{count ? "Do sprawdzenia" : "Gotowe"} · {labels[key] || key}: {count}</p>
+          {(state.readiness.details[key] || []).map(item => <Link prefetch={false} key={item.id} href={item.href} className="mt-2 block break-words text-primary underline underline-offset-4">{item.label} →</Link>)}
           {count > (state.readiness.details[key]?.length || 0) && <p className="mt-2 text-xs text-muted-foreground">Lista pokazuje pierwsze 10 dokumentów. Po poprawieniu sprawdź stan ponownie.</p>}
         </li>)}</ul>
       </div>}
-      <div className="flex flex-wrap gap-3 text-sm"><Link href="/documents" className="text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link href="/finances" className="text-primary underline">Rozlicz płatności →</Link><SensitiveDownload url={`/api/accountant/package?companyId=${companyId}&month=${month}`} scope={companyId + "-" + month} /></div>
+      <div className="flex flex-wrap gap-3 text-sm"><Link prefetch={false} href="/documents" className="text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link prefetch={false} href="/finances" className="text-primary underline">Rozlicz płatności →</Link><SensitiveDownload url={`/api/accountant/package?companyId=${companyId}&month=${month}`} scope={companyId + "-" + month} /></div>
       <p className="text-xs text-muted-foreground">Niezatwierdzone pliki w skrzynce dokumentów nie są jeszcze kosztami. Przed zamknięciem sprawdź kompletność dokumentów; późniejsza akceptacja pliku z tego miesiąca będzie wymagać jego ponownego otwarcia.</p>
       {((closed && state.canReopen) || (!closed && state.canClose)) && <form onSubmit={e => { e.preventDefault(); void change(); }} className="flex flex-wrap items-end gap-2">
         <label className="text-sm grow">Uzasadnienie<Input required maxLength={1000} disabled={busy} value={reason} onChange={e => setReason(e.target.value)} /></label>

@@ -15,8 +15,8 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=31536000" },
   { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
   { key: "Content-Security-Policy", value: "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" },
-  // Roll out script restrictions after collecting compatibility reports for Next hydration.
-  { key: "Content-Security-Policy-Report-Only", value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; object-src 'none'" },
+  // A strict script CSP needs route-specific hashes for SSG and nonces for private hydration.
+  // Do not emit an incompatible Report-Only policy without a configured reporting collector.
 ];
 const privatePages = ["accountant", "advances", "analytics", "audit", "calendar", "contractors", "cost-reviews", "dashboard", "documents", "expenses", "finances", "help", "invoices", "jpk", "ksef", "offers", "orders", "products", "projects", "recurring", "reminders", "settings", "tax-estimate", "warehouse", "portal", "login", "register", "forgot-password", "reset-password", "verify-email", "invite"];
 const nextConfig = {
@@ -32,6 +32,7 @@ const nextConfig = {
   async headers() { return [
     { source: "/:path*", headers: securityHeaders },
     { source: "/portal/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }, { key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ...["reset-password", "verify-email"].map(path => ({ source: `/${path}/:path*`, headers: [{ key: "Referrer-Policy", value: "no-referrer" }] })),
     { source: "/api/:path*", headers: [
       { key: "X-Robots-Tag", value: "noindex, nofollow" },
       { key: "Cache-Control", value: "private, no-store" },

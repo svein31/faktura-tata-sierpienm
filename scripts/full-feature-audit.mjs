@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { buildInventory } from './qa-inventory.mjs';
 
 export async function fullFeatureAudit(base, db, fixture) {
   assert.equal(new URL(base).hostname, '127.0.0.1', 'The functional audit must use an isolated local application');
-  const routes=JSON.parse(await readFile(new URL('./feature-route-inventory.json',import.meta.url),'utf8'));
+  const catalog=await buildInventory();
+  const routes=catalog.api.map(route=>({path:route.route,methods:route.methods}));
+  const buildId=await readFile(new URL('../.next/BUILD_ID',import.meta.url),'utf8').then(value=>value.trim()).catch(()=>null);
+  const routeCatalogSha256=createHash('sha256').update(JSON.stringify(routes)).digest('hex');
   const results=[], failures=[];
   async function check(label, method, path, body, cookie, expected) {
     try {
@@ -12,12 +17,12 @@ export async function fullFeatureAudit(base, db, fixture) {
         ...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
       const text=await response.text();
       const ok=expected?expected.includes(response.status):response.status<500;
-      const result={label,method,path,status:response.status,ok};
+      const result={label,method,path,status:response.status,ok,expected:expected || null,assertion:expected?'expected-status':'no-server-error-smoke',actor:cookie?(cookie===fixture.ownerCookie?'fixture-owner':'fixture-other'):'anonymous'};
       results.push(result);
       if(!ok){result.detail=text.slice(0,350);failures.push(result);console.log('[feature-audit-failure] '+JSON.stringify(result));}
       let data;try{data=JSON.parse(text);}catch{data=null;}
       return {response,data,text};
-    }catch(error){const result={label,method,path,ok:false,error:error.message};results.push(result);failures.push(result);console.log('[feature-audit-failure] '+JSON.stringify(result));return {data:null};}
+    }catch(error){const result={label,method,path,ok:false,error:error.message,expected:expected || null,assertion:expected?'expected-status':'no-server-error-smoke',actor:cookie?(cookie===fixture.ownerCookie?'fixture-owner':'fixture-other'):'anonymous'};results.push(result);failures.push(result);console.log('[feature-audit-failure] '+JSON.stringify(result));return {data:null};}
   }
   const missing='000000000000000000000001';
   const routePath=route=>route.path.replace('[...nextauth]','session').replace(/\[[^\]]+\]/g,missing);
@@ -175,7 +180,7 @@ export async function fullFeatureAudit(base, db, fixture) {
     await check("public sitemap page","GET",url.pathname+url.search,undefined,undefined,[200]);
   }
   await mkdir('artifacts/functional',{recursive:true});
-  const report={createdAt:new Date().toISOString(),routeCount:routes.length,methodCount:routes.reduce((sum,r)=>sum+r.methods.length,0),checks:results.length,failures,results};
+  const report={createdAt:new Date().toISOString(),sourceSha256:catalog.sourceSha256,buildId,routeCatalogSha256,scope:'loopback isolated fixture; generic statuses below 500 are smoke observations, not proof of authorization or successful business operations',routeCount:routes.length,methodCount:routes.reduce((sum,r)=>sum+r.methods.length,0),checks:results.length,failures,results};
   await writeFile('artifacts/functional/http-audit.json',JSON.stringify(report,null,2));
   console.log('[feature-audit-summary] '+JSON.stringify({routes:report.routeCount,methods:report.methodCount,checks:report.checks,failures:failures.length}));
   assert.deepEqual(failures,[],'All route boundaries and financial validation scenarios must pass');

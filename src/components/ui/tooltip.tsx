@@ -20,6 +20,7 @@ export function Tooltip({
 }: TooltipProps) {
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLSpanElement>(null);
+  const tooltipId = React.useId();
 
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -52,6 +53,13 @@ export function Tooltip({
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
+      onKeyDown={event => {
+        if (event.key === "Escape" && open) {
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen(false);
+        }
+      }}
     >
       <button
         type="button"
@@ -61,7 +69,8 @@ export function Tooltip({
           setOpen((prev) => !prev);
         }}
         aria-label="Informacja"
-        className="inline-flex cursor-help items-center justify-center p-0.5 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 focus:outline-none"
+        aria-describedby={open ? tooltipId : undefined}
+        className="inline-flex cursor-help items-center justify-center rounded p-0.5 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {children || <Info className="h-3.5 w-3.5 stroke-[2]" />}
       </button>
@@ -79,6 +88,7 @@ export function Tooltip({
               className
             )}
             role="tooltip"
+            id={tooltipId}
           >
             {content}
           </motion.span>

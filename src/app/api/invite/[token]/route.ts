@@ -1,9 +1,9 @@
 import {ApiError} from "@/lib/api";
-import {teamActor,validateTeamGrant} from "@/lib/team-grants";
+import {teamInvitationGrantor,validateTeamGrant} from "@/lib/team-grants";
 import {rateLimitShared} from "@/lib/rate-limit";
 import { prisma } from "@/lib/db";
 import {
-  getSessionUser,
+  getSession,
   hashPassword,
   verifyPassword,
   validateCredentials,
@@ -11,14 +11,13 @@ import {
   sessionCookieOptions,
   AUTH_SESSION_COOKIE,
 } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
-import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
+import { handleApiError, json, readJson, cleanStr } from "@/lib/api";
 import { recordAuditLog } from "@/lib/audit";
-import type { CompanyRole } from "@/lib/types";
+import { PASSWORD_LENGTH_MESSAGE } from "@/lib/password-policy";
+import { anonymizeIp } from "@/lib/legal/record-consent";
+import { LEGAL_VERSIONS } from "@/lib/legal/config";
 
 export const runtime = "nodejs";
-
-type Ctx = { params: Promise<{ id?: string; token?: string }> };
 
 /**
  * GET /api/invite/[token] — Weryfikacja ważności zaproszenia
@@ -107,9 +106,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       return json({ error: "Brak przypisanej firmy do zaproszenia." }, { status: 400 });
     }
 
-    const body = (await readJson(req).catch(() => ({}))) as Record<string, unknown>;
-    let targetUser = await getSessionUser();
+    const body = await readJson(req);
+    const currentSession = await getSession();
+    let targetUser = currentSession?.user ?? null;
     let newSessionCookie: string | null = null;
+    let newUserData: { email: string; password: string; name: string; role: string } | null = null;
     const needsSession=!targetUser;
 
     // SCENARIUSZ 1: Użytkownik jest już zalogowany w obecnej sesji
@@ -144,28 +145,57 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
         targetUser = existingUser as any;
       } else {
         // Rejestracja nowego użytkownika dla tego e-maila
+        if (body.acceptTerms !== true) {
+          return json({ error: "Akceptacja Regulaminu jest wymagana do utworzenia konta.", code: "TERMS_NOT_ACCEPTED" }, { status: 400 });
+        }
         const password = typeof body.password === "string" ? body.password : "";
-        const name = typeof body.name === "string" ? body.name.trim() : "";
+        const name = cleanStr(body.name, 100, "name");
+        if (!name) return json({ error: "Wpisz swoje imię i nazwisko.", code: "INVALID_INPUT" }, { status: 400 });
         const credCheck = validateCredentials(invitation.email, password);
         if (!credCheck.ok) {
-          return json({ error: "Hasło musi mieć co najmniej 8 znaków." }, { status: 400 });
+          return json({ error: PASSWORD_LENGTH_MESSAGE }, { status: 400 });
         }
 
         const passwordHash = await hashPassword(password);
-        const createdUser = await prisma.user.create({
-          data: {
+        newUserData = {
             email: invitation.email,
             password: passwordHash,
-            name: name || invitation.email.split("@")[0],
+            name,
             role: "owner", // rola bazowa
-          },
-        });
-        targetUser = createdUser as any;
+        };
       }
 
     }
     await prisma.$transaction(async tx=>{
-      const actor=await teamActor(tx,invitation.userId,invitation.companyId!);
+      const now = new Date();
+      if (newUserData) {
+        // Account, legal proof, invitation claim and company grant share one
+        // transaction: revoked grants and conflicts cannot leave orphan users.
+        targetUser = await tx.user.create({ data: {
+          ...newUserData,
+          emailVerificationRequiredAt: now,
+          termsAcceptedAt: now,
+          termsAcceptedVersion: LEGAL_VERSIONS.terms,
+          legalConsents: { create: {
+            documentType: "terms_of_service",
+            documentVersion: LEGAL_VERSIONS.terms,
+            accepted: true,
+            acceptedAt: now,
+            ipAddress: anonymizeIp(req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip")),
+            userAgent: req.headers.get("user-agent")?.slice(0, 255) || null,
+            context: "invite_accept",
+            companyId: invitation.companyId,
+          } },
+        } }) as any;
+      }
+      const proof = await tx.user.updateMany({where:{id:targetUser!.id,password:targetUser!.password,email:targetUser!.email},data:{updatedAt:now}});
+      if(proof.count!==1)throw new ApiError(401,"Dane logowania zostały zmienione. Zaloguj się ponownie.","INVALID_CREDENTIALS");
+      const mfa=await tx.userMfa.findUnique({where:{userId:targetUser!.id},select:{enabledAt:true}});
+      if(currentSession){
+        const live=await tx.session.updateMany({where:{id:currentSession.sessionId,userId:targetUser!.id,expiresAt:{gt:now},...(mfa?.enabledAt?{mfaVerifiedAt:mfa.enabledAt}:{})},data:{authenticatedAt:now}});
+        if(live.count!==1)throw new ApiError(401,"Sesja wygasła. Zaloguj się ponownie.","UNAUTHENTICATED");
+      }else if(mfa?.enabledAt)throw new ApiError(403,"Zaloguj się z kodem MFA, a następnie przyjmij zaproszenie.","MFA_REQUIRED");
+      const actor=await teamInvitationGrantor(tx,invitation.userId,invitation.companyId!);
       const grant=validateTeamGrant(invitation.role,invitation.permissions,actor);
       if(await tx.companyMember.findUnique({where:{companyId_userId:{companyId:invitation.companyId!,userId:targetUser!.id}}}))throw new ApiError(409,"Jesteś już członkiem firmy.");
       const claimed=await tx.teamInvitation.updateMany({where:{id:invitation.id,status:"pending",expiresAt:{gt:new Date()}},data:{status:"accepted",acceptedAt:new Date()}});
@@ -173,7 +203,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       await tx.companyMember.create({data:{companyId:invitation.companyId!,userId:targetUser!.id,role:grant.role,...grant.permissions}});
       await recordAuditLog({client:tx,companyId:invitation.companyId!,userId:targetUser!.id,userName:targetUser!.name,userEmail:targetUser!.email,action:"team_join",entityType:"team",entityId:invitation.id,details:{role:grant.role}});
     });
-    if(needsSession){const sessionResult=await createSession(targetUser!.id),cookieOpts=sessionCookieOptions();newSessionCookie=`${AUTH_SESSION_COOKIE}=${sessionResult.token}; Path=${cookieOpts.path}; HttpOnly; SameSite=${cookieOpts.sameSite}${cookieOpts.secure?"; Secure":""}; Max-Age=${cookieOpts.maxAge}`;}
+    if(needsSession){const sessionResult=await createSession(targetUser!.id,{expectedPasswordHash:targetUser!.password,expectedLoginEmail:targetUser!.email}),cookieOpts=sessionCookieOptions(undefined,req);newSessionCookie=`${AUTH_SESSION_COOKIE}=${sessionResult.token}; Path=${cookieOpts.path}; HttpOnly; SameSite=${cookieOpts.sameSite}${cookieOpts.secure?"; Secure":""}; Max-Age=${cookieOpts.maxAge}`;}
 
     const responseHeaders: HeadersInit = {};
     if (newSessionCookie) {

@@ -39,6 +39,7 @@ export async function resetPasswordWithToken(tokenHash: string, passwordHash: st
           where: { userId: token.userId, ...UNUSED_PASSWORD_RESET_TOKEN },
           data: { usedAt: now },
         });
+        await tx.emailVerificationToken.updateMany({ where: { userId: token.userId, purpose: "change-email", ...UNUSED_PASSWORD_RESET_TOKEN }, data: { usedAt: now } });
         await tx.session.deleteMany({ where: { userId: token.userId } });
       });
       return;

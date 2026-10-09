@@ -45,7 +45,7 @@ export function BottomNav() {
 
             if (item.isAction) {
               return (
-                <Link
+                <Link prefetch={false}
                   key={item.href}
                   href={item.href}
                   onClick={() => useAppStore.getState().setDraft(null, true)}
@@ -66,7 +66,7 @@ export function BottomNav() {
             }
 
             return (
-              <Link
+              <Link prefetch={false}
                 key={item.href}
                 href={item.href}
                 className={cn(

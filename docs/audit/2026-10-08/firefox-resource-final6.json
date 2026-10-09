@@ -1,0 +1,9 @@
+{
+  "memoryEvents": "low 0\nhigh 0\nmax 145238\noom 2\noom_kill 1\noom_group_kill 0\n",
+  "memoryCurrent": "2281570304",
+  "memoryMax": "8589934592",
+  "scope": "Before isolated Firefox rerun; prior run counter baseline unavailable; historical cumulative OOM counters alone cannot establish its cause.",
+  "afterMemoryEvents": "low 0\nhigh 0\nmax 145238\noom 2\noom_kill 1\noom_group_kill 0\n",
+  "afterMemoryCurrent": "2752659456",
+  "note": "Fresh Firefox invocation exit0 with process/context recycling. OOM counters unchanged from its actual before snapshot. Prior stopped invocation exact cause remains unproven."
+}

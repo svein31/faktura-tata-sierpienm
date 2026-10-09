@@ -453,7 +453,7 @@ export default function ExpensesPage() {
           </div>
 
           {/* Zakładki Workflow Status */}
-          <div style={{ display: "flex", gap: "0.5rem", borderTop: "1px solid var(--border)", paddingTop: "0.75rem", overflowX: "auto" }}>
+          <div style={{ display: "flex", gap: "0.5rem", borderTop: "1px solid hsl(var(--border))", paddingTop: "0.75rem", overflowX: "auto" }}>
             {[
               { id: "all", label: "Wszystkie statusy" },
               { id: "to_verify", label: "Do sprawdzenia" },
@@ -464,6 +464,7 @@ export default function ExpensesPage() {
               return (
                 <button
                   key={tab.id}
+                  aria-pressed={active}
                   onClick={() => setWorkflowFilter(tab.id as "all" | WorkflowStatus)}
                   style={{
                     padding: "0.4rem 0.85rem",
@@ -472,8 +473,8 @@ export default function ExpensesPage() {
                     fontWeight: active ? 600 : 500,
                     border: "none",
                     cursor: "pointer",
-                    background: active ? "var(--primary)" : "transparent",
-                    color: active ? "#ffffff" : "var(--muted)",
+                    background: active ? "hsl(var(--primary))" : "transparent",
+                    color: active ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
                     whiteSpace: "nowrap",
                     transition: "all 0.15s ease",
                   }}
@@ -513,7 +514,13 @@ export default function ExpensesPage() {
             </Button>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
+          <div
+            className="relative"
+            style={{ overflowX: "auto" }}
+            role="region"
+            aria-label="Dokumenty kosztowe — przewijana tabela"
+            tabIndex={0}
+          >
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-sunken)", color: "var(--muted)", textAlign: "left" }}>

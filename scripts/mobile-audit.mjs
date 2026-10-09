@@ -1,18 +1,33 @@
 import assert from 'node:assert/strict';
-import { chromium, webkit, expect } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
+import { chromium, webkit, firefox, expect } from '@playwright/test';
+import { mkdir, readFile } from 'node:fs/promises';
+import { collectPublicRoutePaths, sourceFingerprint } from './qa-inventory.mjs';
+import { recordVisibleControls, recordBrowserScenario, auditHistoryAndKeyboard, auditNegativeAndRecovery, writeBrowserCoverage } from './audit/browser-control-inventory.mjs';
+import { auditCookiePrintBrowser } from './audit/cookie-print-browser.mjs';
+import { auditPrivatePrefetchBrowser } from './audit/private-prefetch-browser.mjs';
 
 const appRoutes = ['/dashboard','/analytics','/calendar','/invoices','/invoices/new','/invoices/recurring','/advances','/offers','/recurring','/reminders','/ksef','/expenses','/documents','/cost-reviews','/finances','/contractors','/products','/warehouse','/orders','/projects','/accountant/portal','/accountant','/jpk','/tax-estimate','/audit','/settings/team','/settings/companies','/settings/appearance','/settings/pdf-templates','/settings/currencies','/settings/integrations','/settings/health','/settings/account','/settings/ksef','/help'];
 // Isolate full document navigations while preserving the browser context.
 // Closing an old document cancels Next prefetches; detach only its error
 // listener during that deliberate teardown. All live-document errors remain fatal.
-const errorObservers = new WeakMap(), responses = new WeakMap();
+const errorObservers = new WeakMap(), responses = new WeakMap(), networkIssues=[], consoleIssues=[];
 function observeErrors(page, engine, errors, prefix) {
   const listener = error => {
     const record = { engine, url: page.url(), message: error.message, stack: error.stack };
     errors.push(record); console.log(prefix + ' ' + JSON.stringify(record));
   };
   page.on('pageerror', listener);
+  page.on('response',response=>{
+    if(response.status()>=400) {
+      const requestPath=new URL(response.url()).pathname;
+      const injected=!!response.headers()['x-qa-fixture'];
+      const deliberatelyMissing=requestPath==='/qa-audit-definitely-missing-page' || requestPath.includes('/qa_missing_capability_');
+      networkIssues.push({engine,page:new URL(page.url()).pathname,path:requestPath,method:response.request().method(),status:response.status(),classification:injected || deliberatelyMissing?'expected-negative-test':'requires-review'});
+    }
+  });
+  page.on('console',message=>{
+    if(message.type()==='error')consoleIssues.push({engine,page:new URL(page.url()).pathname,message:message.text().slice(0,1000),classification:'requires-review'});
+  });
   errorObservers.set(page, {engine, errors, prefix, listener});
 }
 async function navigate(previous, route, options) {
@@ -31,7 +46,9 @@ async function navigate(previous, route, options) {
   return page;
 }
 
-const publicRoutes = ['/','/cennik','/porownania/fakturowo','/porownania/faktura-pl','/login','/register','/forgot-password','/verify-email','/demo','/program-do-faktur','/narzedzia','/narzedzia/kalkulator-vat','/narzedzia/limit-ksef','/pomoc','/regulamin','/polityka-cookies','/polityka-prywatnosci','/powierzenie-danych','/faktury','/poradnik-ksef','/vat',"/poradnik-ksef/kody-qr","/poradnik-ksef/2027","/program-do-faktur/dla-jdg","/program-do-faktur/dla-freelancerow","/program-do-faktur/dla-biur-rachunkowych","/program-do-faktur/dla-firm-uslugowych","/program-do-faktur/na-telefonie","/porownania/fakturownia","/porownania/ifirma","/porownania/wfirma","/porownania/infakt","/porownania/comarch","/porownania/aplikacja-mf","/poradnik-ksef/fa3","/poradnik-ksef/upo","/poradnik-ksef/odrzucona-faktura","/porownania"];
+const publicRoutes = await collectPublicRoutePaths();
+const sourceSha256=await sourceFingerprint();
+const buildId=await readFile(new URL('../.next/BUILD_ID',import.meta.url),'utf8').then(value=>value.trim()).catch(()=>null);
 export async function mobileLayoutDefects(page) {
   return page.evaluate(configuredWidth => {
     const width = Math.min(configuredWidth, document.documentElement.clientWidth), failures = [];
@@ -66,30 +83,93 @@ export async function waitForRenderedLayout(page) {
 }
 
 export async function auditMobileExperience(base, storageState, fixture) {
-  const failures=[], engines=[{name:'chromium',driver:chromium,sizes:[[320,740],[375,812],[390,844],[430,932],[667,375]]}];
-  if (process.env.RUN_WEBKIT_CHECKS==='1') engines.push({name:'webkit',driver:webkit,sizes:[[375,812],[430,932]]});
+  const failures=[], configuredEngines=[{name:'chromium',driver:chromium,sizes:[[320,740],[375,812],[390,844],[430,932],[667,375],[768,1024],[1280,900]]}];
+  if (process.env.RUN_WEBKIT_CHECKS==='1') configuredEngines.push({name:'webkit',driver:webkit,sizes:[[375,812],[768,1024],[1280,900]]});
+  if (process.env.RUN_FIREFOX_CHECKS==='1') configuredEngines.push({name:'firefox',driver:firefox,sizes:[[390,844],[768,1024],[1280,900]]});
+  let engines=configuredEngines;
+  if(process.env.QA_BROWSER_ENGINES!==undefined) {
+    const selected=process.env.QA_BROWSER_ENGINES.split(',').map(value=>value.trim());
+    assert.ok(selected.length && selected.every(name=>configuredEngines.some(engine=>engine.name===name)),'QA_BROWSER_ENGINES must contain enabled browser names: '+configuredEngines.map(engine=>engine.name).join(','));
+    assert.equal(new Set(selected).size,selected.length,'QA_BROWSER_ENGINES must not repeat an engine');
+    engines=configuredEngines.filter(engine=>selected.includes(engine.name));
+  }
   await mkdir('artifacts/mobile',{recursive:true});
-  let checks=0;
+  await mkdir('artifacts/audit',{recursive:true});
+  let checks=0;const engineResults=[],browserLifecycle=[];
   for (const engine of engines) {
-    const browser=await engine.driver.launch({headless:true});
-    const context=await browser.newContext({baseURL:base,storageState,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
-    const publicContext=await browser.newContext({baseURL:base,isMobile:true,hasTouch:true,viewport:{width:375,height:812}});
+    let browser=await engine.driver.launch({headless:true});
+    // Playwright Firefox supports a touch viewport but does not implement
+    // isMobile; actual responsive CSS is still measured at the requested size.
+    // Controlled API failures are intercepted by Playwright. Service workers
+    // can bypass route interception (notably WebKit), so this matrix blocks
+    // them. The real worker/cache has its own dedicated regression tests.
+    let context=await browser.newContext({baseURL:base,storageState,serviceWorkers:'block',isMobile:engine.name!=='firefox',hasTouch:true,viewport:{width:375,height:812}});
+    let publicContext=await browser.newContext({baseURL:base,serviceWorkers:'block',isMobile:engine.name!=='firefox',hasTouch:true,viewport:{width:375,height:812}});
+    context.setDefaultTimeout(15000);publicContext.setDefaultTimeout(15000);
     let page=await context.newPage(), publicPage=await publicContext.newPage(); const errors=[];
     for(const target of [page,publicPage]) observeErrors(target,engine.name,errors,'[mobile-js-error]');
     let activeTarget=page;
     async function audit(target,label) {
       activeTarget=target;
       const found=await mobileLayoutDefects(target);checks++;
+      await recordVisibleControls(target,{engine:engine.name,scenario:label,layoutStatus:found.length?'failed':'checked'});
       if(found.length) {
         failures.push({engine:engine.name,viewport:target.viewportSize(),route:label,defects:found});
         console.log('[mobile-audit] '+JSON.stringify(failures.at(-1)));
         await target.screenshot({path:'artifacts/mobile/'+engine.name+'-'+target.viewportSize().width+'-'+label.replace(/[^a-z0-9]/gi,'_')+'.png',fullPage:true});
       }
     }
+    async function recycleFirefox(phase) {
+        // Hundreds of full document/tab lifetimes can retain browser resources.
+        // Preserve cookies/localStorage and viewport, then run the interaction
+        // phase in a fresh engine process. Collected observations are retained;
+        // only the deliberately closed documents lose their error listeners.
+        const privateState=await context.storageState(),publicState=await publicContext.storageState();
+        const privateViewport=page.viewportSize(),publicViewport=publicPage.viewportSize();
+        for(const target of [...context.pages(),...publicContext.pages()]) {
+          const observer=errorObservers.get(target);
+          if(observer)target.off('pageerror',observer.listener);
+        }
+        await context.close();await publicContext.close();await browser.close();
+        browser=await engine.driver.launch({headless:true});
+        context=await browser.newContext({baseURL:base,storageState:privateState,serviceWorkers:'block',isMobile:false,hasTouch:true,viewport:privateViewport});
+        publicContext=await browser.newContext({baseURL:base,storageState:publicState,serviceWorkers:'block',isMobile:false,hasTouch:true,viewport:publicViewport});
+        context.setDefaultTimeout(15000);publicContext.setDefaultTimeout(15000);
+        page=await context.newPage();publicPage=await publicContext.newPage();activeTarget=page;
+        for(const target of [page,publicPage])observeErrors(target,engine.name,errors,'[mobile-js-error]');
+        const lifecycle={engine:engine.name,event:phase,layoutChecks:checks,storageStatePreserved:true,privateViewport,publicViewport};
+        browserLifecycle.push(lifecycle);console.log('[mobile-browser-lifecycle] '+JSON.stringify(lifecycle));
+    }
+    let enginePassed=false;
     try {
+      await auditPrivatePrefetchBrowser(browser,{base,engine:engine.name,storageState,outputPath:'artifacts/audit/private-prefetch-'+engine.name+'.json'});
+      await auditCookiePrintBrowser(browser,{base,engine:engine.name,outputPath:'artifacts/audit/cookie-print-'+engine.name+'.json'});
+      const {auditUiPrimitives}=await import('./audit/ui-primitives-regression.mjs');
+      const primitiveProof=await auditUiPrimitives(browser,{outputPath:'artifacts/audit/primitives-'+engine.name+'.json'});
+      for(const check of primitiveProof.checks)recordBrowserScenario({engine:engine.name},'shared-ui:'+check.name,{scope:primitiveProof.scope,evidence:'artifacts/audit/primitives-'+engine.name+'.json'});
+      if(fixture.financialAudit){
+        const financialProof=await fixture.financialAudit(browser,engine.name);
+        for(const check of financialProof.checks)recordBrowserScenario({engine:engine.name},'financial:'+check,{evidence:'artifacts/audit/financial-'+engine.name+'.json'});
+      }
+      if(fixture.invitationAudit){
+        const invitationProof=await fixture.invitationAudit(browser,engine.name);
+        for(const check of invitationProof.checks)recordBrowserScenario({engine:engine.name},'invitation:'+check,{evidence:'artifacts/audit/invitation-'+engine.name+'.json'});
+      }
+      if(fixture.teamClipboardAudit){
+        const clipboardProof=await fixture.teamClipboardAudit(browser,engine.name);
+        for(const check of clipboardProof.checks)recordBrowserScenario({engine:engine.name},'team-clipboard:'+check,{evidence:'artifacts/audit/team-clipboard-'+engine.name+'.json'});
+      }
+      if(fixture.expenseFilterAudit){
+        const filterProof=await fixture.expenseFilterAudit(browser,engine.name);
+        for(const check of filterProof.checks)recordBrowserScenario({engine:engine.name},'expenses-filter:'+check,{evidence:'artifacts/audit/expenses-filter-'+engine.name+'.json'});
+      }
+      let viewportIndex=0;
       for (const [width,height] of engine.sizes) {
+        if(engine.name==='firefox' && viewportIndex>0)await recycleFirefox('between-layout-viewports');
+        viewportIndex++;
         await page.setViewportSize({width,height}); await publicPage.setViewportSize({width,height});
-        const publicSet=width===667?['/','/login','/demo']:publicRoutes;
+        const completeRoutes=[320,768,1280].includes(width) || engine.name==='webkit' && width===375 || engine.name==='firefox' && width===390;
+        const publicSet=completeRoutes?[...publicRoutes,...(fixture.publicRoutes || [])]:['/','/login','/register','/demo','/cennik','/narzedzia/kalkulator-vat'];
         for(const route of publicSet) {
           publicPage=await navigate(publicPage,route); activeTarget=publicPage;
           await expect(publicPage.locator('h1').first()).toBeVisible();
@@ -104,7 +184,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
             await publicPage.getByRole('dialog').getByRole('button',{name:'Zamknij',exact:true}).tap();
           }
         }
-        const routes=width===667?['/invoices/new','/finances','/accountant/portal','/settings/companies']:[...appRoutes,'/invoices/'+fixture.invoiceId];
+        const routes=completeRoutes?[...appRoutes,'/invoices/'+fixture.invoiceId]:['/dashboard','/invoices/new','/finances','/accountant/portal','/settings/companies'];
         for(const route of routes) {
           page=await navigate(page,route); activeTarget=page;
           await expect(page.locator('main')).toBeVisible();
@@ -121,7 +201,20 @@ export async function auditMobileExperience(base, storageState, fixture) {
             await audit(page,route+' expanded');
           }
         }
+        console.log('[mobile-viewport-done] '+JSON.stringify({engine:engine.name,width,height,checks,layoutFailures:failures.length}));
       }
+      if(engine.name==='firefox')await recycleFirefox('before-interaction-phase');
+      await auditHistoryAndKeyboard(page,publicPage,engine.name);
+      await auditNegativeAndRecovery(page,publicPage,engine.name);
+      const publicViewport=publicPage.viewportSize();
+      const {auditPublicCalculators}=await import('./public-calculator-browser-checks.mjs');
+      activeTarget=publicPage;
+      const calculatorScenarios=await auditPublicCalculators(publicPage);
+      for(const scenario of calculatorScenarios)recordBrowserScenario({engine:engine.name},'public-calculator:'+scenario.scenario,{viewport:scenario.viewport});
+      await publicPage.setViewportSize(publicViewport);
+      const {auditPasswordResetLinks}=await import('./audit/password-reset-browser.mjs');
+      await auditPasswordResetLinks(publicPage,engine.name);
+      recordBrowserScenario({engine:engine.name},'reset-password-fragment-legacy-and-missing-token');
       await page.setViewportSize({width:320,height:740});
       let releaseBootstrap;
       const bootstrapGate=new Promise(resolve=>{releaseBootstrap=resolve;});
@@ -181,13 +274,13 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await expect(page).toHaveURL(/settings\/appearance/); await expect(drawer).toHaveCount(0);
       await menuButton.tap(); await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
       await expect(menuButton).toBeFocused();
-      const switcher=page.getByRole('button',{name:'Wybierz firmę',exact:true});
+      const switcher=page.getByRole('button',{name:/^Wybierz firmę:/});
       await switcher.tap(); await audit(page,'company switcher');
       await page.getByRole('button',{name:new RegExp(fixture.alternateName)}).tap();
-      await expect(page.getByRole('button',{name:'Wybierz firmę',exact:true})).toContainText(fixture.alternateName);
+      await expect(page.getByRole('button',{name:/^Wybierz firmę:/})).toContainText(fixture.alternateName);
       await switcher.tap(); await page.getByRole('button',{name:/Browser Company/}).tap();
       await expect(switcher).toContainText('Browser Company');
-      await page.getByRole('button',{name:/Szukaj faktur/}).tap();
+      await page.getByRole('button',{name:/^Szukaj/}).tap();
       const search=page.getByRole('dialog',{name:'Wyszukiwanie i polecenia'});
       await expect(search).toBeVisible(); await audit(page,'command search');
       await page.setViewportSize({width:320,height:360});
@@ -246,6 +339,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       assert.ok(accepted.ok(),'Terms acceptance must succeed from a short phone viewport');
       await expect(terms).toHaveCount(0);
       assert.deepEqual(errors,[],engine.name+' mobile JavaScript errors');
+      enginePassed=true;
       console.log('[mobile-audit] PASS '+engine.name+' drawer, navigation, company switching, search, bank dialog and mobile invoice draft');
     } catch(error) {
       const diagnostics=await activeTarget.evaluate(()=>({
@@ -260,10 +354,14 @@ export async function auditMobileExperience(base, storageState, fixture) {
           }),
         })),
       })).catch(()=>({}));
-      console.log('[mobile-interaction-failure] '+JSON.stringify(diagnostics));
+      console.log('[mobile-interaction-failure] '+JSON.stringify({engine:engine.name,error:{name:error.name,message:error.message,stack:error.stack},browserConnected:browser.isConnected(),activePageClosed:activeTarget.isClosed(),diagnostics}));
       await activeTarget.screenshot({path:'artifacts/mobile/'+engine.name+'-interaction-failure.png',fullPage:true}).catch(()=>{});
       throw error;
-    } finally {await context.close();await publicContext.close();await browser.close();}
+    } finally {
+      engineResults.push({engine:engine.name,status:enginePassed && !failures.some(failure=>failure.engine===engine.name)?'passed':'failed'});
+      await writeBrowserCoverage({sourceSha256,buildId,selectedEngines:engines.map(engine=>engine.name),browserLifecycle,engines:engineResults,completedEngines:engineResults.filter(engine=>engine.status==='passed').map(engine=>engine.engine),layoutChecks:checks,layoutFailures:failures,networkIssues,consoleIssues});
+      await context.close();await publicContext.close();await browser.close();
+    }
   }
   console.log('[mobile-audit] '+checks+' layout checks; '+failures.length+' failing screens');
   assert.deepEqual(failures,[],'All mobile screens and expanded forms must fit the viewport');

@@ -274,7 +274,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
                   Ostatnie dokumenty ({salesCount})
                 </h4>
-                <Link
+                <Link prefetch={false}
                   href={`/invoices?search=${encodeURIComponent(contractor.nip)}`}
                   className="text-xs text-primary hover:underline flex items-center gap-1"
                 >
@@ -295,7 +295,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                       className="flex min-w-0 flex-col gap-2 rounded-xl sm:flex-row sm:justify-between border border-border/50 bg-card/50 p-3 text-xs hover:border-border transition-colors"
                     >
                       <div>
-                        <Link href={`/invoices/${inv.id}`} className="font-semibold text-foreground hover:text-primary">
+                        <Link prefetch={false} href={`/invoices/${inv.id}`} className="font-semibold text-foreground hover:text-primary">
                           {inv.number}
                         </Link>
                         <p className="text-[11px] text-muted-foreground mt-0.5">

@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { handleApiError, json, readJson, str } from "@/lib/api";
-import { MIN_PASSWORD_LENGTH } from "@/lib/auth";
+import { PASSWORD_LENGTH_MESSAGE, validNewPasswordLength } from "@/lib/password-policy";
 import { resetPasswordWithToken, UNUSED_PASSWORD_RESET_TOKEN } from "@/lib/password-reset";
 
 export const runtime = "nodejs";
@@ -18,16 +18,16 @@ export async function POST(req: Request) {
     const rawToken = str(body.token).trim();
     const newPassword = str(body.newPassword);
 
-    if (!rawToken) {
+    if (!rawToken || !/^[a-f0-9]{64}$/i.test(rawToken)) {
       return json(
         { error: "Brak tokena resetowania hasła. Użyj linku przesłanego w wiadomości e-mail." },
         { status: 400 }
       );
     }
 
-    if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
+    if (!validNewPasswordLength(newPassword)) {
       return json(
-        { error: `Nowe hasło musi zawierać co najmniej ${MIN_PASSWORD_LENGTH} znaków.` },
+        { error: PASSWORD_LENGTH_MESSAGE },
         { status: 400 }
       );
     }

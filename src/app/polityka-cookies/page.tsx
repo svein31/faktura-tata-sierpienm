@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/seo/metadata";
 import { LegalPageLayout } from "@/components/legal/legal-page-layout";
 import { COOKIE_POLICY } from "@/lib/legal/content";
 
-export const metadata: Metadata = {
-  title: "Polityka plików cookies i pamięci przeglądarki (PKE) | FakturaProsto",
-  description: "Informacje o wykorzystaniu plików cookies i pamięci lokalnej przeglądarki zgodnie z Prawem komunikacji elektronicznej i RODO.",
-};
+export const metadata = publicMetadata(
+  "/polityka-cookies",
+  "Polityka cookies i pamięci przeglądarki | FakturaProsto",
+  "Informacje o cookies i pamięci przeglądarki w FakturaProsto, celach ich użycia i zarządzaniu zgodami.",
+);
 
 export default function PolitykaCookiesPage() {
   return <LegalPageLayout document={COOKIE_POLICY} />;

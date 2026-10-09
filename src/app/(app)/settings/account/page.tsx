@@ -41,6 +41,7 @@ import { useAppStore } from "@/lib/store";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { SubscriptionCard } from "@/components/subscription/subscription-card";
 import { EmailVerificationNotice } from "@/components/email-verification-notice";
+import { PASSWORD_LENGTH_MESSAGE, validNewPasswordLength } from "@/lib/password-policy";
 
 export default function AccountSettingsPage() {
   const toast = useToast();
@@ -63,7 +64,7 @@ export default function AccountSettingsPage() {
   const [savingPassword, setSavingPassword] = React.useState(false);
 
   // Wymagania siły hasła
-  const passLengthOk = newPassword.length >= 8;
+  const passLengthOk = validNewPasswordLength(newPassword);
   const passNumberOk = /[0-9]/.test(newPassword);
   const passSpecialOk = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(newPassword);
   const passMatchOk = newPassword.length > 0 && newPassword === confirmPassword;
@@ -76,7 +77,7 @@ export default function AccountSettingsPage() {
       return;
     }
     if (!passLengthOk || !passNumberOk || !passSpecialOk) {
-      toast("error", "Nowe hasło nie spełnia wymogów bezpieczeństwa.");
+      toast("error", passLengthOk ? "Nowe hasło musi zawierać cyfrę i znak specjalny." : PASSWORD_LENGTH_MESSAGE);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -95,7 +96,7 @@ export default function AccountSettingsPage() {
       if (!res.ok) {
         throw new Error(data.message || data.error || "Nie udało się zmienić hasła.");
       }
-      toast("success", "Hasło zostało zmienione", "Możesz teraz logować się nowym hasłem.");
+      toast("success", "Hasło zostało zmienione", data.message || "Pozostałe sesje zostały wylogowane.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -124,7 +125,7 @@ export default function AccountSettingsPage() {
         body: JSON.stringify({ name: nameDraft }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Nie udało się zaktualizować profilu.");
+      if (!res.ok) throw new Error(data.message || data.error || "Nie udało się zaktualizować profilu.");
       toast("success", "Zapisano dane profilu", `Nazwa: ${nameDraft}`);
     } catch (err) {
       toast("error", "Błąd zapisu", err instanceof Error ? err.message : "Wystąpił błąd.");
@@ -315,20 +316,24 @@ export default function AccountSettingsPage() {
               <CardContent>
                 <form onSubmit={handleChangePassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className="flex items-center">
+                    <Label htmlFor="account-current-password" className="flex items-center">
                       Aktualne hasło
                       <HelpTooltip text="Hasło, którego aktualnie używasz do logowania w aplikacji." />
                     </Label>
                     <div className="relative">
                       <Input
+                        id="account-current-password"
                         type={showCurrentPass ? "text" : "password"}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="••••••••••••"
                         required
+                        autoComplete="current-password"
+                        maxLength={128}
                         className="pr-10"
                       />
                       <button
+                        aria-label={showCurrentPass ? "Ukryj aktualne hasło" : "Pokaż aktualne hasło"}
                         type="button"
                         onClick={() => setShowCurrentPass(!showCurrentPass)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
@@ -339,20 +344,24 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="flex items-center">
+                    <Label htmlFor="account-new-password" className="flex items-center">
                       Nowe hasło
                       <HelpTooltip text="Hasło musi mieć co najmniej 8 znaków, w tym cyfrę i znak specjalny." />
                     </Label>
                     <div className="relative">
                       <Input
+                        id="account-new-password"
                         type={showNewPass ? "text" : "password"}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Wpisz nowe, silne hasło"
                         required
+                        autoComplete="new-password"
+                        maxLength={72}
                         className="pr-10"
                       />
                       <button
+                        aria-label={showNewPass ? "Ukryj nowe hasło" : "Pokaż nowe hasło"}
                         type="button"
                         onClick={() => setShowNewPass(!showNewPass)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
@@ -363,17 +372,21 @@ export default function AccountSettingsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label>Powtórz nowe hasło</Label>
+                    <Label htmlFor="account-confirm-password">Powtórz nowe hasło</Label>
                     <div className="relative">
                       <Input
+                        id="account-confirm-password"
                         type={showConfirmPass ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Wpisz ponownie nowe hasło"
                         required
+                        autoComplete="new-password"
+                        maxLength={72}
                         className="pr-10"
                       />
                       <button
+                        aria-label={showConfirmPass ? "Ukryj powtórzone hasło" : "Pokaż powtórzone hasło"}
                         type="button"
                         onClick={() => setShowConfirmPass(!showConfirmPass)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"

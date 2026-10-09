@@ -33,6 +33,7 @@ try {
   assert.ok(ready, 'Isolated browser application must start');
   process.env.RUN_ALL_MOBILE_CHECKS = '1';
   if (process.env.RUN_WEBKIT_CHECKS === undefined) process.env.RUN_WEBKIT_CHECKS = '1';
+  if (process.env.RUN_FIREFOX_CHECKS === undefined) process.env.RUN_FIREFOX_CHECKS = '1';
   await browserChecks(base, db);
   console.log('[browser-isolated] PASS: browser/mobile checks with external providers blocked');
 } catch (error) { console.error(logs); throw error; }

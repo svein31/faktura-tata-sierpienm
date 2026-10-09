@@ -8,13 +8,9 @@ import {
   Users2,
   Building2,
   CheckCircle2,
-  ShieldCheck,
-  Lock,
-  User,
   ArrowRight,
   AlertCircle,
   LogOut,
-  Mail,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Card } from "@/components/ui/card";
@@ -26,24 +22,13 @@ import { useSession } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 
 interface InviteData {
-  invitation: {
-    id: string;
-    email: string;
-    role: string;
-    expiresAt: string;
-  };
-  company: {
-    id: string;
-    name: string;
-    nip: string;
-  };
-  currentUser: {
-    id: string;
-    email: string;
-    name: string;
-  } | null;
-  userExists: boolean;
-  canAcceptDirectly: boolean;
+  valid: true;
+  email: string;
+  role: string;
+  companyName: string;
+  companyNip?: string | null;
+  expiresAt: string;
+  hasExistingAccount: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -69,29 +54,44 @@ export default function InviteAcceptPage() {
   const [name, setName] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [acceptTerms, setAcceptTerms] = React.useState(false);
+  const canAcceptDirectly = Boolean(user && data && user.email.toLowerCase() === data.email.toLowerCase());
 
   // Pobierz dane zaproszenia
   React.useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     async function loadInvite() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/invite/${token}`);
+        setData(null);
+        setPassword("");
+        setName("");
+        setAcceptTerms(false);
+        // The public provider skips session queries on informational pages.
+        // Invitations need the actor to distinguish direct acceptance from a
+        // different logged-in account, so refresh only for this workflow.
+        const [res] = await Promise.all([fetch(`/api/invite/${token}`, { signal: controller.signal }), refresh()]);
         const json = await res.json();
         if (!res.ok) {
           throw new Error(json.error || "Nie udało się zweryfikować zaproszenia.");
         }
+        if (json.valid !== true || typeof json.companyName !== "string" || typeof json.email !== "string" || typeof json.role !== "string" || typeof json.hasExistingAccount !== "boolean") {
+          throw new Error("Nie udało się zweryfikować danych zaproszenia. Otwórz link ponownie.");
+        }
+        if (cancelled) return;
         setData(json);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Nie udało się zweryfikować zaproszenia.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     if (token) {
-      loadInvite();
+      void loadInvite();
     }
-  }, [token]);
+    return () => { cancelled = true; controller.abort(); };
+  }, [token, refresh]);
 
   // Akceptacja zaproszenia
   const handleAccept = async (e: React.FormEvent) => {
@@ -102,15 +102,15 @@ export default function InviteAcceptPage() {
       setBusy(true);
       setError(null);
 
-      const payload: Record<string, string> = {};
-      if (!data.canAcceptDirectly) {
+      const payload: Record<string, string | boolean> = {};
+      if (!canAcceptDirectly) {
         if (!password) {
           setError("Wpisz hasło do konta.");
           setBusy(false);
           return;
         }
         payload.password = password;
-        if (!data.userExists) {
+        if (!data.hasExistingAccount) {
           if (!name.trim()) {
             setError("Wpisz swoje imię i nazwisko.");
             setBusy(false);
@@ -119,13 +119,13 @@ export default function InviteAcceptPage() {
           payload.name = name.trim();
         }
         // Nowi użytkownicy muszą zaakceptować regulamin
-        if (!data.userExists && !acceptTerms) {
+        if (!data.hasExistingAccount && !acceptTerms) {
           setError("Akceptacja Regulaminu jest wymagana do utworzenia konta.");
           setBusy(false);
           return;
         }
-        if (!data.userExists) {
-          payload.acceptTerms = "true";
+        if (!data.hasExistingAccount) {
+          payload.acceptTerms = true;
         }
       }
 
@@ -144,7 +144,7 @@ export default function InviteAcceptPage() {
       toast(
         "success",
         "Witaj w zespole!",
-        `Pomyślnie dołączono do firmy ${result.company?.companyName || result.company?.name || "firmy"}.`
+        `Pomyślnie dołączono do firmy ${data.companyName}.`
       );
 
       // Odśwież sesję i dane aplikacji
@@ -152,13 +152,13 @@ export default function InviteAcceptPage() {
       await useAppStore.getState().bootstrap();
 
       // Ustaw aktywną firmę na tę nowo dodaną
-      if (result.company?.id) {
-        useAppStore.getState().setSelectedCompanyId(result.company.id);
+      if (typeof result.companyId === "string") {
+        useAppStore.getState().setSelectedCompanyId(result.companyId);
       }
 
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nie udało się przyjąć zaproszenia.");
     } finally {
       setBusy(false);
     }
@@ -190,7 +190,7 @@ export default function InviteAcceptPage() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500" />
 
           {loading ? (
-            <div className="py-16 text-center text-xs text-muted-foreground">
+            <div role="status" className="py-16 text-center text-xs text-muted-foreground">
               Weryfikacja zaproszenia...
             </div>
           ) : error && !data ? (
@@ -202,10 +202,8 @@ export default function InviteAcceptPage() {
                 <h2 className="text-base font-bold text-foreground">Nieprawidłowe zaproszenie</h2>
                 <p className="text-xs text-muted-foreground mt-1">{error}</p>
               </div>
-              <Link href="/login">
-                <Button variant="outline" size="sm" className="mt-2 text-xs">
-                  Wróć do logowania
-                </Button>
+              <Link href="/login" prefetch={false} className="mt-2 inline-flex min-h-8 items-center justify-center rounded-lg border border-border/70 bg-card px-3 py-2 text-xs font-medium text-foreground shadow-2xs transition-colors hover:border-border hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                Wróć do logowania
               </Link>
             </div>
           ) : data ? (
@@ -221,41 +219,41 @@ export default function InviteAcceptPage() {
                 <div className="p-3 bg-muted/40 rounded-xl border border-border/80 mt-2 text-left">
                   <div className="flex items-center gap-2.5">
                     <Building2 className="w-4 h-4 text-primary shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold text-foreground">{data.company.name}</p>
-                      <p className="text-[11px] text-muted-foreground">NIP: {data.company.nip}</p>
+                    <div className="min-w-0 break-words">
+                      <p className="text-xs font-bold text-foreground">{data.companyName}</p>
+                      {data.companyNip && <p className="text-[11px] text-muted-foreground">NIP: {data.companyNip}</p>}
                     </div>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
+                  <div className="mt-2 pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-2 text-[11px]">
                     <span className="text-muted-foreground">Twoja rola:</span>
                     <Badge tone="default" className="text-[10px]">
-                      {ROLE_LABELS[data.invitation.role] || data.invitation.role}
+                      {ROLE_LABELS[data.role] || data.role}
                     </Badge>
                   </div>
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
+                <div role="alert" className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}
 
               {/* SCENARIUSZ A: Zalogowany z innym e-mailem */}
-              {data.currentUser && data.currentUser.email.toLowerCase() !== data.invitation.email.toLowerCase() ? (
+              {user && user.email.toLowerCase() !== data.email.toLowerCase() ? (
                 <div className="space-y-4 text-xs">
                   <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200">
                     <p className="font-semibold">Niezgodność adresu e-mail</p>
-                    <p className="mt-1">
-                      Jesteś obecnie zalogowany jako <b>{data.currentUser.email}</b>, natomiast to zaproszenie
-                      zostało przypisane do adresu <b>{data.invitation.email}</b>.
+                    <p className="mt-1 break-words">
+                      Jesteś obecnie zalogowany jako <b>{user.email}</b>, natomiast to zaproszenie
+                      zostało przypisane do adresu <b>{data.email}</b>.
                     </p>
                   </div>
                   <Button
                     onClick={handleLogoutAndRetry}
                     variant="outline"
-                    className="w-full text-xs font-semibold gap-2 text-rose-500 hover:text-rose-600"
+                    className="w-full text-xs font-semibold gap-2 text-rose-700 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Wyloguj się i dołącz z właściwego konta</span>
@@ -264,10 +262,10 @@ export default function InviteAcceptPage() {
               ) : (
                 /* SCENARIUSZ B & C: Dołączenie bezpośrednie lub logowanie/rejestracja */
                 <form onSubmit={handleAccept} className="space-y-4">
-                  {data.canAcceptDirectly ? (
+                  {canAcceptDirectly ? (
                     <div className="space-y-3 text-xs">
                       <p className="text-muted-foreground text-center">
-                        Jesteś zalogowany jako <b>{data.currentUser?.email}</b>. Kliknij poniżej, aby natychmiast
+                        Jesteś zalogowany jako <b>{user?.email}</b>. Kliknij poniżej, aby natychmiast
                         dołączyć do zespołu.
                       </p>
                       <Button type="submit" disabled={busy} className="w-full text-xs font-semibold gap-2 h-10">
@@ -278,14 +276,17 @@ export default function InviteAcceptPage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="text-xs text-muted-foreground">
-                        Zaproszenie dla: <b>{data.invitation.email}</b>
+                        Zaproszenie dla: <b>{data.email}</b>
                       </div>
 
-                      {!data.userExists && (
+                      {!data.hasExistingAccount && (
                         <div>
-                          <Label className="text-xs font-semibold">Twoje imię i nazwisko</Label>
+                          <Label htmlFor="invite-name" className="text-xs font-semibold">Twoje imię i nazwisko</Label>
                           <Input
+                            id="invite-name"
                             type="text"
+                            autoComplete="name"
+                            maxLength={100}
                             placeholder="Jan Kowalski"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
@@ -296,18 +297,21 @@ export default function InviteAcceptPage() {
                       )}
 
                       <div>
-                        <Label className="text-xs font-semibold">
-                          {data.userExists ? "Wpisz hasło do swojego konta" : "Utwórz hasło do nowego konta"}
+                        <Label htmlFor="invite-password" className="text-xs font-semibold">
+                          {data.hasExistingAccount ? "Wpisz hasło do swojego konta" : "Utwórz hasło do nowego konta"}
                         </Label>
                         <Input
+                          id="invite-password"
                           type="password"
+                          autoComplete={data.hasExistingAccount ? "current-password" : "new-password"}
+                          minLength={data.hasExistingAccount ? undefined : 8}
                           placeholder="Min. 8 znaków"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           required
                           className="mt-1 text-xs"
                         />
-                        {!data.userExists && (
+                        {!data.hasExistingAccount && (
                           <p className="text-[10.5px] text-muted-foreground mt-1">
                             Zostanie utworzone konto powiązane z tym adresem e-mail.
                           </p>
@@ -315,7 +319,7 @@ export default function InviteAcceptPage() {
                       </div>
 
                       {/* Akceptacja regulaminu dla nowych użytkowników */}
-                      {!data.userExists && (
+                      {!data.hasExistingAccount && (
                         <div className="space-y-2 pt-1">
                           <label className="flex items-start gap-2.5 cursor-pointer group">
                             <input
@@ -327,15 +331,15 @@ export default function InviteAcceptPage() {
                             />
                             <span className="text-[11px] leading-relaxed text-muted-foreground group-hover:text-foreground transition-colors">
                               Zapoznałem/am się z treścią{" "}
-                              <Link href="/regulamin" target="_blank" className="text-primary font-semibold hover:underline">
+                              <Link prefetch={false} href="/regulamin" target="_blank" className="text-primary font-semibold hover:underline">
                                 Regulaminu serwisu
                               </Link>{" "}
                               i akceptuję jego postanowienia. <span className="text-rose-500">*</span>
                             </span>
                           </label>
-                          <p className="text-[10px] text-muted-foreground/80 pl-6">
+                          <p className="text-[10px] text-muted-foreground pl-6">
                             Informacje o przetwarzaniu danych:{" "}
-                            <Link href="/polityka-prywatnosci" target="_blank" className="text-primary hover:underline">
+                            <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-primary underline underline-offset-2">
                               Polityka prywatności
                             </Link>.
                           </p>
@@ -343,7 +347,7 @@ export default function InviteAcceptPage() {
                       )}
 
                       <Button type="submit" disabled={busy} className="w-full text-xs font-semibold gap-2 h-10 mt-2">
-                        <span>{busy ? "Przetwarzanie..." : data.userExists ? "Zaloguj się i dołącz" : "Załóż konto i dołącz"}</span>
+                        <span>{busy ? "Przetwarzanie..." : data.hasExistingAccount ? "Zaloguj się i dołącz" : "Załóż konto i dołącz"}</span>
                         <ArrowRight className="w-4 h-4" />
                       </Button>
                     </div>

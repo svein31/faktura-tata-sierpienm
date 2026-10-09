@@ -74,7 +74,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge zgodności */}
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-700 dark:text-emerald-400">
               <ShieldCheck className="h-4 w-4" />
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
@@ -125,7 +125,7 @@ export default function LandingPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base font-bold text-foreground">FV/2026/09/0001</span>
-                    <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
                       KSeF: Przyjęta (200 OK)
                     </span>
                   </div>
@@ -158,7 +158,7 @@ export default function LandingPage() {
                 <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Nabywca (Kontrahent)</p>
                 <p className="mt-1 font-bold text-foreground text-sm">Przykładowy Kontrahent S.A.</p>
                 <p className="text-muted-foreground">NIP: 5270000024 · ul. Biznesowa 25, 00-950 Warszawa</p>
-                <p className="text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
+                <p className="text-emerald-700 dark:text-emerald-400 mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
               </div>
             </div>
 
@@ -324,7 +324,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/40 font-mono">01</span>
+              <span className="text-3xl font-extrabold text-primary/80 font-mono">01</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Podaj NIP swojej firmy</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Zarejestruj konto i podaj numer NIP. System automatycznie pobierze dane z bazy REGON
@@ -333,7 +333,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/40 font-mono">02</span>
+              <span className="text-3xl font-extrabold text-primary/80 font-mono">02</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wybierz środowisko KSeF</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Przetestuj wysyłkę w bezpiecznym symulatorze Demo lub na oficjalnej bramce testowej
@@ -342,7 +342,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/40 font-mono">03</span>
+              <span className="text-3xl font-extrabold text-primary/80 font-mono">03</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wystawiaj i kontroluj stan</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Wystawiaj faktury, pobieraj UPO, rejestruj wpłaty i przekazuj gotowe zestawienia do
@@ -404,7 +404,7 @@ export default function LandingPage() {
             </div>
           </div>
           {/* Linki prawne */}
-          <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground/80">
+          <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground dark:text-muted-foreground/80">
             <Link prefetch={false} href="/regulamin" className="hover:text-foreground transition-colors">Regulamin</Link>
             <Link prefetch={false} href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">Polityka prywatności</Link>
             <Link prefetch={false} href="/polityka-cookies" className="hover:text-foreground transition-colors">Cookies</Link>

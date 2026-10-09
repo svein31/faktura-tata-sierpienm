@@ -167,8 +167,8 @@ export default function PortalDocumentPage() {
   const bankName = seller?.bankName;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", padding: "2rem 1rem", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+    <div style={{ minHeight: "100vh", background: "#f8fafc", padding: "2rem 1rem", fontFamily: "system-ui, -apple-system, sans-serif", overflowWrap: "anywhere" }}>
+      <div style={{ minWidth: 0, maxWidth: "860px", margin: "0 auto" }}>
         
         {offer && <section className="no-print" style={{ background: "white", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: 12, padding: 20, marginBottom: 20 }}>
           <h2 style={{ fontWeight: 700 }}>Decyzja dotycząca oferty · wersja {offer.version}</h2>
@@ -176,7 +176,7 @@ export default function PortalDocumentPage() {
             <p style={{ fontSize: 14 }}>Sprawdź dokument przed podjęciem decyzji. Akceptacja dotyczy przedstawionej wersji oferty.</p>
             <label style={{ display: "block", marginTop: 12 }}>Imię i nazwisko<input style={{ display: "block", border: "1px solid #cbd5e1", padding: 8, width: "100%" }} maxLength={120} value={decisionName} onChange={e => setDecisionName(e.target.value)} /></label>
             <label style={{ display: "block", marginTop: 12 }}>Uwagi<textarea style={{ display: "block", border: "1px solid #cbd5e1", padding: 8, width: "100%" }} maxLength={2000} value={decisionNote} onChange={e => setDecisionNote(e.target.value)} /></label>
-            <div style={{ display: "flex", gap: 12, marginTop: 12 }}><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("accepted")} style={{ background: "#065f46", color: "white", borderRadius: 8, padding: "10px 16px" }}>Akceptuję ofertę</button><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("rejected")} style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 16px" }}>Odrzucam ofertę</button></div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 12 }}><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("accepted")} style={{ background: "#065f46", color: "white", borderRadius: 8, padding: "10px 16px" }}>Akceptuję ofertę</button><button disabled={decisionBusy || !decisionName.trim()} onClick={() => decide("rejected")} style={{ border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 16px" }}>Odrzucam ofertę</button></div>
           </> : <p>{offer.status === "accepted" ? "Oferta zaakceptowana" : offer.status === "rejected" ? "Oferta odrzucona" : "Oferta przekazana do realizacji"}</p>}
           <p role="status">{decisionMessage}</p>
         </section>}
@@ -190,7 +190,7 @@ export default function PortalDocumentPage() {
               {docTitle} {docNumber}
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             <button
               onClick={() => window.print()}
               style={{
@@ -220,7 +220,7 @@ export default function PortalDocumentPage() {
                   padding: "0.5rem 1rem",
                   borderRadius: "6px",
                   border: "none",
-                  background: "#0284c7",
+                  background: "#0369a1",
                   color: "#ffffff",
                   fontWeight: 600,
                   fontSize: "0.875rem",
@@ -248,7 +248,7 @@ export default function PortalDocumentPage() {
               <CreditCard size={18} color="#0284c7" />
               Szybkie dane do przelewu bankowego
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))", gap: "1rem" }}>
               
               {/* Numer konta */}
               <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
@@ -256,7 +256,7 @@ export default function PortalDocumentPage() {
                 <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#0f172a", wordBreak: "break-all" }}>{bankAccount}</div>
                 <button
                   onClick={() => copyToClipboard(bankAccount.replace(/\s+/g, ""), "iban")}
-                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0284c7", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
+                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0369a1", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
                 >
                   {copiedField === "iban" ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                   {copiedField === "iban" ? "Skopiowano!" : "Kopiuj IBAN"}
@@ -269,7 +269,7 @@ export default function PortalDocumentPage() {
                 <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#0f172a" }}>{docNumber}</div>
                 <button
                   onClick={() => copyToClipboard(docNumber || "", "title")}
-                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0284c7", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
+                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0369a1", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
                 >
                   {copiedField === "title" ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                   {copiedField === "title" ? "Skopiowano!" : "Kopiuj tytuł"}
@@ -279,10 +279,10 @@ export default function PortalDocumentPage() {
               {/* Kwota do zapłaty */}
               <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
                 <div style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.25rem" }}>Kwota do zapłaty</div>
-                <div style={{ fontWeight: 700, fontSize: "1.125rem", color: "#0284c7" }}>{formatMoney(totalGross, currency)}</div>
+                <div style={{ fontWeight: 700, fontSize: "1.125rem", color: "#0369a1" }}>{formatMoney(totalGross, currency)}</div>
                 <button
                   onClick={() => copyToClipboard(totalGross.toFixed(2), "amount")}
-                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0284c7", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
+                  style={{ marginTop: "0.5rem", border: "none", background: "transparent", color: "#0369a1", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: 0 }}
                 >
                   {copiedField === "amount" ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
                   {copiedField === "amount" ? "Skopiowano!" : "Kopiuj kwotę"}
@@ -293,7 +293,7 @@ export default function PortalDocumentPage() {
         )}
 
         {/* Karta dokumentu (styl faktury do druku i podglądu) */}
-        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "2.5rem", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+        <div className="p-5 sm:p-10 print:p-10" style={{ minWidth: 0, background: "#ffffff", color: "#0f172a", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
           
           {/* Nagłówek dokumentu */}
           <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "2px solid #e2e8f0", paddingBottom: "1.5rem", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -309,7 +309,7 @@ export default function PortalDocumentPage() {
               <div>Data wystawienia: <strong>{formatDate(issueDate || "")}</strong></div>
               {dueDate && (
                 <div style={{ marginTop: "0.25rem" }}>
-                  {isInvoice ? "Termin płatności" : "Oferta ważna do"}: <strong style={{ color: "#0284c7" }}>{formatDate(dueDate)}</strong>
+                  {isInvoice ? "Termin płatności" : "Oferta ważna do"}: <strong style={{ color: "#0369a1" }}>{formatDate(dueDate)}</strong>
                 </div>
               )}
               <div style={{ marginTop: "0.5rem" }}>
@@ -331,8 +331,8 @@ export default function PortalDocumentPage() {
           </div>
 
           {/* Strony: Sprzedawca i Nabywca */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", marginBottom: "2rem" }}>
-            <div>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 print:grid-cols-2" style={{ marginBottom: "2rem" }}>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "0.5rem" }}>
                 Sprzedawca / Wystawca
               </div>
@@ -353,7 +353,7 @@ export default function PortalDocumentPage() {
               )}
             </div>
 
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "0.5rem" }}>
                 Nabywca / Kontrahent
               </div>
@@ -404,16 +404,16 @@ export default function PortalDocumentPage() {
 
           {/* Podsumowanie kwot */}
           <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "2px solid #e2e8f0", paddingTop: "1rem" }}>
-            <div style={{ width: "280px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b", marginBottom: "0.35rem" }}>
+            <div style={{ minWidth: 0, width: "280px", maxWidth: "100%" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem 0.5rem", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b", marginBottom: "0.35rem" }}>
                 <span>Wartość netto:</span>
                 <span>{formatMoney(totalNet, currency)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b", marginBottom: "0.35rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem 0.5rem", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b", marginBottom: "0.35rem" }}>
                 <span>Kwota VAT:</span>
                 <span>{formatMoney(totalVat, currency)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", borderTop: "1px solid #cbd5e1", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem 0.5rem", justifyContent: "space-between", fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", borderTop: "1px solid #cbd5e1", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
                 <span>Razem brutto:</span>
                 <span>{formatMoney(totalGross, currency)}</span>
               </div>
@@ -467,7 +467,7 @@ export default function PortalDocumentPage() {
                   <button
                     type="submit"
                     disabled={declaring}
-                    style={{ padding: "0.5rem 1rem", borderRadius: "6px", border: "none", background: "#0284c7", color: "#ffffff", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer" }}
+                    style={{ padding: "0.5rem 1rem", borderRadius: "6px", border: "none", background: "#0369a1", color: "#ffffff", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer" }}
                   >
                     {declaring ? "Zapisywanie..." : "Wyślij deklarację"}
                   </button>

@@ -1,6 +1,7 @@
 import { getSessionUser, toPublicUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str, cleanStr } from "@/lib/api";
 import { prisma } from "@/lib/db";
+import { normalizeNip, isValidNipFormat } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -55,7 +56,9 @@ export async function PUT(req: Request) {
     const body = await readJson(req);
     const name = cleanStr(body.name, 100, "name") || user.name;
     const companyName = cleanStr(body.companyName, 200, "companyName") || user.companyName;
-    const nip = cleanStr(body.nip, 20, "nip") || user.nip;
+    const nipDraft = cleanStr(body.nip, 20, "nip");
+    if (nipDraft && !isValidNipFormat(nipDraft)) throw new ApiError(400, "NIP ma nieprawidłowy format lub sumę kontrolną.", "INVALID_INPUT");
+    const nip = nipDraft ? normalizeNip(nipDraft) : user.nip;
 
     const updated = await prisma.user.update({
       where: { id: user.id },

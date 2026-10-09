@@ -1,0 +1,944 @@
+{
+  "buildId": "ZjS2_AKTU791vZrYv_n4s",
+  "sourceHash": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417",
+  "scope": "Chromium on isolated loopback synthetic portal invoice and offer, light and dark themes, A4 PDF using real print CSS",
+  "limitations": [
+    "One short synthetic invoice and one short synthetic offer; no production/customer data or provider calls.",
+    "Print-media DOM geometry, actual pdftotext extraction, and visual inspection of four first-visit PDF renders. Other printers, long/multipage documents and PDF export in other engines remain untested.",
+    "A4 with zero custom margins, no headers/footers, printBackground true; other printers, margins, long/multipage documents, and engines are untested."
+  ],
+  "sourceExpectations": {
+    "cardPadding": "40px on all sides (print:p-10)",
+    "partiesColumns": 2,
+    "portalActionContainers": "display:none (!important) via .no-print",
+    "bodyBackground": "rgb(255, 255, 255)"
+  },
+  "steps": [
+    "Navigate synthetic public capability route in fresh context.",
+    "Confirm real portal GET response and selected theme.",
+    "Emulate print and record first-visit UI visibility.",
+    "Produce first-visit A4 PDF; extract text.",
+    "Reject optional cookies through visible UI, switch back to print, inspect print CSS and overflow.",
+    "Produce actual A4 PDF, extract document and monetary text, render PDF to PNG."
+  ],
+  "cases": [
+    {
+      "kind": "invoice",
+      "theme": "light",
+      "screenActions": 1,
+      "firstVisit": {
+        "visibleButtons": [],
+        "cookieBannerVisible": false,
+        "portalActionsHidden": true,
+        "cookieTextInPdf": false,
+        "pdfFile": "/tmp/faktura-portal-print-final5/invoice-light-first-visit.pdf"
+      },
+      "measurement": {
+        "viewport": {
+          "width": 794,
+          "height": 1123
+        },
+        "bodyBackground": "rgb(255, 255, 255)",
+        "card": {
+          "x": 16,
+          "y": 32,
+          "width": 762,
+          "height": 608.59375,
+          "right": 778,
+          "bottom": 640.59375,
+          "padding": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ],
+          "clientWidth": 760,
+          "scrollWidth": 760,
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(15, 23, 42)"
+        },
+        "parties": {
+          "x": 57,
+          "y": 211,
+          "width": 680,
+          "height": 119,
+          "right": 737,
+          "bottom": 330,
+          "gridTemplateColumns": "324px 324px",
+          "children": [
+            {
+              "x": 57,
+              "y": 211,
+              "width": 324,
+              "height": 119,
+              "right": 381,
+              "bottom": 330
+            },
+            {
+              "x": 413,
+              "y": 211,
+              "width": 324,
+              "height": 119,
+              "right": 737,
+              "bottom": 330
+            }
+          ]
+        },
+        "visibleButtons": [],
+        "actionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "portalActionContainers": [
+          {
+            "display": "none"
+          }
+        ],
+        "overflow": [],
+        "documentText": "Faktura VAT\nNr: QA/AXE/PORTAL/2026\nData wystawienia: 09.10.2026\nTermin płatności: 16.10.2026\nDO ZAPŁATY\nSPRZEDAWCA / WYSTAWCA\nQA syntetyczna firma Żółć\nNIP: 5260301706\nNABYWCA / KONTRAHENT\nQA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi\nNIP: 1234563218\nLp.\tNazwa towaru lub usługi\tIlość\tCena netto\tVAT\tWartość brutto\n1\tZażółć gęślą jaźń <b>test</b>\t1.25 szt.\t100,00 zł\t23%\t153,75 zł\nWartość netto:\n125,00 zł\nKwota VAT:\n28,75 zł\nRazem brutto:\n153,75 zł"
+      },
+      "assertions": [
+        {
+          "name": "first-visit cookie banner and all interactive print controls are hidden",
+          "passed": true,
+          "detail": {
+            "visibleButtons": [],
+            "cookieBannerVisible": false,
+            "portalActionsHidden": true,
+            "cookieTextInPdf": false,
+            "pdfFile": "/tmp/faktura-portal-print-final5/invoice-light-first-visit.pdf"
+          }
+        },
+        {
+          "name": "all portal .no-print action containers are hidden",
+          "passed": true
+        },
+        {
+          "name": "no visible interactive actions after consent rejection",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card uses all four 40px paddings",
+          "passed": true,
+          "detail": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ]
+        },
+        {
+          "name": "seller and buyer print side-by-side in two columns",
+          "passed": true,
+          "detail": "324px 324px"
+        },
+        {
+          "name": "white print body and paper independent of theme",
+          "passed": true
+        },
+        {
+          "name": "no measured clipped or horizontal overflowing print-card descendants",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card fits a single A4 viewport vertically",
+          "passed": true,
+          "detail": 640.59375
+        },
+        {
+          "name": "no browser page errors",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "extracted PDF preserves title",
+          "passed": true,
+          "detail": "Faktura VAT"
+        },
+        {
+          "name": "extracted PDF preserves number",
+          "passed": true,
+          "detail": "QA/AXE/PORTAL/2026"
+        },
+        {
+          "name": "extracted PDF preserves seller",
+          "passed": true,
+          "detail": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "extracted PDF preserves buyer",
+          "passed": true,
+          "detail": "QA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi"
+        },
+        {
+          "name": "extracted PDF preserves net total",
+          "passed": true,
+          "detail": "125,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves VAT total",
+          "passed": true,
+          "detail": "28,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves gross total",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line description",
+          "passed": true,
+          "detail": "Zażółć gęślą jaźń <b>test</b>"
+        },
+        {
+          "name": "extracted PDF preserves line unit net",
+          "passed": true,
+          "detail": "100,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves line gross",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line VAT",
+          "passed": true,
+          "detail": "23%"
+        },
+        {
+          "name": "extracted PDF excludes portal action text",
+          "passed": true
+        },
+        {
+          "name": "A4 PDF contains exactly one page",
+          "passed": true,
+          "detail": 1
+        },
+        {
+          "name": "PDF media is A4",
+          "passed": true,
+          "detail": {
+            "widthPoints": 595.92,
+            "heightPoints": 842.88
+          }
+        }
+      ],
+      "files": {
+        "pdf": "/tmp/faktura-portal-print-final5/invoice-light.pdf",
+        "text": "/tmp/faktura-portal-print-final5/invoice-light.txt",
+        "rawText": "/tmp/faktura-portal-print-final5/invoice-light.raw.txt",
+        "printMediaScreenshot": "/tmp/faktura-portal-print-final5/invoice-light-print-media.png",
+        "pdfRender": "/tmp/faktura-portal-print-final5/invoice-light-pdf-page.png",
+        "firstVisitPdfRender": "/tmp/faktura-portal-print-final5/invoice-light-first-visit-pdf-page.png"
+      }
+    },
+    {
+      "kind": "offer",
+      "theme": "light",
+      "screenActions": 2,
+      "firstVisit": {
+        "visibleButtons": [],
+        "cookieBannerVisible": false,
+        "portalActionsHidden": true,
+        "cookieTextInPdf": false,
+        "pdfFile": "/tmp/faktura-portal-print-final5/offer-light-first-visit.pdf"
+      },
+      "measurement": {
+        "viewport": {
+          "width": 794,
+          "height": 1123
+        },
+        "bodyBackground": "rgb(255, 255, 255)",
+        "card": {
+          "x": 16,
+          "y": 32,
+          "width": 762,
+          "height": 587.59375,
+          "right": 778,
+          "bottom": 619.59375,
+          "padding": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ],
+          "clientWidth": 760,
+          "scrollWidth": 760,
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(15, 23, 42)"
+        },
+        "parties": {
+          "x": 57,
+          "y": 211,
+          "width": 680,
+          "height": 98,
+          "right": 737,
+          "bottom": 309,
+          "gridTemplateColumns": "324px 324px",
+          "children": [
+            {
+              "x": 57,
+              "y": 211,
+              "width": 324,
+              "height": 98,
+              "right": 381,
+              "bottom": 309
+            },
+            {
+              "x": 413,
+              "y": 211,
+              "width": 324,
+              "height": 98,
+              "right": 737,
+              "bottom": 309
+            }
+          ]
+        },
+        "visibleButtons": [],
+        "actionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "portalActionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "overflow": [],
+        "documentText": "Oferta handlowa\nNr: QA/AXE/OFFER\nData wystawienia: 09.10.2026\nOferta ważna do: 16.10.2026\nDO DECYZJI\nSPRZEDAWCA / WYSTAWCA\nQA syntetyczna firma Żółć\nNIP: 5260301706\nNABYWCA / KONTRAHENT\nQA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi\nLp.\tNazwa towaru lub usługi\tIlość\tCena netto\tVAT\tWartość brutto\n1\tZażółć gęślą jaźń <b>test</b>\t1.25 szt.\t100,00 zł\t23%\t153,75 zł\nWartość netto:\n125,00 zł\nKwota VAT:\n28,75 zł\nRazem brutto:\n153,75 zł"
+      },
+      "assertions": [
+        {
+          "name": "first-visit cookie banner and all interactive print controls are hidden",
+          "passed": true,
+          "detail": {
+            "visibleButtons": [],
+            "cookieBannerVisible": false,
+            "portalActionsHidden": true,
+            "cookieTextInPdf": false,
+            "pdfFile": "/tmp/faktura-portal-print-final5/offer-light-first-visit.pdf"
+          }
+        },
+        {
+          "name": "all portal .no-print action containers are hidden",
+          "passed": true
+        },
+        {
+          "name": "no visible interactive actions after consent rejection",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card uses all four 40px paddings",
+          "passed": true,
+          "detail": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ]
+        },
+        {
+          "name": "seller and buyer print side-by-side in two columns",
+          "passed": true,
+          "detail": "324px 324px"
+        },
+        {
+          "name": "white print body and paper independent of theme",
+          "passed": true
+        },
+        {
+          "name": "no measured clipped or horizontal overflowing print-card descendants",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card fits a single A4 viewport vertically",
+          "passed": true,
+          "detail": 619.59375
+        },
+        {
+          "name": "no browser page errors",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "extracted PDF preserves title",
+          "passed": true,
+          "detail": "Oferta handlowa"
+        },
+        {
+          "name": "extracted PDF preserves number",
+          "passed": true,
+          "detail": "QA/AXE/OFFER"
+        },
+        {
+          "name": "extracted PDF preserves seller",
+          "passed": true,
+          "detail": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "extracted PDF preserves buyer",
+          "passed": true,
+          "detail": "QA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi"
+        },
+        {
+          "name": "extracted PDF preserves net total",
+          "passed": true,
+          "detail": "125,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves VAT total",
+          "passed": true,
+          "detail": "28,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves gross total",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line description",
+          "passed": true,
+          "detail": "Zażółć gęślą jaźń <b>test</b>"
+        },
+        {
+          "name": "extracted PDF preserves line unit net",
+          "passed": true,
+          "detail": "100,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves line gross",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line VAT",
+          "passed": true,
+          "detail": "23%"
+        },
+        {
+          "name": "extracted PDF excludes portal action text",
+          "passed": true
+        },
+        {
+          "name": "A4 PDF contains exactly one page",
+          "passed": true,
+          "detail": 1
+        },
+        {
+          "name": "PDF media is A4",
+          "passed": true,
+          "detail": {
+            "widthPoints": 595.92,
+            "heightPoints": 842.88
+          }
+        }
+      ],
+      "files": {
+        "pdf": "/tmp/faktura-portal-print-final5/offer-light.pdf",
+        "text": "/tmp/faktura-portal-print-final5/offer-light.txt",
+        "rawText": "/tmp/faktura-portal-print-final5/offer-light.raw.txt",
+        "printMediaScreenshot": "/tmp/faktura-portal-print-final5/offer-light-print-media.png",
+        "pdfRender": "/tmp/faktura-portal-print-final5/offer-light-pdf-page.png",
+        "firstVisitPdfRender": "/tmp/faktura-portal-print-final5/offer-light-first-visit-pdf-page.png"
+      }
+    },
+    {
+      "kind": "invoice",
+      "theme": "dark",
+      "screenActions": 1,
+      "firstVisit": {
+        "visibleButtons": [],
+        "cookieBannerVisible": false,
+        "portalActionsHidden": true,
+        "cookieTextInPdf": false,
+        "pdfFile": "/tmp/faktura-portal-print-final5/invoice-dark-first-visit.pdf"
+      },
+      "measurement": {
+        "viewport": {
+          "width": 794,
+          "height": 1123
+        },
+        "bodyBackground": "rgb(255, 255, 255)",
+        "card": {
+          "x": 16,
+          "y": 32,
+          "width": 762,
+          "height": 608.59375,
+          "right": 778,
+          "bottom": 640.59375,
+          "padding": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ],
+          "clientWidth": 760,
+          "scrollWidth": 760,
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(15, 23, 42)"
+        },
+        "parties": {
+          "x": 57,
+          "y": 211,
+          "width": 680,
+          "height": 119,
+          "right": 737,
+          "bottom": 330,
+          "gridTemplateColumns": "324px 324px",
+          "children": [
+            {
+              "x": 57,
+              "y": 211,
+              "width": 324,
+              "height": 119,
+              "right": 381,
+              "bottom": 330
+            },
+            {
+              "x": 413,
+              "y": 211,
+              "width": 324,
+              "height": 119,
+              "right": 737,
+              "bottom": 330
+            }
+          ]
+        },
+        "visibleButtons": [],
+        "actionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "portalActionContainers": [
+          {
+            "display": "none"
+          }
+        ],
+        "overflow": [],
+        "documentText": "Faktura VAT\nNr: QA/AXE/PORTAL/2026\nData wystawienia: 09.10.2026\nTermin płatności: 16.10.2026\nDO ZAPŁATY\nSPRZEDAWCA / WYSTAWCA\nQA syntetyczna firma Żółć\nNIP: 5260301706\nNABYWCA / KONTRAHENT\nQA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi\nNIP: 1234563218\nLp.\tNazwa towaru lub usługi\tIlość\tCena netto\tVAT\tWartość brutto\n1\tZażółć gęślą jaźń <b>test</b>\t1.25 szt.\t100,00 zł\t23%\t153,75 zł\nWartość netto:\n125,00 zł\nKwota VAT:\n28,75 zł\nRazem brutto:\n153,75 zł"
+      },
+      "assertions": [
+        {
+          "name": "first-visit cookie banner and all interactive print controls are hidden",
+          "passed": true,
+          "detail": {
+            "visibleButtons": [],
+            "cookieBannerVisible": false,
+            "portalActionsHidden": true,
+            "cookieTextInPdf": false,
+            "pdfFile": "/tmp/faktura-portal-print-final5/invoice-dark-first-visit.pdf"
+          }
+        },
+        {
+          "name": "all portal .no-print action containers are hidden",
+          "passed": true
+        },
+        {
+          "name": "no visible interactive actions after consent rejection",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card uses all four 40px paddings",
+          "passed": true,
+          "detail": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ]
+        },
+        {
+          "name": "seller and buyer print side-by-side in two columns",
+          "passed": true,
+          "detail": "324px 324px"
+        },
+        {
+          "name": "white print body and paper independent of theme",
+          "passed": true
+        },
+        {
+          "name": "no measured clipped or horizontal overflowing print-card descendants",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card fits a single A4 viewport vertically",
+          "passed": true,
+          "detail": 640.59375
+        },
+        {
+          "name": "no browser page errors",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "extracted PDF preserves title",
+          "passed": true,
+          "detail": "Faktura VAT"
+        },
+        {
+          "name": "extracted PDF preserves number",
+          "passed": true,
+          "detail": "QA/AXE/PORTAL/2026"
+        },
+        {
+          "name": "extracted PDF preserves seller",
+          "passed": true,
+          "detail": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "extracted PDF preserves buyer",
+          "passed": true,
+          "detail": "QA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi"
+        },
+        {
+          "name": "extracted PDF preserves net total",
+          "passed": true,
+          "detail": "125,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves VAT total",
+          "passed": true,
+          "detail": "28,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves gross total",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line description",
+          "passed": true,
+          "detail": "Zażółć gęślą jaźń <b>test</b>"
+        },
+        {
+          "name": "extracted PDF preserves line unit net",
+          "passed": true,
+          "detail": "100,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves line gross",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line VAT",
+          "passed": true,
+          "detail": "23%"
+        },
+        {
+          "name": "extracted PDF excludes portal action text",
+          "passed": true
+        },
+        {
+          "name": "A4 PDF contains exactly one page",
+          "passed": true,
+          "detail": 1
+        },
+        {
+          "name": "PDF media is A4",
+          "passed": true,
+          "detail": {
+            "widthPoints": 595.92,
+            "heightPoints": 842.88
+          }
+        }
+      ],
+      "files": {
+        "pdf": "/tmp/faktura-portal-print-final5/invoice-dark.pdf",
+        "text": "/tmp/faktura-portal-print-final5/invoice-dark.txt",
+        "rawText": "/tmp/faktura-portal-print-final5/invoice-dark.raw.txt",
+        "printMediaScreenshot": "/tmp/faktura-portal-print-final5/invoice-dark-print-media.png",
+        "pdfRender": "/tmp/faktura-portal-print-final5/invoice-dark-pdf-page.png",
+        "firstVisitPdfRender": "/tmp/faktura-portal-print-final5/invoice-dark-first-visit-pdf-page.png"
+      }
+    },
+    {
+      "kind": "offer",
+      "theme": "dark",
+      "screenActions": 2,
+      "firstVisit": {
+        "visibleButtons": [],
+        "cookieBannerVisible": false,
+        "portalActionsHidden": true,
+        "cookieTextInPdf": false,
+        "pdfFile": "/tmp/faktura-portal-print-final5/offer-dark-first-visit.pdf"
+      },
+      "measurement": {
+        "viewport": {
+          "width": 794,
+          "height": 1123
+        },
+        "bodyBackground": "rgb(255, 255, 255)",
+        "card": {
+          "x": 16,
+          "y": 32,
+          "width": 762,
+          "height": 587.59375,
+          "right": 778,
+          "bottom": 619.59375,
+          "padding": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ],
+          "clientWidth": 760,
+          "scrollWidth": 760,
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(15, 23, 42)"
+        },
+        "parties": {
+          "x": 57,
+          "y": 211,
+          "width": 680,
+          "height": 98,
+          "right": 737,
+          "bottom": 309,
+          "gridTemplateColumns": "324px 324px",
+          "children": [
+            {
+              "x": 57,
+              "y": 211,
+              "width": 324,
+              "height": 98,
+              "right": 381,
+              "bottom": 309
+            },
+            {
+              "x": 413,
+              "y": 211,
+              "width": 324,
+              "height": 98,
+              "right": 737,
+              "bottom": 309
+            }
+          ]
+        },
+        "visibleButtons": [],
+        "actionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "portalActionContainers": [
+          {
+            "display": "none"
+          },
+          {
+            "display": "none"
+          }
+        ],
+        "overflow": [],
+        "documentText": "Oferta handlowa\nNr: QA/AXE/OFFER\nData wystawienia: 09.10.2026\nOferta ważna do: 16.10.2026\nDO DECYZJI\nSPRZEDAWCA / WYSTAWCA\nQA syntetyczna firma Żółć\nNIP: 5260301706\nNABYWCA / KONTRAHENT\nQA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi\nLp.\tNazwa towaru lub usługi\tIlość\tCena netto\tVAT\tWartość brutto\n1\tZażółć gęślą jaźń <b>test</b>\t1.25 szt.\t100,00 zł\t23%\t153,75 zł\nWartość netto:\n125,00 zł\nKwota VAT:\n28,75 zł\nRazem brutto:\n153,75 zł"
+      },
+      "assertions": [
+        {
+          "name": "first-visit cookie banner and all interactive print controls are hidden",
+          "passed": true,
+          "detail": {
+            "visibleButtons": [],
+            "cookieBannerVisible": false,
+            "portalActionsHidden": true,
+            "cookieTextInPdf": false,
+            "pdfFile": "/tmp/faktura-portal-print-final5/offer-dark-first-visit.pdf"
+          }
+        },
+        {
+          "name": "all portal .no-print action containers are hidden",
+          "passed": true
+        },
+        {
+          "name": "no visible interactive actions after consent rejection",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card uses all four 40px paddings",
+          "passed": true,
+          "detail": [
+            "40px",
+            "40px",
+            "40px",
+            "40px"
+          ]
+        },
+        {
+          "name": "seller and buyer print side-by-side in two columns",
+          "passed": true,
+          "detail": "324px 324px"
+        },
+        {
+          "name": "white print body and paper independent of theme",
+          "passed": true
+        },
+        {
+          "name": "no measured clipped or horizontal overflowing print-card descendants",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "print card fits a single A4 viewport vertically",
+          "passed": true,
+          "detail": 619.59375
+        },
+        {
+          "name": "no browser page errors",
+          "passed": true,
+          "detail": []
+        },
+        {
+          "name": "extracted PDF preserves title",
+          "passed": true,
+          "detail": "Oferta handlowa"
+        },
+        {
+          "name": "extracted PDF preserves number",
+          "passed": true,
+          "detail": "QA/AXE/OFFER"
+        },
+        {
+          "name": "extracted PDF preserves seller",
+          "passed": true,
+          "detail": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "extracted PDF preserves buyer",
+          "passed": true,
+          "detail": "QA Łódź — Kontrahent z bardzo długą nazwą i dodatkowymi informacjami handlowymi"
+        },
+        {
+          "name": "extracted PDF preserves net total",
+          "passed": true,
+          "detail": "125,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves VAT total",
+          "passed": true,
+          "detail": "28,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves gross total",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line description",
+          "passed": true,
+          "detail": "Zażółć gęślą jaźń <b>test</b>"
+        },
+        {
+          "name": "extracted PDF preserves line unit net",
+          "passed": true,
+          "detail": "100,00 zł"
+        },
+        {
+          "name": "extracted PDF preserves line gross",
+          "passed": true,
+          "detail": "153,75 zł"
+        },
+        {
+          "name": "extracted PDF preserves line VAT",
+          "passed": true,
+          "detail": "23%"
+        },
+        {
+          "name": "extracted PDF excludes portal action text",
+          "passed": true
+        },
+        {
+          "name": "A4 PDF contains exactly one page",
+          "passed": true,
+          "detail": 1
+        },
+        {
+          "name": "PDF media is A4",
+          "passed": true,
+          "detail": {
+            "widthPoints": 595.92,
+            "heightPoints": 842.88
+          }
+        }
+      ],
+      "files": {
+        "pdf": "/tmp/faktura-portal-print-final5/offer-dark.pdf",
+        "text": "/tmp/faktura-portal-print-final5/offer-dark.txt",
+        "rawText": "/tmp/faktura-portal-print-final5/offer-dark.raw.txt",
+        "printMediaScreenshot": "/tmp/faktura-portal-print-final5/offer-dark-print-media.png",
+        "pdfRender": "/tmp/faktura-portal-print-final5/offer-dark-pdf-page.png",
+        "firstVisitPdfRender": "/tmp/faktura-portal-print-final5/offer-dark-first-visit-pdf-page.png"
+      }
+    }
+  ],
+  "externalRequestsBlocked": 0,
+  "localMutationsBlocked": 4,
+  "failures": [],
+  "visualReview": {
+    "status": "completed",
+    "reviewer": "finish_filter_harness agent (four first-visit renders) and independent print_visual_review agent (all eight renders)",
+    "files": [
+      "/tmp/faktura-portal-print-final5/invoice-light-first-visit-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/invoice-light-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/offer-light-first-visit-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/offer-light-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/invoice-dark-first-visit-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/invoice-dark-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/offer-dark-first-visit-pdf-page.png",
+      "/tmp/faktura-portal-print-final5/offer-dark-pdf-page.png"
+    ],
+    "observations": [
+      "Actually viewed all eight first-visit and consent-dismissed A4 PDF-page PNG renders for invoice and offer in light and dark themes; independent review confirmed the same findings.",
+      "Cookie banner, privacy links, settings/reject/accept buttons, and portal print/decision/payment actions are absent from all four actual PDF renders.",
+      "Document number, dates, status, seller and wrapped long buyer name are visible. Six-column line-item table fits without observed overlap or cutoff.",
+      "Net 125,00 zł, VAT 28,75 zł, unit price 100,00 zł, 23% VAT rate and gross 153,75 zł remain visible and readable.",
+      "Print paper remains white with dark document text in both themes; parties remain in two columns."
+    ]
+  },
+  "diagnosticCorrections": [
+    "Portal action-container count is scoped to the document card parent. Global .no-print elements include the cookie banner, which intentionally unmounts after consent rejection; all global matched containers are still required to compute display:none in print.",
+    "Full buyer-name comparison uses pdftotext -raw content-order extraction; -layout extraction is also saved for inspection.",
+    "Chromium A4 media is accepted by pdfinfo A4 label and dimensions within 1.5 pt of ISO dimensions."
+  ],
+  "status": "passed",
+  "firstVisitIssues": [],
+  "documentStatus": "passed",
+  "summary": {
+    "documentCases": 4,
+    "documentAssertions": 92,
+    "documentFailures": 0,
+    "firstVisitPrintIssues": 0,
+    "renderedPdfPagesActuallyViewed": 8,
+    "sourceEdits": 0,
+    "externalRequestsBlocked": 0,
+    "localMutationsBlocked": 4
+  }
+}

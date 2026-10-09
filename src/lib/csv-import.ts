@@ -15,19 +15,23 @@ export function parseImportCsv(text: string): { headers: string[]; rows: string[
   const records: string[][] = [];
   let current = "", line: string[] = [];
   quoted = false;
+  let closedQuote = false;
   for (let i = 0; i < source.length; i++) {
     const char = source[i];
     if (char === '"') {
       if (quoted && source[i + 1] === '"') { current += '"'; i++; }
       else if (!quoted && current === "") quoted = true;
-      else if (quoted) quoted = false;
+      else if (quoted) { quoted = false; closedQuote = true; }
       else throw new Error("Nieprawidłowy cudzysłów w pliku CSV.");
-    } else if (!quoted && char === separator) { line.push(current.trim()); current = ""; }
+    } else if (!quoted && char === separator) { line.push(current.trim()); current = ""; closedQuote = false; }
     else if (!quoted && (char === "\n" || char === "\r")) {
       line.push(current.trim()); if (line.some(Boolean)) records.push(line);
-      line = []; current = ""; if (char === "\r" && source[i + 1] === "\n") i++;
+      line = []; current = ""; closedQuote = false; if (char === "\r" && source[i + 1] === "\n") i++;
       if (records.length > 201) throw new Error("Import może mieć najwyżej 200 wierszy.");
-    } else current += char;
+    } else {
+      if (closedQuote && char !== " " && char !== "\t") throw new Error("Nieprawidłowy tekst po zamknięciu cudzysłowu w pliku CSV.");
+      current += char;
+    }
   }
   if (quoted) throw new Error("Niezamknięte pole w cudzysłowie.");
   line.push(current.trim()); if (line.some(Boolean)) records.push(line);

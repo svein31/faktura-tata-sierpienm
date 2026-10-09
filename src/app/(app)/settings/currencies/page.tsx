@@ -214,8 +214,9 @@ export default function CurrenciesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <Label className="text-xs text-muted-foreground">Kwota</Label>
+              <Label htmlFor="currency-calc-amount" className="text-xs text-muted-foreground">Kwota</Label>
               <Input
+                id="currency-calc-amount"
                 type="number"
                 value={calcAmount || ""}
                 onChange={(e) => setCalcAmount(Number(e.target.value))}
@@ -278,10 +279,10 @@ export default function CurrenciesPage() {
         <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:shadow-apple-md space-y-4">
           <div className="flex items-center justify-between border-b border-border/50 pb-3">
             <div className="flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-emerald-400" />
+              <Landmark className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
               <h3 className="text-sm font-semibold text-foreground">Rachunki walutowe firmy</h3>
             </div>
-            <Link
+            <Link prefetch={false}
               href="/settings/companies"
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
@@ -333,7 +334,7 @@ export default function CurrenciesPage() {
 
       {/* Podstawa prawna: Art. 31a ustawy o VAT */}
       <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm space-y-3">
-        <div className="flex items-center gap-2 text-indigo-400">
+        <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
           <Info className="h-4 w-4" />
           <h4 className="text-xs font-semibold uppercase tracking-wider">
             Zasady prawne przeliczania walut obcych (Art. 31a ustawy o VAT)

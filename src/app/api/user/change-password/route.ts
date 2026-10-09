@@ -1,6 +1,8 @@
-import { getSessionUser, hashPassword, verifyPassword } from "@/lib/auth";
+import { getSession, hashPassword, verifyPassword } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
-import { prisma } from "@/lib/db";
+import { changePasswordAuthenticated } from "@/lib/password-change";
+import { PASSWORD_LENGTH_MESSAGE, validNewPasswordLength } from "@/lib/password-policy";
+import { rateLimitSubject } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,8 +14,8 @@ export const runtime = "nodejs";
  * - co najmniej jeden znak specjalny
  */
 function validatePasswordStrength(password: string): { ok: boolean; message?: string } {
-  if (typeof password !== "string" || password.length < 8) {
-    return { ok: false, message: "Hasło musi mieć co najmniej 8 znaków." };
+  if (!validNewPasswordLength(password)) {
+    return { ok: false, message: PASSWORD_LENGTH_MESSAGE };
   }
   if (!/[0-9]/.test(password)) {
     return { ok: false, message: "Hasło musi zawierać co najmniej jedną cyfrę (0-9)." };
@@ -31,10 +33,13 @@ function validatePasswordStrength(password: string): { ok: boolean; message?: st
  */
 export async function POST(req: Request) {
   try {
-    const user = await getSessionUser();
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       throw new ApiError(401, "Nie jesteś zalogowany.", "UNAUTHENTICATED");
     }
+    const { user, sessionId } = session;
+    const quota = await rateLimitSubject(user.id, { max: 10, windowMs: 15 * 60_000 }, "change-password");
+    if (!quota.allowed) throw new ApiError(429, "Zbyt wiele prób zmiany hasła. Spróbuj później.", "RATE_LIMITED");
 
     const body = await readJson(req);
     const currentPassword = str(body.currentPassword);
@@ -69,14 +74,11 @@ export async function POST(req: Request) {
 
     // 3. Zapis nowego hasła w bazie
     const newHash = await hashPassword(newPassword);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: newHash },
-    });
+    await changePasswordAuthenticated(user.id, sessionId, user.password, newHash);
 
     return json({
       success: true,
-      message: "Hasło zostało pomyślnie zmienione.",
+      message: "Hasło zostało zmienione. Pozostałe sesje oraz wcześniejsze linki odzyskiwania dostępu zostały unieważnione.",
     });
   } catch (e) {
     return handleApiError(e);

@@ -6,12 +6,16 @@ import { changedAcceptedInvoiceFields, PURCHASE_INVOICE_READ_ONLY } from "@/lib/
 import { prisma } from "@/lib/db";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 import { getSessionUser } from "@/lib/auth";
-import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { assertObjectId, ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
 import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
+import { invoiceNumberScope } from "@/lib/invoice-number-scope";
+import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
+import { round2 } from "@/lib/format";
+import { warsawDate } from "@/lib/scheduling";
 
 export const runtime = "nodejs";
 
@@ -84,6 +88,19 @@ export async function PUT(req: Request, { params }: Ctx) {
     if (KSEF_IN_FLIGHT.includes(existing.ksefStatus || "") || (existing.referenceNumber && !existing.ksefNumber)) throw new ApiError(409, "Dokument oczekuje na rozstrzygnięcie wysyłki KSeF.");
     if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
     const body = await readJson(req);
+    const previousDto = invoiceToDto(existing);
+    if (body.type !== undefined && body.type !== existing.type) throw new ApiError(409, "Nie można zmienić faktury sprzedaży w koszt. Utwórz właściwy dokument osobno.");
+    if (body.approvalStatus !== undefined) {
+      const approval = cleanStr(body.approvalStatus, 30, "approvalStatus");
+      if (!["pending", "approved"].includes(approval)) throw new ApiError(400, "Nieprawidłowy status akceptacji.");
+      if (approval !== previousDto.approvalStatus) throw new ApiError(409, "Status akceptacji zmieniaj przez osobną operację zatwierdzania kosztu.");
+    }
+    const recordedPaid = round2(previousDto.paidAmount ?? 0);
+    if ((body.paidAmount !== undefined && body.paidAmount !== recordedPaid) ||
+      (body.paymentStatus !== undefined && body.paymentStatus !== previousDto.paymentStatus) ||
+      (body.status === "paid" && existing.status !== "paid")) {
+      throw new ApiError(409, "Wpłaty i status płatności zmieniaj przez rejestrację wpłaty, nie przez edycję faktury.");
+    }
 
     // 1. Sprawdź optymistyczną blokadę współbieżności (Optimistic Concurrency Control)
     if (
@@ -113,12 +130,9 @@ export async function PUT(req: Request, { params }: Ctx) {
       if (changedAcceptedInvoiceFields(body, invoiceToDto(existing) as unknown as Record<string, unknown>).length) {
         throw new ApiError(409, "Faktura została przyjęta w KSeF. Zmiana dat, pozycji, numeru lub rachunku wymaga faktury korygującej. Możesz zmienić notatki.");
       }
-      const allowedData: { notes?: string | null; approvalStatus?: string } = {};
+      const allowedData: { notes?: string | null } = {};
       if (body.notes !== undefined) {
-        allowedData.notes = typeof body.notes === "string" ? body.notes.trim() : null;
-      }
-      if (body.approvalStatus !== undefined && typeof body.approvalStatus === "string") {
-        allowedData.approvalStatus = body.approvalStatus.trim();
+        allowedData.notes = cleanStr(body.notes, 4000, "notes") || null;
       }
 
     const updated = await prisma.$transaction(async tx => {
@@ -172,8 +186,9 @@ export async function PUT(req: Request, { params }: Ctx) {
     });
     const accessibleCompanyIds = memberships.map((m) => m.companyId);
 
-    const parsed = await parseInvoiceBody(body, {
-      contractorOwnedBy: async (id) => contractorForCompany(user.id, id, body.sellerCompanyId),
+    const correctionBody = await resolveInvoiceCorrectionSource(prisma, user.id, body, existing.id);
+    const parsed = await parseInvoiceBody(correctionBody, {
+      contractorOwnedBy: async (id) => contractorForCompany(user.id, id, correctionBody.sellerCompanyId),
       companyOwnedBy: async (id) =>
         accessibleCompanyIds.includes(id) ||
         (await prisma.companyProfile.count({ where: { id, userId: user.id } })) > 0,
@@ -182,6 +197,13 @@ export async function PUT(req: Request, { params }: Ctx) {
       ? { bankAccountId: existing.bankAccountId, bankAccountSnapshot: existing.bankAccountSnapshot }
       : await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId, parsed.currency, body.bankAccountMode === "primary");
     const data = { ...parsed, ...bankDetails };
+    // Edits retain the recorded ledger and reconcile it against the new total.
+    // The version predicate below also fences a payment registered concurrently.
+    data.paidAmount = recordedPaid;
+    data.paymentStatus = recordedPaid > 0 && recordedPaid >= data.totalGross ? "paid"
+      : recordedPaid > 0 ? "partially_paid" : data.dueDate < warsawDate() ? "overdue" : "unpaid";
+    if (data.status === "paid" && data.paymentStatus !== "paid") data.status = "issued";
+    if (data.status !== "draft" && data.paymentStatus === "paid") data.status = "paid";
 
     // Wystawienie jest nieodwracalne: cofnięcie do szkicu/proformy pozwoliłoby usunąć dokument i ominąć licznik.
     if ((existing.issuedAt || (existing.type === "sale" && !existing.isProforma && existing.status !== "draft")) &&
@@ -201,7 +223,7 @@ export async function PUT(req: Request, { params }: Ctx) {
         where: {
           id: { not: existing.id },
           number: data.number,
-          sellerCompanyId: data.sellerCompanyId ?? existing.sellerCompanyId,
+          ...invoiceNumberScope(existing.userId, existing.sellerCompanyId),
         },
       });
       if (conflict) {

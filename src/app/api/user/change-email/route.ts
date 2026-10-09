@@ -1,4 +1,4 @@
-import { getSessionUser, normalizeEmail, verifyPassword } from "@/lib/auth";
+import { getSession, normalizeEmail, verifyPassword } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { requestEmailVerification } from "@/lib/email/verification";
@@ -14,10 +14,11 @@ export const runtime = "nodejs";
  */
 export async function POST(req: Request) {
   try {
-    const user = await getSessionUser();
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
       throw new ApiError(401, "Nie jesteś zalogowany.", "UNAUTHENTICATED");
     }
+    const { user, sessionId } = session;
     const ipLimit = await rateLimitShared(req, { max: 10, windowMs: 60 * 60_000 }, "change-email");
     const accountLimit = await rateLimitSubject(user.id, { max: 6, windowMs: 24 * 60 * 60_000 }, "change-email-user");
     if (!ipLimit.allowed || !accountLimit.allowed) throw new ApiError(429, "Zbyt wiele prób zmiany adresu. Spróbuj ponownie później.", "RATE_LIMITED");
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // The login address changes only after proof of ownership of the target mailbox.
-    const result = await requestEmailVerification(user.id, { targetEmail: newEmail });
+    const result = await requestEmailVerification(user.id, { targetEmail: newEmail, expectedPasswordHash: user.password, expectedSessionId: sessionId });
     if (result.delivery === "failed" || result.delivery === "not-configured")
       throw new ApiError(503, "Nie udało się wysłać linku potwierdzającego. Dotychczasowy adres pozostaje aktywny.", "VERIFICATION_EMAIL_UNAVAILABLE");
 

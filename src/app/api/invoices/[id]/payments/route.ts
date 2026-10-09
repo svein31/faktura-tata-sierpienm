@@ -1,12 +1,15 @@
 import { PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { assertObjectId, ApiError, handleApiError, json, readJson, num, str } from "@/lib/api";
+import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { invoiceTotals, round2 } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
+import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
+import { parseInvoicePayment } from "@/lib/invoice-payment";
+import { warsawDate } from "@/lib/scheduling";
 
 export const runtime = "nodejs";
 
@@ -88,89 +91,42 @@ export async function POST(req: Request, { params }: Ctx) {
         if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
-    const body = await readJson(req);
-    const amount = round2(num(body.amount));
-    const method = str(body.method) || "transfer";
-    const note = str(body.note) || null;
-    const paidAtStr = str(body.paidAt);
-    const paidAt = paidAtStr ? new Date(paidAtStr) : new Date();
-
-    if (isNaN(amount) || amount <= 0) {
-      throw new ApiError(400, "Kwota wpłaty musi być większa od 0.");
+    const { amount, method, note, paidAt } = parseInvoicePayment(await readJson(req));
+    let ledger;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      try {
+        ledger = await prisma.$transaction(async tx => {
+          const current = await tx.invoice.findUnique({ where: { id: invoice.id } });
+          if (!current) throw new ApiError(404, "Nie znaleziono faktury.");
+          if (current.type !== "sale" || current.isProforma || current.status === "draft" || current.documentStatus === "draft" || current.documentStatus === "cancelled") throw new ApiError(409, "Wpłatę można zarejestrować do wystawionej faktury sprzedaży.");
+          await assertAccountingPeriodsOpen(tx, [{ companyId: current.sellerCompanyId, issueDate: current.issueDate }]);
+          // Claim the invoice inside the ledger transaction. Concurrent payments,
+          // invoice edits, imports and period closing must serialize on the same row.
+          await tx.invoice.update({ where: { id: current.id }, data: { version: (current.version ?? 1) + 1 } });
+          const grossTotal = invoiceTotals({ lines: current.lines as unknown as InvoiceLine[] }).gross;
+          if (!Number.isFinite(grossTotal) || grossTotal <= 0) throw new ApiError(409, "Sprawdź dodatnią kwotę faktury przed rejestracją wpłaty.");
+          const previousPayments = await tx.paymentRecord.findMany({ where: { invoiceId: current.id }, select: { amount: true } });
+          // Historical records may carry a paidAmount without itemised entries.
+          // Preserve that opening balance; a new entry cannot erase old payments.
+          const previousLedger = round2(previousPayments.reduce((sum, item) => sum + item.amount, 0));
+          const previousPaid = Math.max(Number.isFinite(current.paidAmount) ? current.paidAmount ?? 0 : 0, previousLedger);
+          if (current.status === "paid" || current.paymentStatus === "paid" || previousPaid >= grossTotal) throw new ApiError(409, "Faktura jest już opłacona. Odśwież jej dane przed kolejną operacją.");
+          const payment = await tx.paymentRecord.create({ data: { invoiceId: current.id, userId: user.id, amount, paidAt, method, note } });
+          const totalPaid = round2(previousPaid + amount);
+          if (!Number.isFinite(totalPaid) || totalPaid > 1e12) throw new ApiError(400, "Suma wpłat przekracza obsługiwany zakres.");
+          const paymentStatus = totalPaid >= grossTotal ? "paid" : totalPaid > 0 ? "partially_paid" : current.dueDate < warsawDate() ? "overdue" : "unpaid";
+          const updatedInvoice = await tx.invoice.update({ where: { id: current.id }, data: { paidAmount: totalPaid, paymentStatus, status: paymentStatus === "paid" ? "paid" : current.status }, include: { sellerCompany: { include: { bankAccounts: true } }, payments: true } });
+          await recordAuditLog({ client: tx, companyId: current.sellerCompanyId || undefined, documentId: current.id, userId: user.id, userName: user.name || user.email, userEmail: user.email, action: "payment_registered", entityType: "invoice", entityId: current.id, description: `Zarejestrowano wpłatę ${amount.toFixed(2)} ${current.currency} do faktury ${current.number}`, details: { paymentId: payment.id, amount, totalPaid, grossTotal, paymentStatus, currency: current.currency, method } });
+          return { payment, totalPaid, grossTotal, paymentStatus, updatedInvoice };
+        });
+        break;
+      } catch (error) {
+        if ((error as { code?: string }).code !== "P2034" || attempt === 7) throw error;
+        await new Promise(resolve => setTimeout(resolve, 20 * (attempt + 1) + Math.floor(Math.random() * 20)));
+      }
     }
-
-    // Oblicz kwotę brutto faktury
-    const lines = (invoice.lines as unknown as InvoiceLine[]) || [];
-    const totals = invoiceTotals({ lines } as any);
-    const grossTotal = round2(totals.gross);
-
-    // Utwórz wpłatę
-    const payment = await prisma.paymentRecord.create({
-      data: {
-        invoiceId: invoice.id,
-        userId: user.id,
-        amount,
-        paidAt,
-        method,
-        note,
-      },
-    });
-
-    // Oblicz sumę wszystkich wpłat dla tej faktury
-    const allPayments = await prisma.paymentRecord.findMany({
-      where: { invoiceId: invoice.id },
-    });
-    const totalPaid = round2(allPayments.reduce((acc, p) => acc + p.amount, 0));
-
-    // Ustal status płatności
-    const today = new Date().toISOString().slice(0, 10);
-    const isOverdue = invoice.dueDate ? invoice.dueDate < today : false;
-
-    let paymentStatus: "unpaid" | "partially_paid" | "paid" | "overdue" = "unpaid";
-    if (totalPaid >= grossTotal) {
-      paymentStatus = "paid";
-    } else if (totalPaid > 0) {
-      paymentStatus = "partially_paid";
-    } else if (isOverdue) {
-      paymentStatus = "overdue";
-    }
-
-    // Aktualizuj fakturę
-    const updatedInvoice = await prisma.invoice.update({
-      where: { id: invoice.id },
-      data: {
-        paidAmount: totalPaid,
-        paymentStatus,
-        status: paymentStatus === "paid" ? "paid" : invoice.status,
-        version: (invoice.version || 1) + 1,
-      },
-      include: {
-        sellerCompany: { include: { bankAccounts: true } },
-        payments: true,
-      },
-    });
-
-    // Zapisz zdarzenie w dzienniku audytu firmy
-    await recordAuditLog({
-      companyId: invoice.sellerCompanyId || undefined,
-      documentId: invoice.id,
-      userId: user.id,
-      userName: user.name || user.email,
-      userEmail: user.email,
-      action: "payment_registered",
-      entityType: "invoice",
-      entityId: invoice.id,
-      description: `Zarejestrowano wpłatę ${amount.toFixed(2)} ${invoice.currency} do faktury ${invoice.number}`,
-      details: {
-        paymentId: payment.id,
-        amount,
-        totalPaid,
-        grossTotal,
-        paymentStatus,
-        currency: invoice.currency,
-        method,
-      },
-    });
+    if (!ledger) throw new ApiError(409, "Faktura zmieniła się podczas zapisu wpłaty. Spróbuj ponownie.");
+    const { payment, totalPaid, grossTotal, paymentStatus, updatedInvoice } = ledger;
 
     return json({
       success: true,

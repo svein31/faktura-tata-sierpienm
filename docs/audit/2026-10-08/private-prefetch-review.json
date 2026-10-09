@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-09T10:55:48.935Z",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "scope": "After-fix traffic from live compiled final6 on an isolated synthetic authenticated desktop context; Chromium/WebKit/Firefox; external requests and non-GET/HEAD local mutations blocked.",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "method": "Cold-context /dashboard load plus 3000ms after rendered UI; then 3 same-page cycles: goto dashboard, reload dashboard, goto invoices, Back dashboard, Forward invoices.",
+  "sourceChange": {
+    "defaultFalseAddedNextLinkControls": 99,
+    "sourceFiles": 39,
+    "rule": "Add prefetch=false only where absent; retain explicit intent policies; topbar account prefetch also disabled. Existing invoice form pointer/focus warmup skips SaveData and slow 2G."
+  },
+  "beforeIdentity": {
+    "buildId": "ZjS2_AKTU791vZrYv_n4s",
+    "sourceSha256": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417"
+  },
+  "results": [
+    {
+      "engine": "chromium",
+      "initialPrefetchRequestsBefore": 13,
+      "initialPrefetchRequestsAfter": 0,
+      "scriptRequestsBefore": 26,
+      "scriptRequestsAfter": 22,
+      "gzipEstimateBytesBefore": 348893,
+      "gzipEstimateBytesAfter": 322964,
+      "gzipEstimateBytesSaved": 25929,
+      "gzipEstimatePercentSaved": 7.432,
+      "totalObservedPrefetchRequestsBefore": 139,
+      "totalObservedPrefetchRequestsAfter": 0,
+      "activeNavigationPageErrorsBefore": 0,
+      "activeNavigationPageErrorsAfter": 0,
+      "navigationStepsAfter": 16,
+      "failedNavigationStepsAfter": 0
+    },
+    {
+      "engine": "webkit",
+      "initialPrefetchRequestsBefore": 13,
+      "initialPrefetchRequestsAfter": 0,
+      "scriptRequestsBefore": 26,
+      "scriptRequestsAfter": 22,
+      "gzipEstimateBytesBefore": 348893,
+      "gzipEstimateBytesAfter": 322964,
+      "gzipEstimateBytesSaved": 25929,
+      "gzipEstimatePercentSaved": 7.432,
+      "totalObservedPrefetchRequestsBefore": 132,
+      "totalObservedPrefetchRequestsAfter": 0,
+      "activeNavigationPageErrorsBefore": 4,
+      "activeNavigationPageErrorsAfter": 1,
+      "navigationStepsAfter": 16,
+      "failedNavigationStepsAfter": 0
+    },
+    {
+      "engine": "firefox",
+      "initialPrefetchRequestsBefore": 13,
+      "initialPrefetchRequestsAfter": 0,
+      "scriptRequestsBefore": 26,
+      "scriptRequestsAfter": 22,
+      "gzipEstimateBytesBefore": 348893,
+      "gzipEstimateBytesAfter": 322964,
+      "gzipEstimateBytesSaved": 25929,
+      "gzipEstimatePercentSaved": 7.432,
+      "totalObservedPrefetchRequestsBefore": 154,
+      "totalObservedPrefetchRequestsAfter": 0,
+      "activeNavigationPageErrorsBefore": 0,
+      "activeNavigationPageErrorsAfter": 0,
+      "navigationStepsAfter": 16,
+      "failedNavigationStepsAfter": 0
+    }
+  ],
+  "intentScenarioSummary": {
+    "engines": 3,
+    "checks": 36,
+    "scenarios": 33,
+    "failures": 0
+  },
+  "artifactReferences": {
+    "before": {
+      "path": "docs/audit/2026-10-08/private-prefetch-before-final5.json",
+      "sha256": "58d1917708a0dcf22c0c1ff1d7d1362cf76f5415a7dec4198ed02903d5908be2"
+    },
+    "afterTraffic": {
+      "path": "docs/audit/2026-10-08/private-prefetch-traffic-final6.json",
+      "sha256": "4542504804bedceffcea1283d8dafc9d307df0f285a80b488ed404dc8dbb5a79"
+    },
+    "actualIntentAndConstraints": {
+      "path": "docs/audit/2026-10-08/private-prefetch-final6.json",
+      "sha256": "c7064b63ff6255d8b86ced5030d657cceb5d1a553dfca66a9b498392318980c7"
+    },
+    "webkitCausalDiagnosis": {
+      "path": "docs/audit/2026-10-08/webkit-navigation-causal-final6.json",
+      "sha256": "6e50da773c17f47317dc2405ec97e83df13097335f970513f1ee714b1ea806a8"
+    }
+  },
+  "status": "TRAFFIC_REDUCTION_CONFIRMED_WITH_RAW_DIAGNOSTICS_RETAINED",
+  "diagnosticReview": "The exact retained final6 invoice-search access-control diagnostic was separately reproduced during document teardown. Actual application12 cycles yielded7 diagnostics and no observed DOM error/unhandledrejection; same-context deliberate sentinels confirmed the recorder. Independent same-origin tests reproduced the message with a caught rejected promise, synchronous fetch returning normally, and with no Playwright request interception; adapter evidence shows JavaScript error console messages are promoted to pageerror. The internal application catch was not directly instrumented, and disappearing DOM events alone do not establish this classification. Classification is limited to this exact diagnostic and corroborated mechanism; raw results remain unchanged and all other live errors retain strict checks.",
+  "limitations": [
+    "Request traffic is observed in a server running concurrent authorized QA; timings are diagnostic, not quiet performance results.",
+    "Playwright response.body yields decoded bytes. gzipEstimateBytes is local gzip of decoded script content, not a measured wire gzip transfer. observedResponseBodyBytes is separately recorded from request.sizes where available.",
+    "Canceled requests/page errors during navigation are retained. Final context/browser teardown is outside the observed active-navigation interval.",
+    "No provider writes or production target. Synthetic browser theme/onboarding/consent state only.",
+    "This is a private authenticated desktop dashboard plus 3 seconds observation, not initial public landing-page JavaScript and not a quiet measurement of ms saved.",
+    "gzipEstimateBytes uses gzip of decoded response bodies; actual wire sizes are recorded separately in the raw evidence and are not relabeled as estimates.",
+    "Traffic stress status captured is distinct from the separate successful 33-scenario/36-assertion intent helper and from the full browser matrix.",
+    "Physical Safari/iPhone and direct observation of the internal application promise catch are outside this causal proof. Historical final5 browser STOPPED status is not rewritten as PASS by this classification."
+  ],
+  "causalSummary": {
+    "applicationCycles": 12,
+    "applicationExactDiagnostics": 7,
+    "applicationObservedDomErrors": 0,
+    "applicationObservedUnhandledRejections": 0,
+    "sameContextSentinelCycles": 3,
+    "sameContextRealSentinelErrorsDetected": 2,
+    "independentFullTeardownExactDiagnostics": 71,
+    "rawStressExactDiagnosticsPreserved": 1,
+    "globalPageErrorFilterAdded": false,
+    "applicationSourceChangedByDiagnosis": false
+  }
+}

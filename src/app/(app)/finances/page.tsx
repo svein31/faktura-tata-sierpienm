@@ -198,12 +198,12 @@ export default function FinancesPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
               Przychody ({now.toLocaleDateString("pl-PL", { month: "long" })})
             </p>
             <ArrowUpRight className="h-4 w-4 text-emerald-500" />
           </div>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
             {formatMoney(monthlyRevenue, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Faktury sprzedaży wystawione w tym miesiącu</p>
@@ -211,12 +211,12 @@ export default function FinancesPage() {
 
         <Card className="p-4 bg-rose-500/5 border-rose-500/20">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
               Koszty ({now.toLocaleDateString("pl-PL", { month: "long" })})
             </p>
             <ArrowDownLeft className="h-4 w-4 text-rose-500" />
           </div>
-          <p className="mt-1 text-2xl font-bold text-rose-600 dark:text-rose-400">
+          <p className="mt-1 text-2xl font-bold text-rose-700 dark:text-rose-400">
             {formatMoney(monthlyCosts, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Faktury zakupowe i wydatki firmowe</p>
@@ -227,7 +227,7 @@ export default function FinancesPage() {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Różnica brutto</p>
             <DollarSign className="h-4 w-4 text-primary" />
           </div>
-          <p className={`mt-1 text-2xl font-bold ${monthlyBalance >= 0 ? "text-foreground" : "text-rose-600"}`}>
+          <p className={`mt-1 text-2xl font-bold ${monthlyBalance >= 0 ? "text-foreground" : "text-rose-700"}`}>
             {formatMoney(monthlyBalance, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Różnica brutto między sprzedażą a zakupami</p>
@@ -283,7 +283,7 @@ export default function FinancesPage() {
             <h4 className="font-bold text-xs text-foreground">Oczekujące należności od klientów</h4>
             <p className="text-[11px] text-muted-foreground">Faktury sprzedaży o statusie nieopłacone lub opłacone częściowo</p>
           </div>
-          <Link href="/invoices">
+          <Link prefetch={false} href="/invoices">
             <Button variant="ghost" size="sm" className="h-7 text-xs">
               Wszystkie faktury →
             </Button>
@@ -313,13 +313,13 @@ export default function FinancesPage() {
                   return (
                     <tr key={inv.id} className="hover:bg-muted/20">
                       <td className="py-2.5 px-3 font-semibold">
-                        <Link href={`/invoices/${inv.id}`} className="hover:underline text-primary">
+                        <Link prefetch={false} href={`/invoices/${inv.id}`} className="hover:underline text-primary">
                           {inv.number}
                         </Link>
                       </td>
                       <td className="py-2.5 px-3">{ctr?.name || "Klient"}</td>
                       <td className="py-2.5 px-3 text-muted-foreground">
-                        <span className={isOverdue ? "text-rose-600 font-semibold" : ""}>
+                        <span className={isOverdue ? "text-rose-700 font-semibold" : ""}>
                           {formatDate(inv.dueDate)} {isOverdue ? "(po terminie)" : ""}
                         </span>
                       </td>
@@ -332,7 +332,7 @@ export default function FinancesPage() {
                         </Badge>
                       </td>
                       <td className="py-2.5 px-3 text-right">
-                        <Link href={`/invoices/${inv.id}`}>
+                        <Link prefetch={false} href={`/invoices/${inv.id}`}>
                           <Button variant="outline" size="sm" className="h-7 text-[11px] px-2">
                             Szczegóły / Wpłata
                           </Button>
@@ -416,7 +416,7 @@ export default function FinancesPage() {
             <div className="flex items-center justify-between bg-primary/10 rounded-xl p-3 text-foreground">
               <span>
                 Wykryto operacje: <b>{matchedTransactions.length}</b>. Dopasowano do faktur:{" "}
-                <b className="text-emerald-600 dark:text-emerald-400">
+                <b className="text-emerald-700 dark:text-emerald-400">
                   {matchedTransactions.filter((t) => t.matchedInvoiceId || t.matchedExpenseId).length}
                 </b>
               </span>
@@ -440,12 +440,12 @@ export default function FinancesPage() {
                         <p className="font-semibold text-foreground truncate max-w-[200px]">{tx.senderName || "—"}</p>
                         <p className="text-[10px] text-muted-foreground truncate max-w-[240px]">{tx.title}</p>
                       </td>
-                      <td className="p-2.5 text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      <td className="p-2.5 text-right font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                         {formatMoney(tx.amount, tx.currency || "PLN")}
                       </td>
                       <td className="p-2.5 text-right">
                         {tx.matchedInvoiceNumber ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                             <Check className="h-3 w-3" /> {tx.matchedInvoiceNumber}
                           </span>
                         ) : (

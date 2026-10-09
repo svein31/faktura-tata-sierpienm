@@ -1,0 +1,25 @@
+{
+  "buildId": "K1PnMgLCZsBdb7_09rpDQ",
+  "scope": "fresh anonymous isolated loopback Chromium; external requests and non-GET local requests blocked",
+  "before": {
+    "connected": true,
+    "focused": true,
+    "activeTag": "BUTTON",
+    "activeText": "Ustawienia"
+  },
+  "opened": {
+    "oldTriggerConnected": false,
+    "activeTag": "BUTTON",
+    "activeText": "",
+    "focusInsideDialog": true
+  },
+  "closed": {
+    "restoredTriggerConnected": true,
+    "oldTriggerConnected": false,
+    "isSameTrigger": false,
+    "triggerFocused": false,
+    "activeTag": "BODY",
+    "activeText": "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Organization\",\"@id\":\"https:"
+  },
+  "status": "focus_restore_failed"
+}

@@ -245,7 +245,7 @@ export function OnboardingTour({ open: isOpen, onClose }: { open: boolean; onClo
               </div>
 
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <Link
+                <Link prefetch={false}
                   href={currentStep.actionHref}
                   onClick={() => { if (currentStep.actionHref === "/invoices/new") useAppStore.getState().setDraft(null, true); onClose(); }}
                   className="inline-flex min-h-11 min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/80 transition-colors"

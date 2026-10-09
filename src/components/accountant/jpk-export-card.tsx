@@ -269,7 +269,7 @@ export function JpkExportCard({
           <p className="mt-1 font-bold text-foreground">
             Koszty netto: {formatMoney(vatSummary.k42_netCosts, "PLN")}
           </p>
-          <p className="text-rose-400 font-semibold">
+          <p className="text-rose-700 dark:text-rose-400 font-semibold">
             VAT odliczony: {formatMoney(vatSummary.k43_vatCosts, "PLN")}
           </p>
         </div>

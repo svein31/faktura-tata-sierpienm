@@ -1,0 +1,324 @@
+{
+  "buildId": "XFTUDaJKpJjPxMMF_oitO",
+  "method": "Actual compiled anonymous portal pages using newly created synthetic invoice, offer and long-name contractor rows; fixture-only rows removed in finally.",
+  "results": [
+    {
+      "type": "invoice",
+      "status": 200,
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "actual": {
+        "scrollWidth": 357,
+        "width": 320
+      },
+      "defects": [
+        {
+          "kind": "page-overflow",
+          "width": 357,
+          "viewport": 320
+        },
+        {
+          "kind": "element-outside",
+          "tag": "DIV",
+          "label": "Portal Kontrahenta • FakturaProstoFaktura VAT QA/PORTAL/RESPONSIVE/INVOICE",
+          "class": "",
+          "left": 16,
+          "right": 350
+        },
+        {
+          "kind": "element-outside",
+          "tag": "DIV",
+          "label": "Faktura VAT QA/PORTAL/RESPONSIVE/INVOICE",
+          "class": "",
+          "left": 16,
+          "right": 350
+        },
+        {
+          "kind": "element-outside",
+          "tag": "DIV",
+          "label": "Faktura VATNr: QA/PORTAL/RESPONSIVE/INVOICE",
+          "class": "",
+          "left": 57,
+          "right": 357
+        },
+        {
+          "kind": "element-outside",
+          "tag": "H1",
+          "label": "Faktura VAT",
+          "class": "",
+          "left": 57,
+          "right": 357
+        },
+        {
+          "kind": "element-outside",
+          "tag": "DIV",
+          "label": "Nr: QA/PORTAL/RESPONSIVE/INVOICE",
+          "class": "",
+          "left": 57,
+          "right": 357
+        }
+      ]
+    },
+    {
+      "type": "offer",
+      "status": 200,
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "actual": {
+        "scrollWidth": 320,
+        "width": 320
+      },
+      "defects": []
+    }
+  ],
+  "sourceSha256": "cbc96713f8c7fb6160b846bdec2e099c9a3838619716d85010e86f96c60f676b",
+  "rootMatrixReportedBefore": {
+    "buildId": "XFTUDaJKpJjPxMMF_oitO",
+    "viewportWidth": 320,
+    "buyer": "Searchable Buyer — Kontrahent z długą nazwą i dodatkowymi informacjami handlowymi",
+    "invoice": {
+      "pageScrollWidth": 401,
+      "buyerLeft": 293,
+      "buyerRight": 401
+    },
+    "offer": {
+      "pageScrollWidth": 332,
+      "buyerLeft": 224,
+      "buyerRight": 332
+    },
+    "provenance": "Observed by parent root and mobile audit owner in real full matrix on isolated database. That matrix fixture database was already removed before delegated follow-up. The independent baseline above used newly cloned synthetic rows; its shorter seller data differs."
+  },
+  "compiledAfter": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "checkedAt": "2026-10-09T11:31:04.676508+00:00",
+    "result": "PASS_BROWSER_LAYOUT",
+    "method": "Actual final6 browser matrix: rendered synthetic valid invoice and offer, overflow/element bounds checks; Chromium320/768/1280, WebKit375/768/1280 and Firefox390/768/1280.",
+    "layoutChecks": 18,
+    "results": [
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 320,
+          "height": 740
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 320,
+          "height": 740
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "chromium",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "webkit",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_invoice_browser_capability_xxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 1
+      },
+      {
+        "engine": "firefox",
+        "scenario": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "url": "/portal/qa_offer_browser_capability_xxxxxxxxxxxxxxxxxxxx",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "layoutStatus": "checked",
+        "visibleControlInstances": 5
+      }
+    ],
+    "layoutFailures": [],
+    "rawArtifact": {
+      "path": "docs/audit/2026-10-08/browser-coverage-summary.json",
+      "sha256": "e18c120d5b8ab46980e6b0c68f1a3b36dc1659b8c9408c85ca2a0e0feb080913"
+    },
+    "printLayout": {
+      "result": "PASS_ACTUAL_CHROMIUM_A4",
+      "documentCases": 4,
+      "documentAssertions": 92,
+      "failures": [],
+      "artifact": {
+        "path": "docs/audit/2026-10-08/portal-print-final6.json",
+        "sha256": "fb77f9277117098eb1487d6ed539dbf6a68d0fc064d638858d622bdbfc9c86ad"
+      },
+      "scope": "Chromium on isolated loopback synthetic portal invoice and offer, light and dark themes, A4 PDF using real print CSS",
+      "limitations": [
+        "One short synthetic invoice and one short synthetic offer; no production/customer data or provider calls.",
+        "Print-media DOM geometry, both layout/raw pdftotext extraction, and actual visual inspection of all eight real single-page PDF renders; long/multipage documents and other engines remain untested.",
+        "A4 with zero custom margins, no headers/footers, printBackground true; other printers, margins, long/multipage documents, and engines are untested."
+      ]
+    }
+  }
+}

@@ -1,7 +1,8 @@
 import { isIsoCalendarDate } from "./nbp";
 import { isValidNipFormat } from "./validation";
+import { roundHalfUp } from "./tax/money";
 export type PreflightIssue = { code: string; severity: "error" | "warning"; message: string; href?: string };
-export type PreflightInput = { number: string; issueDate: string; saleDate: string; dueDate: string; currency: string; lines: { name: string; quantity: number; netPrice: number; vatRate: string }[]; buyer: { name: string; nip?: string; country?: string; taxIdType?: string; street?: string; city?: string; postal?: string }; seller: { companyName: string; nip: string; street?: string | null; city?: string | null; postalCode?: string | null }; correction?: boolean; correctionReason?: string; exemptionBasis?: string; isSplitPayment?: boolean; gross: number };
+export type PreflightInput = { number: string; issueDate: string; saleDate: string; dueDate: string; currency: string; lines: { name: string; quantity: number; netPrice: number; vatRate: string }[]; buyer: { name: string; nip?: string; country?: string; taxIdType?: string; street?: string; city?: string; postal?: string }; seller: { companyName: string; nip: string; street?: string | null; city?: string | null; postalCode?: string | null }; correction?: boolean; correctionReason?: string; originalInvoiceNumber?: string; originalIssueDate?: string; exemptionBasis?: string; isSplitPayment?: boolean; gross: number };
 export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   const issues: PreflightIssue[] = [];
   const add = (code: string, severity: PreflightIssue["severity"], message: string) => issues.push({ code, severity, message });
@@ -14,11 +15,13 @@ export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   if (!input.seller.street || !input.seller.city || !input.seller.postalCode) add("seller.address", "warning", "Uzupełnij adres sprzedawcy w profilu firmy przed wysyłką do KSeF.");
   if (!input.buyer.street || !input.buyer.city || !input.buyer.postal) add("buyer.address", "warning", "Sprawdź kompletność adresu nabywcy.");
   if (!/^[A-Z]{3}$/.test(input.currency)) add("currency", "error", "Wybierz poprawny kod waluty.");
-  if (!Number.isFinite(input.gross)) add("totals", "error", "Kwoty przekraczają obsługiwany zakres. Sprawdź ceny i ilości.");
+  if (!Number.isFinite(input.gross) || Math.abs(input.gross) > 1e12) add("totals", "error", "Kwoty przekraczają obsługiwany zakres. Sprawdź ceny i ilości.");
   if (!input.lines.length || input.lines.length > 200) add("lines", "error", "Faktura wymaga od 1 do 200 pozycji.");
-  if (input.lines.some(l => !l.name.trim() || !Number.isFinite(l.quantity) || l.quantity <= 0 || !Number.isFinite(l.netPrice) || l.netPrice < 0 || !["23", "8", "5", "0", "zw", "np", "oo"].includes(l.vatRate))) add("lines.values", "error", "Sprawdź nazwy, ilości, ceny i stawki wszystkich pozycji.");
+  if (input.lines.some(l => !l.name.trim() || !Number.isFinite(l.quantity) || (input.correction ? l.quantity === 0 : l.quantity <= 0) || Math.abs(l.quantity) > 1e9 || roundHalfUp(l.quantity, 6) === 0 || !Number.isFinite(l.netPrice) || l.netPrice < 0 || l.netPrice > 1e9 || !["23", "8", "5", "0", "zw", "np", "oo"].includes(l.vatRate))) add("lines.values", "error", "Sprawdź nazwy, ilości, ceny i stawki wszystkich pozycji.");
   if (input.lines.some(l => l.vatRate === "zw") && !input.exemptionBasis?.trim()) add("vat.exemption", "warning", "Sprawdź podstawę zwolnienia VAT i uzupełnij ją, jeśli jest wymagana.");
   if (input.correction && !input.correctionReason?.trim()) add("correction.reason", "error", "Uzupełnij przyczynę korekty.");
+  if (input.correction && !input.originalInvoiceNumber?.trim()) add("correction.originalNumber", "error", "Podaj numer korygowanej faktury.");
+  if (input.correction && (!isIsoCalendarDate(input.originalIssueDate || "") || (input.originalIssueDate || "") > input.issueDate)) add("correction.originalDate", "error", "Sprawdź datę korygowanej faktury.");
   if (input.currency === "PLN" && input.gross > 15000 && !input.isSplitPayment) add("mpp", "warning", "Kwota przekracza 15 000 zł. Sprawdź z księgowością, czy towary lub usługi wymagają MPP; sama kwota nie rozstrzyga obowiązku.");
   return issues;
 }

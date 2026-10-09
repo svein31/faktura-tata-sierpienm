@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
               <div className="pt-2">
-                <Link
+                <Link prefetch={false}
                   href="/login"
                   className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted/30 text-xs font-semibold text-foreground hover:bg-muted transition-colors"
                 >
@@ -129,7 +129,7 @@ export default function ForgotPasswordPage() {
               </Button>
 
               <div className="pt-3 text-center">
-                <Link
+                <Link prefetch={false}
                   href="/login"
                   className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >

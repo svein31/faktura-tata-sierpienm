@@ -15,9 +15,13 @@ export function validateTeamGrant(roleValue:unknown,permissionValue:unknown,acto
  return {role,permissions};
 }
 export async function teamActor(tx:import("@prisma/client").Prisma.TransactionClient,userId:string,companyId:string){
- const {companyAccess}=await import("./company-write");
  const {requireRecentAuth}=await import("./security-policy");
  await requireRecentAuth(userId);
+ return teamInvitationGrantor(tx,userId,companyId);
+}
+/** Accepting a delegated invitation rechecks its issuer's current grants, without requiring the issuer's browser session. */
+export async function teamInvitationGrantor(tx:import("@prisma/client").Prisma.TransactionClient,userId:string,companyId:string){
+ const {companyAccess}=await import("./company-write");
  const access=await companyAccess(tx,userId,companyId,"canManageTeam");
  await tx.companyProfile.update({where:{id:companyId},data:{updatedAt:new Date()}});
  const member=await tx.companyMember.findUnique({where:{companyId_userId:{companyId,userId}}});

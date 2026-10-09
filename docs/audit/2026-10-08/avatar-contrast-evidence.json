@@ -1,0 +1,280 @@
+{
+  "requiredContrast": 4.5,
+  "beforeCompiledCss": {
+    "buildId": "jsxMHSE78zccNCkWm_bA2",
+    "stylesheet": ".next/static/css/be30d0fa04b1fe16.css",
+    "rules": {
+      "from-indigo-500": ".from-indigo-500{--tw-gradient-from:#6366f1 var(--tw-gradient-from-position);--tw-gradient-to:rgb(99 102 241/0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}",
+      "to-emerald-500": ".to-emerald-500{--tw-gradient-to:#10b981 var(--tw-gradient-to-position)}",
+      "text-white": ".text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}"
+    }
+  },
+  "beforeSrgbSamples": [
+    {
+      "position": 0,
+      "color": "#6366f1",
+      "contrastWithWhite": 4.466894269549531
+    },
+    {
+      "position": 0.25,
+      "color": "#4e7bd5",
+      "contrastWithWhite": 4.103210958780852
+    },
+    {
+      "position": 0.5,
+      "color": "#3a90b9",
+      "contrastWithWhite": 3.577654069072943
+    },
+    {
+      "position": 0.75,
+      "color": "#25a49d",
+      "contrastWithWhite": 3.054229601616489
+    },
+    {
+      "position": 1,
+      "color": "#10b981",
+      "contrastWithWhite": 2.5366569934610426
+    }
+  ],
+  "afterSrgbSamples": [
+    {
+      "position": 0,
+      "color": "#4338ca",
+      "contrastWithWhite": 7.903111480024942
+    },
+    {
+      "position": 0.25,
+      "color": "#3348ad",
+      "contrastWithWhite": 7.861831128588752
+    },
+    {
+      "position": 0.5,
+      "color": "#245890",
+      "contrastWithWhite": 7.307839523345337
+    },
+    {
+      "position": 0.75,
+      "color": "#146874",
+      "contrastWithWhite": 6.437647546452661
+    },
+    {
+      "position": 1,
+      "color": "#047857",
+      "contrastWithWhite": 5.483924052498801
+    }
+  ],
+  "method": "Before endpoints extracted from actual compiled CSS; sRGB endpoint/interior samples above are mathematical WCAG luminance calculations. The final-build computed DOM style and actual screenshot pixels are recorded below. Old screenshot is a recreation of the extracted old CSS in the same Chromium engine, not a capture from the original old page.",
+  "actualAfter": {
+    "buildId": "XFTUDaJKpJjPxMMF_oitO",
+    "sourceSha256": "cbc96713f8c7fb6160b846bdec2e099c9a3838619716d85010e86f96c60f676b",
+    "computedStyle": {
+      "color": "rgb(255, 255, 255)",
+      "backgroundImage": "linear-gradient(to right bottom, rgb(67, 56, 202), rgb(4, 120, 87))",
+      "fontSize": "10px",
+      "fontWeight": "700"
+    },
+    "pixelMethod": "Computed new-build avatar style. PNG pixels from a text-free DOM clone of the actual CSS gradient; before clone recreates extracted old compiled CSS stops in the same engine. All 16,384 opaque background pixels of each 128x128 clone were evaluated against the computed white text color using WCAG relative luminance. Text and rounded-corner effects are absent from the clone to measure the underlying full gradient.",
+    "actualGradientPixels": {
+      "imageSize": [
+        128,
+        128
+      ],
+      "pixelCount": 16384,
+      "samples": [
+        {
+          "diagonalPosition": 0,
+          "pixel": [
+            0,
+            0
+          ],
+          "rgb": [
+            66,
+            56,
+            201
+          ],
+          "hex": "#4238c9",
+          "contrastAgainstWhite": 7.952350364061917
+        },
+        {
+          "diagonalPosition": 0.25,
+          "pixel": [
+            32,
+            32
+          ],
+          "rgb": [
+            51,
+            72,
+            172
+          ],
+          "hex": "#3348ac",
+          "contrastAgainstWhite": 7.884602673052829
+        },
+        {
+          "diagonalPosition": 0.5,
+          "pixel": [
+            64,
+            64
+          ],
+          "rgb": [
+            35,
+            88,
+            144
+          ],
+          "hex": "#235890",
+          "contrastAgainstWhite": 7.316875100936738
+        },
+        {
+          "diagonalPosition": 0.75,
+          "pixel": [
+            95,
+            95
+          ],
+          "rgb": [
+            20,
+            104,
+            116
+          ],
+          "hex": "#146874",
+          "contrastAgainstWhite": 6.437647546452661
+        },
+        {
+          "diagonalPosition": 1,
+          "pixel": [
+            127,
+            127
+          ],
+          "rgb": [
+            4,
+            120,
+            87
+          ],
+          "hex": "#047857",
+          "contrastAgainstWhite": 5.483924052498799
+        }
+      ],
+      "minimumContrastAgainstWhite": 5.477369096818272,
+      "minimumPixel": [
+        127,
+        126
+      ],
+      "maximumContrastAgainstWhite": 8.020670567326585,
+      "maximumPixel": [
+        22,
+        0
+      ],
+      "pixelsBelowRequired45": 0
+    },
+    "actualGradientImage": "evidence/avatar-after-gradient.png",
+    "oldCssRecreationPixels": {
+      "imageSize": [
+        128,
+        128
+      ],
+      "pixelCount": 16384,
+      "samples": [
+        {
+          "diagonalPosition": 0,
+          "pixel": [
+            0,
+            0
+          ],
+          "rgb": [
+            98,
+            102,
+            240
+          ],
+          "hex": "#6266f0",
+          "contrastAgainstWhite": 4.4889667758725125
+        },
+        {
+          "diagonalPosition": 0.25,
+          "pixel": [
+            32,
+            32
+          ],
+          "rgb": [
+            78,
+            123,
+            212
+          ],
+          "hex": "#4e7bd4",
+          "contrastAgainstWhite": 4.111345394013212
+        },
+        {
+          "diagonalPosition": 0.5,
+          "pixel": [
+            64,
+            64
+          ],
+          "rgb": [
+            57,
+            143,
+            184
+          ],
+          "hex": "#398fb8",
+          "contrastAgainstWhite": 3.6237548310901277
+        },
+        {
+          "diagonalPosition": 0.75,
+          "pixel": [
+            95,
+            95
+          ],
+          "rgb": [
+            37,
+            164,
+            157
+          ],
+          "hex": "#25a49d",
+          "contrastAgainstWhite": 3.054229601616489
+        },
+        {
+          "diagonalPosition": 1,
+          "pixel": [
+            127,
+            127
+          ],
+          "rgb": [
+            16,
+            185,
+            129
+          ],
+          "hex": "#10b981",
+          "contrastAgainstWhite": 2.5366569934610426
+        }
+      ],
+      "minimumContrastAgainstWhite": 2.534468763686402,
+      "minimumPixel": [
+        127,
+        126
+      ],
+      "maximumContrastAgainstWhite": 4.4889667758725125,
+      "maximumPixel": [
+        0,
+        0
+      ],
+      "pixelsBelowRequired45": 16384
+    },
+    "oldCssRecreationImage": "evidence/avatar-old-css-recreation-gradient.png",
+    "status": "PASS for white 10px avatar initials against the measured final-build gradient; minimum 5.477369096818272:1 exceeds 4.5:1.",
+    "axeIncompleteReason": "axe-core cannot infer gradient background colors; that automatic incomplete flag is retained. This explicit computed-style/pixel measurement resolves this one avatar gradient node only, not other incomplete nodes."
+  },
+  "final6CompiledCssConfirmation": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "rules": {
+      "from-indigo-700": ".from-indigo-700{--tw-gradient-from:#4338ca var(--tw-gradient-from-position);--tw-gradient-to:rgb(67 56 202/0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}",
+      "to-emerald-700": ".to-emerald-700{--tw-gradient-to:#047857 var(--tw-gradient-to-position)}",
+      "text-white": ".text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}"
+    },
+    "stylesheets": [
+      {
+        "path": ".next/static/css/c5d34c184a8aae81.css",
+        "sha256": "85118f894abd02e50fc5344e2c7ac1f597cecef21a5747c3c80f2a5f27cc2c2a"
+      }
+    ],
+    "result": "PASS_COMPILED_GRADIENT_DEFINITION",
+    "scope": "Current compiled gradient endpoints and white text match the earlier measured definition. actualAfter retains the historical XFT build pixel measurement; no new final6 screenshot pixel capture is claimed.",
+    "manualAxeLimit": "Axe still cannot calculate a gradient background automatically; this does not mark all incomplete groups passed."
+  }
+}

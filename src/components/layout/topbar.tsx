@@ -67,6 +67,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const setSelectedCompanyId = useAppStore((s) => s.setSelectedCompanyId);
   const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);
   const companyMenuRef = React.useRef<HTMLDivElement>(null);
+  const companyTriggerRef = React.useRef<HTMLButtonElement>(null);
+  const companyMenuId = React.useId();
 
   const activeCompany = companies.find((c) => c.id === selectedCompanyId) || company || companies[0] || null;
   const currentRole = activeCompany?.currentUserRole || "owner";
@@ -82,7 +84,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     if (showCompanyMenu) {
       document.addEventListener("mousedown", handleClickOutside);
       const handleEscape = (event: KeyboardEvent) => {
-        if (event.key === "Escape") setShowCompanyMenu(false);
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setShowCompanyMenu(false);
+          companyTriggerRef.current?.focus();
+        }
       };
       document.addEventListener("keydown", handleEscape);
       return () => {
@@ -146,13 +152,15 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <div className="relative order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2" ref={companyMenuRef}>
             <button
               type="button"
+              ref={companyTriggerRef}
               onClick={() => companies.length > 1 ? setShowCompanyMenu(!showCompanyMenu) : router.push("/settings/companies")}
-              aria-label={companies.length > 1 ? "Wybierz firmę" : "Ustawienia firmy"}
               aria-expanded={companies.length > 1 ? showCompanyMenu : undefined}
+              aria-controls={showCompanyMenu ? companyMenuId : undefined}
               className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs sm:w-auto"
             >
+              <span className="sr-only">{companies.length > 1 ? "Wybierz firmę:" : "Ustawienia firmy:"} </span>
               <div className="p-1 rounded-lg bg-primary/10 text-primary">
-                <Building2 className="w-3.5 h-3.5" />
+                <Building2 aria-hidden="true" className="w-3.5 h-3.5" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate sm:max-w-[140px] text-xs font-semibold text-foreground leading-tight">
@@ -166,13 +174,13 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 </div>
               </div>
               {companies.length > 1 && (
-                <ChevronDown className="w-3 h-3 text-muted-foreground ml-0.5" />
+                <ChevronDown aria-hidden="true" className="w-3 h-3 text-muted-foreground ml-0.5" />
               )}
             </button>
 
             {/* Dropdown przełączania firm */}
             {showCompanyMenu && companies.length > 1 && (
-              <div className="absolute top-full left-0 mt-1.5 w-full max-w-[calc(100vw-24px)] sm:w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
+              <div id={companyMenuId} role="group" aria-label="Twoje firmy i zespoły" className="absolute top-full left-0 mt-1.5 w-full max-w-[calc(100vw-24px)] sm:w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
                 <p className="px-2 py-1 text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Twoje firmy i zespoły
                 </p>
@@ -207,6 +215,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 <div className="border-t border-border/60 mt-1.5 pt-1">
                   <Link
                     href="/settings/team"
+                    prefetch={false}
                     onClick={() => setShowCompanyMenu(false)}
                     className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-primary hover:bg-muted/50 rounded-lg transition-colors"
                   >
@@ -225,19 +234,21 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           type="button"
           onClick={handleOpenSearch}
           title="Szukaj lub polecenie (Ctrl+K / ⌘K)"
-          aria-label="Szukaj faktur, kontrahentów i poleceń"
           className="flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs sm:min-w-0"
         >
-          <Search className="h-3.5 w-3.5" />
+          <Search aria-hidden="true" className="h-3.5 w-3.5" />
+          <span className="sr-only md:hidden">Szukaj </span>
           <span className="hidden md:inline">Szukaj...</span>
-          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
+          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-foreground dark:text-muted-foreground sm:inline">
             ⌘K
           </kbd>
+          <span className="sr-only"> faktur, kontrahentów i poleceń</span>
         </button>
 
         <NotificationBell />
         <Link
           href="/help"
+          prefetch={false}
           title="Instrukcja obsługi"
           className="hidden h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs sm:flex"
         >
@@ -249,18 +260,18 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <div className="ml-1 flex items-center gap-0.5 rounded-xl border border-border/60 bg-card/50 py-1 pl-1 pr-1 shadow-2xs backdrop-blur-md">
           <Link
             href="/settings/account"
-            prefetch={true}
+            prefetch={false}
             title="Przejdź do Ustawień Konta"
             className="hidden items-center gap-2 rounded-lg px-1.5 py-0.5 sm:flex transition-all hover:bg-muted/60 active:scale-95"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-emerald-500 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-emerald-700 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
               {initials || "?"}
             </div>
-            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground md:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
+            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-foreground dark:text-muted-foreground md:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
             <div className="hidden leading-tight md:block text-left">
               <p className="flex max-w-[155px] items-center gap-1 text-[12px] font-semibold text-foreground">
                 <span className="truncate">{user.name}</span>
-                {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
+                {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-foreground dark:text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
               </p>
               <p className="max-w-[120px] truncate text-[10.5px] text-muted-foreground">
                 {user.email}

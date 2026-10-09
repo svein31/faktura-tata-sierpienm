@@ -20,7 +20,12 @@ const SIGNIFICANT_DIGITS = 12;
 
 /** Normalizuje wartość, usuwając błąd reprezentacji binarnej. */
 function normalize(value: number): number {
-  return Number(value.toPrecision(SIGNIFICANT_DIGITS));
+  // A fixed 12-digit precision removes whole grosze once the amount reaches
+  // 100 billion. Keep every integral digit and the half-unit needed for
+  // rounding, while retaining the existing noise removal for ordinary sums.
+  const integralDigits = value === 0 ? 1 : Math.floor(Math.log10(Math.abs(value))) + 1;
+  const precision = Math.min(17, Math.max(SIGNIFICANT_DIGITS, integralDigits + 1));
+  return Number(value.toPrecision(precision));
 }
 
 /** Zaokrąglenie half-up (od zera) do `decimals` miejsc po przecinku. */

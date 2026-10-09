@@ -666,7 +666,7 @@ export default function HelpPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4 text-sm" aria-label="Pomoc i informacje prawne">{[["/regulamin","Regulamin"],["/polityka-prywatnosci","Prywatność"],["/polityka-cookies","Cookies"],["/powierzenie-danych","Powierzenie danych"],["/podwykonawcy","Podwykonawcy"]].map(([href,label])=><Link key={href} href={href} className="text-primary underline">{label}</Link>)}<button className="text-primary underline" onClick={()=>window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}>Preferencje cookies</button></div>
+      <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4 text-sm" aria-label="Pomoc i informacje prawne">{[["/regulamin","Regulamin"],["/polityka-prywatnosci","Prywatność"],["/polityka-cookies","Cookies"],["/powierzenie-danych","Powierzenie danych"],["/podwykonawcy","Podwykonawcy"]].map(([href,label])=><Link prefetch={false} key={href} href={href} className="text-primary underline">{label}</Link>)}<button className="text-primary underline" onClick={()=>window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}>Preferencje cookies</button></div>
       {/* Nagłówek strony */}
       <PageHeader
         title="Instrukcja obsługi FakturaProsto"
@@ -682,7 +682,7 @@ export default function HelpPage() {
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               <span>Samouczek onboardingowy</span>
             </Button>
-            <Link href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
+            <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
               <Button size="sm" className="gap-1.5 shadow-sm">
                 <span>+ Wystaw fakturę</span>
               </Button>
@@ -759,7 +759,7 @@ export default function HelpPage() {
                   </div>
                 </div>
 
-                <Link href="/invoices">
+                <Link prefetch={false} href="/invoices">
                   <Button size="sm" className="gap-1.5 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
                     <Send className="h-3.5 w-3.5" />
                     <span>Otwórz listę faktur i wyślij</span>
@@ -890,7 +890,7 @@ export default function HelpPage() {
 
                 {section.quickAction && (
                   <div className="pt-4 mt-3 border-t border-border/40">
-                    <Link href={section.quickAction.href} onClick={() => { if (section.quickAction?.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}>
+                    <Link prefetch={false} href={section.quickAction.href} onClick={() => { if (section.quickAction?.href === "/invoices/new") useAppStore.getState().setDraft(null, true); }}>
                       <button
                         type="button"
                         className="flex w-full items-center justify-between rounded-xl bg-muted/50 px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground transition-all group"

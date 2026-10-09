@@ -284,9 +284,9 @@ export default function OffersPage() {
           <p className="text-xs text-muted-foreground mt-1">Łącznie przygotowanych dokumentów</p>
         </Card>
         <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
-          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Zaakceptowane / Zrealizowane</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(totalAcceptedValue, summaryCurrency)}</p>
-          <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">Potencjał przychodowy zamknięty</p>
+          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Zaakceptowane / Zrealizowane</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatMoney(totalAcceptedValue, summaryCurrency)}</p>
+          <p className="text-xs text-emerald-700 dark:text-emerald-300/80 mt-1">Potencjał przychodowy zamknięty</p>
         </Card>
         <Card className="p-4 bg-primary/5 border-primary/20">
           <p className="text-xs font-semibold text-primary uppercase tracking-wider">W toku (w negocjacji)</p>
@@ -354,7 +354,7 @@ export default function OffersPage() {
                     </td>
                     <td className="py-3.5 px-4 text-muted-foreground">
                       <p>{formatDate(offer.issueDate)}</p>
-                      <p className={`text-[10.5px] ${isExpired ? "text-rose-600 font-semibold" : "opacity-75"}`}>
+                      <p className={`text-[10.5px] ${isExpired ? "text-rose-700 font-semibold" : ""}`}>
                         do: {formatDate(offer.validUntil)} {isExpired ? "(wygasła)" : ""}
                       </p>
                     </td>

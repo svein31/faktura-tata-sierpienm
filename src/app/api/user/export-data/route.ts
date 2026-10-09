@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { json } from "@/lib/api";
+import { handleApiError, json } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,14 +20,16 @@ export async function GET(req: Request) {
 
     const userId = sessionUser.id;
 
-    // Pobierz dane użytkownika z powiązaniami
+    // Do not load password hashes, KSeF credentials or entire catalogs for a summary export.
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        company: true,
-        companyProfiles: true,
+      select: {
+        id: true, email: true, name: true, nip: true, companyName: true, createdAt: true, updatedAt: true,
+        termsAcceptedAt: true, termsAcceptedVersion: true,
+        companyProfiles: { select: { id: true, companyName: true, nip: true, city: true, isDefault: true, createdAt: true } },
         legalConsents: {
           orderBy: { acceptedAt: "desc" },
+          select: { documentType: true, documentVersion: true, accepted: true, acceptedAt: true, revokedAt: true, context: true },
         },
       },
     });
@@ -36,45 +38,10 @@ export async function GET(req: Request) {
       return json({ error: "Użytkownik nie istnieje." }, { status: 404 });
     }
 
-    // Pobierz faktury użytkownika (jeśli istnieją)
-    let invoices: unknown[] = [];
-    try {
-      invoices = await prisma.invoice.findMany({
-        where: { userId },
-        select: {
-          id: true,
-          number: true,
-          issueDate: true,
-          totalGross: true,
-          currency: true,
-          status: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-        take: 1000,
-      });
-    } catch {
-      // Model Invoice może nie istnieć
-    }
-
-    // Pobierz kontrahentów
-    let contractors: unknown[] = [];
-    try {
-      contractors = await prisma.contractor.findMany({
-        where: { userId },
-        select: {
-          id: true,
-          name: true,
-          nip: true,
-          email: true,
-          address: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
-    } catch {
-      // Model Contractor może nie istnieć
-    }
+    const [invoicesCount, contractorsCount] = await Promise.all([
+      prisma.invoice.count({ where: { userId } }),
+      prisma.contractor.count({ where: { userId } }),
+    ]);
 
     // Skonstruuj obiekt eksportu
     const exportData = {
@@ -113,14 +80,15 @@ export async function GET(req: Request) {
         context: lc.context,
       })),
       invoices_summary: {
-        count: (invoices as unknown[]).length,
+        count: invoicesCount,
         note: "Pełne dane faktur dostępne w eksporcie CSV/JSON z panelu aplikacji.",
       },
-      contractors_count: (contractors as unknown[]).length,
+      contractors_count: contractorsCount,
     };
 
     // Zwróć jako plik JSON do pobrania
-    const filename = `fakturaprosto-export-${user.email?.replace("@", "_at_")}-${new Date().toISOString().split("T")[0]}.json`;
+    // A database ObjectId is ASCII; international email/quotes cannot corrupt Content-Disposition.
+    const filename = `fakturaprosto-export-${userId}-${new Date().toISOString().split("T")[0]}.json`;
 
     return new NextResponse(JSON.stringify(exportData, null, 2), {
       status: 200,
@@ -131,10 +99,6 @@ export async function GET(req: Request) {
       },
     });
   } catch (error) {
-    console.error("[ExportData] Błąd:", error);
-    return json(
-      { error: "Nie udało się wyeksportować danych." },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

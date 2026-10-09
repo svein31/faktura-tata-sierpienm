@@ -6,13 +6,15 @@ import { contractorForCompany, objectId } from "@/lib/company-scope";
 import { assessInvoice, type PreflightInput } from "@/lib/invoice-preflight";
 import { invoiceTotals } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
+import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
+import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     let body = await readJson(req);
     let access;
-    try { access = await companyAccess(prisma, user.id, body.companyId, "canIssueInvoices"); }
+    try { access = await companyAccess(prisma, user.id, body.companyId, body.isCorrection === true ? "canCreateCorrections" : "canIssueInvoices"); }
     catch (error) {
       if (!(error instanceof ApiError) || error.status !== 403 || !objectId(body.invoiceId)) throw error;
       access = await companyAccess(prisma, user.id, body.companyId, "canSendKsef");
@@ -21,6 +23,7 @@ export async function POST(req: Request) {
       body = { ...stored, companyId: access.company.id, invoiceId: stored.id };
     }
     const { company } = access;
+    body = await resolveInvoiceCorrectionSource(prisma, user.id, { ...body, sellerCompanyId: company.id }, objectId(body.invoiceId) ? body.invoiceId : undefined);
     const seller = await prisma.companyProfile.findUniqueOrThrow({ where: { id: company.id } });
     let buyer: PreflightInput["buyer"];
     if (body.useNewContractor === true) {
@@ -34,8 +37,8 @@ export async function POST(req: Request) {
     }
     if (!Array.isArray(body.lines) || body.lines.length > 200 || body.lines.some(l => !l || typeof l !== "object" || Array.isArray(l))) throw new ApiError(400, "Sprawdź pozycje faktury.");
     const lines = body.lines.map((l, index) => ({ id: str(l.id) || String(index), unit: str(l.unit) || "szt.", name: str(l.name), quantity: l.quantity, netPrice: l.netPrice, vatRate: str(l.vatRate), discount: typeof l.discount === "number" ? l.discount : 0 }));
-    const totals = invoiceTotals({ lines: lines as InvoiceLine[] });
-    const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
+    const totals = invoiceTotals({ lines: lines.map(normalizeInvoiceLineAmounts) as InvoiceLine[] });
+    const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), originalInvoiceNumber: str(body.originalInvoiceNumber), originalIssueDate: str(body.originalIssueDate), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
     const issues = assessInvoice(input);
     const exclude = objectId(body.invoiceId) ? { id: { not: body.invoiceId } } : {};
     if (body.autoNumber !== true) {

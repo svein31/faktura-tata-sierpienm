@@ -1,0 +1,562 @@
+{
+  "generatedAtUtc": "2026-10-09T11:02:16.404049+00:00",
+  "applicationBuildId": "21f_lBaQA8Ww--YiYgN1t",
+  "applicationSourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "scope": "Read-only causal diagnosis of a WebKit diagnostic during navigation on the isolated synthetic localhost QA application. Independent minimal localhost pages test browser behavior; they are not an application QA mirror.",
+  "result": "Exact WebKit fetch access-control console diagnostic reproduced on same-origin localhost despite handled promise rejection and successful synchronous fetch return. Playwright promotes this JavaScript-console diagnostic to pageerror. This is distinct from a DOM uncaught exception or an unhandled promise rejection.",
+  "applicationSourceChanges": false,
+  "originalObservation": {
+    "rawPageErrorsByEngine": {
+      "chromium": 0,
+      "webkit": 1,
+      "firefox": 0
+    },
+    "retainedWebKitPageError": {
+      "elapsedMs": 15903,
+      "phase": "iteration-2-history-back-dashboard",
+      "message": "/127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.\n    at unknown (http://127.0.0.1:44081/_next/static/chunks/app/(app)/invoices/page-beba060a0915ab6a.js:1:3542)"
+    },
+    "sameUrlFailedRequests": [
+      {
+        "path": "/api/invoices/search",
+        "hasRscQuery": false,
+        "method": "GET",
+        "resourceType": "fetch",
+        "headers": {
+          "rsc": null,
+          "nextRouterPrefetch": null,
+          "purpose": null,
+          "secPurpose": null,
+          "nextRouterStateTreePresent": false
+        },
+        "startedMs": 8994,
+        "phase": "iteration-1-history-back-dashboard",
+        "failedMs": 9005,
+        "failurePhase": "iteration-1-history-back-dashboard",
+        "errorText": "Load request cancelled"
+      },
+      {
+        "path": "/api/invoices/search",
+        "hasRscQuery": false,
+        "method": "GET",
+        "resourceType": "fetch",
+        "headers": {
+          "rsc": null,
+          "nextRouterPrefetch": null,
+          "purpose": null,
+          "secPurpose": null,
+          "nextRouterStateTreePresent": false
+        },
+        "startedMs": 11818,
+        "phase": "iteration-2-goto-dashboard",
+        "failedMs": 11900,
+        "failurePhase": "iteration-2-goto-dashboard",
+        "errorText": "Load request cancelled"
+      },
+      {
+        "path": "/api/invoices/search",
+        "hasRscQuery": false,
+        "method": "GET",
+        "resourceType": "fetch",
+        "headers": {
+          "rsc": null,
+          "nextRouterPrefetch": null,
+          "purpose": null,
+          "secPurpose": null,
+          "nextRouterStateTreePresent": false
+        },
+        "startedMs": 17899,
+        "phase": "iteration-2-history-forward-invoices",
+        "failedMs": 17907,
+        "failurePhase": "iteration-3-goto-dashboard",
+        "errorText": "Load request cancelled"
+      }
+    ],
+    "warning": "No matching search requestfailed event occurred at the original diagnostic timestamp. Nearby failures from other endpoints establish correlation only, not cancellation of that exact fetch. Original raw result is retained, not rewritten as zero pageerrors."
+  },
+  "ordinaryCancellationControl": {
+    "rawPageErrors": 18,
+    "accessControlDiagnostics": 0,
+    "deliberateSentinelPageErrors": 2,
+    "domUnhandledRejectionsWithoutSentinels": 16,
+    "domErrorsWithoutSentinels": 0,
+    "sentinelDomUnhandledRejections": 1,
+    "sentinelDomErrors": 1,
+    "explicitPromiseCatches": 33,
+    "synchronousFetchThrowsCaught": 0,
+    "failedRequests": 49,
+    "failedUiSteps": 0,
+    "pageErrorPhaseCounts": {
+      "unhandled-hard-navigation-1": 1,
+      "unhandled-history-forward-1": 1,
+      "unhandled-hard-navigation-2": 1,
+      "unhandled-history-forward-2": 1,
+      "unhandled-hard-navigation-3": 1,
+      "unhandled-history-forward-3": 1,
+      "unhandled-hard-navigation-4": 1,
+      "unhandled-history-forward-4": 1,
+      "unhandled-hard-navigation-5": 1,
+      "unhandled-history-forward-5": 1,
+      "unhandled-hard-navigation-6": 1,
+      "unhandled-history-forward-6": 1,
+      "unhandled-hard-navigation-7": 1,
+      "unhandled-history-forward-7": 1,
+      "unhandled-hard-navigation-8": 1,
+      "unhandled-history-forward-8": 1,
+      "real-unhandled-sentinel": 2
+    },
+    "interpretation": "Ordinary in-flight fetch cancellation can be caught without a pageerror. Deliberately unhandled canceled fetch produced16 pageerrors and16 DOM unhandledrejection events; two explicit sentinels also detected. Ordinary cancellation alone therefore does not justify a global filter."
+  },
+  "appDocumentTimeline": {
+    "rawPageErrors": 7,
+    "accessControlDiagnostics": 7,
+    "deliberateSentinelPageErrors": 0,
+    "domUnhandledRejectionsWithoutSentinels": 0,
+    "domErrorsWithoutSentinels": 0,
+    "sentinelDomUnhandledRejections": 0,
+    "sentinelDomErrors": 0,
+    "explicitPromiseCatches": 0,
+    "synchronousFetchThrowsCaught": 0,
+    "failedRequests": 86,
+    "failedUiSteps": 0,
+    "pageErrorPhaseCounts": {
+      "iteration-2-goto-dashboard": 1,
+      "iteration-2-history-back-dashboard": 1,
+      "iteration-4-goto-dashboard": 1,
+      "iteration-8-goto-dashboard": 1,
+      "iteration-10-goto-dashboard": 1,
+      "iteration-11-goto-dashboard": 1,
+      "iteration-12-history-back-dashboard": 1
+    },
+    "cycles": 12,
+    "diagnosticTiming": "All7 access-control diagnostics occurred in an outgoing /invoices document after navigation started and before dashboard document creation. No DOM error or unhandledrejection event was observed.",
+    "firstDiagnosticTimeline": [
+      {
+        "kind": "step-start",
+        "elapsedMs": 9414,
+        "phase": "iteration-2-goto-dashboard",
+        "pageUrl": "http://127.0.0.1:44081/invoices"
+      },
+      {
+        "kind": "dom-event",
+        "elapsedMs": 9422,
+        "phase": "iteration-2-goto-dashboard",
+        "frameUrl": "http://127.0.0.1:44081/invoices",
+        "event": "beforeunload",
+        "documentId": "4703a16e-67c6-4963-a8d6-6eb0466fd4c0",
+        "documentUrl": "http://127.0.0.1:44081/invoices",
+        "clientMs": 1302
+      },
+      {
+        "kind": "requestfailed",
+        "elapsedMs": 9423,
+        "phase": "iteration-2-goto-dashboard",
+        "id": 169,
+        "url": "http://127.0.0.1:44081/api/workspace/preferences?key=invoice-views&companyId=6ac8c5f8ae72282f6670fb55",
+        "path": "/api/workspace/preferences",
+        "method": "GET",
+        "pageUrl": "http://127.0.0.1:44081/invoices",
+        "resourceType": "fetch",
+        "isNavigationRequest": false,
+        "errorText": "Load request cancelled"
+      },
+      {
+        "kind": "pageerror",
+        "elapsedMs": 9478,
+        "phase": "iteration-2-goto-dashboard",
+        "pageUrl": "http://127.0.0.1:44081/invoices",
+        "name": "Fetch API cannot load http",
+        "message": "/127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.",
+        "stack": "Fetch API cannot load http://127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.\n    at unknown (http://127.0.0.1:44081/_next/static/chunks/app/(app)/invoices/page-beba060a0915ab6a.js:1:3542)"
+      },
+      {
+        "kind": "dom-event",
+        "elapsedMs": 9518,
+        "phase": "iteration-2-goto-dashboard",
+        "frameUrl": "http://127.0.0.1:44081/invoices",
+        "event": "pagehide",
+        "documentId": "4703a16e-67c6-4963-a8d6-6eb0466fd4c0",
+        "documentUrl": "http://127.0.0.1:44081/invoices",
+        "clientMs": 1399,
+        "persisted": false
+      },
+      {
+        "kind": "framenavigated",
+        "elapsedMs": 9566,
+        "phase": "iteration-2-goto-dashboard",
+        "documentUrl": "http://127.0.0.1:44081/dashboard"
+      },
+      {
+        "kind": "dom-event",
+        "elapsedMs": 9566,
+        "phase": "iteration-2-goto-dashboard",
+        "frameUrl": "http://127.0.0.1:44081/dashboard",
+        "event": "document-init",
+        "documentId": "c95a1343-5148-4e03-8525-f1d69024a99b",
+        "documentUrl": "http://127.0.0.1:44081/dashboard",
+        "clientMs": 143
+      }
+    ]
+  },
+  "sameAppContextSentinels": {
+    "rawPageErrors": 5,
+    "accessControlDiagnostics": 3,
+    "deliberateSentinelPageErrors": 2,
+    "domUnhandledRejectionsWithoutSentinels": 0,
+    "domErrorsWithoutSentinels": 0,
+    "sentinelDomUnhandledRejections": 1,
+    "sentinelDomErrors": 1,
+    "explicitPromiseCatches": 0,
+    "synchronousFetchThrowsCaught": 0,
+    "failedRequests": 22,
+    "failedUiSteps": 0,
+    "pageErrorPhaseCounts": {
+      "iteration-2-history-back-dashboard": 1,
+      "iteration-3-goto-dashboard": 1,
+      "iteration-3-history-back-dashboard": 1,
+      "same-app-context-real-unhandled-sentinels": 2
+    },
+    "cycles": 3,
+    "interpretation": "In the same app page, same exposed binding, same console recorder and same DOM listeners used for navigation evidence, an explicit Promise.reject and delayed throw each produced their expected DOM event and Playwright pageerror. Three earlier access-control diagnostics produced neither DOM event."
+  },
+  "fullTeardownReproduction": {
+    "rawPageErrors": 73,
+    "accessControlDiagnostics": 71,
+    "deliberateSentinelPageErrors": 2,
+    "domUnhandledRejectionsWithoutSentinels": 0,
+    "domErrorsWithoutSentinels": 0,
+    "sentinelDomUnhandledRejections": 1,
+    "sentinelDomErrors": 1,
+    "explicitPromiseCatches": 104,
+    "synchronousFetchThrowsCaught": 0,
+    "failedRequests": 38,
+    "failedUiSteps": 0,
+    "pageErrorPhaseCounts": {
+      "timer-race-history-forward-1": 1,
+      "timer-race-history-forward-2": 1,
+      "timer-race-history-forward-3": 1,
+      "timer-race-history-forward-5": 1,
+      "timer-race-history-forward-6": 1,
+      "timer-race-history-forward-7": 1,
+      "timer-race-history-forward-8": 1,
+      "fetch-on-pagehide-hard-navigation-1": 1,
+      "fetch-on-pagehide-history-forward-1": 1,
+      "fetch-on-pagehide-hard-navigation-2": 1,
+      "fetch-on-pagehide-history-forward-2": 1,
+      "fetch-on-pagehide-hard-navigation-3": 1,
+      "fetch-on-pagehide-history-forward-3": 1,
+      "fetch-on-pagehide-hard-navigation-4": 1,
+      "fetch-on-pagehide-history-forward-4": 1,
+      "fetch-on-pagehide-hard-navigation-5": 1,
+      "fetch-on-pagehide-history-forward-5": 1,
+      "fetch-on-pagehide-hard-navigation-6": 1,
+      "fetch-on-pagehide-history-forward-6": 1,
+      "fetch-on-pagehide-hard-navigation-7": 1,
+      "fetch-on-pagehide-history-forward-7": 1,
+      "fetch-on-pagehide-hard-navigation-8": 1,
+      "fetch-on-pagehide-history-forward-8": 1,
+      "fetch-on-unload-hard-navigation-1": 1,
+      "fetch-on-unload-history-forward-1": 1,
+      "fetch-on-unload-hard-navigation-2": 1,
+      "fetch-on-unload-history-forward-2": 1,
+      "fetch-on-unload-hard-navigation-3": 1,
+      "fetch-on-unload-history-forward-3": 1,
+      "fetch-on-unload-hard-navigation-4": 1,
+      "fetch-on-unload-history-forward-4": 1,
+      "fetch-on-unload-hard-navigation-5": 1,
+      "fetch-on-unload-history-forward-5": 1,
+      "fetch-on-unload-hard-navigation-6": 1,
+      "fetch-on-unload-history-forward-6": 1,
+      "fetch-on-unload-hard-navigation-7": 1,
+      "fetch-on-unload-history-forward-7": 1,
+      "fetch-on-unload-hard-navigation-8": 1,
+      "fetch-on-unload-history-forward-8": 1,
+      "sync-catch-pagehide-hard-navigation-1": 1,
+      "sync-catch-pagehide-history-forward-1": 1,
+      "sync-catch-pagehide-hard-navigation-2": 1,
+      "sync-catch-pagehide-history-forward-2": 1,
+      "sync-catch-pagehide-hard-navigation-3": 1,
+      "sync-catch-pagehide-history-forward-3": 1,
+      "sync-catch-pagehide-hard-navigation-4": 1,
+      "sync-catch-pagehide-history-forward-4": 1,
+      "sync-catch-pagehide-hard-navigation-5": 1,
+      "sync-catch-pagehide-history-forward-5": 1,
+      "sync-catch-pagehide-hard-navigation-6": 1,
+      "sync-catch-pagehide-history-forward-6": 1,
+      "sync-catch-pagehide-hard-navigation-7": 1,
+      "sync-catch-pagehide-history-forward-7": 1,
+      "sync-catch-pagehide-hard-navigation-8": 1,
+      "sync-catch-pagehide-history-forward-8": 1,
+      "sync-catch-unload-hard-navigation-1": 1,
+      "sync-catch-unload-history-forward-1": 1,
+      "sync-catch-unload-hard-navigation-2": 1,
+      "sync-catch-unload-history-forward-2": 1,
+      "sync-catch-unload-hard-navigation-3": 1,
+      "sync-catch-unload-history-forward-3": 1,
+      "sync-catch-unload-hard-navigation-4": 1,
+      "sync-catch-unload-history-forward-4": 1,
+      "sync-catch-unload-hard-navigation-5": 1,
+      "sync-catch-unload-history-forward-5": 1,
+      "sync-catch-unload-hard-navigation-6": 1,
+      "sync-catch-unload-history-forward-6": 1,
+      "sync-catch-unload-hard-navigation-7": 1,
+      "sync-catch-unload-history-forward-7": 1,
+      "sync-catch-unload-hard-navigation-8": 1,
+      "sync-catch-unload-history-forward-8": 1,
+      "real-unhandled-sentinel": 2
+    }
+  },
+  "stableOriginDocumentConfirmation": {
+    "none": {
+      "rawPageErrors": 14,
+      "accessControlDiagnostics": 12,
+      "deliberateSentinelPageErrors": 2,
+      "domUnhandledRejectionsWithoutSentinels": 0,
+      "domErrorsWithoutSentinels": 0,
+      "sentinelDomUnhandledRejections": 1,
+      "sentinelDomErrors": 1,
+      "explicitPromiseCatches": 16,
+      "synchronousFetchThrowsCaught": 0,
+      "failedRequests": 5,
+      "failedUiSteps": 0,
+      "pageErrorPhaseCounts": {
+        "fetch-on-pagehide-hard-navigation-1": 1,
+        "fetch-on-pagehide-history-forward-1": 1,
+        "fetch-on-pagehide-hard-navigation-2": 1,
+        "fetch-on-pagehide-history-forward-2": 1,
+        "sync-catch-pagehide-hard-navigation-1": 1,
+        "sync-catch-pagehide-history-forward-1": 1,
+        "sync-catch-pagehide-hard-navigation-2": 1,
+        "sync-catch-pagehide-history-forward-2": 1,
+        "sync-catch-unload-hard-navigation-1": 1,
+        "sync-catch-unload-history-forward-1": 1,
+        "sync-catch-unload-hard-navigation-2": 1,
+        "sync-catch-unload-history-forward-2": 1,
+        "real-unhandled-sentinel": 2
+      },
+      "interception": "none",
+      "caughtPromiseOriginIdentifiersMatch": true
+    },
+    "instant-route-continue": {
+      "rawPageErrors": 15,
+      "accessControlDiagnostics": 13,
+      "deliberateSentinelPageErrors": 2,
+      "domUnhandledRejectionsWithoutSentinels": 0,
+      "domErrorsWithoutSentinels": 0,
+      "sentinelDomUnhandledRejections": 1,
+      "sentinelDomErrors": 1,
+      "explicitPromiseCatches": 17,
+      "synchronousFetchThrowsCaught": 0,
+      "failedRequests": 4,
+      "failedUiSteps": 0,
+      "pageErrorPhaseCounts": {
+        "timer-race-history-forward-2": 1,
+        "fetch-on-pagehide-hard-navigation-1": 1,
+        "fetch-on-pagehide-history-forward-1": 1,
+        "fetch-on-pagehide-hard-navigation-2": 1,
+        "fetch-on-pagehide-history-forward-2": 1,
+        "sync-catch-pagehide-hard-navigation-1": 1,
+        "sync-catch-pagehide-history-forward-1": 1,
+        "sync-catch-pagehide-hard-navigation-2": 1,
+        "sync-catch-pagehide-history-forward-2": 1,
+        "sync-catch-unload-hard-navigation-1": 1,
+        "sync-catch-unload-history-forward-1": 1,
+        "sync-catch-unload-hard-navigation-2": 1,
+        "sync-catch-unload-history-forward-2": 1,
+        "real-unhandled-sentinel": 2
+      },
+      "interception": "instant-route-continue",
+      "caughtPromiseOriginIdentifiersMatch": true
+    },
+    "route-continue-after100ms": {
+      "rawPageErrors": 14,
+      "accessControlDiagnostics": 12,
+      "deliberateSentinelPageErrors": 2,
+      "domUnhandledRejectionsWithoutSentinels": 0,
+      "domErrorsWithoutSentinels": 0,
+      "sentinelDomUnhandledRejections": 1,
+      "sentinelDomErrors": 1,
+      "explicitPromiseCatches": 14,
+      "synchronousFetchThrowsCaught": 0,
+      "failedRequests": 5,
+      "failedUiSteps": 0,
+      "pageErrorPhaseCounts": {
+        "fetch-on-pagehide-hard-navigation-1": 1,
+        "fetch-on-pagehide-history-forward-1": 1,
+        "fetch-on-pagehide-hard-navigation-2": 1,
+        "fetch-on-pagehide-history-forward-2": 1,
+        "sync-catch-pagehide-hard-navigation-1": 1,
+        "sync-catch-pagehide-history-forward-1": 1,
+        "sync-catch-pagehide-hard-navigation-2": 1,
+        "sync-catch-pagehide-history-forward-2": 1,
+        "sync-catch-unload-hard-navigation-1": 1,
+        "sync-catch-unload-history-forward-1": 1,
+        "sync-catch-unload-hard-navigation-2": 1,
+        "sync-catch-unload-history-forward-2": 1,
+        "real-unhandled-sentinel": 2
+      },
+      "interception": "route-continue-after100ms",
+      "caughtPromiseOriginIdentifiersMatch": true
+    }
+  },
+  "minimalCausalTimelineWithoutInterception": [
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6282,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/b?run=1",
+      "event": "beforeunload",
+      "documentId": "0274d7b1-67bd-409a-a03e-a2b02f16924a",
+      "documentUrl": "http://127.0.0.1:40729/b?run=1",
+      "currentUrl": "http://127.0.0.1:40729/b?run=1",
+      "clientMs": 412
+    },
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6298,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/b?run=1",
+      "event": "pagehide",
+      "documentId": "0274d7b1-67bd-409a-a03e-a2b02f16924a",
+      "documentUrl": "http://127.0.0.1:40729/b?run=1",
+      "currentUrl": "http://127.0.0.1:40729/b?run=1",
+      "clientMs": 426,
+      "persisted": false
+    },
+    {
+      "kind": "framenavigated",
+      "elapsedMs": 6301,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "documentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0"
+    },
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6568,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "event": "beforeunload",
+      "documentId": "d77e6244-7d9b-48c9-bc36-55c60292ddcd",
+      "documentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "currentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "clientMs": 283
+    },
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6754,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "event": "pagehide",
+      "documentId": "d77e6244-7d9b-48c9-bc36-55c60292ddcd",
+      "documentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "currentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "clientMs": 472,
+      "persisted": false
+    },
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6783,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "event": "fetch-invocation-begin",
+      "documentId": "d77e6244-7d9b-48c9-bc36-55c60292ddcd",
+      "documentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "currentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "clientMs": 473
+    },
+    {
+      "kind": "pageerror",
+      "elapsedMs": 6784,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "pageUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "name": "Fetch API cannot load http",
+      "message": "/127.0.0.1:40729/delay?mode=fetch-on-pagehide&document=d77e6244-7d9b-48c9-bc36-55c60292ddcd due to access control checks.",
+      "stack": "Fetch API cannot load http://127.0.0.1:40729/delay?mode=fetch-on-pagehide&document=d77e6244-7d9b-48c9-bc36-55c60292ddcd due to access control checks.\n    at beginFetch (http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0:11:88)"
+    },
+    {
+      "kind": "dom-event",
+      "elapsedMs": 6784,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "frameUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "event": "fetch-invocation-returned",
+      "documentId": "d77e6244-7d9b-48c9-bc36-55c60292ddcd",
+      "documentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "currentUrl": "http://127.0.0.1:40729/a?mode=fetch-on-pagehide&run=0",
+      "clientMs": 474
+    },
+    {
+      "kind": "framenavigated",
+      "elapsedMs": 6784,
+      "phase": "fetch-on-pagehide-hard-navigation-1",
+      "documentUrl": "http://127.0.0.1:40729/b?run=0"
+    }
+  ],
+  "adapterEvidence": {
+    "file": "node_modules/playwright-core/lib/coreBundle.js",
+    "line": 49836,
+    "condition": "Console.messageAdded: level === error && source === javascript",
+    "behavior": "Creates Error from console text and calls page.addPageError without requiring a DOM error or unhandledrejection event.",
+    "consequence": "The name Fetch API cannot load http is produced by splitting the colon in a network diagnostic URL; it is not evidence that the application threw an Error of that class."
+  },
+  "hypotheses": {
+    "ordinaryCanceledInFlightRequestAlone": "Insufficient: ordinary handled cancellation control produced no pageerror.",
+    "synchronousFetchThrowOutsidePromiseCatch": "Disproved in controlled exact-message reproduction: fetch returned, sync try/catch caught0 throws, promise rejection was caught; identical diagnostics persisted.",
+    "routeInterceptionIsRequired": "Disproved: no interception reproduced12 exact diagnostics; immediate and100ms delayed continuation also reproduced.",
+    "newFetchDuringOutgoingDocumentTeardown": "Supported by independent same-origin pagehide/unload and debounced200ms timer reproduction; actual app diagnostics occur between outgoing beforeunload and pagehide/new document."
+  },
+  "classificationBoundary": {
+    "rawDiagnosticsRetained": true,
+    "existingApplicationAndFullMatrixPageerrorChecksChanged": false,
+    "safeInterpretation": "This particular exact-message diagnostic is attributable to browser console behavior at outgoing-document fetch creation. This result provides no authorization to ignore other pageerrors, active-page fetch failures, DOM errors, unhandled promises, or actual CORS/security failures.",
+    "limitations": [
+      "The app hook internal catch was not modified or instrumented; its actual settled catch execution is not claimed. Passive listeners, exact compiled stack, outgoing-document timeline, and independent browser reproduction establish the diagnostic classification.",
+      "Destroyed-document bindings can lose events. Stable app sentinels prove recorder liveness, while direct console capture and independent exact-message tests provide additional evidence; absence of a DOM event alone is not the conclusion.",
+      "This is Playwright WebKit26.6 in the managed Linux QA environment, not physical Safari/iOS validation.",
+      "Timing measurements here are diagnostic under concurrent QA, not production performance measurements.",
+      "Synthetic localhost only; external destinations and application non-GET/HEAD requests were blocked. No production data, provider requests, or application mutations."
+    ]
+  },
+  "artifacts": {
+    "originalStress": {
+      "path": "/tmp/faktura-private-prefetch-traffic-final6.json",
+      "sha256": "4542504804bedceffcea1283d8dafc9d307df0f285a80b488ed404dc8dbb5a79",
+      "bytes": 90432
+    },
+    "ordinaryCancellationControl": {
+      "path": "/tmp/faktura-webkit-fetch-diagnostic.json",
+      "sha256": "84fe9656a5423d85c929f8b53b707ed5d3aea5c8292226b38592c78d0584f65b",
+      "bytes": 705927
+    },
+    "teardownReproduction": {
+      "path": "/tmp/faktura-webkit-fetch-teardown-diagnostic.json",
+      "sha256": "910d873479de11d1cd2c521cd3ed3fd1487dc06bb5372ee3d99695c0f89cdd92",
+      "bytes": 1727456
+    },
+    "appDocumentTimeline": {
+      "path": "/tmp/faktura-webkit-app-document-diagnostic.json",
+      "sha256": "949b2915d0f16fce28ca542a17bf2bcc03ddb8caf431e23a7c31208c5ddb341c",
+      "bytes": 1715745
+    },
+    "sameAppContextSentinels": {
+      "path": "/tmp/faktura-webkit-app-document-sentinel-diagnostic.json",
+      "sha256": "22f31bab09c48c1436d5da61f91e6224245eda9d7baed1c6506b2ff38cc8eaa9",
+      "bytes": 455170
+    },
+    "noInterception": {
+      "path": "/tmp/faktura-webkit-fetch-causal-none.json",
+      "sha256": "62279c5f929df32c54c789ed0da362659f3c1f79d3bb78315cceaba3843fe406",
+      "bytes": 293299
+    },
+    "instantInterception": {
+      "path": "/tmp/faktura-webkit-fetch-causal-instant.json",
+      "sha256": "a393ce383653e9ee318469ac12cfaf00a222a6f816dbdd323978ec364de809fb",
+      "bytes": 293543
+    },
+    "delayedInterception": {
+      "path": "/tmp/faktura-webkit-fetch-causal-delay100.json",
+      "sha256": "9d7dd72532b0440fb64a2224aad243f12004455916e1f85649e1a4e4f26781ee",
+      "bytes": 287485
+    }
+  },
+  "processCleanup": "All independent diagnostic scripts completed with browser.close and server.close in finally; application diagnostic contexts completed with context.close and browser.close. Root-owned QA server remains available to root."
+}

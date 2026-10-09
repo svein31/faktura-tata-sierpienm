@@ -1,0 +1,643 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-09T11:31:04.676508+00:00",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "scope": "Read-only source-discovered platform inventory supplement; no production invocation, provider calls or heavy tests. Does not enlarge Next API route/method counts or claim public availability of scheduled functions.",
+  "totals": {
+    "netlifyScheduledFunctionEntrypoints": 5,
+    "nodeHostStartupEntrypoints": 1
+  },
+  "platformConfiguration": {
+    "file": "netlify.toml",
+    "sourceFileSha256": "7776eb5511d5217e5aa455850928a8850e5f06adcafbd08c7c34a3d8bcc2a03f",
+    "buildCommand": "npm run build",
+    "plugin": "@netlify/plugin-nextjs",
+    "environmentNames": [
+      "NODE_VERSION"
+    ],
+    "explicitFunctionDirectoryConfiguration": false,
+    "explicitFunctionTimeoutConfiguration": false,
+    "actualPlatformConfigurationVerification": "unverified"
+  },
+  "entries": [
+    {
+      "kind": "netlify-scheduled-function",
+      "functionName": "fakturo-ksef-queue",
+      "sourceFile": "netlify/functions/fakturo-ksef-queue.mjs",
+      "sourceFileSha256": "82abcd93840754ef1d851fe1f7ed1ee931b4eb8078660b82d9d4de4eb5c2cf13",
+      "status": "source-discovered",
+      "exportedEntrypoint": "default async function",
+      "platform": "Netlify",
+      "declaredSchedule": "* * * * *",
+      "scheduleSource": {
+        "file": "netlify/functions/fakturo-ksef-queue.mjs",
+        "line": 1
+      },
+      "scheduleTimezone": "not explicitly configured in repository; platform behavior not verified",
+      "calledProtectedNextEndpoint": {
+        "path": "/api/ksef/queue/process",
+        "method": "POST",
+        "file": "src/app/api/ksef/queue/process/route.ts",
+        "body": "none",
+        "authenticationHeader": "Authorization: Bearer <CRON_SECRET>; no secret value recorded",
+        "protection": {
+          "sourceValidation": [
+            "CRON_SECRET or fallback KSEF_QUEUE_SECRET exact Bearer equality enables cron scope.",
+            "Without a matching cron bearer, requires an authenticated user and limits work to that user.",
+            "KSEF_PAUSE_DISPATCH=true returns 503 before processing."
+          ],
+          "configurationEnvironmentNames": [
+            "CRON_SECRET",
+            "KSEF_QUEUE_SECRET",
+            "KSEF_PAUSE_DISPATCH",
+            "KSEF_NIP"
+          ],
+          "sourceBudget": {
+            "file": "src/lib/ksef/queue-budget.ts",
+            "overallMs": 20000,
+            "verificationMs": 4000,
+            "emailReserveMs": 6000,
+            "minJobMs": 1000
+          }
+        }
+      },
+      "configurationEnvironmentNames": [
+        "APP_URL",
+        "CRON_SECRET",
+        "URL"
+      ],
+      "baseUrlPrecedence": [
+        "APP_URL",
+        "URL"
+      ],
+      "outboundRequestTimeoutMs": 25000,
+      "platformFunctionTimeout": "not explicitly configured in netlify.toml or function config; actual limit unverified",
+      "outboundRedirectPolicy": "error",
+      "knownSourceValidation": [
+        "Missing application base URL or CRON_SECRET raises an error before fetch.",
+        "HTTPS URL required; userinfo credentials forbidden.",
+        "Outbound fetch abort signal configured for 25000 ms.",
+        "Redirects rejected.",
+        "Non-2xx worker response raises an error.",
+        "2xx worker response must parse as JSON and contain success===true."
+      ],
+      "successReturn": {
+        "kind": "Response",
+        "status": 204
+      },
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "Actual published Netlify invocation/schedule/deployment/delivery was not tested. Source and downstream isolated tests do not prove scheduler activation, public HTTP exposure, uptime, platform retries or production providers.",
+      "httpExposureVerification": "unverified; no callable public function URL inferred",
+      "directFunctionUnitCoverage": "No source references to this function found under scripts/tests or test runners in the review search; not a proof that every possible external test is absent.",
+      "indirectUnitCoverage": [
+        {
+          "file": "scripts/tests/queue.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "pending KSeF status only polls with actor/NIP scope and never resends",
+            "missing KSeF session requires reconciliation instead of resending",
+            "worker rechecks permission after enqueue",
+            "worker automatically verifies a known ambiguous reference without enqueueing another send",
+            "worker does not reuse revoked sender access when verifying an old transmission",
+            "email outbox runs even when the KSeF queue is empty and keeps the authenticated user scope",
+            "a slow status check stops starting new tasks and preserves an email reserve",
+            "expired request budget does not claim a KSeF job or submit a document",
+            "a valid actor/NIP/environment MF session is reused without repeated authentication"
+          ]
+        },
+        {
+          "file": "scripts/tests/queue-budget-health.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "KSeF request deadline is shared across calls and never starts an expired request",
+            "operator queue metrics require a secret and never return document details"
+          ]
+        },
+        {
+          "file": "scripts/tests/incident-response.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "Monitoring & Incident Response (Checklist Item 7)",
+            "circuit breaker KSEF_PAUSE_DISPATCH=true rejects direct send with 503",
+            "circuit breaker KSEF_PAUSE_DISPATCH=true halts queue processing worker with 503",
+            "docs/INCIDENT-RESPONSE.md exists and covers all operational recovery requirements"
+          ]
+        }
+      ],
+      "existingDownstreamIntegrationReferences": [
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 414,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        }
+      ],
+      "documentationReferences": [
+        {
+          "file": "docs/RELIABILITY.md",
+          "line": 11
+        }
+      ],
+      "observability": {
+        "sourceFile": "netlify/functions/fakturo-ksef-queue.mjs",
+        "line": 19,
+        "logs": "Aggregate counts, runtime, budget/deferred metadata; source intentionally omits document IDs, recipient addresses and provider errors.",
+        "actualProductionLogVerification": "unverified"
+      }
+    },
+    {
+      "kind": "netlify-scheduled-function",
+      "functionName": "fakturo-ocr",
+      "sourceFile": "netlify/functions/fakturo-ocr.mjs",
+      "sourceFileSha256": "b69339b1c169831f3171d208389c6afed7d96f3287dc423edcd0487ca9aa5c89",
+      "status": "source-discovered",
+      "exportedEntrypoint": "default async function",
+      "platform": "Netlify",
+      "declaredSchedule": "* * * * *",
+      "scheduleSource": {
+        "file": "netlify/functions/fakturo-ocr.mjs",
+        "line": 1
+      },
+      "scheduleTimezone": "not explicitly configured in repository; platform behavior not verified",
+      "calledProtectedNextEndpoint": {
+        "path": "/api/documents/process",
+        "method": "POST",
+        "file": "src/app/api/documents/process/route.ts",
+        "body": "none",
+        "authenticationHeader": "Authorization: Bearer <CRON_SECRET>; no secret value recorded",
+        "protection": {
+          "sourceValidation": [
+            "Any authorization header is validated with requireCron.",
+            "Without authorization header, requires session, valid document ID and company write access for that one document.",
+            "Missing OCR_SPACE_API_KEY raises API503."
+          ],
+          "cronHelper": {
+            "file": "src/lib/cron.ts",
+            "sourceValidation": [
+              "CRON_SECRET absence raises API503.",
+              "Authorization must match the exact Bearer secret using byte-length check and timingSafeEqual; mismatch raises API401."
+            ],
+            "runtimeOnActualNetlify": "unverified"
+          },
+          "configurationEnvironmentNames": [
+            "CRON_SECRET",
+            "OCR_SPACE_API_KEY"
+          ],
+          "nextMaxDurationSeconds": 60,
+          "note": "Next maxDuration is source configuration; actual host enforcement is unverified.",
+          "ocrProviderRequestTimeoutMs": 20000
+        }
+      },
+      "configurationEnvironmentNames": [
+        "APP_URL",
+        "CRON_SECRET",
+        "OCR_SPACE_API_KEY",
+        "URL"
+      ],
+      "baseUrlPrecedence": [
+        "APP_URL",
+        "URL"
+      ],
+      "outboundRequestTimeoutMs": 25000,
+      "platformFunctionTimeout": "not explicitly configured in netlify.toml or function config; actual limit unverified",
+      "outboundRedirectPolicy": "error",
+      "knownSourceValidation": [
+        "Missing OCR_SPACE_API_KEY returns 204 immediately before URL/CRON_SECRET checks; source deliberately skips unconfigured OCR.",
+        "Missing application base URL or CRON_SECRET raises an error before fetch.",
+        "HTTPS URL required; userinfo credentials forbidden.",
+        "Outbound fetch abort signal configured for 25000 ms.",
+        "Redirects rejected.",
+        "Non-2xx worker response raises an error."
+      ],
+      "successReturn": {
+        "kind": "Response",
+        "status": 204
+      },
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "Actual published Netlify invocation/schedule/deployment/delivery was not tested. Source and downstream isolated tests do not prove scheduler activation, public HTTP exposure, uptime, platform retries or production providers.",
+      "httpExposureVerification": "unverified; no callable public function URL inferred",
+      "directFunctionUnitCoverage": "No source references to this function found under scripts/tests or test runners in the review search; not a proof that every possible external test is absent.",
+      "indirectUnitCoverage": [
+        {
+          "file": "scripts/tests/ocr-provider.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "OCR rejects partial, empty and oversized responses instead of approving partial text",
+            "reviewed lines reconcile amounts and reject invalid data without trusting OCR metadata"
+          ]
+        },
+        {
+          "file": "scripts/tests/ocr-extraction.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "OCR amount parsing handles decimal separators without inventing amounts",
+            "labelled OCR fields keep source evidence, seller scope, ambiguity and unknown confidence",
+            "OCR table extraction requires explicit net, VAT amounts and gross columns"
+          ]
+        }
+      ],
+      "existingDownstreamIntegrationReferences": [
+        {
+          "file": "scripts/ocr-jobs-test.cjs",
+          "line": 9,
+          "status": "isolated-test-source-discovered",
+          "coverage": "Durable claim, single provider invocation, retries, edit/version and lease races, revoked access and quarantined document; synthetic provider only.",
+          "runnerReference": {
+            "file": "scripts/integration-test.mjs",
+            "line": 1068
+          }
+        }
+      ],
+      "documentationReferences": [
+        {
+          "file": "docs/OCR-WORKFLOW.md",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "kind": "netlify-scheduled-function",
+      "functionName": "fakturo-reminders",
+      "sourceFile": "netlify/functions/fakturo-reminders.mjs",
+      "sourceFileSha256": "ca915a27d70b837931574e3b5bd4a79fa11aa626e27c168b64ed59d6039c6abb",
+      "status": "source-discovered",
+      "exportedEntrypoint": "default async function",
+      "platform": "Netlify",
+      "declaredSchedule": "*/15 * * * *",
+      "scheduleSource": {
+        "file": "netlify/functions/fakturo-reminders.mjs",
+        "line": 2
+      },
+      "scheduleTimezone": "not explicitly configured in repository; platform behavior not verified",
+      "calledProtectedNextEndpoint": {
+        "path": "/api/due-reminders/process",
+        "method": "POST",
+        "file": "src/app/api/due-reminders/process/route.ts",
+        "body": "none",
+        "authenticationHeader": "Authorization: Bearer <CRON_SECRET>; no secret value recorded",
+        "protection": {
+          "cronHelper": {
+            "file": "src/lib/cron.ts",
+            "sourceValidation": [
+              "CRON_SECRET absence raises API503.",
+              "Authorization must match the exact Bearer secret using byte-length check and timingSafeEqual; mismatch raises API401."
+            ],
+            "runtimeOnActualNetlify": "unverified"
+          },
+          "configurationEnvironmentNames": [
+            "CRON_SECRET"
+          ],
+          "note": "Email delivery safety tests cover transport decisions, not the Netlify function or real delivery."
+        }
+      },
+      "configurationEnvironmentNames": [
+        "APP_URL",
+        "CRON_SECRET",
+        "URL"
+      ],
+      "baseUrlPrecedence": [
+        "APP_URL",
+        "URL"
+      ],
+      "outboundRequestTimeoutMs": 25000,
+      "platformFunctionTimeout": "not explicitly configured in netlify.toml or function config; actual limit unverified",
+      "outboundRedirectPolicy": "error",
+      "knownSourceValidation": [
+        "Missing application base URL or CRON_SECRET raises an error before fetch.",
+        "HTTPS URL required; userinfo credentials forbidden.",
+        "Outbound fetch abort signal configured for 25000 ms.",
+        "Redirects rejected.",
+        "Non-2xx worker response raises an error."
+      ],
+      "successReturn": {
+        "kind": "undefined",
+        "note": "No explicit Response is returned by source; actual scheduler adapter behavior is unverified."
+      },
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "Actual published Netlify invocation/schedule/deployment/delivery was not tested. Source and downstream isolated tests do not prove scheduler activation, public HTTP exposure, uptime, platform retries or production providers.",
+      "httpExposureVerification": "unverified; no callable public function URL inferred",
+      "directFunctionUnitCoverage": "No source references to this function found under scripts/tests or test runners in the review search; not a proof that every possible external test is absent.",
+      "indirectUnitCoverage": [
+        {
+          "file": "scripts/tests/email-delivery-safety.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "automatic SMTP timeout has one attempt and an explicitly uncertain result",
+            "SMTP worker deadline closes the connection and leaves one ambiguous provider attempt",
+            "an already expired email deadline never calls the provider",
+            "manual SMTP does not retry when the DATA response is lost either",
+            "explicit SMTP refusals and pre-connection failures are safe to schedule again",
+            "Resend carries the durable idempotency key and distinguishes HTTP rejection from a lost response"
+          ]
+        }
+      ],
+      "existingDownstreamIntegrationReferences": [
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 506,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 511,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 519,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 524,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 527,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        }
+      ],
+      "documentationReferences": [
+        {
+          "file": "docs/IMPLEMENTATION.md",
+          "line": 67
+        }
+      ]
+    },
+    {
+      "kind": "netlify-scheduled-function",
+      "functionName": "fakturo-scheduler",
+      "sourceFile": "netlify/functions/fakturo-scheduler.mjs",
+      "sourceFileSha256": "0c90bc45d3895ebc5c381c79c233262324fe0d98a4090c0cb19c25e53e2ba264",
+      "status": "source-discovered",
+      "exportedEntrypoint": "default async function",
+      "platform": "Netlify",
+      "declaredSchedule": "*/15 * * * *",
+      "scheduleSource": {
+        "file": "netlify/functions/fakturo-scheduler.mjs",
+        "line": 2
+      },
+      "scheduleTimezone": "not explicitly configured in repository; platform behavior not verified",
+      "calledProtectedNextEndpoint": {
+        "path": "/api/recurring/process",
+        "method": "POST",
+        "file": "src/app/api/recurring/process/route.ts",
+        "body": "none",
+        "authenticationHeader": "Authorization: Bearer <CRON_SECRET>; no secret value recorded",
+        "protection": {
+          "cronHelper": {
+            "file": "src/lib/cron.ts",
+            "sourceValidation": [
+              "CRON_SECRET absence raises API503.",
+              "Authorization must match the exact Bearer secret using byte-length check and timingSafeEqual; mismatch raises API401."
+            ],
+            "runtimeOnActualNetlify": "unverified"
+          },
+          "configurationEnvironmentNames": [
+            "CRON_SECRET"
+          ]
+        }
+      },
+      "configurationEnvironmentNames": [
+        "APP_URL",
+        "CRON_SECRET",
+        "URL"
+      ],
+      "baseUrlPrecedence": [
+        "APP_URL",
+        "URL"
+      ],
+      "outboundRequestTimeoutMs": 25000,
+      "platformFunctionTimeout": "not explicitly configured in netlify.toml or function config; actual limit unverified",
+      "outboundRedirectPolicy": "error",
+      "knownSourceValidation": [
+        "Missing application base URL or CRON_SECRET raises an error before fetch.",
+        "HTTPS URL required; userinfo credentials forbidden.",
+        "Outbound fetch abort signal configured for 25000 ms.",
+        "Redirects rejected.",
+        "Non-2xx worker response raises an error."
+      ],
+      "successReturn": {
+        "kind": "undefined",
+        "note": "No explicit Response is returned by source; actual scheduler adapter behavior is unverified."
+      },
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "Actual published Netlify invocation/schedule/deployment/delivery was not tested. Source and downstream isolated tests do not prove scheduler activation, public HTTP exposure, uptime, platform retries or production providers.",
+      "httpExposureVerification": "unverified; no callable public function URL inferred",
+      "directFunctionUnitCoverage": "No source references to this function found under scripts/tests or test runners in the review search; not a proof that every possible external test is absent.",
+      "indirectUnitCoverage": [
+        {
+          "file": "scripts/tests/scheduling.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "recurrence preserves month-end anchor across short months and leap years",
+            "Warsaw schedule dates and calendar days survive UTC boundaries and DST"
+          ]
+        }
+      ],
+      "existingDownstreamIntegrationReferences": [
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 447,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 452,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 460,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 465,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        }
+      ],
+      "documentationReferences": [
+        {
+          "file": "docs/IMPLEMENTATION.md",
+          "line": 47
+        }
+      ]
+    },
+    {
+      "kind": "netlify-scheduled-function",
+      "functionName": "fakturo-webhooks",
+      "sourceFile": "netlify/functions/fakturo-webhooks.mjs",
+      "sourceFileSha256": "ed25eb66a99f36233970ed23cb0b2eb5db12cfc36e29bd1b9bc1ebc6548f91d2",
+      "status": "source-discovered",
+      "exportedEntrypoint": "default async function",
+      "platform": "Netlify",
+      "declaredSchedule": "*/15 * * * *",
+      "scheduleSource": {
+        "file": "netlify/functions/fakturo-webhooks.mjs",
+        "line": 2
+      },
+      "scheduleTimezone": "not explicitly configured in repository; platform behavior not verified",
+      "calledProtectedNextEndpoint": {
+        "path": "/api/integrations/process",
+        "method": "POST",
+        "file": "src/app/api/integrations/process/route.ts",
+        "body": "none",
+        "authenticationHeader": "Authorization: Bearer <CRON_SECRET>; no secret value recorded",
+        "protection": {
+          "cronHelper": {
+            "file": "src/lib/cron.ts",
+            "sourceValidation": [
+              "CRON_SECRET absence raises API503.",
+              "Authorization must match the exact Bearer secret using byte-length check and timingSafeEqual; mismatch raises API401."
+            ],
+            "runtimeOnActualNetlify": "unverified"
+          },
+          "configurationEnvironmentNames": [
+            "CRON_SECRET"
+          ],
+          "note": "Related units cover webhook URL/crypto/transport boundaries, not platform scheduling."
+        }
+      },
+      "configurationEnvironmentNames": [
+        "APP_URL",
+        "CRON_SECRET",
+        "URL"
+      ],
+      "baseUrlPrecedence": [
+        "APP_URL",
+        "URL"
+      ],
+      "outboundRequestTimeoutMs": 25000,
+      "platformFunctionTimeout": "not explicitly configured in netlify.toml or function config; actual limit unverified",
+      "outboundRedirectPolicy": "error",
+      "knownSourceValidation": [
+        "Missing application base URL or CRON_SECRET raises an error before fetch.",
+        "HTTPS URL required; userinfo credentials forbidden.",
+        "Outbound fetch abort signal configured for 25000 ms.",
+        "Redirects rejected.",
+        "Non-2xx worker response raises an error."
+      ],
+      "successReturn": {
+        "kind": "undefined",
+        "note": "No explicit Response is returned by source; actual scheduler adapter behavior is unverified."
+      },
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "Actual published Netlify invocation/schedule/deployment/delivery was not tested. Source and downstream isolated tests do not prove scheduler activation, public HTTP exposure, uptime, platform retries or production providers.",
+      "httpExposureVerification": "unverified; no callable public function URL inferred",
+      "directFunctionUnitCoverage": "No source references to this function found under scripts/tests or test runners in the review search; not a proof that every possible external test is absent.",
+      "indirectUnitCoverage": [
+        {
+          "file": "scripts/tests/integrations.test.cjs",
+          "status": "source-test-discovered; not executed by this supplementary review",
+          "testNames": [
+            "webhook rejects local, metadata, shared and special IPv4 ranges and non-HTTPS destinations",
+            "webhook secrets bind to company and signatures bind to exact timestamp and payload",
+            "HTTPS transport pins validated DNS and never follows redirects"
+          ]
+        }
+      ],
+      "existingDownstreamIntegrationReferences": [
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 482,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 483,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        },
+        {
+          "file": "scripts/integration-test.mjs",
+          "line": 487,
+          "status": "test-source-discovered; results belong to separate root integration evidence"
+        }
+      ],
+      "documentationReferences": [
+        {
+          "file": "docs/INTEGRATIONS.md"
+        },
+        {
+          "file": "docs/RELIABILITY.md",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "kind": "node-host-startup-wrapper",
+      "sourceFile": "app.js",
+      "sourceFileSha256": "aec7760977bb24106ca653c357289daafd7a63e2992cdee18b2c328b529d4c9b",
+      "status": "source-discovered",
+      "platform": "cyber_Folks / Passenger or operator-run Node.js, per source comments and deploy/cyberfolks/DEPLOY.md",
+      "netlifyUse": "Not referenced as startup in netlify.toml; actual Netlify deployment entry behavior unverified.",
+      "functionName": null,
+      "declaredSchedule": null,
+      "calledProtectedNextEndpoint": null,
+      "childEntrypoint": "node_modules/next/dist/bin/next",
+      "childCommandArguments": [
+        "start",
+        "-p",
+        "<PORT>",
+        "-H",
+        "<HOST>"
+      ],
+      "configurationEnvironmentNames": [
+        "HOST",
+        "NODE_ENV",
+        "PORT"
+      ],
+      "environmentForwarding": "Entire inherited process.env is forwarded to Next child; no values recorded.",
+      "defaultBinding": {
+        "host": "127.0.0.1",
+        "port": "3000"
+      },
+      "timeout": "No explicit startup/request/shutdown timeout declared in this wrapper; actual reverse proxy/Passenger policy unverified.",
+      "knownSourceValidation": [
+        {
+          "file": "app.js",
+          "line": 24,
+          "check": "Requires .next/BUILD_ID; absent build exits 1 before spawn."
+        },
+        {
+          "file": "app.js",
+          "line": 43,
+          "check": "Child spawn error exits 1."
+        },
+        {
+          "file": "app.js",
+          "line": 48,
+          "check": "Parent exits with child numeric status, or 1 for signal and 0 for ordinary null status."
+        },
+        {
+          "file": "app.js",
+          "line": 53,
+          "check": "SIGTERM and SIGINT are forwarded to the child."
+        }
+      ],
+      "inputValidation": "PORT/HOST strings are passed to Next CLI; wrapper contains no separate numeric/range or hostname validation.",
+      "runtimeVerification": "unverified",
+      "runtimeVerificationScope": "This supplement did not start app.js or invoke production. Existing QA directly starts Next; it does not certify the wrapper/Passenger setup.",
+      "directUnitCoverage": "No app.js references found in scripts/tests or current test runners during review.",
+      "documentationReferences": [
+        {
+          "file": "deploy/cyberfolks/DEPLOY.md",
+          "line": 90
+        },
+        {
+          "file": "package.json",
+          "field": "scripts.start"
+        }
+      ]
+    }
+  ],
+  "sourceIdentityHistory": [
+    {
+      "buildId": "ZjS2_AKTU791vZrYv_n4s",
+      "sourceSha256": "ce3665de428fedf36757ee40757cdeb4ac903d3c10f3e3b10934402ced89f417",
+      "generatedAt": "2026-10-09T05:55:46.026050+00:00"
+    }
+  ],
+  "identityNote": "Source-file hashes rechecked against the final6 tree. Build identity associates the inventory with that release; runtime platform invocation remains unverified."
+}

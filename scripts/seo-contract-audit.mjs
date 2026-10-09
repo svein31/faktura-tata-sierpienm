@@ -4,10 +4,12 @@ import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 require("./register-ts.cjs");
 const { topics } = require("../src/lib/seo/content.ts");
+const { INDEXABLE_PATHS, contentModifiedAt } = require("../src/lib/seo/discovery.ts");
 const fs = require("node:fs"), pathModule = require("node:path");
 const copy = require("../src/lib/seo/onpage.json");
 export async function auditSeoContracts(base) {
-  const paths = [...new Set(["/", "/cennik", "/program-do-faktur", "/porownania", "/poradnik-ksef", "/faktury", "/vat", "/narzedzia", "/narzedzia/kalkulator-vat", "/narzedzia/limit-ksef", "/demo", "/pomoc", ...topics.map(t=>t.path)])];
+  const paths = [...new Set(INDEXABLE_PATHS)];
+  const legalPaths = new Set(["/regulamin", "/polityka-prywatnosci", "/polityka-cookies", "/powierzenie-danych", "/podwykonawcy"]);
   const canonicalOrigin="https://fakturaprosto.pl";
   const titles=new Set();
   const descriptions=new Set(), links=new Map();
@@ -27,7 +29,7 @@ export async function auditSeoContracts(base) {
     const robots=html.match(/<meta name="robots" content="([^"]+)"/)?.[1];
     assert.ok(robots && !robots.includes("noindex"),path+" indexable");
     const graphs=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(m=>JSON.parse(m[1]));
-    assert.ok(graphs.length,path+" JSON-LD");
+    if (!legalPaths.has(path)) assert.ok(graphs.length,path+" JSON-LD");
     const nodes=graphs.flatMap(g=>g["@graph"] || [g]);
     const hrefs=[...html.matchAll(/<a\b[^>]*\bhref="([^"]+)"/g)].map(m=>m[1]);
     links.set(path,hrefs.filter(href=>href.startsWith("/") || href.startsWith(canonicalOrigin)).map(href=>new URL(href,canonicalOrigin).pathname));
@@ -88,12 +90,17 @@ export async function auditSeoContracts(base) {
   const sitemapUrls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
   assert.equal(new Set(sitemapUrls).size,sitemapUrls.length,"sitemap has no duplicates");
   for(const path of paths) assert.ok(sitemapUrls.includes(new URL(path,canonicalOrigin).href),path+" sitemap exact canonical URL");
+  for (const path of paths.filter(path => contentModifiedAt(path))) {
+    const item = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].find(match => match[1].includes(`<loc>${canonicalOrigin}${path}</loc>`));
+    assert.ok(item?.[1].includes(`<lastmod>${contentModifiedAt(path)}`), path+" sitemap reflects actual content update");
+  }
   assert.ok(sitemapUrls.every(url=>!/^\/(login|register|api|portal|dashboard|settings)(\/|$)/.test(new URL(url).pathname)),"sitemap excludes private pages");
   const robots=await (await fetch(base+"/robots.txt")).text();
   assert.ok(robots.includes("Sitemap: "+canonicalOrigin+"/sitemap.xml"),"robots advertises sitemap");
   const blocked=[...robots.matchAll(/^Disallow:\s*(\S+)/gm)].map(m=>m[1]);
   for(const path of [...paths,"/_next/static/test.js"]) assert.ok(!blocked.some(prefix=>path.startsWith(prefix)),path+" crawlable");
-  const llms=await fetch(base+"/llms.txt");assert.equal(llms.status,200);const text=await llms.text();assert.ok(text.includes("7 zł")&&text.includes("brutto"),"LLMS price gross");
+  const llms=await fetch(base+"/llms.txt");assert.equal(llms.status,200);assert.match(llms.headers.get("content-type"),/^text\/plain/);const text=await llms.text();assert.ok(text.includes("7 zł")&&text.includes("brutto"),"LLMS price gross");
+  for (const topic of topics) assert.ok(text.includes(`[${topic.title}](${canonicalOrigin}${topic.path})`), topic.path+" LLMS human-readable source entry");
   const image=await fetch(base+"/opengraph-image");assert.equal(image.status,200);assert.match(image.headers.get("content-type"),/^image\//);
   assert.ok(copy.every(p=>p.title.length<=60&&p.description.length<=155),"onpage copy bounds");
   console.log("[seo-contracts] PASS "+paths.length+" public URLs, unique metadata, H1, canonical, images, JSON-LD, sitemap, llms and private noindex");

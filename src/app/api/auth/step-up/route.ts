@@ -2,14 +2,14 @@ import { prisma } from "@/lib/db";
 import { getSession, verifyPassword } from "@/lib/auth";
 import { consumeMfaCode } from "@/lib/mfa";
 import { ApiError, handleApiError, json, readJson, str } from "@/lib/api";
-import { rateLimitShared } from "@/lib/rate-limit";
+import { rateLimitSubject } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
     const session = await getSession(); if (!session) throw new ApiError(401, "Nieautoryzowany.");
     const body = await readJson(req), password = str(body.password), code = str(body.code).trim();
     // Persistent throttling is shared with login across serverless workers.
-    const limiter = await rateLimitShared(req, { max: 10, windowMs: 15 * 60000 }, "step-up:" + session.user.id);
+    const limiter = await rateLimitSubject(session.user.id, { max: 10, windowMs: 15 * 60000 }, "step-up-account");
     if (!limiter.allowed) throw new ApiError(429, "Zbyt wiele prób. Spróbuj później.");
     if (password.length > 128 || !await verifyPassword(password, session.user.password)) throw new ApiError(401, "Nieprawidłowe hasło.");
     const mfa = await prisma.userMfa.findUnique({ where: { userId: session.user.id } });

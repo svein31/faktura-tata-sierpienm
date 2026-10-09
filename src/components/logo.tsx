@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 
 export function Logo({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
-    <Link href="/" aria-label="FakturaProsto — strona główna" className={cn("flex items-center gap-3", className)}>
+    <Link prefetch={false} href="/" aria-label={compact ? "FakturaProsto — strona główna" : undefined} className={cn("flex items-center gap-3", className)}>
       <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-sm ring-1 ring-white/20">
         <svg
+          aria-hidden="true"
           className="h-5 w-5"
           viewBox="0 0 24 24"
           fill="none"
@@ -27,11 +28,12 @@ export function Logo({ className, compact = false }: { className?: string; compa
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-bold tracking-tight text-foreground">FakturaProsto</span>
           </div>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground/80">
             VAT &amp; KSeF 2.0
           </p>
         </div>
       )}
+      {!compact && <span className="sr-only"> — strona główna</span>}
     </Link>
   );
 }

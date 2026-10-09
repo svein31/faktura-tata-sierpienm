@@ -68,7 +68,7 @@ export default function PublicHelpPage() {
             <details key={question} className="group rounded-xl border border-border/70 bg-card px-4 py-3">
               <summary className="cursor-pointer font-medium marker:text-primary focus-visible:outline-2 focus-visible:outline-primary">{question}</summary>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{answer}</p>
-              <Link className="mt-3 inline-block text-sm text-primary underline" href={href}>{label} →</Link>
+              <Link prefetch={false} className="mt-3 inline-block text-sm text-primary underline" href={href}>{label} →</Link>
             </details>
           ))}
         </div>

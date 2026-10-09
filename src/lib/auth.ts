@@ -10,9 +10,11 @@ import { sessionTokenHash, isSessionBearer } from "./session-token";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import type { CompanyProfile, CompanySettings, KsefSettings, User } from "@prisma/client";
+import type { CompanyProfile, CompanySettings, KsefSettings, User, PrismaClient } from "@prisma/client";
 import { prisma } from "./db";
 import { ApiError } from "./api";
+import { validNewPasswordLength } from "./password-policy";
+export { MIN_PASSWORD_LENGTH } from "./password-policy";
 
 /** 30 dni w sekundach (30 * 24 * 3600) = 2592000s */
 export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
@@ -32,7 +34,6 @@ export const LEGACY_COOKIES = [
 ];
 
 const BCRYPT_ROUNDS = 12;
-export const MIN_PASSWORD_LENGTH = 8;
 
 
 export interface FullUserWithRelations extends User {
@@ -124,7 +125,8 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  if (!password || !hash) return false;
+  // Retain previously accepted 128-character credentials, but bound attacker-controlled input.
+  if (!password || password.length > 128 || !hash) return false;
   return bcrypt.compare(password, hash);
 }
 
@@ -138,7 +140,7 @@ export function validateCredentials(email: string, password: string): { ok: bool
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) || e.length > 254) {
     return { ok: false, reason: "invalid_email" };
   }
-  if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH || password.length > 128) {
+  if (!validNewPasswordLength(password)) {
     return { ok: false, reason: "weak_password" };
   }
   return { ok: true };
@@ -151,6 +153,9 @@ export function generateSessionToken(): string {
 }
 
 export interface CreateSessionMetadata {
+  /** Hash actually checked by the caller, never sent to the client or stored on the session. */
+  expectedPasswordHash?: string;
+  expectedLoginEmail?: string;
   mfaVerifiedAt?: Date;
   userAgent?: string | null;
   ipAddress?: string | null;
@@ -161,21 +166,32 @@ export interface CreateSessionMetadata {
  */
 export async function createSession(
   userId: string,
-  metadata?: CreateSessionMetadata
+  metadata?: CreateSessionMetadata,
+  db: PrismaClient = prisma
 ): Promise<{ token: string; expiresAt: Date; sessionId: string }> {
-  const mfa = await prisma.userMfa.findUnique({ where: { userId }, select: { enabledAt: true } });
-  if (mfa?.enabledAt && metadata?.mfaVerifiedAt?.getTime() !== mfa.enabledAt.getTime()) throw new ApiError(401, "Zaloguj się z kodem 2FA, a następnie ponów operację.", "MFA_REQUIRED");
+  if (!metadata?.expectedPasswordHash || !metadata.expectedLoginEmail) throw new ApiError(401, "Zaloguj się ponownie.", "INVALID_CREDENTIALS");
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
   const token = generateSessionToken();
-  const session = await prisma.session.create({
-    data: {
-      sessionToken: sessionTokenHash(token), userId, expiresAt, authenticatedAt: new Date(),
-      mfaVerifiedAt: metadata?.mfaVerifiedAt,
-      userAgent: metadata?.userAgent || null,
-      ipAddress: metadata?.ipAddress || null,
-    },
-  });
-  return { token, expiresAt, sessionId: session.id };
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const session = await db.$transaction(async tx => {
+        const now = new Date();
+        // A user-row write fences concurrent password reset/change. A read alone would leave snapshot races.
+        const proof = await tx.user.updateMany({ where: { id: userId, password: metadata.expectedPasswordHash, email: metadata.expectedLoginEmail }, data: { updatedAt: now } });
+        if (proof.count !== 1) throw new ApiError(401, "Dane logowania zostały zmienione. Zaloguj się ponownie.", "INVALID_CREDENTIALS");
+        const mfa = await tx.userMfa.findUnique({ where: { userId }, select: { enabledAt: true } });
+        if (mfa?.enabledAt && metadata.mfaVerifiedAt?.getTime() !== mfa.enabledAt.getTime()) throw new ApiError(401, "Zaloguj się z kodem 2FA, a następnie ponów operację.", "MFA_REQUIRED");
+        return tx.session.create({ data: {
+          sessionToken: sessionTokenHash(token), userId, expiresAt, authenticatedAt: now,
+          mfaVerifiedAt: metadata.mfaVerifiedAt, userAgent: metadata.userAgent || null, ipAddress: metadata.ipAddress || null,
+        } });
+      });
+      return { token, expiresAt, sessionId: session.id };
+    } catch (error) {
+      if ((error as { code?: string })?.code !== "P2034" || attempt >= 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 40 * (attempt + 1)));
+    }
+  }
 }
 
 /* ── Cookie Options dla Netlify i Localhost ──────────────────────────────── */

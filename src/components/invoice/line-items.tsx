@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import {
-  lineGross,
-  lineNet,
-  lineVat,
+  lineGross as savedLineGross,
+  lineNet as savedLineNet,
+  lineVat as savedLineVat,
   vatRateLabel,
   vatRateBadgeClass,
   formatMoney,
@@ -20,90 +20,18 @@ import { VAT_RATES } from "@/lib/format";
 import type { Currency, InvoiceLine, Product, VatRate } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
+import { parseInvoiceSpreadsheet } from "@/lib/invoice-spreadsheet";
 
 import { Dialog } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/input";
 
+const lineNet = (line: InvoiceLine) => savedLineNet(normalizeInvoiceLineAmounts(line));
+const lineVat = (line: InvoiceLine) => savedLineVat(normalizeInvoiceLineAmounts(line));
+const lineGross = (line: InvoiceLine) => savedLineGross(normalizeInvoiceLineAmounts(line));
+
 export function newLine(): InvoiceLine {
   return { id: uid("l"), name: "", quantity: 1, unit: "szt.", netPrice: 0, vatRate: "23" };
-}
-
-function normalizeVatRate(raw: string): VatRate {
-  const clean = raw.toLowerCase().replace(/%/g, "").trim();
-  if (clean === "23") return "23";
-  if (clean === "8") return "8";
-  if (clean === "5") return "5";
-  if (clean === "0") return "0";
-  if (clean === "zw" || clean === "zwolniony") return "zw";
-  if (clean === "np" || clean === "niepodlega") return "np";
-  if (clean === "oo" || clean === "odwrocone") return "oo";
-  return "23";
-}
-
-function parseSpreadsheetRows(text: string): InvoiceLine[] {
-  const result: InvoiceLine[] = [];
-  const rawRows = text.split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
-
-  for (const row of rawRows) {
-    let cells: string[] = [];
-    if (row.includes("\t")) {
-      cells = row.split("\t").map((c) => c.trim().replace(/^["']|["']$/g, ""));
-    } else if (row.includes(";")) {
-      cells = row.split(";").map((c) => c.trim().replace(/^["']|["']$/g, ""));
-    } else {
-      cells = row.split(",").map((c) => c.trim().replace(/^["']|["']$/g, ""));
-    }
-
-    if (cells.length === 0 || !cells[0]) continue;
-    const firstLower = cells[0].toLowerCase();
-    if (
-      firstLower === "nazwa" ||
-      firstLower === "produkt" ||
-      firstLower === "usługa" ||
-      firstLower === "pozycja" ||
-      firstLower === "name"
-    ) {
-      continue;
-    }
-
-    const name = cells[0];
-    let qty = 1;
-    let unit = "szt.";
-    let price = 0;
-    let vat: VatRate = "23";
-
-    if (cells.length === 2) {
-      price = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 0;
-    } else if (cells.length === 3) {
-      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
-      price = parseFloat(cells[2].replace(/\s/g, "").replace(",", ".")) || 0;
-    } else if (cells.length === 4) {
-      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
-      const cell2Num = parseFloat(cells[2].replace(/\s/g, "").replace(",", "."));
-      if (!isNaN(cell2Num) && !cells[2].includes("szt") && !cells[2].includes("godz")) {
-        price = cell2Num;
-        vat = normalizeVatRate(cells[3]);
-      } else {
-        unit = cells[2];
-        price = parseFloat(cells[3].replace(/\s/g, "").replace(",", ".")) || 0;
-      }
-    } else if (cells.length >= 5) {
-      qty = parseFloat(cells[1].replace(/\s/g, "").replace(",", ".")) || 1;
-      unit = cells[2] || "szt.";
-      price = parseFloat(cells[3].replace(/\s/g, "").replace(",", ".")) || 0;
-      vat = normalizeVatRate(cells[4]);
-    }
-
-    result.push({
-      id: uid("l"),
-      name,
-      quantity: Math.max(0.0001, qty),
-      unit: unit || "szt.",
-      netPrice: Math.max(0, price),
-      vatRate: vat,
-    });
-  }
-  return result;
 }
 
 export function LineItemsEditor({
@@ -112,15 +40,23 @@ export function LineItemsEditor({
   currency,
   products,
   disabled,
+  correction = false,
 }: {
   lines: InvoiceLine[];
   onChange: (lines: InvoiceLine[]) => void;
   currency: Currency;
   products: Product[];
   disabled?: boolean;
+  correction?: boolean;
 }) {
   const [pasteModalOpen, setPasteModalOpen] = React.useState(false);
   const [pastedText, setPastedText] = React.useState("");
+  const pasted = React.useMemo(() => {
+    try { return { lines: parseInvoiceSpreadsheet(pastedText, correction), error: "" }; }
+    catch (error) { return { lines: [] as InvoiceLine[], error: error instanceof Error ? error.message : "Sprawdź arkusz." }; }
+  }, [pastedText, correction]);
+  const pasteCanAppend = pasted.lines.length > 0 && pasted.lines.length + lines.filter(line => line.name.trim()).length <= 200;
+  const freshPastedLines = () => pasted.lines.map(line => ({ ...line, id: uid("l") }));
   const update = (id: string, patch: Partial<InvoiceLine>) =>
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
@@ -136,7 +72,7 @@ export function LineItemsEditor({
     );
   };
 
-  const totals = invoiceTotals({ lines });
+  const totals = invoiceTotals({ lines: lines.map(normalizeInvoiceLineAmounts) });
 
   // VAT grouped summary — only include rates that have lines
   const vatGroups = Object.entries(totals.vatByRate)
@@ -166,7 +102,7 @@ export function LineItemsEditor({
             </label>
             {products.length > 0 && <Select aria-label={"Produkt z katalogu dla pozycji " + (index + 1)} value="" disabled={disabled} onChange={event => event.target.value && applyProduct(item.id, event.target.value)}><option value="">Wstaw z katalogu…</option>{products.map(product => <option key={product.id} value={product.id}>{product.name}</option>)}</Select>}
             <div className="grid grid-cols-2 gap-3">
-              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} type="number" inputMode="decimal" min="0" step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} type="number" inputMode="decimal" min={correction ? undefined : 0} step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} /></label>
               <label className="min-w-0 space-y-1 text-xs font-medium">Jednostka<Input aria-label={"Jednostka pozycji " + (index + 1)} value={item.unit} disabled={disabled} onChange={event => update(item.id, {unit:event.target.value})} /></label>
               <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} type="number" inputMode="decimal" min="0" step="0.01" value={item.netPrice} disabled={disabled} onChange={event => update(item.id, {netPrice:Number(event.target.value) || 0})} /></label>
               <label className="min-w-0 space-y-1 text-xs font-medium">Stawka VAT<Select aria-label={"VAT pozycji " + (index + 1)} value={item.vatRate} disabled={disabled} onChange={event => update(item.id, {vatRate:event.target.value as VatRate})}>{VAT_RATES.map(rate => <option key={rate} value={rate}>{vatRateLabel(rate)}</option>)}</Select></label>
@@ -278,7 +214,7 @@ export function LineItemsEditor({
                       <Input
                         aria-label="Ilość pozycji"
                         type="number"
-                        min={0}
+                        min={correction ? undefined : 0}
                         step="any"
                         value={line.quantity}
                         onChange={(e) => update(line.id, { quantity: Number(e.target.value) || 0 })}
@@ -343,7 +279,7 @@ export function LineItemsEditor({
 
                     {/* Kwota VAT */}
                     <td className="px-2 py-1.5 text-right tabular-nums text-[12px] text-muted-foreground">
-                      {vat > 0 ? formatMoney(vat, currency) : (
+                      {vat !== 0 ? formatMoney(vat, currency) : (
                         <span className="text-[11px] font-medium text-muted-foreground/60">—</span>
                       )}
                     </td>
@@ -425,7 +361,7 @@ export function LineItemsEditor({
 
       {/* ── Tabela podsumowania VAT (wg stawek) ── */}
       {lines.length > 0 && (
-        <div className="rounded-xl border border-border/60 bg-muted/20 overflow-x-auto">
+        <div className="rounded-xl border border-border/60 bg-muted/20 overflow-x-auto" role="region" aria-label="Podsumowanie VAT według stawek" tabIndex={0}>
           <div className="px-4 py-2 border-b border-border/40 bg-muted/30">
             <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
               Podsumowanie VAT wg stawek
@@ -458,7 +394,7 @@ export function LineItemsEditor({
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums text-foreground">{formatMoney(net, currency)}</td>
                     <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
-                      {vatAmount > 0 ? formatMoney(vatAmount, currency) : "—"}
+                      {vatAmount !== 0 ? formatMoney(vatAmount, currency) : "—"}
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums font-semibold text-foreground">{formatMoney(gross, currency)}</td>
                   </tr>
@@ -509,9 +445,9 @@ export function LineItemsEditor({
               <Button
                 variant="outline"
                 size="sm"
-                disabled={!pastedText.trim()}
+                disabled={!pasteCanAppend}
                 onClick={() => {
-                  const parsed = parseSpreadsheetRows(pastedText);
+                  const parsed = freshPastedLines();
                   if (parsed.length > 0) {
                     onChange([...lines.filter((l) => l.name.trim()), ...parsed]);
                     setPasteModalOpen(false);
@@ -519,13 +455,13 @@ export function LineItemsEditor({
                   }
                 }}
               >
-                Dodaj na końcu ({parseSpreadsheetRows(pastedText).length})
+                Dodaj na końcu ({pasted.lines.length})
               </Button>
               <Button
                 size="sm"
-                disabled={!pastedText.trim()}
+                disabled={!pasted.lines.length}
                 onClick={() => {
-                  const parsed = parseSpreadsheetRows(pastedText);
+                  const parsed = freshPastedLines();
                   if (parsed.length > 0) {
                     onChange(parsed);
                     setPasteModalOpen(false);
@@ -533,13 +469,15 @@ export function LineItemsEditor({
                   }
                 }}
               >
-                Zastąp wszystkie pozycje ({parseSpreadsheetRows(pastedText).length})
+                Zastąp wszystkie pozycje ({pasted.lines.length})
               </Button>
             </div>
           </div>
         }
       >
         <div className="space-y-3 py-2">
+          {pasted.error && <p role="alert" className="text-sm text-destructive">{pasted.error}</p>}
+          {!pasted.error && pasted.lines.length > 0 && !pasteCanAppend && <p role="alert" className="text-sm text-destructive">Dodanie tych wierszy przekroczy 200 pozycji. Możesz zastąpić pozycje.</p>}
           <div className="rounded-lg bg-muted/40 p-3 text-[12px] text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">Obsługiwany układ kolumn w wierszu:</p>
             <ul className="list-disc list-inside space-y-0.5">
@@ -560,7 +498,7 @@ export function LineItemsEditor({
           {pastedText.trim() && (
             <div className="text-xs text-muted-foreground">
               Rozpoznano pozycji do zaimportowania:{" "}
-              <b className="text-foreground">{parseSpreadsheetRows(pastedText).length}</b>
+              <b className="text-foreground">{pasted.lines.length}</b>
             </div>
           )}
         </div>

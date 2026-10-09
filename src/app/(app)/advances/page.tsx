@@ -24,8 +24,8 @@ export default function AdvancesPage(){
  <label className="block"><Label>Numer nowej faktury</Label><Input value={number} onChange={e=>setNumber(e.target.value)}/></label><label className="block"><Label>Data wystawienia</Label><Input type="date" value={issueDate} onChange={e=>setIssueDate(e.target.value)}/></label>
  {kind==="advance"&&<><label className="block"><Label>Kwota netto zaliczki PLN</Label><Input type="number" min="0.01" step="0.01" value={net} onChange={e=>{setNet(e.target.value);setRequestId(crypto.randomUUID());}}/></label><label className="block"><Label>Rzeczywista data otrzymania zaliczki</Label><Input type="date" value={receivedDate} onChange={e=>setReceivedDate(e.target.value)}/></label><label className="block"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/> Potwierdzam otrzymanie poniższej kwoty brutto zaliczki.</label></>}
  {preview&&<p>Netto {formatMoney(preview.net)} · VAT {formatMoney(preview.vat)} · Brutto {formatMoney(preview.gross)}</p>}{previewError&&<p>{previewError}</p>}{finished&&<p>Proforma została już rozliczona.</p>}{error&&<p role="alert">{error}</p>}
- <Button disabled={busy||!source||!preview||finished||!number||(kind==="advance"&&!confirmed)} onClick={create}>Wystaw dokument</Button>{created&&<Link href={`/invoices/${created}`} className="underline">Otwórz wystawiony dokument</Link>}
- {documents.map(i=><p key={i.id}><Link href={`/invoices/${i.id}`}>{i.number} · {formatMoney(invoiceTotals(i).gross)}</Link></p>)}
+ <Button disabled={busy||!source||!preview||finished||!number||(kind==="advance"&&!confirmed)} onClick={create}>Wystaw dokument</Button>{created&&<Link prefetch={false} href={`/invoices/${created}`} className="underline">Otwórz wystawiony dokument</Link>}
+ {documents.map(i=><p key={i.id}><Link prefetch={false} href={`/invoices/${i.id}`}>{i.number} · {formatMoney(invoiceTotals(i).gross)}</Link></p>)}
  <p className="text-sm text-muted-foreground">Powiązana proforma i dokumenty rozliczenia są chronione przed edycją i usunięciem. Zmiany wymagające korekty rozliczenia należy uzgodnić z księgowością. Ten moduł nie realizuje przelewów.</p>
  </div>;
 }

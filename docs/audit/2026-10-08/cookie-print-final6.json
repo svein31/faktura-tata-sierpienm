@@ -1,0 +1,605 @@
+{
+  "checkedAt": "2026-10-09T10:56:37.259Z",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "productionWrites": false,
+  "results": [
+    {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 2
+      },
+      "status": "passed"
+    },
+    {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 1
+      },
+      "status": "passed"
+    },
+    {
+      "scope": "isolated-loopback-fresh-anonymous; external requests and non-GET/HEAD mutations blocked",
+      "engine": "firefox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": [
+        "light: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "light: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "light: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "light: Zamknij closes the privacy dialog and restores focus to Ustawienia",
+        "dark: fresh cookie banner is visible on screen, entirely hidden in print, and restored on screen",
+        "dark: privacy dialog, all controls and backdrop are hidden in print and restored on screen",
+        "dark: Escape closes the restored privacy dialog and restores focus to Ustawienia",
+        "dark: Zamknij closes the privacy dialog and restores focus to Ustawienia"
+      ],
+      "scenarios": [
+        {
+          "theme": "light",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "light",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-banner-print-and-screen-return",
+          "screen": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          },
+          "print": {
+            "display": "none",
+            "rendered": false,
+            "visibleControls": 0
+          },
+          "restored": {
+            "display": "block",
+            "rendered": true,
+            "visibleControls": 5
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+          "screen": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          },
+          "print": {
+            "overlay": {
+              "display": "none",
+              "rendered": false
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": false
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": false
+            },
+            "visibleControls": 0
+          },
+          "restored": {
+            "overlay": {
+              "display": "flex",
+              "rendered": true
+            },
+            "panel": {
+              "display": "flex",
+              "rendered": true
+            },
+            "backdrop": {
+              "display": "block",
+              "rendered": true
+            },
+            "visibleControls": 10
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-escape-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        },
+        {
+          "theme": "dark",
+          "name": "cookie-privacy-close-button-focus-restoration",
+          "dialogClosed": true,
+          "trigger": {
+            "connected": true,
+            "focused": true
+          }
+        }
+      ],
+      "guards": {
+        "externalRequestsBlocked": 0,
+        "localMutationsBlocked": 2
+      },
+      "status": "passed"
+    }
+  ],
+  "summary": {
+    "engines": 3,
+    "checks": 24,
+    "scenarios": 24,
+    "failures": 0
+  }
+}

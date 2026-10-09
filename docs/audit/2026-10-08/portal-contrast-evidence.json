@@ -1,0 +1,233 @@
+{
+  "beforeBuildId": "bssOBG1BBwruzKi48pC-w",
+  "method": "Actual compiled synthetic valid portal invoice and offer, axe color-contrast, light and dark themes. Source fixture and database isolated; this evidence is before the contrast fix.",
+  "results": [
+    {
+      "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<button style=\"display: inline-flex...\">",
+              "target": [
+                "button:nth-child(2)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #ffffff, background color: #0284c7, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<strong style=\"color: rgb(2, 132, 199);\">15.10.2026</strong>",
+              "target": [
+                "div:nth-child(2) > strong"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #0284c7, background color: #ffffff, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "light",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<strong style=\"color: rgb(2, 132, 199);\">15.10.2026</strong>",
+              "target": [
+                "div:nth-child(2) > strong"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #0284c7, background color: #ffffff, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<button style=\"display: inline-flex...\">",
+              "target": [
+                "button:nth-child(2)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #ffffff, background color: #0284c7, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<strong style=\"color: rgb(2, 132, 199);\">15.10.2026</strong>",
+              "target": [
+                "div:nth-child(2) > strong"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #0284c7, background color: #ffffff, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: center;\">1.25 szt.</td>",
+              "target": [
+                "td:nth-child(3)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: right;\">100,00&nbsp;zł</td>",
+              "target": [
+                "td:nth-child(4)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: center;\">23%</td>",
+              "target": [
+                "td:nth-child(5)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: right; font-weight: 600;\">153,75&nbsp;zł</td>",
+              "target": [
+                "td:nth-child(6)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+      "theme": "dark",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "html": "<strong style=\"color: rgb(2, 132, 199);\">15.10.2026</strong>",
+              "target": [
+                "div:nth-child(2) > strong"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 4.09 (foreground color: #0284c7, background color: #ffffff, font size: 10.5pt (14px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: center;\">1.25 szt.</td>",
+              "target": [
+                "td:nth-child(3)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: right;\">100,00&nbsp;zł</td>",
+              "target": [
+                "td:nth-child(4)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: center;\">23%</td>",
+              "target": [
+                "td:nth-child(5)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "html": "<td style=\"padding: 0.75rem 0.5rem; text-align: right; font-weight: 600;\">153,75&nbsp;zł</td>",
+              "target": [
+                "td:nth-child(6)"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.07 (foreground color: #f5f7f9, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "fix": {
+    "blueTextAndButtonBackground": "#0369a1",
+    "documentCardText": "#0f172a"
+  },
+  "compiledAfter": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "checkedAt": "2026-10-09T10:46:34.930Z",
+    "scope": "Actual final6 valid invoice/offer capabilities and missing-capability controls in light/dark themes; automated contrast/name checks.",
+    "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+    "axeVersion": "4.14.0",
+    "screenCount": 4,
+    "violationCount": 0,
+    "manualReviewScreens": 4,
+    "results": [
+      {
+        "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "route": "/portal/qa_axe_invoice_capability_xxxxxxxxxxxxxxxxxxxxxx",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 19,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "route": "/portal/qa_axe_offer_capability_xxxxxxxxxxxxxxxxxxxxxxxx",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 21,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 3
+          }
+        ]
+      }
+    ],
+    "rawArtifact": {
+      "path": "docs/audit/2026-10-08/accessibility-routes.json",
+      "sha256": "d5e807f34af828744eb1db325ceca21033459973e1bc5df8b6d8828492bf0c09"
+    },
+    "evidenceLog": {
+      "path": "/tmp/faktura-qa-axe-final6.log",
+      "sha256": "22174ac4ccda2824de54f2dc76135c5591955fb308e6eca3077cb2da4f8ba685"
+    }
+  }
+}

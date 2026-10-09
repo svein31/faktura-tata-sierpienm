@@ -1,0 +1,2720 @@
+{
+  "compiledBuildId": "21f_lBaQA8Ww--YiYgN1t",
+  "compiledSourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "workingTreeSourceSha256AtStart": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "scope": "After-fix traffic from live compiled final6 on an isolated synthetic authenticated desktop context; Chromium/WebKit/Firefox; external requests and non-GET/HEAD local mutations blocked.",
+  "provenance": "Current compiled build and application source fingerprint are required to match the exact root-provided final6 snapshot at start and end. Identical cold-context dashboard and three history-cycle fixture as immutable before-final5 evidence.",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "observation": "Cold-context /dashboard load plus 3000ms after rendered UI; then 3 same-page cycles: goto dashboard, reload dashboard, goto invoices, Back dashboard, Forward invoices.",
+  "limitations": [
+    "Request traffic is observed in a server running concurrent authorized QA; timings are diagnostic, not quiet performance results.",
+    "Playwright response.body yields decoded bytes. gzipEstimateBytes is local gzip of decoded script content, not a measured wire gzip transfer. observedResponseBodyBytes is separately recorded from request.sizes where available.",
+    "Canceled requests/page errors during navigation are retained. Final context/browser teardown is outside the observed active-navigation interval.",
+    "No provider writes or production target. Synthetic browser theme/onboarding/consent state only."
+  ],
+  "engines": [
+    {
+      "engine": "chromium",
+      "prefetchRequests": [],
+      "scriptResources": [
+        {
+          "path": "/_next/static/chunks/webpack-540bd072880f3553.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 993,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3923,
+          "gzipEstimateBytes": 2046,
+          "observedResponseBodyBytes": 2063,
+          "observedResponseHeadersBytes": 700
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 993,
+          "contentEncoding": null,
+          "contentLengthHeader": "572",
+          "decodedBytes": 572,
+          "gzipEstimateBytes": 237,
+          "observedResponseBodyBytes": 572,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 994,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 174198,
+          "gzipEstimateBytes": 46216,
+          "observedResponseBodyBytes": 46258,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 994,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8564,
+          "gzipEstimateBytes": 3406,
+          "observedResponseBodyBytes": 3423,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1042,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 173025,
+          "gzipEstimateBytes": 54364,
+          "observedResponseBodyBytes": 54421,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-bce2532b9f58aefe.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1053,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20687,
+          "gzipEstimateBytes": 7377,
+          "observedResponseBodyBytes": 7395,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/page-9a458643e8a0e84c.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1053,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8143,
+          "gzipEstimateBytes": 3164,
+          "observedResponseBodyBytes": 3181,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/370-57bd5b19fee81dcb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1054,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 5185,
+          "gzipEstimateBytes": 2371,
+          "observedResponseBodyBytes": 2388,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1054,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20164,
+          "gzipEstimateBytes": 6775,
+          "observedResponseBodyBytes": 6793,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/5907-3db5efe5e256d9ae.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1054,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 15566,
+          "gzipEstimateBytes": 3880,
+          "observedResponseBodyBytes": 3897,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1055,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 66580,
+          "gzipEstimateBytes": 20999,
+          "observedResponseBodyBytes": 21025,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/2138-29f773ad9734f539.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1055,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 6934,
+          "gzipEstimateBytes": 2769,
+          "observedResponseBodyBytes": 2786,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/1659-970b6fccbb00aca9.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1055,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 65146,
+          "gzipEstimateBytes": 22882,
+          "observedResponseBodyBytes": 22908,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-2fe8c04dde06448a.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1055,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 26877,
+          "gzipEstimateBytes": 8811,
+          "observedResponseBodyBytes": 8829,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/566-71dac67574f5793f.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1056,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10694,
+          "gzipEstimateBytes": 4447,
+          "observedResponseBodyBytes": 4465,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1056,
+          "contentEncoding": null,
+          "contentLengthHeader": "754",
+          "decodedBytes": 754,
+          "gzipEstimateBytes": 512,
+          "observedResponseBodyBytes": 754,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/886-f7fd0d8e0f907f76.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1056,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10807,
+          "gzipEstimateBytes": 3526,
+          "observedResponseBodyBytes": 3543,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-73f53ddc0fcf8bdb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1081,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 59125,
+          "gzipEstimateBytes": 18079,
+          "observedResponseBodyBytes": 18104,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1567,
+          "contentEncoding": null,
+          "contentLengthHeader": "287",
+          "decodedBytes": 287,
+          "gzipEstimateBytes": 226,
+          "observedResponseBodyBytes": 287,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/9202.9369404cb810e6c9.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1578,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 1550,
+          "gzipEstimateBytes": 742,
+          "observedResponseBodyBytes": 759,
+          "observedResponseHeadersBytes": 700
+        },
+        {
+          "path": "/_next/static/chunks/6126.4399822af97ad312.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 2241,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3930,
+          "gzipEstimateBytes": 1341,
+          "observedResponseBodyBytes": 1358,
+          "observedResponseHeadersBytes": 700
+        },
+        {
+          "path": "/_next/static/chunks/1839.68073669b78413d6.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 2293,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 413121,
+          "gzipEstimateBytes": 108794,
+          "observedResponseBodyBytes": 108891,
+          "observedResponseHeadersBytes": 702
+        }
+      ],
+      "requestFailures": [
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 1654,
+          "phase": "initial-dashboard-load",
+          "failedMs": 1667,
+          "failurePhase": "initial-dashboard-load",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 5697,
+          "phase": "iteration-1-goto-dashboard",
+          "failedMs": 5775,
+          "failurePhase": "iteration-1-goto-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 6851,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 6859,
+          "failurePhase": "iteration-1-reload-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 7892,
+          "phase": "iteration-1-goto-invoices",
+          "failedMs": 8054,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8971,
+          "phase": "iteration-1-history-back-dashboard",
+          "failedMs": 8974,
+          "failurePhase": "iteration-1-history-back-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 10043,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 10046,
+          "failurePhase": "iteration-2-goto-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 10559,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 10598,
+          "failurePhase": "iteration-2-goto-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 11571,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 11576,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 12955,
+          "phase": "iteration-2-history-back-dashboard",
+          "failedMs": 12972,
+          "failurePhase": "iteration-2-history-back-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 14934,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 14954,
+          "failurePhase": "iteration-3-goto-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 16160,
+          "phase": "iteration-3-goto-invoices",
+          "failedMs": 16170,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 16761,
+          "phase": "iteration-3-goto-invoices",
+          "failedMs": 16772,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 17576,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 17594,
+          "failurePhase": "iteration-3-history-back-dashboard",
+          "errorText": "net::ERR_FAILED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 18196,
+          "phase": "iteration-3-history-forward-invoices",
+          "failedMs": 18258,
+          "failurePhase": "iteration-3-history-forward-invoices",
+          "errorText": "net::ERR_FAILED"
+        }
+      ],
+      "pageErrors": [],
+      "steps": [
+        {
+          "name": "initial-dashboard-load",
+          "startedMs": 179,
+          "pagePath": "/",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 1945
+        },
+        {
+          "name": "iteration-1-goto-dashboard",
+          "startedMs": 4948,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 5797
+        },
+        {
+          "name": "iteration-1-reload-dashboard",
+          "startedMs": 5797,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 6978
+        },
+        {
+          "name": "iteration-1-goto-invoices",
+          "startedMs": 6978,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 8079
+        },
+        {
+          "name": "iteration-1-history-back-dashboard",
+          "startedMs": 8079,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 9152
+        },
+        {
+          "name": "iteration-1-history-forward-invoices",
+          "startedMs": 9152,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 9987
+        },
+        {
+          "name": "iteration-2-goto-dashboard",
+          "startedMs": 9987,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 10752
+        },
+        {
+          "name": "iteration-2-reload-dashboard",
+          "startedMs": 10753,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 11854
+        },
+        {
+          "name": "iteration-2-goto-invoices",
+          "startedMs": 11854,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 12950
+        },
+        {
+          "name": "iteration-2-history-back-dashboard",
+          "startedMs": 12950,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 13769
+        },
+        {
+          "name": "iteration-2-history-forward-invoices",
+          "startedMs": 13769,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 14385
+        },
+        {
+          "name": "iteration-3-goto-dashboard",
+          "startedMs": 14385,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 15148
+        },
+        {
+          "name": "iteration-3-reload-dashboard",
+          "startedMs": 15148,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 16077
+        },
+        {
+          "name": "iteration-3-goto-invoices",
+          "startedMs": 16077,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 16948
+        },
+        {
+          "name": "iteration-3-history-back-dashboard",
+          "startedMs": 16948,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 17640
+        },
+        {
+          "name": "iteration-3-history-forward-invoices",
+          "startedMs": 17640,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 18355
+        }
+      ],
+      "blocked": {
+        "external": 0,
+        "mutations": 14
+      },
+      "initialObservation": {
+        "startedMs": 0,
+        "uiReadyMs": 1945,
+        "completedMs": 4948,
+        "loadPlusObservationMs": 4769
+      },
+      "initialScriptSummary": {
+        "requests": 22,
+        "uniquePaths": 22,
+        "decodedBytes": 1095832,
+        "gzipEstimateBytes": 322964,
+        "observedResponseBodyBytes": 324100,
+        "unmeasured": 0
+      },
+      "initialPrefetchSummary": {
+        "requests": 0,
+        "paths": []
+      },
+      "summary": {
+        "prefetchRequests": 0,
+        "prefetchPaths": [],
+        "failedRequests": 14,
+        "failedPrefetchRequests": 0,
+        "pageErrors": 0,
+        "failedSteps": 0
+      },
+      "cancellationRelationships": [],
+      "status": "captured"
+    },
+    {
+      "engine": "webkit",
+      "prefetchRequests": [],
+      "scriptResources": [
+        {
+          "path": "/_next/static/chunks/webpack-540bd072880f3553.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1577,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3923,
+          "gzipEstimateBytes": 2046,
+          "observedResponseBodyBytes": 2063,
+          "observedResponseHeadersBytes": 700
+        },
+        {
+          "path": "/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1581,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 174198,
+          "gzipEstimateBytes": 46216,
+          "observedResponseBodyBytes": 46258,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1581,
+          "contentEncoding": null,
+          "contentLengthHeader": "572",
+          "decodedBytes": 572,
+          "gzipEstimateBytes": 237,
+          "observedResponseBodyBytes": 572,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1582,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 173025,
+          "gzipEstimateBytes": 54364,
+          "observedResponseBodyBytes": 54421,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1595,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8564,
+          "gzipEstimateBytes": 3406,
+          "observedResponseBodyBytes": 3423,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-bce2532b9f58aefe.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1595,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20687,
+          "gzipEstimateBytes": 7377,
+          "observedResponseBodyBytes": 7395,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/page-9a458643e8a0e84c.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1596,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8143,
+          "gzipEstimateBytes": 3164,
+          "observedResponseBodyBytes": 3181,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1607,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20164,
+          "gzipEstimateBytes": 6775,
+          "observedResponseBodyBytes": 6793,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/1659-970b6fccbb00aca9.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1616,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 65146,
+          "gzipEstimateBytes": 22882,
+          "observedResponseBodyBytes": 22908,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1616,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 66580,
+          "gzipEstimateBytes": 20999,
+          "observedResponseBodyBytes": 21025,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/370-57bd5b19fee81dcb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1616,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 5185,
+          "gzipEstimateBytes": 2371,
+          "observedResponseBodyBytes": 2388,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/2138-29f773ad9734f539.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1618,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 6934,
+          "gzipEstimateBytes": 2769,
+          "observedResponseBodyBytes": 2786,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/5907-3db5efe5e256d9ae.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1809,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 15566,
+          "gzipEstimateBytes": 3880,
+          "observedResponseBodyBytes": 3897,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-2fe8c04dde06448a.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1815,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 26877,
+          "gzipEstimateBytes": 8811,
+          "observedResponseBodyBytes": 8829,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/566-71dac67574f5793f.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1816,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10694,
+          "gzipEstimateBytes": 4447,
+          "observedResponseBodyBytes": 4465,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/886-f7fd0d8e0f907f76.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1816,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10807,
+          "gzipEstimateBytes": 3526,
+          "observedResponseBodyBytes": 3543,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1816,
+          "contentEncoding": null,
+          "contentLengthHeader": "754",
+          "decodedBytes": 754,
+          "gzipEstimateBytes": 512,
+          "observedResponseBodyBytes": 754,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-73f53ddc0fcf8bdb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 1816,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 59125,
+          "gzipEstimateBytes": 18079,
+          "observedResponseBodyBytes": 18104,
+          "observedResponseHeadersBytes": 701
+        },
+        {
+          "path": "/_next/static/chunks/6126.4399822af97ad312.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 2985,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3930,
+          "gzipEstimateBytes": 1341,
+          "observedResponseBodyBytes": 1358,
+          "observedResponseHeadersBytes": 700
+        },
+        {
+          "path": "/_next/static/chunks/1839.68073669b78413d6.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 2987,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 413121,
+          "gzipEstimateBytes": 108794,
+          "observedResponseBodyBytes": 108891,
+          "observedResponseHeadersBytes": 702
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 3815,
+          "contentEncoding": null,
+          "contentLengthHeader": "287",
+          "decodedBytes": 287,
+          "gzipEstimateBytes": 226,
+          "observedResponseBodyBytes": 287,
+          "observedResponseHeadersBytes": 669
+        },
+        {
+          "path": "/_next/static/chunks/9202.9369404cb810e6c9.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 3820,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 1550,
+          "gzipEstimateBytes": 742,
+          "observedResponseBodyBytes": 759,
+          "observedResponseHeadersBytes": 700
+        }
+      ],
+      "requestFailures": [
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 3823,
+          "phase": "initial-dashboard-observe",
+          "failedMs": 3827,
+          "failurePhase": "initial-dashboard-observe",
+          "errorText": "Blocked by Web Inspector"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 6669,
+          "phase": "iteration-1-goto-dashboard",
+          "failedMs": 6802,
+          "failurePhase": "iteration-1-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 6669,
+          "phase": "iteration-1-goto-dashboard",
+          "failedMs": 6803,
+          "failurePhase": "iteration-1-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 7901,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 7926,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 7901,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 7926,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8792,
+          "phase": "iteration-1-goto-invoices",
+          "failedMs": 8994,
+          "failurePhase": "iteration-1-history-back-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/invoices/search",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8994,
+          "phase": "iteration-1-history-back-dashboard",
+          "failedMs": 9005,
+          "failurePhase": "iteration-1-history-back-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 9810,
+          "phase": "iteration-1-history-back-dashboard",
+          "failedMs": 9887,
+          "failurePhase": "iteration-1-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 9810,
+          "phase": "iteration-1-history-back-dashboard",
+          "failedMs": 9887,
+          "failurePhase": "iteration-1-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 11485,
+          "phase": "iteration-1-history-forward-invoices",
+          "failedMs": 11900,
+          "failurePhase": "iteration-2-goto-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/invoices/search",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 11818,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 11900,
+          "failurePhase": "iteration-2-goto-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/_next/static/chunks/1839.68073669b78413d6.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 13708,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 13715,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/_next/static/chunks/6126.4399822af97ad312.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 13709,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 13715,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 14616,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 14718,
+          "failurePhase": "iteration-2-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 14615,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 14718,
+          "failurePhase": "iteration-2-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 16516,
+          "phase": "iteration-2-history-back-dashboard",
+          "failedMs": 16613,
+          "failurePhase": "iteration-2-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 16518,
+          "phase": "iteration-2-history-back-dashboard",
+          "failedMs": 16613,
+          "failurePhase": "iteration-2-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/invoices/search",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 17899,
+          "phase": "iteration-2-history-forward-invoices",
+          "failedMs": 17907,
+          "failurePhase": "iteration-3-goto-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19159,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 19260,
+          "failurePhase": "iteration-3-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19121,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 19260,
+          "failurePhase": "iteration-3-reload-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 20294,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 20372,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 20295,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 20372,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 21009,
+          "phase": "iteration-3-goto-invoices",
+          "failedMs": 21074,
+          "failurePhase": "iteration-3-history-back-dashboard",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 22068,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 22097,
+          "failurePhase": "iteration-3-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 22068,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 22097,
+          "failurePhase": "iteration-3-history-forward-invoices",
+          "errorText": "Load request cancelled"
+        }
+      ],
+      "pageErrors": [
+        {
+          "elapsedMs": 15903,
+          "phase": "iteration-2-history-back-dashboard",
+          "message": "/127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.",
+          "stack": "Fetch API cannot load http://127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.\n    at unknown (http://127.0.0.1:44081/_next/static/chunks/app/(app)/invoices/page-beba060a0915ab6a.js:1:3542)"
+        }
+      ],
+      "steps": [
+        {
+          "name": "initial-dashboard-load",
+          "startedMs": 899,
+          "pagePath": "/",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 2591
+        },
+        {
+          "name": "iteration-1-goto-dashboard",
+          "startedMs": 5593,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 6800
+        },
+        {
+          "name": "iteration-1-reload-dashboard",
+          "startedMs": 6800,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 7924
+        },
+        {
+          "name": "iteration-1-goto-invoices",
+          "startedMs": 7924,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 8984
+        },
+        {
+          "name": "iteration-1-history-back-dashboard",
+          "startedMs": 8984,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 9877
+        },
+        {
+          "name": "iteration-1-history-forward-invoices",
+          "startedMs": 9877,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 11818
+        },
+        {
+          "name": "iteration-2-goto-dashboard",
+          "startedMs": 11818,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 13574
+        },
+        {
+          "name": "iteration-2-reload-dashboard",
+          "startedMs": 13574,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 14707
+        },
+        {
+          "name": "iteration-2-goto-invoices",
+          "startedMs": 14707,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 15807
+        },
+        {
+          "name": "iteration-2-history-back-dashboard",
+          "startedMs": 15807,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 16605
+        },
+        {
+          "name": "iteration-2-history-forward-invoices",
+          "startedMs": 16605,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 17900
+        },
+        {
+          "name": "iteration-3-goto-dashboard",
+          "startedMs": 17900,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 19220
+        },
+        {
+          "name": "iteration-3-reload-dashboard",
+          "startedMs": 19220,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 20359
+        },
+        {
+          "name": "iteration-3-goto-invoices",
+          "startedMs": 20359,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 21067
+        },
+        {
+          "name": "iteration-3-history-back-dashboard",
+          "startedMs": 21067,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 22093
+        },
+        {
+          "name": "iteration-3-history-forward-invoices",
+          "startedMs": 22093,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 23816
+        }
+      ],
+      "blocked": {
+        "external": 0,
+        "mutations": 1
+      },
+      "initialObservation": {
+        "startedMs": 0,
+        "uiReadyMs": 2591,
+        "completedMs": 5593,
+        "loadPlusObservationMs": 4694
+      },
+      "initialScriptSummary": {
+        "requests": 22,
+        "uniquePaths": 22,
+        "decodedBytes": 1095832,
+        "gzipEstimateBytes": 322964,
+        "observedResponseBodyBytes": 324100,
+        "unmeasured": 0
+      },
+      "initialPrefetchSummary": {
+        "requests": 0,
+        "paths": []
+      },
+      "summary": {
+        "prefetchRequests": 0,
+        "prefetchPaths": [],
+        "failedRequests": 25,
+        "failedPrefetchRequests": 0,
+        "pageErrors": 1,
+        "failedSteps": 0
+      },
+      "cancellationRelationships": [
+        {
+          "pageError": {
+            "elapsedMs": 15903,
+            "phase": "iteration-2-history-back-dashboard",
+            "message": "/127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.",
+            "stack": "Fetch API cannot load http://127.0.0.1:44081/api/invoices/search?companyId=6ac8c5f8ae72282f6670fb55&search=&status=all&type=all&approval=all&currency=all&cursor= due to access control checks.\n    at unknown (http://127.0.0.1:44081/_next/static/chunks/app/(app)/invoices/page-beba060a0915ab6a.js:1:3542)"
+          },
+          "nearbyFailedRequests": [
+            {
+              "path": "/api/subscription",
+              "hasRscQuery": false,
+              "headers": {
+                "rsc": null,
+                "nextRouterPrefetch": null,
+                "purpose": null,
+                "secPurpose": null,
+                "nextRouterStateTreePresent": false
+              },
+              "errorText": "Load request cancelled",
+              "phase": "iteration-2-reload-dashboard",
+              "failurePhase": "iteration-2-goto-invoices",
+              "startedMs": 14616,
+              "failedMs": 14718
+            },
+            {
+              "path": "/api/overview",
+              "hasRscQuery": false,
+              "headers": {
+                "rsc": null,
+                "nextRouterPrefetch": null,
+                "purpose": null,
+                "secPurpose": null,
+                "nextRouterStateTreePresent": false
+              },
+              "errorText": "Load request cancelled",
+              "phase": "iteration-2-reload-dashboard",
+              "failurePhase": "iteration-2-goto-invoices",
+              "startedMs": 14615,
+              "failedMs": 14718
+            },
+            {
+              "path": "/api/overview",
+              "hasRscQuery": false,
+              "headers": {
+                "rsc": null,
+                "nextRouterPrefetch": null,
+                "purpose": null,
+                "secPurpose": null,
+                "nextRouterStateTreePresent": false
+              },
+              "errorText": "Load request cancelled",
+              "phase": "iteration-2-history-back-dashboard",
+              "failurePhase": "iteration-2-history-forward-invoices",
+              "startedMs": 16516,
+              "failedMs": 16613
+            },
+            {
+              "path": "/api/subscription",
+              "hasRscQuery": false,
+              "headers": {
+                "rsc": null,
+                "nextRouterPrefetch": null,
+                "purpose": null,
+                "secPurpose": null,
+                "nextRouterStateTreePresent": false
+              },
+              "errorText": "Load request cancelled",
+              "phase": "iteration-2-history-back-dashboard",
+              "failurePhase": "iteration-2-history-forward-invoices",
+              "startedMs": 16518,
+              "failedMs": 16613
+            }
+          ],
+          "interpretation": "Temporal correlation only; page errors remain exact and unsuppressed. Stack and failed request evidence allow cancellation attribution without asserting causation from timing alone."
+        }
+      ],
+      "status": "captured"
+    },
+    {
+      "engine": "firefox",
+      "prefetchRequests": [],
+      "scriptResources": [
+        {
+          "path": "/_next/static/chunks/webpack-540bd072880f3553.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2525,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3923,
+          "gzipEstimateBytes": 2046,
+          "observedResponseBodyBytes": 2046,
+          "observedResponseHeadersBytes": 791
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2525,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 173025,
+          "gzipEstimateBytes": 54364,
+          "observedResponseBodyBytes": 54364,
+          "observedResponseHeadersBytes": 793
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2540,
+          "contentEncoding": null,
+          "contentLengthHeader": "572",
+          "decodedBytes": 572,
+          "gzipEstimateBytes": 237,
+          "observedResponseBodyBytes": 572,
+          "observedResponseHeadersBytes": 760
+        },
+        {
+          "path": "/_next/static/chunks/1255-623a1bc706ecd6cc.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2541,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 174198,
+          "gzipEstimateBytes": 46216,
+          "observedResponseBodyBytes": 46216,
+          "observedResponseHeadersBytes": 793
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2541,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8564,
+          "gzipEstimateBytes": 3406,
+          "observedResponseBodyBytes": 3406,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-bce2532b9f58aefe.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2751,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20687,
+          "gzipEstimateBytes": 7377,
+          "observedResponseBodyBytes": 7377,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/app/page-9a458643e8a0e84c.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2752,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 8143,
+          "gzipEstimateBytes": 3164,
+          "observedResponseBodyBytes": 3164,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/4909-5833c0da806d22ce.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2756,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 20164,
+          "gzipEstimateBytes": 6775,
+          "observedResponseBodyBytes": 6775,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/1659-970b6fccbb00aca9.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2799,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 65146,
+          "gzipEstimateBytes": 22882,
+          "observedResponseBodyBytes": 22882,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/240-7c5787aa7a0a9f26.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2801,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 66580,
+          "gzipEstimateBytes": 20999,
+          "observedResponseBodyBytes": 20999,
+          "observedResponseHeadersBytes": 793
+        },
+        {
+          "path": "/_next/static/chunks/370-57bd5b19fee81dcb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2806,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 5185,
+          "gzipEstimateBytes": 2371,
+          "observedResponseBodyBytes": 2371,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/2138-29f773ad9734f539.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2810,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 6934,
+          "gzipEstimateBytes": 2769,
+          "observedResponseBodyBytes": 2769,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/5907-3db5efe5e256d9ae.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2811,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 15566,
+          "gzipEstimateBytes": 3880,
+          "observedResponseBodyBytes": 3880,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-2fe8c04dde06448a.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2813,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 26877,
+          "gzipEstimateBytes": 8811,
+          "observedResponseBodyBytes": 8811,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/566-71dac67574f5793f.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2816,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10694,
+          "gzipEstimateBytes": 4447,
+          "observedResponseBodyBytes": 4447,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/886-f7fd0d8e0f907f76.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2818,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 10807,
+          "gzipEstimateBytes": 3526,
+          "observedResponseBodyBytes": 3526,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2818,
+          "contentEncoding": null,
+          "contentLengthHeader": "754",
+          "decodedBytes": 754,
+          "gzipEstimateBytes": 512,
+          "observedResponseBodyBytes": 754,
+          "observedResponseHeadersBytes": 760
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-73f53ddc0fcf8bdb.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 2821,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 59125,
+          "gzipEstimateBytes": 18079,
+          "observedResponseBodyBytes": 18079,
+          "observedResponseHeadersBytes": 792
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 3509,
+          "contentEncoding": null,
+          "contentLengthHeader": "287",
+          "decodedBytes": 287,
+          "gzipEstimateBytes": 226,
+          "observedResponseBodyBytes": 287,
+          "observedResponseHeadersBytes": 760
+        },
+        {
+          "path": "/_next/static/chunks/9202.9369404cb810e6c9.js",
+          "phase": "initial-dashboard-load",
+          "status": 200,
+          "responseMs": 3516,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 1550,
+          "gzipEstimateBytes": 742,
+          "observedResponseBodyBytes": 742,
+          "observedResponseHeadersBytes": 791
+        },
+        {
+          "path": "/_next/static/chunks/1839.68073669b78413d6.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 3999,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 413121,
+          "gzipEstimateBytes": 108794,
+          "observedResponseBodyBytes": 108794,
+          "observedResponseHeadersBytes": 793
+        },
+        {
+          "path": "/_next/static/chunks/6126.4399822af97ad312.js",
+          "phase": "initial-dashboard-observe",
+          "status": 200,
+          "responseMs": 4002,
+          "contentEncoding": "gzip",
+          "contentLengthHeader": null,
+          "decodedBytes": 3930,
+          "gzipEstimateBytes": 1341,
+          "observedResponseBodyBytes": 1341,
+          "observedResponseHeadersBytes": 791
+        }
+      ],
+      "requestFailures": [
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 3598,
+          "phase": "initial-dashboard-load",
+          "failedMs": 3603,
+          "failurePhase": "initial-dashboard-load",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 7803,
+          "phase": "iteration-1-goto-dashboard",
+          "failedMs": 7805,
+          "failurePhase": "iteration-1-goto-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8760,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 8797,
+          "failurePhase": "iteration-1-reload-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8864,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 8929,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 8863,
+          "phase": "iteration-1-reload-dashboard",
+          "failedMs": 8939,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 9593,
+          "phase": "iteration-1-goto-invoices",
+          "failedMs": 9595,
+          "failurePhase": "iteration-1-goto-invoices",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 10874,
+          "phase": "iteration-1-history-back-dashboard",
+          "failedMs": 10876,
+          "failurePhase": "iteration-1-history-back-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 11598,
+          "phase": "iteration-1-history-forward-invoices",
+          "failedMs": 11600,
+          "failurePhase": "iteration-1-history-forward-invoices",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 12601,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 12603,
+          "failurePhase": "iteration-2-goto-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 12691,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 12728,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 12692,
+          "phase": "iteration-2-goto-dashboard",
+          "failedMs": 12728,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 13751,
+          "phase": "iteration-2-reload-dashboard",
+          "failedMs": 13797,
+          "failurePhase": "iteration-2-reload-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 13815,
+          "phase": "iteration-2-goto-invoices",
+          "failedMs": 13847,
+          "failurePhase": "iteration-2-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 13815,
+          "phase": "iteration-2-goto-invoices",
+          "failedMs": 13847,
+          "failurePhase": "iteration-2-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 14910,
+          "phase": "iteration-2-goto-invoices",
+          "failedMs": 14915,
+          "failurePhase": "iteration-2-goto-invoices",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 15037,
+          "phase": "iteration-2-goto-invoices",
+          "failedMs": 15097,
+          "failurePhase": "iteration-2-history-back-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 15853,
+          "phase": "iteration-2-history-back-dashboard",
+          "failedMs": 15859,
+          "failurePhase": "iteration-2-history-back-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/_next/static/chunks/9202.9369404cb810e6c9.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 17754,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 17754,
+          "failurePhase": "iteration-3-goto-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 17756,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 17756,
+          "failurePhase": "iteration-3-goto-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 17632,
+          "phase": "iteration-2-history-forward-invoices",
+          "failedMs": 17756,
+          "failurePhase": "iteration-3-goto-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 18512,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 18614,
+          "failurePhase": "iteration-3-reload-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 18510,
+          "phase": "iteration-3-goto-dashboard",
+          "failedMs": 18614,
+          "failurePhase": "iteration-3-reload-dashboard",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19499,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 19519,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19442,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 19519,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19442,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 19519,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/_next/static/chunks/9202.9369404cb810e6c9.js",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "script",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 19501,
+          "phase": "iteration-3-reload-dashboard",
+          "failedMs": 19523,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 20524,
+          "phase": "iteration-3-goto-invoices",
+          "failedMs": 20525,
+          "failurePhase": "iteration-3-goto-invoices",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 20992,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 20994,
+          "failurePhase": "iteration-3-history-back-dashboard",
+          "errorText": "NS_ERROR_FAILURE"
+        },
+        {
+          "path": "/api/subscription",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 21119,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 21135,
+          "failurePhase": "iteration-3-history-forward-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/overview",
+          "hasRscQuery": false,
+          "method": "GET",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 21114,
+          "phase": "iteration-3-history-back-dashboard",
+          "failedMs": 21136,
+          "failurePhase": "iteration-3-history-forward-invoices",
+          "errorText": "NS_BINDING_ABORTED"
+        },
+        {
+          "path": "/api/pilot/events",
+          "hasRscQuery": false,
+          "method": "DELETE",
+          "resourceType": "fetch",
+          "headers": {
+            "rsc": null,
+            "nextRouterPrefetch": null,
+            "purpose": null,
+            "secPurpose": null,
+            "nextRouterStateTreePresent": false
+          },
+          "startedMs": 22053,
+          "phase": "final-live-observation",
+          "failedMs": 22055,
+          "failurePhase": "final-live-observation",
+          "errorText": "NS_ERROR_FAILURE"
+        }
+      ],
+      "pageErrors": [],
+      "steps": [
+        {
+          "name": "initial-dashboard-load",
+          "startedMs": 1739,
+          "pagePath": "/",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 3856
+        },
+        {
+          "name": "iteration-1-goto-dashboard",
+          "startedMs": 6858,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 8041
+        },
+        {
+          "name": "iteration-1-reload-dashboard",
+          "startedMs": 8041,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 8922
+        },
+        {
+          "name": "iteration-1-goto-invoices",
+          "startedMs": 8922,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 9848
+        },
+        {
+          "name": "iteration-1-history-back-dashboard",
+          "startedMs": 9848,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 11036
+        },
+        {
+          "name": "iteration-1-history-forward-invoices",
+          "startedMs": 11036,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 11940
+        },
+        {
+          "name": "iteration-2-goto-dashboard",
+          "startedMs": 11940,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 12722
+        },
+        {
+          "name": "iteration-2-reload-dashboard",
+          "startedMs": 12722,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 13815
+        },
+        {
+          "name": "iteration-2-goto-invoices",
+          "startedMs": 13815,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 15062
+        },
+        {
+          "name": "iteration-2-history-back-dashboard",
+          "startedMs": 15062,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 16136
+        },
+        {
+          "name": "iteration-2-history-forward-invoices",
+          "startedMs": 16136,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 17719
+        },
+        {
+          "name": "iteration-3-goto-dashboard",
+          "startedMs": 17719,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 18558
+        },
+        {
+          "name": "iteration-3-reload-dashboard",
+          "startedMs": 18558,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 19502
+        },
+        {
+          "name": "iteration-3-goto-invoices",
+          "startedMs": 19502,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 20544
+        },
+        {
+          "name": "iteration-3-history-back-dashboard",
+          "startedMs": 20544,
+          "pagePath": "/invoices",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/dashboard",
+          "completedMs": 21132
+        },
+        {
+          "name": "iteration-3-history-forward-invoices",
+          "startedMs": 21132,
+          "pagePath": "/dashboard",
+          "httpStatus": 200,
+          "result": "rendered",
+          "resultPath": "/invoices",
+          "completedMs": 22015
+        }
+      ],
+      "blocked": {
+        "external": 0,
+        "mutations": 13
+      },
+      "initialObservation": {
+        "startedMs": 0,
+        "uiReadyMs": 3856,
+        "completedMs": 6858,
+        "loadPlusObservationMs": 5119
+      },
+      "initialScriptSummary": {
+        "requests": 22,
+        "uniquePaths": 22,
+        "decodedBytes": 1095832,
+        "gzipEstimateBytes": 322964,
+        "observedResponseBodyBytes": 323602,
+        "unmeasured": 0
+      },
+      "initialPrefetchSummary": {
+        "requests": 0,
+        "paths": []
+      },
+      "summary": {
+        "prefetchRequests": 0,
+        "prefetchPaths": [],
+        "failedRequests": 31,
+        "failedPrefetchRequests": 0,
+        "pageErrors": 0,
+        "failedSteps": 0
+      },
+      "cancellationRelationships": [],
+      "status": "captured"
+    }
+  ],
+  "compiledBuildIdAtEnd": "21f_lBaQA8Ww--YiYgN1t",
+  "contextBuildIdAtEnd": "21f_lBaQA8Ww--YiYgN1t",
+  "workingTreeSourceSha256AtEnd": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "status": "captured"
+}

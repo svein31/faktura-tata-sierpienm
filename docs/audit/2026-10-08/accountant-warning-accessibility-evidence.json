@@ -1,0 +1,63 @@
+{
+  "beforeBuildId": "XFTUDaJKpJjPxMMF_oitO",
+  "method": "Root full-route final-build axe report, actual rendered /accountant light.",
+  "violationId": "color-contrast",
+  "node": {
+    "html": "<p class=\"font-medium text-amber-600 dark:text-amber-400\">Do sprawdzenia · Szkice faktur: 1</p>",
+    "target": [
+      ".text-amber-600"
+    ],
+    "reason": "Fix any of the following:\n  Element has insufficient color contrast of 3.18 (foreground color: #d97706, background color: #ffffff, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+  },
+  "compiledAfter": {
+    "buildId": "21f_lBaQA8Ww--YiYgN1t",
+    "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+    "checkedAt": "2026-10-09T10:46:34.930Z",
+    "scope": "Actual final6 accountant route in both themes, including synthetic draft warning.",
+    "result": "AUTOMATED_PASS_MANUAL_REVIEW_REMAINS",
+    "axeVersion": "4.14.0",
+    "screenCount": 2,
+    "violationCount": 0,
+    "manualReviewScreens": 2,
+    "results": [
+      {
+        "route": "/accountant",
+        "theme": "light",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 27,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "route": "/accountant",
+        "theme": "dark",
+        "status": 200,
+        "version": "4.14.0",
+        "passes": 27,
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "impact": "serious",
+            "nodes": 1
+          }
+        ]
+      }
+    ],
+    "rawArtifact": {
+      "path": "docs/audit/2026-10-08/accessibility-routes.json",
+      "sha256": "d5e807f34af828744eb1db325ceca21033459973e1bc5df8b6d8828492bf0c09"
+    },
+    "evidenceLog": {
+      "path": "/tmp/faktura-qa-axe-final6.log",
+      "sha256": "22174ac4ccda2824de54f2dc76135c5591955fb308e6eca3077cb2da4f8ba685"
+    }
+  }
+}

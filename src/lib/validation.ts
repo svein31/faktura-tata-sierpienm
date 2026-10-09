@@ -101,6 +101,10 @@ export function validateTaxId(
 ): TaxIdValidation {
   const raw = (input ?? "").trim();
   const country = countryCode.toUpperCase();
+  // TypeScript types do not validate JSON supplied by an API client.
+  if (!["nip", "vat_eu", "tin", "other", "none"].includes(type)) {
+    return { valid: false, type, normalized: raw, displayValue: raw, reason: "Nieprawidłowy typ identyfikatora podatkowego.", label: "ID podatkowy" };
+  }
 
   if (type === "none") {
     return {
@@ -124,7 +128,7 @@ export function validateTaxId(
   }
 
   // 1. Polski NIP
-  if (type === "nip" || (country === "PL" && type !== "tin" && type !== "other")) {
+  if (type === "nip") {
     const normalized = normalizeNip(raw);
     if (!/^\d{10}$/.test(normalized)) {
       return {
@@ -164,7 +168,7 @@ export function validateTaxId(
     const hasPrefix = EU_COUNTRIES.has(prefix) || prefix === "EL" || prefix === "XI";
     const fullVatEu = hasPrefix ? `${prefix === "GR" ? "EL" : prefix}${clean.slice(2)}` : `${vatCountry}${clean}`;
 
-    if (!(EU_COUNTRIES.has(country) || country === "XI" || country === "EL") || (hasPrefix && fullVatEu.slice(0, 2) !== vatCountry) || !/^[A-Z0-9+*.]{2,12}$/.test(fullVatEu.slice(2))) {
+    if (!(EU_COUNTRIES.has(country) || country === "XI" || country === "EL") || (hasPrefix && fullVatEu.slice(0, 2) !== vatCountry) || !/^[A-Z0-9+*.]{2,12}$/.test(fullVatEu.slice(2)) || (country === "PL" && !isValidNipFormat(fullVatEu.slice(2)))) {
       return {
         valid: false,
         type: "vat_eu",

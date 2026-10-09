@@ -13,6 +13,9 @@ import { DEFAULT_INVOICE_PATTERN, invoicePrefix } from "@/lib/invoice-numbering"
 import { nextPersistedInvoiceNumber } from "@/lib/invoice-numbering-server";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
 import { recordPilotEvent } from "@/lib/pilot-metrics";
+import { invoiceNumberScope } from "@/lib/invoice-number-scope";
+import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
+import { warsawDate } from "@/lib/scheduling";
 
 export const runtime = "nodejs";
 
@@ -22,11 +25,7 @@ export async function POST(req: Request) {
     const user = await getSessionUser();
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
-    const body = await readJson(req);
-    if (body.isCorrection && typeof body.originalInvoiceId === "string" && /^[a-f0-9]{24}$/i.test(body.originalInvoiceId)) {
-      const original = await prisma.invoice.findUnique({where:{id:body.originalInvoiceId},select:{documentKind:true}});
-      if (original?.documentKind === "advance" || original?.documentKind === "final") throw new ApiError(400,"Korekta rozliczenia zaliczki wymaga odrębnego przeliczenia całego rozliczenia; ten formularz obsługuje korekty zwykłych faktur.");
-    }
+    const body = await resolveInvoiceCorrectionSource(prisma, user.id, await readJson(req));
 
     // Sprawdź firmy powiązane z użytkownikiem
     const memberships = await prisma.companyMember.findMany({
@@ -56,7 +55,10 @@ export async function POST(req: Request) {
         invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
     }
     const parsed = await buildData(number);
-    const data = { ...parsed, ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId, parsed.currency, body.bankAccountMode === "primary") };
+    if (parsed.status === "paid" || (parsed.paidAmount ?? 0) > 0 || ["paid", "partially_paid"].includes(parsed.paymentStatus))
+      throw new ApiError(409, "Najpierw zapisz fakturę, a następnie zarejestruj wpłatę w osobnej operacji płatności.");
+    // Creating/importing a cost cannot approve it. Approval has its own role-checked workflow.
+    const data = { ...parsed, paidAmount: 0, paymentStatus: parsed.status !== "draft" && parsed.dueDate < warsawDate() ? "overdue" : "unpaid", approvalStatus: "pending", ...await invoiceBankAccountForCompany(parsed.sellerCompanyId, parsed.bankAccountId, parsed.currency, body.bankAccountMode === "primary") };
 
     // Weryfikacja granularnego uprawnienia do wystawiania faktur
     if (data.sellerCompanyId) {
@@ -80,8 +82,7 @@ export async function POST(req: Request) {
     } else {
       const existingWithSameNumber = await prisma.invoice.findFirst({
         where: {
-          userId: user.id,
-          sellerCompanyId: null,
+          ...invoiceNumberScope(user.id, null),
           number: data.number,
         },
         select: { id: true },

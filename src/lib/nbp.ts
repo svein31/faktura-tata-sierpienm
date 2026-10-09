@@ -11,6 +11,7 @@
  */
 
 import type { ExchangeRateRule } from "./types";
+import { round2 } from "./tax/money";
 
 export interface NbpRateResponse {
   table: string;
@@ -247,9 +248,9 @@ export async function getEffectiveNbpRate(options: {
  * Przelicza kwotę w walucie obcej na PLN z dokładnym zaokrągleniem do 2 miejsc po przecinku.
  */
 export function convertToPln(amount: number, rate: number, unit: number = 1): number {
-  if (!amount || isNaN(amount)) return 0;
-  if (!rate || isNaN(rate) || rate <= 0) return 0;
-  const effectiveRate = rate / (unit > 0 ? unit : 1);
-  return Math.round((amount * effectiveRate + Number.EPSILON) * 100) / 100;
+  if (!Number.isFinite(amount) || !Number.isFinite(rate) || rate <= 0 || !Number.isFinite(unit) || unit <= 0) return NaN;
+  const converted = amount * (rate / unit);
+  // Do not let the money helper's safe display fallback turn overflow into 0 PLN.
+  return Number.isFinite(converted) ? round2(converted) : converted;
 }
 

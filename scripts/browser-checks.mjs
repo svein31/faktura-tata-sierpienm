@@ -237,7 +237,7 @@ export async function browserChecks(base, db) {
     await page.getByRole('button', { name: 'Kontynuuj automatycznie', exact: true }).click();
     await expect(page.getByLabel('Numer faktury', { exact: true })).toHaveValue(/KLIENT\/001\/\d{4}/);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Mobile invoice creator overflow');
-    assert.equal(await page.locator('select').count(), 0, 'Invoice dropdowns use themed controls');
+    assert.equal(await page.locator('select:not([aria-hidden="true"])').count(), 0, 'Visible invoice dropdowns use themed controls; native proxies support form validation');
     await page.waitForFunction(() => Object.keys(localStorage).some(key => key.startsWith('fakturo_local_draft_v3_') && JSON.parse(localStorage.getItem(key)).numberMode === 'auto'));
     await page.evaluate(() => {
       const key = Object.keys(localStorage).find(key => key.startsWith('fakturo_local_draft_v3_'));
@@ -257,7 +257,35 @@ export async function browserChecks(base, db) {
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
-      await auditMobileExperience(base,await context.storageState(),{invoiceId:issued.invoice.id,alternateName:alternate.companyName,prepareTerms:()=>db.user.update({where:{id:browserOwner.user.id},data:{termsAcceptedVersion:'mobile-test-old-terms'}})});
+      // Capability URLs are real fixture rows, not invalid-token placeholders.
+      // This runner always creates a loopback-only isolated database.
+      const invoiceToken='qa_invoice_browser_capability_'.padEnd(48,'x');
+      await db.invoice.update({where:{id:issued.invoice.id},data:{shareToken:invoiceToken}});
+      const offerToken='qa_offer_browser_capability_'.padEnd(48,'x');
+      await db.offer.create({data:{userId:browserOwner.user.id,companyId:company.id,contractorId:contractor.id,contractorName:contractor.name,number:'QA/PORTAL/OFFER',title:'Testowa oferta portalowa',status:'sent',issueDate:invoiceDate,validUntil:invoiceDueDate,currency:'PLN',publicToken:offerToken,lines:[{id:'qa-line',name:'Testowa usługa',quantity:1,unit:'szt.',netPrice:100,vatRate:'23',discount:0}],totalNet:100,totalVat:23,totalGross:123}});
+      const inviteToken='qa_invite_browser_capability_'.padEnd(48,'x');
+      await db.teamInvitation.create({data:{userId:browserOwner.user.id,companyId:company.id,email:'qa-invite@example.invalid',role:'viewer',token:inviteToken,expiresAt:new Date(Date.now()+86400000)}});
+      await auditMobileExperience(base,await context.storageState(),{
+        invoiceId:issued.invoice.id,alternateName:alternate.companyName,
+        publicRoutes:['/portal/'+invoiceToken,'/portal/'+offerToken,'/invite/'+inviteToken],
+        prepareTerms:()=>db.user.update({where:{id:browserOwner.user.id},data:{termsAcceptedVersion:'mobile-test-old-terms'}}),
+        financialAudit:async(browser,engine)=>{
+          const {auditFinancialBrowser}=await import('./audit/financial-browser.mjs');
+          return auditFinancialBrowser(browser,{base,db,outputPath:`artifacts/audit/financial-${engine}.json`});
+        },
+        invitationAudit:async(browser,engine)=>{
+          const {auditInvitationBrowser}=await import('./audit/invitation-browser.mjs');
+          return auditInvitationBrowser(browser,{base,db,outputPath:`artifacts/audit/invitation-${engine}.json`});
+        },
+        teamClipboardAudit:async(browser,engine)=>{
+          const {auditTeamClipboardBrowser}=await import('./audit/team-clipboard-browser.mjs');
+          return auditTeamClipboardBrowser(browser,{base,db,outputPath:`artifacts/audit/team-clipboard-${engine}.json`});
+        },
+        expenseFilterAudit:async(browser,engine)=>{
+          const {auditExpenseFilterBrowser}=await import('./audit/expenses-filter-browser.mjs');
+          return auditExpenseFilterBrowser(browser,{base,db,outputPath:`artifacts/audit/expenses-filter-${engine}.json`});
+        },
+      });
     }
     assert.deepEqual(mobileFailures,[],'Basic mobile pages must fit after loading');
     console.log('[integration] PASS desktop/mobile browser navigation, invoice paging/search, project time and PDF templates');

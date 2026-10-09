@@ -1,0 +1,387 @@
+{
+  "checkedAt": "2026-10-09T11:13:00.539Z",
+  "buildId": "21f_lBaQA8Ww--YiYgN1t",
+  "sourceSha256": "14e1b8e0f3850b795ad5d8e7c183edb335b0f40f275e16ce710c6e456e62a3fc",
+  "productionWrites": false,
+  "isolatedSyntheticData": true,
+  "scope": "Real mouse and keyboard theme changes, persisted light/dark reload, system media reaction, real Topbar company Escape and synthetic two-company switching; desktop 1280x900",
+  "results": [
+    {
+      "engine": "chromium",
+      "checks": [
+        {
+          "name": "Appearance light real mouse selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance light persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark real keyboard selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system keyboard uses light device preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to dark media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to light media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Topbar company open Escape closes and restores trigger focus",
+          "status": "PASS"
+        },
+        {
+          "name": "Topbar real mouse switches second synthetic company",
+          "status": "PASS",
+          "company": "QA druga firma"
+        },
+        {
+          "name": "Topbar real keyboard switches back first synthetic company",
+          "status": "PASS",
+          "company": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "Theme and company interactions produce zero submits and zero write requests",
+          "status": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "console": [
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        },
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        },
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        }
+      ],
+      "networkErrors": [],
+      "rejectedMutations": [],
+      "externalRequests": [],
+      "stubbedPrivacyDeletes": [
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "engine": "webkit",
+      "checks": [
+        {
+          "name": "Appearance light real mouse selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance light persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark real keyboard selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system keyboard uses light device preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to dark media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to light media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Topbar company open Escape closes and restores trigger focus",
+          "status": "PASS"
+        },
+        {
+          "name": "Topbar real mouse switches second synthetic company",
+          "status": "PASS",
+          "company": "QA druga firma"
+        },
+        {
+          "name": "Topbar real keyboard switches back first synthetic company",
+          "status": "PASS",
+          "company": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "Theme and company interactions produce zero submits and zero write requests",
+          "status": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "console": [
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        }
+      ],
+      "networkErrors": [],
+      "rejectedMutations": [],
+      "externalRequests": [],
+      "stubbedPrivacyDeletes": [
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "engine": "firefox",
+      "checks": [
+        {
+          "name": "Appearance light real mouse selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance light persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "light",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark real keyboard selection",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance dark persists real reload",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "dark",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system keyboard uses light device preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to dark media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": true,
+            "colorScheme": "dark",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Appearance system responds to light media preference",
+          "status": "PASS",
+          "snapshot": {
+            "stored": "system",
+            "darkClass": false,
+            "colorScheme": "light",
+            "submits": 0
+          }
+        },
+        {
+          "name": "Topbar company open Escape closes and restores trigger focus",
+          "status": "PASS"
+        },
+        {
+          "name": "Topbar real mouse switches second synthetic company",
+          "status": "PASS",
+          "company": "QA druga firma"
+        },
+        {
+          "name": "Topbar real keyboard switches back first synthetic company",
+          "status": "PASS",
+          "company": "QA syntetyczna firma Żółć"
+        },
+        {
+          "name": "Theme and company interactions produce zero submits and zero write requests",
+          "status": "PASS"
+        }
+      ],
+      "pageErrors": [],
+      "console": [
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        },
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        },
+        {
+          "type": "warning",
+          "text": "Service Worker registration blocked by Playwright"
+        }
+      ],
+      "networkErrors": [],
+      "rejectedMutations": [],
+      "externalRequests": [],
+      "stubbedPrivacyDeletes": [
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/pilot/events",
+          "reason": "Startup optional analytics consent cleanup: fulfilled locally to avoid modifying shared synthetic data; this privacy endpoint is outside theme/company UI test scope."
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "summary": {
+    "engines": 3,
+    "passedEngines": 3,
+    "checks": 33,
+    "failures": [],
+    "pageErrors": 0,
+    "writeRequests": 0
+  }
+}

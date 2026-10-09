@@ -1,0 +1,161 @@
+{
+  "auditDate": "2026-10-08",
+  "method": "Read-only urllib GET, redirects followed; HTTP success does not prove third-party product functionality.",
+  "sources": [
+    {
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Zakres obowiązkowego KSeF - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://www.podatki.gov.pl/podatki-firmowe/vat/stawki-i-limity",
+      "status": 200,
+      "final": "https://www.podatki.gov.pl/podatki-firmowe/vat/stawki-i-limity",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Serwis o podatkach - Stawki i limity  "
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/pytania-i-odpowiedzi-ksef-20/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/pytania-i-odpowiedzi-ksef-20/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Pytania i odpowiedzi KSeF 2.0 - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Najczęstsze pytania - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/ksef-news/wystawianie-i-otrzymywanie-faktur/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/ksef-news/wystawianie-i-otrzymywanie-faktur/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Wystawianie i otrzymywanie  faktur - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/ponizej-10-000-zl/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/ponizej-10-000-zl/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": ""
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/numer-ksef-i-zbiorczy-identyfikator/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/numer-ksef-i-zbiorczy-identyfikator/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Numer KSeF i zbiorczy identyfikator - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/tryb-offline24/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/tryb-offline24/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Tryb offline24 - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Krajowy System e-Faktur (KSeF)"
+    },
+    {
+      "url": "https://fakturaprosto.pl/program-do-faktur",
+      "status": 200,
+      "final": "https://fakturaprosto.pl/program-do-faktur",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Darmowy program do faktur: 5 miesięcznie | FakturaProsto"
+    },
+    {
+      "url": "https://fakturownia.pl",
+      "status": 200,
+      "final": "https://fakturownia.pl",
+      "contentType": "text/html",
+      "title": "Program do faktur online – wypróbuj za darmo - Fakturownia  -  - Fakturownia"
+    },
+    {
+      "url": "https://ksef.podatki.gov.pl/aplikacja-podatnika-ksef-20/",
+      "status": 200,
+      "final": "https://ksef.podatki.gov.pl/aplikacja-podatnika-ksef-20/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Aplikacja Podatnika KSeF 2.0 - KSeF (Krajowy System e-Faktur)"
+    },
+    {
+      "url": "https://www.ifirma.pl",
+      "status": 200,
+      "final": "https://www.ifirma.pl",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "\n        Księgowość i biuro rachunkowe oraz program do obsługi KSeF | ifirma.pl    "
+    },
+    {
+      "url": "https://wfirma.pl",
+      "status": 200,
+      "final": "https://wfirma.pl",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Księgowość online dla biur rachunkowych i przedsiębiorców - wFirma.pl"
+    },
+    {
+      "url": "https://www.infakt.pl",
+      "status": 200,
+      "final": "https://www.infakt.pl",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "inFakt. Księgowy, konto firmowe i faktury w jednym"
+    },
+    {
+      "url": "https://www.comarch.pl",
+      "status": 200,
+      "final": "https://www.comarch.pl",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Usługi, systemy informatyczne i obsługa firm, rozwiązania IT - COMARCH SA"
+    },
+    {
+      "url": "https://www.fakturowo.pl/pomoc/cennik",
+      "status": 200,
+      "final": "https://www.fakturowo.pl/pomoc/cennik",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Cennik - Fakturowo.pl"
+    },
+    {
+      "url": "https://www.fakturowo.pl/",
+      "status": 200,
+      "final": "https://www.fakturowo.pl/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Darmowy program do wystawiania faktur online z KSeF oraz JPK"
+    },
+    {
+      "url": "https://fakturaprosto.pl/cennik",
+      "status": 200,
+      "final": "https://fakturaprosto.pl/login?next=%2Fcennik",
+      "contentType": "text/html; charset=utf-8",
+      "title": "Logowanie | FakturaProsto"
+    },
+    {
+      "url": "https://faktura.pl/cennik/",
+      "status": 200,
+      "final": "https://faktura.pl/cennik/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Cennik - Faktura.pl"
+    },
+    {
+      "url": "https://faktura.pl/",
+      "status": 200,
+      "final": "https://faktura.pl/",
+      "contentType": "text/html; charset=UTF-8",
+      "title": "Program do Faktur z KSeF – Wypróbuj za DARMO - Faktura.pl"
+    },
+    {
+      "url": "https://www.comarchbetterfly.pl/",
+      "status": 200,
+      "final": "https://www.comarchbetterfly.pl/",
+      "title": "Comarch Betterfly (dawniej Comarch ERP XT) - aplikacja dla JDG",
+      "discoveredFrom": "https://www.comarch.pl/",
+      "verification": "Product link discovered in official corporate navigation, then fetched read-only."
+    }
+  ]
+}
