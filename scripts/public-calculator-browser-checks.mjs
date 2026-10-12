@@ -25,7 +25,7 @@ export async function auditPublicCalculators(page) {
     const layout = await page.evaluate(() => ({
       path: location.pathname,
       viewport: { width: innerWidth, height: innerHeight, clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth },
-      fits: document.documentElement.scrollWidth <= innerWidth + 2,
+      fits: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2,
     }));
     const resultLayout = results ? await results.evaluate(container => {
       const bounds = container.getBoundingClientRect(), violations = [];
@@ -130,8 +130,25 @@ export async function auditPublicCalculators(page) {
       await invoice.fill('1'); await previous.fill('bad');
       await expect(previous).toHaveAttribute('aria-invalid', 'true'); await expect(thresholdStatus).toHaveCount(0);
       await previous.fill('0'); await expect(thresholdStatus).toContainText('wymaga KSeF');
-      await fits('KSeF threshold at '+width+'px');
+      await fits('KSeF threshold at '+width+'px', thresholdStatus);
       checks.push({ viewport: width, scenario: 'Exact KSeF boundary, previous crossing, zero/invalid input and recovery', status: 'passed' });
+      if (width === 320) {
+        const originalFont = await threshold.evaluate(container => container.style.fontFamily);
+        try {
+          // Platform fallback fonts have different intrinsic text widths.
+          // Keep the complete answer and result usable inside the narrow form.
+          for (const family of ['DejaVu Sans, sans-serif', 'ui-sans-serif, system-ui, sans-serif']) {
+            await threshold.evaluate((container, family) => { container.style.fontFamily = family; }, family);
+            await fits('KSeF long answer with '+family+' at 320px', thresholdStatus);
+            await expect(crossing).toHaveAttribute('title', 'Tak, w tym lub wcześniejszym miesiącu');
+            await expect(threshold.locator('select')).toHaveValue('yes');
+            await expect(thresholdStatus).toContainText('nie przywraca wyjątku');
+          }
+        } finally {
+          await threshold.evaluate((container, family) => { container.style.fontFamily = family; }, originalFont);
+        }
+        checks.push({ viewport: width, scenario: 'Long KSeF answer fits with platform fallback fonts and scrollbar width', status: 'passed' });
+      }
     }
     console.log('[public-calculators] PASS '+checks.length+' workflows at 320/768/1280px');
     return checks;

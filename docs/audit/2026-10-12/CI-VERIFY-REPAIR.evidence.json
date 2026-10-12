@@ -1,0 +1,466 @@
+{
+  "scope": "Narrow calculator grid CI repair; local prepublication evidence",
+  "browser": {
+    "startedAt": "2026-10-12T06:00:21.240Z",
+    "endedAt": "2026-10-12T06:01:01.778Z",
+    "sourceSha256": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+    "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+    "results": [
+      {
+        "engine": "chromium",
+        "checks": [
+          {
+            "viewport": 320,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Long KSeF answer fits with platform fallback fonts and scrollbar width",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          }
+        ],
+        "pageErrors": []
+      },
+      {
+        "engine": "webkit",
+        "checks": [
+          {
+            "viewport": 320,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Long KSeF answer fits with platform fallback fonts and scrollbar width",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          }
+        ],
+        "pageErrors": []
+      },
+      {
+        "engine": "firefox",
+        "checks": [
+          {
+            "viewport": 320,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 320,
+            "scenario": "Long KSeF answer fits with platform fallback fonts and scrollbar width",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 768,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "All four VAT rates, net to gross",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Gross to net and Polish decimal/grouping input",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Empty, negative, malformed, Polish characters and markup are rejected",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact large values, input/result overflow, recovery and keyboard dropdown",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Reload and browser back preserve a usable calculator",
+            "status": "passed"
+          },
+          {
+            "viewport": 1280,
+            "scenario": "Exact KSeF boundary, previous crossing, zero/invalid input and recovery",
+            "status": "passed"
+          }
+        ],
+        "pageErrors": []
+      }
+    ],
+    "scope": "Real public UI, 320/768/1280px, platform font fallbacks, isolated database and loopback-only server providers"
+  },
+  "gates": {
+    "path": "/tmp/faktura-final8-ci-ksef-source15-gates-execution.json",
+    "sha256": "d39cb434818ae1360c2bcff19484a4e4f775e21da5fae5aaf2fc98d17bce6b0e",
+    "result": [
+      {
+        "name": "build",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "startedAt": "2026-10-12T05:51:06.307Z",
+        "endedAt": "2026-10-12T05:51:59.604Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "sourceAfter": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "harnessSha256": "f26c6a7f36c42b7cbb72f4007011d0e31ac0aab12a64bde5bdd3eba985c10675",
+        "revision": "6b3b942bb4e6ba16a4f41775acdb66f0f430f27b",
+        "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+        "logPath": "/tmp/faktura-final8-ci-ksef-source15-build.log",
+        "logSha256": "3b1cce13788a4203761d98e93910e9b625a8055f933fd6c831b54fcad1ef1844"
+      },
+      {
+        "name": "type",
+        "command": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "startedAt": "2026-10-12T05:51:59.707Z",
+        "endedAt": "2026-10-12T05:52:03.609Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "sourceAfter": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "harnessSha256": "f26c6a7f36c42b7cbb72f4007011d0e31ac0aab12a64bde5bdd3eba985c10675",
+        "revision": "6b3b942bb4e6ba16a4f41775acdb66f0f430f27b",
+        "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+        "logPath": "/tmp/faktura-final8-ci-ksef-source15-type.log",
+        "logSha256": "26c9465316ff0021ceb25c0f63e11e44faf60fa3afff00694b1d38e636f4ff89"
+      },
+      {
+        "name": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "startedAt": "2026-10-12T05:52:03.715Z",
+        "endedAt": "2026-10-12T05:52:08.658Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "sourceAfter": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "harnessSha256": "f26c6a7f36c42b7cbb72f4007011d0e31ac0aab12a64bde5bdd3eba985c10675",
+        "revision": "6b3b942bb4e6ba16a4f41775acdb66f0f430f27b",
+        "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+        "logPath": "/tmp/faktura-final8-ci-ksef-source15-lint.log",
+        "logSha256": "68ef84b078b99ff8259c109007c796e0bb6fd339a7c8daf52bcf90b920bcfd49"
+      }
+    ]
+  },
+  "fixture": {
+    "path": "/tmp/faktura-qa-server-ci-ksef-width-after-20261012-execution.json",
+    "sha256": "152cfe7b864e052f3d5c00fa41a8309cd8973bd9907b2e9824b414f6a37b7e86",
+    "result": {
+      "schemaVersion": 1,
+      "label": "ci-ksef-width-after-20261012",
+      "startedAt": "2026-10-12T05:59:41.597Z",
+      "finishedAt": "2026-10-12T06:01:18.015Z",
+      "before": {
+        "phase": "before-fixture",
+        "checkedAt": "2026-10-12T05:59:41.503Z",
+        "sourceSha256": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+        "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+        "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+        "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+      },
+      "after": {
+        "phase": "after-fixture-cleanup",
+        "checkedAt": "2026-10-12T06:01:17.934Z",
+        "sourceSha256": "d9f4f5048d706fe2c05f710a635aa8d7d395439aecadce3ecc75501804d4161d",
+        "buildId": "hxc_SUSGo1QMLDJ7NAvPR",
+        "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+        "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+        "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+      },
+      "unchanged": true,
+      "fixtureReady": true,
+      "base": "http://127.0.0.1:45153",
+      "contextPath": "/tmp/faktura-qa-context-ci-ksef-width-after-20261012.json",
+      "contextCredentials": "Synthetic session/password values stored locally mode0600; not copied to proof",
+      "appliedMigrations": [
+        "001-company-catalog",
+        "002-user-mfa",
+        "003-recurring-occurrences",
+        "004-integrations",
+        "005-due-reminders",
+        "006-invoice-settlements",
+        "007-document-workspace",
+        "008-company-workflows",
+        "009-ocr-jobs",
+        "010-projects",
+        "011-pdf-versions",
+        "012-invoice-search",
+        "013-subscriptions",
+        "014-stripe-subscriptions",
+        "015-auth-rate-limit",
+        "016-session-digests",
+        "017-launch-safety",
+        "018-performance-indexes",
+        "019-email-safety",
+        "020-pilot-metrics",
+        "021-queue-throughput",
+        "022-subscription-nullable-identifiers"
+      ],
+      "cleanup": "Owned Next/Mongo/Prisma resources stopped and disconnected before wrapper completion",
+      "appLog": {
+        "path": "/tmp/faktura-qa-server-app-ci-ksef-width-after-20261012.log",
+        "bytes": 145,
+        "sha256": "d5077fe1f0cf7130935a9512046afee1a0a3c89196c1ed106aa224407ad54c16"
+      },
+      "scope": "Fresh synthetic loopback-only database; all forward migrations including022; server-side external billing/email/MF/OCR/etc provider connections blocked"
+    }
+  },
+  "observedOwnedExitCodes": {
+    "gatesSession47212": 0,
+    "browserSession96112": 0,
+    "fixtureSession55583": 0
+  },
+  "cleanupVerified": {
+    "ownedPidsAbsent": [
+      398961,
+      398973,
+      398974,
+      399114
+    ],
+    "portsClosed": [
+      45153,
+      42111
+    ]
+  },
+  "production": "Blocked until deployment matches current main; revision guard unchanged",
+  "notVerified": [
+    "Future remote CI result",
+    "Netlify panel quota",
+    "Physical Safari/iOS",
+    "Two previously documented console causes"
+  ]
+}
