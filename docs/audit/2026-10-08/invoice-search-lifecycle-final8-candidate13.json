@@ -1,0 +1,311 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate13-lifecycle-targeted1",
+  "fixtureLabel": "final8-candidate13-lifecycle-targeted1",
+  "startedAt": "2026-10-11T18:10:31.022Z",
+  "finishedAt": "2026-10-11T18:11:40.268Z",
+  "status": "complete",
+  "failure": null,
+  "before": {
+    "sourceSha256": "92aa9410c23daedf4023ee407a86beea1b353fa030503f9de854d07e52d5a584",
+    "buildId": "5RPdmv0wKMdKJD1F5KND4",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "890812c2a391ee9e863b20f2aff05cfaba407b976d65d1823b2c96aad32d8d5e"
+  },
+  "after": {
+    "sourceSha256": "92aa9410c23daedf4023ee407a86beea1b353fa030503f9de854d07e52d5a584",
+    "buildId": "5RPdmv0wKMdKJD1F5KND4",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "890812c2a391ee9e863b20f2aff05cfaba407b976d65d1823b2c96aad32d8d5e"
+  },
+  "unchanged": true,
+  "checks": [
+    {
+      "engine": "webkit",
+      "name": "Hydrated initial invoice search renders actual fixture document",
+      "status": "checked"
+    },
+    {
+      "engine": "webkit",
+      "name": "Four actual same-tab reload/back/forward cycles leave pending search without native pageerrors",
+      "status": "checked"
+    },
+    {
+      "engine": "webkit",
+      "name": "Actual in-flight invoice request safely canceled on cross-document departure",
+      "status": "checked"
+    },
+    {
+      "engine": "webkit",
+      "name": "Native cancelable cross-document navigate signal abort resumes current invoice search",
+      "status": "checked",
+      "canceled": [
+        {
+          "event": "prevent-default",
+          "cancelable": true,
+          "signalInitiallyAborted": false
+        },
+        {
+          "event": "signal-abort",
+          "aborted": true
+        }
+      ],
+      "nativePromptStay": "unverified"
+    },
+    {
+      "engine": "webkit",
+      "name": "Real active-page injected HTTP503 remains visible and trusted retry recovers without window.stop",
+      "status": "checked"
+    },
+    {
+      "engine": "webkit",
+      "name": "Trusted retry explicitly stops accepted native departure before unblocking invoice fetch",
+      "status": "checked",
+      "nativeStopDelta": 1,
+      "nativePromptStay": "unverified",
+      "instrumentation": "window.stop observer calls original native implementation"
+    },
+    {
+      "engine": "webkit",
+      "name": "Feature-hidden legacy simulated beforeunload blocks background reload; trusted button retries",
+      "status": "checked",
+      "legacyCaps": {
+        "hidden": true,
+        "descriptor": {
+          "ownProperty": true,
+          "configurable": true
+        }
+      },
+      "beforeunloadEvent": "synthetic untrusted test event",
+      "actualNativePromptStay": "unverified",
+      "actualLegacySafari": "unverified"
+    },
+    {
+      "engine": "webkit",
+      "name": "Synthetic persisted pageshow restores search",
+      "status": "checked",
+      "actualBrowserBFCacheRestore": "unverified",
+      "events": "synthetic PageTransitionEvent"
+    },
+    {
+      "engine": "chromium",
+      "name": "Hydrated initial invoice search renders actual fixture document",
+      "status": "checked"
+    },
+    {
+      "engine": "chromium",
+      "name": "Four actual same-tab reload/back/forward cycles leave pending search without native pageerrors",
+      "status": "checked"
+    },
+    {
+      "engine": "chromium",
+      "name": "Actual in-flight invoice request safely canceled on cross-document departure",
+      "status": "checked"
+    },
+    {
+      "engine": "chromium",
+      "name": "Native cancelable cross-document navigate signal abort resumes current invoice search",
+      "status": "checked",
+      "canceled": [
+        {
+          "event": "prevent-default",
+          "cancelable": true,
+          "signalInitiallyAborted": false
+        },
+        {
+          "event": "signal-abort",
+          "aborted": true
+        }
+      ],
+      "nativePromptStay": "unverified"
+    },
+    {
+      "engine": "chromium",
+      "name": "Real active-page injected HTTP503 remains visible and trusted retry recovers without window.stop",
+      "status": "checked"
+    },
+    {
+      "engine": "chromium",
+      "name": "Trusted retry explicitly stops accepted native departure before unblocking invoice fetch",
+      "status": "checked",
+      "nativeStopDelta": 1,
+      "nativePromptStay": "unverified",
+      "instrumentation": "window.stop observer calls original native implementation"
+    },
+    {
+      "engine": "chromium",
+      "name": "Feature-hidden legacy simulated beforeunload blocks background reload; trusted button retries",
+      "status": "checked",
+      "legacyCaps": {
+        "hidden": true,
+        "descriptor": {
+          "ownProperty": true,
+          "configurable": true
+        }
+      },
+      "beforeunloadEvent": "synthetic untrusted test event",
+      "actualNativePromptStay": "unverified",
+      "actualLegacySafari": "unverified"
+    },
+    {
+      "engine": "chromium",
+      "name": "Synthetic persisted pageshow restores search",
+      "status": "checked",
+      "actualBrowserBFCacheRestore": "unverified",
+      "events": "synthetic PageTransitionEvent"
+    },
+    {
+      "engine": "firefox",
+      "name": "Hydrated initial invoice search renders actual fixture document",
+      "status": "checked"
+    },
+    {
+      "engine": "firefox",
+      "name": "Four actual same-tab reload/back/forward cycles leave pending search without native pageerrors",
+      "status": "checked"
+    },
+    {
+      "engine": "firefox",
+      "name": "Actual in-flight invoice request safely canceled on cross-document departure",
+      "status": "checked"
+    },
+    {
+      "engine": "firefox",
+      "name": "Native cancelable cross-document navigate signal abort resumes current invoice search",
+      "status": "checked",
+      "canceled": [
+        {
+          "event": "prevent-default",
+          "cancelable": true,
+          "signalInitiallyAborted": false
+        },
+        {
+          "event": "signal-abort",
+          "aborted": true
+        }
+      ],
+      "nativePromptStay": "unverified"
+    },
+    {
+      "engine": "firefox",
+      "name": "Real active-page injected HTTP503 remains visible and trusted retry recovers without window.stop",
+      "status": "checked"
+    },
+    {
+      "engine": "firefox",
+      "name": "Trusted retry explicitly stops accepted native departure before unblocking invoice fetch",
+      "status": "checked",
+      "nativeStopDelta": 1,
+      "nativePromptStay": "unverified",
+      "instrumentation": "window.stop observer calls original native implementation"
+    },
+    {
+      "engine": "firefox",
+      "name": "Feature-hidden legacy simulated beforeunload blocks background reload; trusted button retries",
+      "status": "checked",
+      "legacyCaps": {
+        "hidden": true,
+        "descriptor": {
+          "ownProperty": true,
+          "configurable": true
+        }
+      },
+      "beforeunloadEvent": "synthetic untrusted test event",
+      "actualNativePromptStay": "unverified",
+      "actualLegacySafari": "unverified"
+    },
+    {
+      "engine": "firefox",
+      "name": "Synthetic persisted pageshow restores search",
+      "status": "checked",
+      "actualBrowserBFCacheRestore": "unverified",
+      "events": "synthetic PageTransitionEvent"
+    }
+  ],
+  "pageErrors": [],
+  "networkIssues": [
+    {
+      "engine": "webkit",
+      "phase": "active-network-error-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    },
+    {
+      "engine": "webkit",
+      "phase": "accepted-native-departure-trusted-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    },
+    {
+      "engine": "chromium",
+      "phase": "active-network-error-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    },
+    {
+      "engine": "chromium",
+      "phase": "accepted-native-departure-trusted-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    },
+    {
+      "engine": "firefox",
+      "phase": "active-network-error-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    },
+    {
+      "engine": "firefox",
+      "phase": "accepted-native-departure-trusted-retry",
+      "path": "/api/invoices/search",
+      "status": 503,
+      "fixtureInjected": "invoice-lifecycle-active-error"
+    }
+  ],
+  "consoleIssues": [
+    {
+      "engine": "webkit",
+      "phase": "active-network-error-retry",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "engine": "webkit",
+      "phase": "accepted-native-departure-trusted-retry",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "engine": "chromium",
+      "phase": "active-network-error-retry",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "engine": "chromium",
+      "phase": "accepted-native-departure-trusted-retry",
+      "message": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    }
+  ],
+  "testEnvironment": {
+    "MOZ_DISABLE_CONTENT_SANDBOX": "1"
+  },
+  "scope": "Bounded fresh-source app invoice lifecycle regression on isolated synthetic fixture. Native pageerrors retained and fatal. Test window.stop observer records calls while invoking original native implementation. Accepted document-navigation retry uses real trusted mouse click coordinates from actual visible retry button before departure; no synthetic DOM click. Actual native canceled NavigateEvent tested; legacy API absence, beforeunload cancellation and persisted pageshow are simulated and cannot certify native prompt Stay, physical Safari or actual BFCache restoration.",
+  "eventCount": 5323,
+  "rawEventDiagnostics": "All request/response/failed/navigation events retained in rawSource artifact",
+  "observedTool": {
+    "session": 77414,
+    "actualExitCode": 0
+  },
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-invoice-search-lifecycle-final8-candidate13-lifecycle-targeted1.json",
+      "sha256": "fc0822db94044f561309112878d4e0a4ab5b3c11841af06f5b493ed48c577394",
+      "bytes": 1490464
+    },
+    "scope": "Own candidate13 source/build guards and actual observations retained. Synthetic credential/capability string patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. Candidate14 results are not inherited."
+  }
+}

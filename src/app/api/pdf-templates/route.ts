@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { printConfig, DEFAULT_PRINT_CONFIG } from "@/lib/pdf/print-config";
 import { recordAuditLog } from "@/lib/audit";
 export const runtime = "nodejs";
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     const body = await readJson(req), config = printConfig(body), name = cleanStr(body.name, 100, "nazwa");
     if (!name || !Number.isSafeInteger(body.version) || Number(body.version) < 0) throw new ApiError(400, "Podaj nazwę i wersję ustawień.");
     return json(await prisma.$transaction(async tx => {
-      const { company, role } = await companyAccess(tx, user.id, body.companyId);
+      const { company, role } = await companyWriteAccess(tx, user.id, body.companyId);
       if (role !== "owner") throw new ApiError(403, "Szablony zmienia właściciel firmy.");
       const current = await tx.pdfTemplateSetting.findUnique({ where: { id: company.id } });
       if ((current?.version || 0) !== body.version) throw new ApiError(409, "Szablon zmienił się. Odśwież ustawienia.");

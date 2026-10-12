@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, assertObjectId, handleApiError, json, readJson } from "@/lib/api";
 import { requireRecentAuth } from "@/lib/security-policy";
 import { recordAuditLog } from "@/lib/audit";
+import { fenceCompanyWrite } from "@/lib/company-write";
 type Context = { params: Promise<{ id: string }> };
 async function owner(context: Context) {
   const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
@@ -29,14 +30,14 @@ export async function PUT(req: Request, context: Context) {
     if (typeof body.requireMfa !== "boolean") throw new ApiError(400, "Wybierz wymóg 2FA.");
     const policy = await prisma.$transaction(async tx => {
       // Serialize policy changes with team mutations.
-      await tx.companyProfile.update({ where: { id }, data: { updatedAt: new Date() } });
+      await fenceCompanyWrite(tx, id);
       const company = await tx.companyProfile.findUniqueOrThrow({ where: { id } });
       const member = await tx.companyMember.findUnique({ where: { companyId_userId: { companyId: id, userId: user.id } } });
       if (company.userId !== user.id && member?.role !== "owner") throw new ApiError(403, "Uprawnienia zostały zmienione.");
       const mfa = await tx.userMfa.findUnique({ where: { userId: user.id } });
       if (body.requireMfa && !mfa?.enabledAt) throw new ApiError(409, "Najpierw włącz 2FA na swoim koncie.");
-      // Contend on the same row as MFA disabling; a policy cannot race its proof.
-      if (body.requireMfa && mfa) await tx.userMfa.update({ where: { id: mfa.id }, data: { encryptedSecret: mfa.encryptedSecret } });
+      // Advance even within one clock millisecond so this write contends with MFA disabling.
+      if (body.requireMfa && mfa) await tx.userMfa.update({ where: { id: mfa.id }, data: { encryptedSecret: mfa.encryptedSecret, updatedAt: new Date(Math.max(Date.now(), mfa.updatedAt.getTime() + 1)) } });
       const changed = await tx.companySecurityPolicy.upsert({ where: { id }, create: { id, requireMfa: body.requireMfa as boolean }, update: { requireMfa: body.requireMfa as boolean } });
       await recordAuditLog({ client: tx, companyId: id, userId: user.id, action: "company.security.changed", entityType: "company", entityId: id, details: { requireMfa: body.requireMfa } });
       return changed;

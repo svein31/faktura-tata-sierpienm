@@ -1,4 +1,5 @@
-import { assertCompanyMfa } from "./security-policy";
+import { ApiError } from "./api";
+import { readCompanyAccess, type CompanyAccessRead } from "./company-access-read";
 import { prisma } from "@/lib/db";
 import type { CompanyPermissions, CompanyRole } from "@/lib/types";
 
@@ -17,6 +18,24 @@ export interface MembershipResult {
   memberId?: string;
 }
 
+function assertReadMfa(access: CompanyAccessRead) {
+  if (access.requireMfa && !access.mfaEnabled) throw new ApiError(403, "Firma wymaga 2FA. Włącz je w Ustawieniach konta, aby uzyskać dostęp.", "COMPANY_MFA_REQUIRED");
+}
+
+function membershipFromMember(access: CompanyAccessRead): MembershipResult | null {
+  const { company, member } = access;
+  if (!member?.valid) return null;
+  assertReadMfa(access);
+  const role = member.role as CompanyRole;
+  if (!Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, role)) return null;
+  return {
+    role,
+    permissions: role === "owner" ? { ...DEFAULT_ROLE_PERMISSIONS.owner } : member.permissions,
+    company,
+    memberId: member.id,
+  };
+}
+
 /**
  * Sprawdza członkostwo i uprawnienia użytkownika w firmie w czasie rzeczywistym.
  * Zapewnia natychmiastowe odcięcie dostępu w trwającej sesji po odebraniu roli.
@@ -27,60 +46,15 @@ export async function getCompanyMembership(
 ): Promise<MembershipResult | null> {
   if (!userId || !/^[a-f0-9]{24}$/i.test(companyId)) return null;
 
-  const company = await prisma.companyProfile.findUnique({
-    where: { id: companyId },
-    select: { id: true, companyName: true, nip: true, userId: true },
-  });
+  const access = await readCompanyAccess(prisma, userId, companyId);
+  if (!access) return null;
+  const { company, member } = access;
 
-  if (!company) return null;
-
-
-  // 1. Sprawdź rekord w CompanyMember
-  const member = await prisma.companyMember.findUnique({
-    where: {
-      companyId_userId: {
-        companyId,
-        userId,
-      },
-    },
-  });
-
-  if (member) {
-    await assertCompanyMfa(prisma, userId, companyId);
-    const role = member.role as CompanyRole;
-    if (!Object.hasOwn(DEFAULT_ROLE_PERMISSIONS, role)) return null;
-    const defaults = DEFAULT_ROLE_PERMISSIONS[role];
-
-    // Właściciel zawsze ma pełne uprawnienia
-    if (role === "owner") {
-      return {
-        role: "owner",
-        permissions: { ...DEFAULT_ROLE_PERMISSIONS.owner },
-        company,
-        memberId: member.id,
-      };
-    }
-
-    return {
-      role,
-      permissions: {
-        canIssueInvoices: member.canIssueInvoices ?? defaults.canIssueInvoices,
-        canCreateCorrections: member.canCreateCorrections ?? defaults.canCreateCorrections,
-        canRecordPayments: member.canRecordPayments ?? defaults.canRecordPayments,
-        canExport: member.canExport ?? defaults.canExport,
-        canSendKsef: member.canSendKsef ?? defaults.canSendKsef,
-        canManageBankAccounts: member.canManageBankAccounts ?? defaults.canManageBankAccounts,
-        canManageTeam: member.canManageTeam ?? defaults.canManageTeam,
-        canManageIntegrations: member.canManageIntegrations ?? defaults.canManageIntegrations,
-      },
-      company,
-      memberId: member.id,
-    };
-  }
+  if (member) return membershipFromMember(access);
 
   // 2. Fallback dla bezpośredniego założyciela profilu
   if (company.userId === userId) {
-    await assertCompanyMfa(prisma, userId, companyId);
+    assertReadMfa(access);
     // Utwórz brakujący wpis dla spójności
     try {
       const created = await prisma.companyMember.create({
@@ -104,10 +78,17 @@ export async function getCompanyMembership(
         memberId: created.id,
       };
     } catch {
+      // A concurrent insert may have assigned a lower role or changed the MFA policy.
+      // Re-read once before owner fallback; never retry the create or cache that fallback.
+      const current = await readCompanyAccess(prisma, userId, companyId);
+      if (!current) return null;
+      if (current.member) return membershipFromMember(current);
+      if (current.company.userId !== userId) return null;
+      assertReadMfa(current);
       return {
         role: "owner",
         permissions: { ...DEFAULT_ROLE_PERMISSIONS.owner },
-        company,
+        company: current.company,
       };
     }
   }

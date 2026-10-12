@@ -384,10 +384,10 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2" aria-label="Stronicowanie faktur">
-        <Button variant="subtle" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
-        <span role="status" className="text-sm">Strona {results.page} · {results.total} {results.total === 1 ? "wynik" : results.total % 10 >= 2 && results.total % 10 <= 4 && (results.total % 100 < 12 || results.total % 100 > 14) ? "wyniki" : "wyników"}{results.loading ? " · Ładowanie…" : ""}</span>
-        <Button variant="subtle" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
-        <Button variant="subtle" onClick={results.first}>Pierwsza strona</Button>
+        <Button variant="subtle" className="order-2 sm:order-1" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
+        <span role="status" className="order-1 min-w-0 basis-full break-words text-sm sm:order-2 sm:basis-auto">Strona {results.page} · {results.total} {results.total === 1 ? "wynik" : results.total % 10 >= 2 && results.total % 10 <= 4 && (results.total % 100 < 12 || results.total % 100 > 14) ? "wyniki" : "wyników"}{results.loading ? " · Ładowanie…" : ""}</span>
+        <Button variant="subtle" className="order-3" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
+        <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
       </div>
       {results.error && <div role="alert" className="text-destructive">{results.error} <Button onClick={results.reload}>Spróbuj ponownie</Button></div>}
       <details className="rounded-xl border bg-card px-3 pt-2 text-xs"><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary><SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "label": "invoice-search-lifecycle-final8-candidate12-lifecycle-targeted1",
+  "startedAt": "2026-10-11T17:58:33.146Z",
+  "finishedAt": "2026-10-11T17:59:41.225Z",
+  "wrapper": "/tmp/faktura-invoice-search-lifecycle-targeted-v4.mjs",
+  "wrapperBefore": "890812c2a391ee9e863b20f2aff05cfaba407b976d65d1823b2c96aad32d8d5e",
+  "wrapperAfter": "890812c2a391ee9e863b20f2aff05cfaba407b976d65d1823b2c96aad32d8d5e",
+  "runnerBefore": "0eb363a49f3201bcc4b249ab7d9e06e8f5816c4d23ab9396a7642275361dd376",
+  "runnerAfter": "0eb363a49f3201bcc4b249ab7d9e06e8f5816c4d23ab9396a7642275361dd376",
+  "unchanged": true,
+  "childPid": 354156,
+  "actualChildExit": {
+    "code": 0,
+    "signal": null
+  },
+  "artifact": {
+    "path": "/tmp/faktura-invoice-search-lifecycle-final8-candidate12-lifecycle-targeted1.json",
+    "bytes": 1490237,
+    "sha256": "7497205b32379a73d8c139898fce4f2b818fe69899498292bb6d8a05aef9b4f9"
+  },
+  "log": {
+    "path": "/tmp/faktura-invoice-search-lifecycle-final8-candidate12-lifecycle-targeted1.log",
+    "sha256": "bfb6c1fc1a8995aae871e453a1d2aef762c152ad53ef88ccfe19b59cb202e578"
+  },
+  "scope": "One owned actual child invocation, raw logs and artifacts preserved locally; wrapper app/build/script guards remain their own observations. Tool outer exit observed separately.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-invoice-search-lifecycle-final8-candidate12-lifecycle-targeted1-execution.json",
+      "sha256": "b915e34a1a12039184dd517e9e20d58960dab74eeddf7c78ad1e19d04f71e76a",
+      "bytes": 1314
+    },
+    "scope": "Own candidate12 source/build guards and actual observations retained. Synthetic credential/capability string patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. Candidate13 results are not inherited."
+  }
+}

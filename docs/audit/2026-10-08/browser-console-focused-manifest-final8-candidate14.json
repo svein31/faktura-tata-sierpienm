@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate14-console-focused",
+  "publishedAt": "2026-10-12T04:44:56.463Z",
+  "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+  "harnessSha256": "eb09f56d5ee028bf87896144bfdfdee0d5003f396e9b9661d744c7178841681d",
+  "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+  "parentRevision": "f9e1e106d7e61e21cefaa0487e116315fab2348e",
+  "publishedArtifacts": [
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-console-focused-final8-candidate14.json",
+      "sha256": "d5bf2fa8acdf0afbea144b011edaeed5f4bb873562e130ff6e7250693f166393",
+      "bytes": 187392,
+      "rawPath": "/tmp/faktura-candidate14-console-focused.json",
+      "rawSha256": "d782f295a7f83e66512acb87bc0e6d03e3ab853a5a845fd359d13447074bd726",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-console-focused-execution-final8-candidate14.json",
+      "sha256": "5cbbb7182e57484c6a7391d9d81a5f63877cbfbb8df60a95351f98804d4316c3",
+      "bytes": 1730,
+      "rawPath": "/tmp/faktura-candidate14-console-focused-execution.json",
+      "rawSha256": "cd1e05c4c821384509ec4cef52072890887ad56f8354534118ef7c17ee1b2c76",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-console-focused-completion-final8-candidate14.json",
+      "sha256": "65645d1692500e1c5f48afe333c9a4090e7750cb117484e66c48e18c54de4180",
+      "bytes": 3948,
+      "rawPath": "/tmp/faktura-candidate14-console-focused-completion.json",
+      "rawSha256": "b6161220a803a9fd010806e656f8728303eab43aa21d15e3e674099ce2888ea2",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-console-focused-correlation-final8-candidate14.json",
+      "sha256": "f34873769e70561bfab60223c7e6d13295832b20e2537fde78b05ccbabc73751",
+      "bytes": 5889,
+      "rawPath": "/tmp/faktura-candidate14-console-focused-correlation.json",
+      "rawSha256": "eafe9abadf13dcdf9da1046cdc2571363ef9d5206f5a32c3f6aacc5e9acf167f",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-console-focused-fixture-final8-candidate14.json",
+      "sha256": "2fb3185724ab049d001edcd38e394c30a1475935a612321f4c7e29092e7bbb23",
+      "bytes": 3073,
+      "rawPath": "/tmp/faktura-qa-server-final8-candidate14-console-focused-execution.json",
+      "rawSha256": "faf7e777f2f758a3c626e15b0dda059837008050bc9dd3f7007f94cf66bc3ac9",
+      "credentialFindings": 0
+    }
+  ],
+  "privateCredentialScan": {
+    "checkedArtifacts": 5,
+    "findings": 0,
+    "method": "Exact privately read every available synthetic fixture cookie/value/password/MongoURI and JSONescaped/URLencoded values plus Mongo/session/capability/JWT/Bearer patterns; values never printed"
+  },
+  "observations": {
+    "checks": 36,
+    "engines": [
+      "webkit",
+      "firefox"
+    ],
+    "widths": [
+      390,
+      1280
+    ],
+    "repetitions": 3,
+    "phaseOuterSession12713": 0,
+    "fixtureOuterSession39435": 0,
+    "livePageErrors": 0,
+    "consoleIssues": 2,
+    "nativeRequestFailures": 24,
+    "webkitOriginalDiagnosticReproduced": false,
+    "firefoxDiagnosticReproduced": 2,
+    "firefoxTiming": "Both observed after native reload/pagehide and followed by critical dashboard readiness. No callsite or stack available; no source fix inferred."
+  },
+  "scope": "Supplemental bounded36-check native-event reproduction on frozen source14 only, separate from original full matrix. Original132network/93console, original2requires-review diagnostics and original matrix outer7723UNKNOWN remain untouched. Console diagnostics and requestfailed records kept; zero-all-errors/security/field4s promises are not made. No app/script/production changes."
+}

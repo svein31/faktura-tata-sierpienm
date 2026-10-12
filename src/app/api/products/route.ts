@@ -1,8 +1,9 @@
 import { catalogCompanyForCreate } from "@/lib/company-scope";
+import { companyWriteAccess } from "@/lib/company-write";
 import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { productToDto } from "@/lib/dto";
 import { parseProductBody } from "@/lib/parsers";
 
@@ -19,6 +20,11 @@ export async function POST(req: Request) {
     const companyId = await catalogCompanyForCreate(user.id, user.role, body.companyId);
 
     const product = await prisma.$transaction(async tx => {
+      if (companyId) await companyWriteAccess(tx, user.id, companyId, "canIssueInvoices");
+      else {
+        const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+        if (!actor || actor.role === "viewer") throw new ApiError(403, "Brak uprawnienia do edycji katalogu.");
+      }
       const record = await tx.product.create({ data: { userId: user.id, companyId, ...data } });
       await recordAuditLog({ client: tx, companyId, userId: user.id, userName: user.name, userEmail: user.email,
         action: "product_created", entityType: "product", entityId: record.id, details: { name: record.name } });

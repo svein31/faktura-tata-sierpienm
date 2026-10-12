@@ -22,6 +22,11 @@ test('percentiles include failing requests and report their status separately', 
   assert.deepEqual(result.statusCounts, { 200: 1, 500: 1 });
   const large = summary(Array.from({ length: 1000 }, (_, index) => ({ ok: index > 0, status: index > 0 ? 200 : 500, elapsedMs: 10, ttfbMs: 5, bytes: 1 })), 1000);
   assert.equal(large.errors, 1); assert.equal(large.errorRate, .001, 'Low error rates must not round down to a false zero');
+  const outlier = summary(Array.from({ length: 1000 }, (_, index) => ({ ok: true, status: 200, elapsedMs: index === 0 ? 1000 : 10, ttfbMs: 5, bytes: 1 })), 1000);
+  assert.equal(outlier.latencyMs.p99, 10, 'Percentiles can conceal a latency-budget violation');
+  assert.equal(outlier.oneSecondBudget.atOrAbove, 1); assert.equal(outlier.oneSecondBudget.below, 999);
+  assert.equal(outlier.oneSecondBudget.exceededFraction, .001); assert.equal(outlier.oneSecondBudget.allRequestsBelow, false, 'Exactly one second does not satisfy the strict user target');
+  assert.equal(summary([], 1000).oneSecondBudget.allRequestsBelow, false, 'An empty run is not a verified latency goal');
 });
 
 test('isolated server preload blocks both HTTP clients and fetch before dispatch', () => {

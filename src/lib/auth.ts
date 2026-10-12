@@ -14,6 +14,7 @@ import type { CompanyProfile, CompanySettings, KsefSettings, User, PrismaClient 
 import { prisma } from "./db";
 import { ApiError } from "./api";
 import { validNewPasswordLength } from "./password-policy";
+import { readApiIdentity, type ApiIdentity } from "./api-session-identity";
 export { MIN_PASSWORD_LENGTH } from "./password-policy";
 
 /** 30 dni w sekundach (30 * 24 * 3600) = 2592000s */
@@ -258,7 +259,7 @@ export type SessionUser = { user: FullUserWithRelations; sessionId: string } | n
  * Odczyt sesji z ciasteczka (DB session) + weryfikacja w bazie Prisma.
  * Obsługuje nazwy ciasteczek standardowe: fakturaprosto_session, auth_session, fakturo_session, NextAuth.
  */
-export const getSession = cache(async (explicitToken?: string): Promise<SessionUser> => {
+export const getSession = cache(async (explicitToken?: string, withRelations = true): Promise<SessionUser> => {
   let token = explicitToken;
 
   if (!token) {
@@ -280,7 +281,10 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
 
   // 2. Fallback: wyszukaj w tabeli Session w bazie danych
   try {
-    const include = { user: { include: { mfa: { select: { enabledAt: true } }, company: true, companyProfiles: true, ksef: true } } } as const;
+    const include = { user: { include: {
+      mfa: { select: { enabledAt: true } },
+      ...(withRelations ? { company: true as const, companyProfiles: true as const, ksef: true as const } : {}),
+    } } } as const;
     let session = await prisma.session.findUnique({ where: { sessionToken: sessionTokenHash(token) }, include });
     // Upgrade old sessions once, without rotating the browser credential.
     if (!session) {
@@ -310,6 +314,31 @@ export const getSession = cache(async (explicitToken?: string): Promise<SessionU
 export const getSessionUser = cache(async (): Promise<FullUserWithRelations | null> => {
   const s = await getSession();
   return s?.user ?? null;
+});
+
+/** Live API identity without loading unrelated company profiles or integration credentials.
+ * The same session expiry, legacy-token upgrade and current MFA checks still run on every request.
+ * React cache only deduplicates within a render/request; no process or TTL permission cache exists.
+ */
+export const getApiSessionUser = cache(async (explicitToken?: string): Promise<ApiIdentity | null> => {
+  let token = explicitToken;
+  if (!token) {
+    try {
+      const store = await cookies();
+      for (const name of ["fakturaprosto_session", "auth_session", "fakturo_session", PROD_COOKIE_NAME, DEV_COOKIE_NAME]) {
+        const value = store.get(name)?.value;
+        if (value) { token = value; break; }
+      }
+    } catch { return null; }
+  }
+  if (!token || !isSessionBearer(token)) return null;
+  try {
+    const result = await readApiIdentity(prisma, token);
+    if (result.state === "live") return result.user;
+    if (result.state === "denied") return null;
+    const legacy = await getSession(token, false);
+    return legacy ? { id: legacy.user.id, name: legacy.user.name, email: legacy.user.email } : null;
+  } catch { return null; }
 });
 
 export async function requireApiUser(): Promise<SessionUser> {

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getApiSessionUser } from "@/lib/auth";
 import { assertObjectId, ApiError, handleApiError, json } from "@/lib/api";
 import { companyAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
@@ -8,11 +8,11 @@ export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
 export async function GET(req: Request, { params }: Ctx) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     assertObjectId((await params).id); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const { id } = await params;
     if (!objectId(id)) throw new ApiError(404, "Nie znaleziono faktury.");
-    const invoice = await prisma.invoice.findUnique({ where: { id }, select: { userId: true, sellerCompanyId: true } });
+    const invoice = await prisma.invoice.findUnique({ where: { id } });
     if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
     if (invoice.sellerCompanyId) await companyAccess(prisma, user.id, invoice.sellerCompanyId);
     else if (invoice.userId !== user.id) throw new ApiError(404, "Nie znaleziono faktury.");
@@ -27,7 +27,7 @@ export async function GET(req: Request, { params }: Ctx) {
       const context = await prisma.invoicePrintContext.findUnique({ where: { id }, select: { captureReason: true, createdAt: true } });
       return json({ versions: versions.slice(0, 30), nextCursor: versions.length > 30 ? versions[29].id : null, context });
     }
-    const pdf = await invoicePdf(id, version || undefined);
+    const pdf = await invoicePdf(id, version || undefined, invoice);
     const filename = `faktura-${pdf.number.replace(/[^a-zA-Z0-9._-]/g, "_")}.pdf`;
     return new Response(new Uint8Array(pdf.buffer), { headers: {
       "Content-Type": "application/pdf", "Content-Disposition": `inline; filename="${filename}"`,

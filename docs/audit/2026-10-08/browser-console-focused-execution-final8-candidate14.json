@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "label": "candidate14-console-focused",
+  "startedAt": "2026-10-12T04:41:22.288Z",
+  "finishedAt": "2026-10-12T04:42:53.283Z",
+  "wrapper": "/tmp/faktura-candidate14-console-focused.mjs",
+  "wrapperBefore": "7a29daa333075959c866c024c46b1854f98ba4b0f5914d00723bfc14b7689e98",
+  "wrapperAfter": "7a29daa333075959c866c024c46b1854f98ba4b0f5914d00723bfc14b7689e98",
+  "runnerBefore": "0eb363a49f3201bcc4b249ab7d9e06e8f5816c4d23ab9396a7642275361dd376",
+  "runnerAfter": "0eb363a49f3201bcc4b249ab7d9e06e8f5816c4d23ab9396a7642275361dd376",
+  "unchanged": true,
+  "childPid": 392215,
+  "actualChildExit": {
+    "code": 0,
+    "signal": null
+  },
+  "artifact": {
+    "path": "/tmp/faktura-candidate14-console-focused.json",
+    "bytes": 1792154,
+    "sha256": "d782f295a7f83e66512acb87bc0e6d03e3ab853a5a845fd359d13447074bd726"
+  },
+  "log": {
+    "path": "/tmp/faktura-candidate14-console-focused.log",
+    "sha256": "b4d06d577784d371a53f007277ac4a625dccdaf7f169b728ff953c4ebf40ba60"
+  },
+  "scope": "One owned actual child invocation, raw logs and artifacts preserved locally; wrapper app/build/script guards remain their own observations. Tool outer exit observed separately.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-candidate14-console-focused-execution.json",
+      "sha256": "cd1e05c4c821384509ec4cef52072890887ad56f8354534118ef7c17ee1b2c76",
+      "bytes": 1197
+    },
+    "scope": "Own candidate14 source/build guards and actual observations retained. Synthetic credential/capability patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. No measurements inherited from older candidates."
+  }
+}

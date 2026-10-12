@@ -38,7 +38,7 @@ import type {
 } from "./types";
 import { resolveWarehouse } from "./warehouses";
 import { lockWarehouses, assertNoStocktaking } from "./transaction";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 
 export const STOCK_DOCUMENT_TYPES: StockDocumentType[] = ["WZ", "PZ", "RW", "PW", "MM"];
 
@@ -483,7 +483,7 @@ export async function applyStockDocumentInTransaction(
   const issueDate = normalizeIssueDate(params.issueDate);
   const warehouse = await resolveWarehouse(userId, params.warehouseId, prisma);
   await assertAccountingPeriodsOpen(prisma, [{ companyId: warehouse.companyId, issueDate }]);
-  if (warehouse.companyId) await companyAccess(prisma, params.actor?.userId || userId, warehouse.companyId, "canIssueInvoices");
+  if (warehouse.companyId) await companyWriteAccess(prisma, params.actor?.userId || userId, warehouse.companyId, "canIssueInvoices");
   if (!warehouse.isActive) throw new ApiError(409, "Magazyn jest nieaktywny.");
   const targetId = params.type === "MM" ? params.targetWarehouseId : null;
   const targetRecord = targetId ? await resolveWarehouse(userId, targetId, prisma) : null;
@@ -685,7 +685,7 @@ export async function cancelStockDocumentInTransaction(
   const warehouseIds = [document.warehouseId, ...(pairedDocument ? [pairedDocument.warehouseId] : [])];
   for (const warehouseId of warehouseIds) {
     const owned = await resolveWarehouse(userId, warehouseId, prisma);
-    if (owned.companyId) await companyAccess(prisma, actor?.userId || userId, owned.companyId, "canIssueInvoices");
+    if (owned.companyId) await companyWriteAccess(prisma, actor?.userId || userId, owned.companyId, "canIssueInvoices");
     await assertAccountingPeriodsOpen(prisma, [
       { companyId: owned.companyId, issueDate: document.issueDate },
       ...(pairedDocument ? [{ companyId: owned.companyId, issueDate: pairedDocument.issueDate }] : []),

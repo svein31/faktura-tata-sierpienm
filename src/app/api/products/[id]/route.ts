@@ -1,8 +1,9 @@
 import { requireCatalogEdit, objectId } from "@/lib/company-scope";
+import { companyWriteAccess } from "@/lib/company-write";
 import { recordAuditLog, buildFieldDiff } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { assertObjectId, handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, assertObjectId, handleApiError, json, readJson } from "@/lib/api";
 import { productToDto } from "@/lib/dto";
 import { parseProductBody } from "@/lib/parsers";
 
@@ -28,10 +29,17 @@ export async function PUT(req: Request, { params }: Ctx) {
     const data = parseProductBody(body);
 
     const product = await prisma.$transaction(async tx => {
-      const record = await tx.product.update({ where: { id: existing.id }, data });
+      const current = await tx.product.findUnique({ where: { id: existing.id } });
+      if (!current) throw new ApiError(404, "Nie znaleziono pozycji.", "NOT_FOUND");
+      if (current.companyId) await companyWriteAccess(tx, user.id, current.companyId, "canIssueInvoices");
+      else {
+        const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+        if (current.userId !== user.id || !actor || actor.role === "viewer") throw new ApiError(403, "Brak uprawnienia do edycji katalogu.");
+      }
+      const record = await tx.product.update({ where: { id: current.id }, data });
       const labels = Object.fromEntries(Object.keys(data).map(key => [key, key]));
-      await recordAuditLog({ client: tx, companyId: existing.companyId, userId: user.id, userName: user.name, userEmail: user.email,
-        action: "product_updated", entityType: "product", entityId: record.id, diff: buildFieldDiff(existing, record, labels).diff });
+      await recordAuditLog({ client: tx, companyId: current.companyId, userId: user.id, userName: user.name, userEmail: user.email,
+        action: "product_updated", entityType: "product", entityId: record.id, diff: buildFieldDiff(current, record, labels).diff });
       return record;
     });
 
@@ -55,9 +63,16 @@ export async function DELETE(_req: Request, { params }: Ctx) {
 
     await requireCatalogEdit(user.id, user.role, existing);
     await prisma.$transaction(async tx => {
-      await tx.product.delete({ where: { id: existing.id } });
-      await recordAuditLog({ client: tx, companyId: existing.companyId, userId: user.id, userName: user.name, userEmail: user.email,
-        action: "product_deleted", entityType: "product", entityId: existing.id, details: { name: existing.name } });
+      const current = await tx.product.findUnique({ where: { id: existing.id } });
+      if (!current) throw new ApiError(404, "Nie znaleziono pozycji.", "NOT_FOUND");
+      if (current.companyId) await companyWriteAccess(tx, user.id, current.companyId, "canIssueInvoices");
+      else {
+        const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+        if (current.userId !== user.id || !actor || actor.role === "viewer") throw new ApiError(403, "Brak uprawnienia do edycji katalogu.");
+      }
+      await tx.product.delete({ where: { id: current.id } });
+      await recordAuditLog({ client: tx, companyId: current.companyId, userId: user.id, userName: user.name, userEmail: user.email,
+        action: "product_deleted", entityType: "product", entityId: current.id, details: { name: current.name } });
     });
     return json({ ok: true });
   } catch (e) {

@@ -22,7 +22,7 @@ export function VatCalculator() {
       <label className="text-sm font-medium">Stawka VAT<Select className="mt-2" value={rate} onChange={event => setRate(Number(event.target.value))}>{[23, 8, 5, 0].map(value => <option key={value} value={value}>{value}%</option>)}</Select></label>
     </div>
     <p id="vat-input-help" className="mt-2 text-xs text-muted-foreground">Wpisz kwotę nieujemną z najwyżej dwoma miejscami po przecinku.</p>
-    {!amounts ? <p id="vat-input-error" role="alert" className="mt-4 text-sm text-amber-600">Popraw format kwoty. Kwota i wynik muszą mieścić się w obsługiwanym zakresie.</p> : <div role="status" aria-live="polite" className="mt-5 grid gap-3 sm:grid-cols-3">{[["Netto", amounts.net], ["VAT", amounts.vat], ["Brutto", amounts.gross]].map(([label, value]) => <div className="rounded-xl border border-primary/20 bg-primary/5 p-4" key={label}><span className="text-xs text-muted-foreground">{label}</span><p className="mt-1 break-words text-xl font-semibold tabular-nums">{money(Number(value))}</p></div>)}</div>}
+    {!amounts ? <p id="vat-input-error" role="alert" className="mt-4 text-sm text-amber-600">Popraw format kwoty. Kwota i wynik muszą mieścić się w obsługiwanym zakresie.</p> : <div role="status" aria-live="polite" className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">{[["Netto", amounts.net], ["VAT", amounts.vat], ["Brutto", amounts.gross]].map(([label, value]) => <div className="min-w-0 rounded-xl border border-primary/20 bg-primary/5 p-4" key={label}><span className="text-xs text-muted-foreground">{label}</span><p className="mt-1 text-xl font-semibold tabular-nums [overflow-wrap:anywhere]">{money(Number(value))}</p></div>)}</div>}
   </div>;
 }
 

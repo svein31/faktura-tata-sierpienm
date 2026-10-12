@@ -9,6 +9,8 @@ const require = createRequire(import.meta.url);
 require('./register-ts.cjs');
 const { invoiceToDto } = require('../src/lib/dto.ts');
 const { invoiceBootstrapScope, invoiceContractorSearchLookup, readInvoiceSummaries } = require('../src/lib/invoice-summary.ts');
+const { invoiceSearchParams, invoiceSearchPipeline, readInvoiceSearchPage } = require('../src/lib/invoice-search.ts');
+const { effectiveStatus } = require('../src/lib/store.ts');
 const { nextPersistedInvoiceNumber } = require('../src/lib/invoice-numbering-server.ts');
 const { nextFormattedInvoiceNumber } = require('../src/lib/invoice-numbering.ts');
 const { invoiceTotals } = require('../src/lib/format.ts');
@@ -27,16 +29,21 @@ export async function checkDataPerformance(db) {
       companies.push(await db.companyProfile.create({ data: { userId, nip, companyName: `${label} performance fixture` } }));
     }
     const [own, shared, privateCompany] = companies;
+    const searchable = await db.contractor.create({ data: {
+      userId: owner.id, companyId: own.id, name: 'Żółć [buyer].*', nip: '5250001003', address: {},
+    } });
     const xml = `<Faktura>${randomBytes(16_000).toString('hex')}</Faktura>`;
     const upo = `<UPO>${randomBytes(4_000).toString('hex')}</UPO>`;
     const createData = (index, sellerCompanyId, userId = owner.id) => ({
       userId, sellerCompanyId, number: `FV ${String(index + 1).padStart(2, '0')}/10/2026`, type: index % 7 === 0 ? 'purchase' : 'sale',
-      status: index % 9 === 0 ? 'paid' : 'issued', documentStatus: 'issued', contractorId: `contractor-${suffix}`,
-      issueDate: '2026-10-08', saleDate: '2026-10-08', dueDate: '2026-10-22', currency: index % 3 === 0 ? 'EUR' : 'PLN',
+      status: index % 9 === 0 ? 'paid' : index % 17 === 0 ? 'draft' : 'issued', documentStatus: 'issued', contractorId: [2, 3].includes(index) ? searchable.id : `contractor-${suffix}`,
+      issueDate: '2026-10-08', saleDate: '2026-10-08', dueDate: index % 10 === 0 ? '2000-01-01' : '2099-10-22', currency: index % 3 === 0 ? 'EUR' : 'PLN',
       lines: [{ id: String(index), name: 'Funkcja księgowa', unit: 'szt.', quantity: index + 1, netPrice: 1.25, vatRate: '23' }],
       totalNet: (index + 1) * 1.25, totalVat: (index + 1) * 0.2875, totalGross: (index + 1) * 1.5375,
       paidAmount: index % 9 === 0 ? (index + 1) * 1.5375 : 0.5,
-      ksefXml: xml, upoXml: index % 4 === 0 ? upo : null, ksefNumber: `KSEF-${index}`, ksefStatus: 'accepted', ksef: { number: `KSEF-${index}`, status: 'ACCEPTED', environment: 'test', sentAt: '2026-10-08T08:00:00.000Z' },
+      ksefXml: xml, upoXml: index % 4 === 0 ? upo : null, ksefNumber: `KSEF-${index}`, ksefStatus: 'accepted', ksef: { number: `KSEF-${index}`, status: ['QUEUED', 'REJECTED', 'ACTIVE', 'SENT'][index - 1] || 'ACCEPTED', environment: 'test', sentAt: '2026-10-08T08:00:00.000Z' },
+      approvalStatus: index % 2 === 0 ? 'approved' : 'pending', isProforma: index % 13 === 0,
+      notes: index === 1 ? 'Literal [buyer]* + łódź' : null,
       isRecurring: index % 5 === 0, recurringNextDate: '2026-11-08', recurringInterval: 'monthly', recurringAnchorDay: 8,
       isCorrection: index % 11 === 0, originalLines: [{ id: 'original', quantity: 1, netPrice: 2, vatRate: '23' }],
       bankAccountSnapshot: { accountNumber: '11111111111111111111111111', beneficiaryName: 'Frozen seller' },
@@ -87,6 +94,113 @@ export async function checkDataPerformance(db) {
     assert.ok(transferred < originalRawBytes * 0.2, 'Large archives must be removed before DB-to-server transfer');
     assert.ok(summaryDtoBytes < originalDtoBytes * 0.2, 'Large archives must be removed before browser transfer');
 
+    // Exercise the real list reader, including the DTO decoder, against the
+    // established complete document representation. No cached tenant data or
+    // mocked database response is used; each page is one Mongo aggregation.
+    const scope = invoiceBootstrapScope(owner.id, companyIds);
+    const expectedOrder = baseline.toSorted((a, b) => b.issueDate.localeCompare(a.issueDate) || b.id.localeCompare(a.id));
+    const expectedCounts = {
+      _id: null, all: baseline.length,
+      sale: baseline.filter(row => row.type === 'sale' && !row.isProforma).length,
+      purchase: baseline.filter(row => row.type === 'purchase').length,
+      proforma: baseline.filter(row => row.isProforma).length,
+      approved: baseline.filter(row => row.type === 'purchase' && row.approvalStatus === 'approved').length,
+    };
+    const searchQueries = [
+      {}, { type: 'sale' }, { type: 'purchase' }, { type: 'proforma' },
+      { currency: 'EUR' }, { currency: 'USD' }, { approval: 'approved' }, { approval: 'pending' },
+      ...['paid', 'draft', 'issued', 'overdue', 'ksef_queued', 'ksef_sent', 'ksef_active', 'ksef_rejected'].map(status => ({ status })),
+      { search: 'FV 01' }, { search: '[buyer]*' }, { search: 'Żółć [buyer].*' }, { search: '5250001003' },
+      { search: 'NO SUCH FIXTURE' }, { type: 'purchase', currency: 'EUR', approval: 'approved' },
+    ];
+    let pageAggregates = 0, pageBytes = 0, pageCases = 0;
+    const measuredPage = { invoice: { aggregateRaw: async args => {
+      pageAggregates++;
+      const facets = await db.invoice.aggregateRaw(args);
+      pageBytes += Buffer.byteLength(JSON.stringify(facets));
+      for (const row of facets.flatMap(part => part.invoices)) {
+        for (const field of ['ksefXml', 'upoXml', 'autoKsefEmailConfig', 'autoKsefEmailLeaseToken', 'autoKsefEmailLockedUntil', 'searchContractor']) {
+          assert.equal(Object.hasOwn(row, field), false, `List must exclude ${field} before DB transfer`);
+        }
+      }
+      return facets;
+    } } };
+    const matches = (row, filters) => {
+      if (filters.type === 'proforma' ? !row.isProforma : filters.type !== 'all' && (row.type !== filters.type || filters.type === 'sale' && row.isProforma)) return false;
+      if (filters.currency !== 'all' && row.currency !== filters.currency) return false;
+      if (filters.approval !== 'all' && row.type === 'purchase' && (filters.approval === 'approved' ? row.approvalStatus !== 'approved' : row.approvalStatus === 'approved')) return false;
+      if (filters.status !== 'all' && effectiveStatus(row) !== filters.status) return false;
+      const buyer = row.contractorId === searchable.id ? [searchable.name, searchable.nip] : [];
+      return !filters.search || [row.number, row.notes, row.contractorId, row.ksef?.number, row.ksefNumber, ...buyer]
+        .some(value => String(value || '').toLowerCase().includes(filters.search.toLowerCase()));
+    };
+    const expectedSummary = row => ({ ...omitHeavy(row), ksefXml: null, upoXml: null, detailsLoaded: false });
+    for (const query of searchQueries) {
+      const filters = invoiceSearchParams(new URLSearchParams(query));
+      const matching = expectedOrder.filter(row => matches(row, filters));
+      const before = pageAggregates, page = await readInvoiceSearchPage(measuredPage, scope, filters);
+      pageCases++;
+      assert.equal(pageAggregates - before, 1, 'List counts, total and DTO rows must share exactly one Invoice aggregation');
+      assert.equal(page.total, matching.length, `Filter total mismatch: ${JSON.stringify(query)}`);
+      assert.deepEqual(page.counts, expectedCounts, 'Filter and cursor must not alter company-wide counts');
+      assert.deepEqual(page.invoices.map(omitHeavy), matching.slice(0, 30).map(expectedSummary).map(omitHeavy), `DTO/filter/order mismatch: ${JSON.stringify(query)}`);
+      assert.equal(page.nextCursor, matching.length > 30 ? matching[29].id : null);
+    }
+    const filters = invoiceSearchParams(new URLSearchParams()), collected = [], cursorPages = [];
+    let after = [];
+    do {
+      const before = pageAggregates, page = await readInvoiceSearchPage(measuredPage, scope, filters, after);
+      pageCases++;
+      assert.equal(pageAggregates - before, 1);
+      assert.equal(page.total, baseline.length);
+      assert.deepEqual(page.counts, expectedCounts);
+      collected.push(...page.invoices); cursorPages.push(page.invoices.length);
+      if (!page.nextCursor) break;
+      const anchor = page.invoices.at(-1);
+      after = [{ $match: { $or: [{ issueDate: { $lt: anchor.issueDate } }, { issueDate: anchor.issueDate, _id: { $lt: { $oid: anchor.id } } }] } }];
+    } while (true);
+    assert.deepEqual(cursorPages, [30, 30, 12]);
+    assert.deepEqual(collected.map(row => row.id), expectedOrder.map(row => row.id), 'Equal-date cursor pages must retain every authorised invoice exactly once');
+    assert.equal(new Set(collected.map(row => row.id)).size, baseline.length);
+    assert.deepEqual(collected.map(omitHeavy), expectedOrder.map(expectedSummary).map(omitHeavy), 'Missing legacy BSON defaults and archived UPO flags must be identical on every page');
+    const last = collected.at(-1);
+    const exhausted = await readInvoiceSearchPage(measuredPage, scope, filters, [{ $match: { $or: [{ issueDate: { $lt: last.issueDate } }, { issueDate: last.issueDate, _id: { $lt: { $oid: last.id } } }] } }]);
+    pageCases++;
+    assert.deepEqual(exhausted.invoices, []); assert.equal(exhausted.total, baseline.length); assert.deepEqual(exhausted.counts, expectedCounts); assert.equal(exhausted.nextCursor, null);
+    const empty = await readInvoiceSearchPage(measuredPage, { sellerCompanyId: { $oid: new ObjectId().toHexString() } }, filters);
+    pageCases++;
+    assert.deepEqual(empty, { invoices: [], total: 0, counts: { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: null });
+
+    // Historical retained JSON can be individually valid BSON but exceed the
+    // 16 MiB limit if a complete page is collected into one facet document.
+    // Return each indexed summary after the ID facet, preserving those records.
+    const largeCompany = await db.companyProfile.create({ data: { userId: owner.id, nip: '1234563218', companyName: 'Large legacy summary parity' } });
+    companies.push(largeCompany);
+    const largePayload = 'L'.repeat(600000);
+    for (let first = 0; first < 31; first += 10) {
+      await db.invoice.createMany({ data: Array.from({ length: Math.min(10, 31 - first) }, (_, offset) => ({
+        ...createData(first + offset, largeCompany.id),
+        originalLines: [{ id: `historic-${first + offset}`, legacyPayload: largePayload }],
+      })) });
+    }
+    const largeScope = { sellerCompanyId: { $oid: largeCompany.id } };
+    const largeBefore = pageAggregates, largePage = await readInvoiceSearchPage(measuredPage, largeScope, filters);
+    pageCases++;
+    assert.equal(pageAggregates - largeBefore, 1);
+    assert.equal(largePage.total, 31); assert.equal(largePage.invoices.length, 30);
+    assert.equal(largePage.nextCursor, largePage.invoices.at(-1).id);
+    for (const invoice of largePage.invoices) assert.equal(invoice.originalLines[0].legacyPayload, largePayload);
+    const largeResponseBytes = Buffer.byteLength(JSON.stringify(largePage));
+    assert.ok(largeResponseBytes > 16 * 1024 * 1024, 'The real native proof must exceed one BSON-document limit');
+    assert.equal(await db.invoice.count({ where: { sellerCompanyId: largeCompany.id } }), 31);
+    assert.equal((await db.invoice.findUnique({ where: { id: largePage.invoices[0].id } })).originalLines[0].legacyPayload, largePayload, 'Large historical payloads must remain unchanged');
+    const pagePlan = await db.$runCommandRaw({ explain: { aggregate: 'Invoice', pipeline: invoiceSearchPipeline(largeScope, filters), cursor: {} }, verbosity: 'executionStats' });
+    const summaryJoin = pagePlan.stages.find(stage => stage.$lookup?.from === 'Invoice');
+    assert.ok(summaryJoin.indexesUsed.includes('_id_'), 'Selected summaries must use the native Invoice _id index');
+    assert.ok(summaryJoin.totalDocsExamined <= 31, 'Selected summary join must not scan unrelated tenant invoices');
+    assert.equal(pageAggregates, pageCases);
+    console.log(`[integration] PASS ${pageCases} native one-command invoice-list cases: financial DTO/BSON/UPO parity, 30/30/12 cursor pages, all filters/literal Polish contractor search, scoped shared/unassigned records, empty/exhausted pages, large legacy page ${largeResponseBytes} bytes >16 MiB; ${pageAggregates} aggregations, ${pageBytes} DB response bytes`);
+
     // Compare real persisted aggregate with the established format across every date/series mode.
     const formats = ['{PREFIX} {NN}/{MM}/{YYYY}', '{NN}/{YYYY}', '{DD}/{MM}/{YYYY}/{NN}', '{MM}/{NN}', '{WW}/{NN}', '{GGGG}/{WW}/{NN}', 'FA/{YYYY}/{NNNN}', 'ANNA.{NNN}+{YYYY}', '{NN}'];
     const historic = ['FV 006/10/2026', 'FV 012/09/2026', 'KOR 99/10/2026', '06/2026', '08/10/2026/006', '10/006', '41/006', '2026/41/006', 'FA/2026/0006', 'ANNA.006+2026', '0006'];
@@ -106,7 +220,7 @@ export async function checkDataPerformance(db) {
     await db.invoiceNumberClaim.create({ data: { id: `${numberingCompany.id}:9007199254740992` } });
     await assert.rejects(nextPersistedInvoiceNumber(db, numberingCompany.id, '{NN}', '2026-10-08', 'FV'), /zakres/);
     console.log(`[integration] PASS summary keeps 72 authorised invoices, financial/recurring/edit/UPO parity and original archives; raw DB bytes ${originalRawBytes} → ${transferred}, response ${originalDtoBytes} → ${summaryDtoBytes}, gzip ${gzipSync(JSON.stringify(baseline)).length} → ${gzipSync(JSON.stringify(summaries)).length}; numbering 9 patterns/reservations checked with ${counterBytes} aggregate bytes`);
-    return { originalRawBytes, transferred, originalDtoBytes, summaryDtoBytes, oldGzip: gzipSync(JSON.stringify(baseline)).length, newGzip: gzipSync(JSON.stringify(summaries)).length };
+    return { originalRawBytes, transferred, originalDtoBytes, summaryDtoBytes, oldGzip: gzipSync(JSON.stringify(baseline)).length, newGzip: gzipSync(JSON.stringify(summaries)).length, oneReadSearch: { pageCases, pageAggregates, pageBytes, cursorPages, largeResponseBytes, summaryJoin: { indexesUsed: summaryJoin.indexesUsed, totalDocsExamined: summaryJoin.totalDocsExamined, totalKeysExamined: summaryJoin.totalKeysExamined } } };
   } finally {
     for (const prefix of claimPrefix) await db.invoiceNumberClaim.deleteMany({ where: { id: { startsWith: prefix } } });
     for (const user of [owner, foreign]) if (await db.user.findUnique({ where: { id: user.id } })) await db.user.delete({ where: { id: user.id } });

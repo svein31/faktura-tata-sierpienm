@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ApiError, cleanStr } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { recordAuditLog } from "@/lib/audit";
 
@@ -46,7 +46,7 @@ export async function costReviewCommand(actor: Actor, body: Record<string, unkno
   if (!objectId(body.companyId)) throw new ApiError(400, "Wybierz firmę.");
   const companyId = body.companyId;
   return prisma.$transaction(async tx => {
-    const { company, role } = await companyAccess(tx, actor.id, companyId);
+    const { company, role } = await companyWriteAccess(tx, actor.id, companyId);
     const action = cleanStr(body.action, 30, "operacja");
     const authorName = actor.name || actor.email || "Użytkownik";
     const audit = { client: tx, userId: actor.id, userName: actor.name, userEmail: actor.email, companyId };

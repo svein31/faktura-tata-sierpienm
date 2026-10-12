@@ -2,7 +2,7 @@ import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { accountingWorkspaceId, changeAccountingTask, type AccountingTask } from "@/lib/accounting-workspace";
 import { recordAuditLog } from "@/lib/audit";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const user = await getSessionUser(); if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const body = await readJson(req);
     const result = await prisma.$transaction(async tx => {
-      const { company } = await companyAccess(tx, user.id, body.companyId, "canExport");
+      const { company } = await companyWriteAccess(tx, user.id, body.companyId, "canExport");
       const id = accountingWorkspaceId(company.id, body.month);
       await assertAccountingPeriodsOpen(tx, [{ companyId: company.id, issueDate: `${body.month}-01` }]);
       const current = await tx.accountingWorkspace.findUnique({ where: { id } });

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { certificateNotice, inspectPublicCertificate, latarniaStatus, stuckKsefTask } from "@/lib/ksef/center";
 import { recordAuditLog } from "@/lib/audit";
 
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (body.action !== "upload" && body.action !== "clear") throw new ApiError(400, "Nieprawidłowa operacja.");
     const certificate = body.action === "upload" ? inspectPublicCertificate(body.certificateBase64) : null;
     const result = await prisma.$transaction(async tx => {
-      await companyAccess(tx, user.id, company.id, "canSendKsef");
+      await companyWriteAccess(tx, user.id, company.id, "canSendKsef");
       const updated = await tx.companyProfile.update({ where: { id: company.id }, data: {
         ksefCertFingerprint: certificate?.fingerprint || null,
         ksefCertValidFrom: certificate?.validFrom || null,

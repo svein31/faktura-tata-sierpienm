@@ -1,7 +1,10 @@
+import { fileURLToPath } from "node:url";
+
 /** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
-    tailwindcss: {},
+    "@tailwindcss/postcss": {},
+    [fileURLToPath(new URL("./tailwind-compat.config.cjs", import.meta.url))]: {},
     autoprefixer: {},
   },
 };

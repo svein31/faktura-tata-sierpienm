@@ -5,11 +5,12 @@ import { contractorForCompany } from "@/lib/company-scope";
 import { changedAcceptedInvoiceFields, PURCHASE_INVOICE_READ_ONLY } from "@/lib/invoice-policy";
 import { prisma } from "@/lib/db";
 import { invoiceBankAccountForCompany } from "@/lib/invoice-bank-account";
-import { getSessionUser } from "@/lib/auth";
+import { getApiSessionUser } from "@/lib/auth";
 import { assertObjectId, ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
 import { parseInvoiceBody } from "@/lib/parsers";
 import { getCompanyMembership, requireCompanyAccess } from "@/lib/permissions";
+import { companyWriteAccess } from "@/lib/company-write";
 import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import { invoiceNumberScope } from "@/lib/invoice-number-scope";
@@ -56,7 +57,7 @@ async function getInvoiceWithAccess(invoiceId: string, userId: string) {
 /** GET /api/invoices/[id] — szczegóły (dostęp dla autora oraz członków firmy). */
 export async function GET(_req: Request, { params }: Ctx) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
@@ -74,7 +75,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 /** PUT /api/invoices/[id] — aktualizacja z blokadą współbieżności i audytem. */
 export async function PUT(req: Request, { params }: Ctx) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
@@ -136,6 +137,12 @@ export async function PUT(req: Request, { params }: Ctx) {
       }
 
     const updated = await prisma.$transaction(async tx => {
+      if (existing.sellerCompanyId) await companyWriteAccess(tx, user.id, existing.sellerCompanyId,
+        existing.isCorrection || body.isCorrection ? "canCreateCorrections" : "canIssueInvoices");
+      if (!existing.sellerCompanyId) {
+        const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+        if (!actor || !["owner", "accountant"].includes(actor.role)) throw new ApiError(403, "Brak uprawnienia do zmiany faktury.");
+      }
       await assertAccountingPeriodsOpen(tx, [{ companyId: existing.sellerCompanyId, issueDate: existing.issueDate }]);
       await captureInvoicePrint(tx, existing, "before-edit");
       const updated = await tx.invoice.update({
@@ -234,6 +241,12 @@ export async function PUT(req: Request, { params }: Ctx) {
     const nextVersion = (existing.version || 1) + 1;
 
     const invoice = await prisma.$transaction(async tx => {
+    if (existing.sellerCompanyId) await companyWriteAccess(tx, user.id, existing.sellerCompanyId,
+      existing.isCorrection || body.isCorrection ? "canCreateCorrections" : "canIssueInvoices");
+    if (!existing.sellerCompanyId) {
+      const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+      if (!actor || !["owner", "accountant"].includes(actor.role)) throw new ApiError(403, "Brak uprawnienia do zmiany faktury.");
+    }
     await assertAccountingPeriodsOpen(tx, [
       { companyId: existing.sellerCompanyId, issueDate: existing.issueDate },
       { companyId: data.sellerCompanyId, issueDate: data.issueDate },
@@ -305,7 +318,7 @@ export async function PUT(req: Request, { params }: Ctx) {
 /** DELETE /api/invoices/[id] — usunięcie (dopuszczalne tylko dla szkiców). */
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     assertObjectId((await params).id);
     if (!user) return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
 
@@ -339,6 +352,11 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     }
 
     await prisma.$transaction(async tx => {
+    if (existing.sellerCompanyId) await companyWriteAccess(tx, user.id, existing.sellerCompanyId, "canIssueInvoices");
+    if (!existing.sellerCompanyId) {
+      const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+      if (!actor || !["owner", "accountant"].includes(actor.role)) throw new ApiError(403, "Brak uprawnienia do zmiany faktury.");
+    }
     await assertAccountingPeriodsOpen(tx, [{ companyId: existing.sellerCompanyId, issueDate: existing.issueDate }]);
     const claimed = await tx.invoice.updateMany({
       where: { id: existing.id, OR: [{ version: existing.version }, ...((existing.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] },

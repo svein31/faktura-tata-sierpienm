@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 import { lockWarehouses } from "@/lib/warehouse/transaction";
 import { getSessionUser } from "@/lib/auth";
 import { assertObjectId, ApiError, bool, cleanStr, handleApiError, json, readJson } from "@/lib/api";
@@ -19,7 +19,7 @@ async function ownedWarehouse(userId: string, id: string, prisma: Prisma.Transac
   }
   const warehouse = await prisma.warehouse.findFirst({ where: { id, userId } });
   if (!warehouse) throw new ApiError(404, "Nie znaleziono magazynu.", "WAREHOUSE_NOT_FOUND");
-  if (warehouse.companyId) await companyAccess(prisma, userId, warehouse.companyId, "canIssueInvoices");
+  if (warehouse.companyId) await companyWriteAccess(prisma, userId, warehouse.companyId, "canIssueInvoices");
   return warehouse;
 }
 

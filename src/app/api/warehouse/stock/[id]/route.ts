@@ -5,7 +5,7 @@ import { stockItemToDto } from "@/lib/warehouse/dto";
 import { assertCanManageStock } from "@/lib/warehouse/guard";
 import { roundQty } from "@/lib/warehouse/math";
 import { isObjectId } from "@/lib/warehouse/warehouses";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
 
@@ -28,8 +28,6 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!item) {
       throw new ApiError(404, "Nie znaleziono pozycji magazynowej.", "STOCK_ITEM_NOT_FOUND");
     }
-    const warehouse = await prisma.warehouse.findUnique({ where: { id: item.warehouseId } });
-    if (warehouse?.companyId) await companyAccess(prisma, user.id, warehouse.companyId, "canIssueInvoices");
 
     const body = await readJson(req);
     const data: Record<string, unknown> = {};
@@ -52,10 +50,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
       throw new ApiError(400, "Brak pól do aktualizacji (minQuantity, location).", "NOTHING_TO_UPDATE");
     }
 
-    const updated = await prisma.stockItem.update({
-      where: { id: item.id },
-      data,
-      include: { warehouse: { select: { name: true, code: true } } },
+    const updated = await prisma.$transaction(async tx => {
+      const current = await tx.stockItem.findFirst({ where: { id: item.id, userId: user.id }, include: { warehouse: { select: { companyId: true } } } });
+      if (!current) throw new ApiError(404, "Nie znaleziono pozycji magazynowej.", "STOCK_ITEM_NOT_FOUND");
+      if (current.warehouse.companyId) await companyWriteAccess(tx, user.id, current.warehouse.companyId, "canIssueInvoices");
+      return tx.stockItem.update({
+        where: { id: current.id },
+        data,
+        include: { warehouse: { select: { name: true, code: true } } },
+      });
     });
 
     return json({ item: stockItemToDto(updated) });

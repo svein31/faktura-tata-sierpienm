@@ -3,14 +3,15 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ApiError } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { recordAuditLog } from "@/lib/audit";
 import { ocrSpace, OcrProviderError, type OcrProvider } from "@/lib/ocr-provider";
 
-async function access(tx: Prisma.TransactionClient, userId: string, companyId: unknown) {
-  try { return await companyAccess(tx, userId, companyId, "canIssueInvoices"); }
-  catch (e) { if (!(e instanceof ApiError) || e.status !== 403) throw e; return companyAccess(tx, userId, companyId, "canExport"); }
+async function access(tx: Prisma.TransactionClient, userId: string, companyId: unknown, write = false) {
+  const check = write ? companyWriteAccess : companyAccess;
+  try { return await check(tx, userId, companyId, "canIssueInvoices"); }
+  catch (e) { if (!(e instanceof ApiError) || e.status !== 403) throw e; return check(tx, userId, companyId, "canExport"); }
 }
 
 export async function enqueueOcr(userId: string, id: string) {
@@ -22,7 +23,7 @@ export async function enqueueOcr(userId: string, id: string) {
   return prisma.$transaction(async tx => {
     const record = await tx.expenseScan.findUnique({ where: { id } });
     if (!record?.imageData) throw new ApiError(404, "Nie znaleziono oryginału.");
-    const { company } = await access(tx, userId, record.companyId);
+    const { company } = await access(tx, userId, record.companyId, true);
     if (record.expenseId || ["converted", "rejected"].includes(record.status)) throw new ApiError(409, "Dokument ma już zapisaną decyzję.");
     const existing = await tx.ocrJob.findUnique({ where: { id } });
     if (existing && ["queued", "processing"].includes(existing.status) && existing.scanVersion === record.version) return { id, status: existing.status, alreadyQueued: true };
@@ -49,7 +50,7 @@ export async function processOcrJob(scope: { companyId?: string; id?: string } =
       if (!scan || scan.companyId !== job.companyId || scan.version !== job.scanVersion || scan.expenseId || ["converted", "rejected"].includes(scan.status)) {
         await tx.ocrJob.update({ where: { id: job.id }, data: { status: "cancelled", leaseToken: null } }); return null;
       }
-      try { await access(tx, job.userId, job.companyId); }
+      try { await access(tx, job.userId, job.companyId, true); }
       catch (e) {
         if (!(e instanceof ApiError) || e.status !== 403) throw e;
         await tx.ocrJob.update({ where: { id: job.id }, data: { status: "cancelled", leaseToken: null, lastError: "Osoba zlecająca utraciła dostęp do firmy." } });

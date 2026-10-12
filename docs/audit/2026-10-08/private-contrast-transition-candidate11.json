@@ -1,0 +1,435 @@
+{
+  "schemaVersion": 1,
+  "status": "complete",
+  "actualToolExitCode": 0,
+  "before": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "56c3740c774f5c26c1e7aebff2ae427a2468e951a02934ad23beb43178f35ccb"
+  },
+  "after": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "56c3740c774f5c26c1e7aebff2ae427a2468e951a02934ad23beb43178f35ccb"
+  },
+  "unchanged": true,
+  "samples": [
+    {
+      "label": "initial-dark-steady",
+      "clientMs": 1956.4000000357628,
+      "themeClass": "dark",
+      "button": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(138, 132, 245)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(245, 247, 249)",
+        "backgroundColor": "rgb(6, 9, 17)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 5.848950379810627,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-flip-0ms",
+      "clientMs": 1975,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(138, 132, 245)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(245, 247, 249)",
+        "backgroundColor": "rgb(6, 9, 17)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 5.848950379810627,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-flip-50ms",
+      "clientMs": 2028.5,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(97, 101, 113)",
+        "backgroundColor": "rgb(116, 110, 239)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(97, 101, 113)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(106, 110, 122)",
+        "backgroundColor": "rgb(152, 154, 158)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 1.446530476828701,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-flip-150ms",
+      "clientMs": 2137.5,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgb(76, 68, 228)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(16, 23, 40)",
+        "backgroundColor": "rgb(245, 246, 249)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 6.452730849640502,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-flip-400ms",
+      "clientMs": 2392.5,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgb(76, 68, 228)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(248, 249, 252)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 6.452730849640502,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-flip-1400ms",
+      "clientMs": 3397.5,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgb(76, 68, 228)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(248, 249, 252)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 6.452730849640502,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": false
+    },
+    {
+      "label": "light-hover-steady",
+      "clientMs": 3955.100000023842,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgb(76, 68, 228)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(248, 249, 252)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 6.452730849640502,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": false,
+      "focusVisible": false,
+      "hover": true
+    },
+    {
+      "label": "light-keyboard-focus-steady",
+      "clientMs": 4276.300000011921,
+      "themeClass": "",
+      "button": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgb(76, 68, 228)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(255, 255, 255)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(248, 249, 252)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 6.452730849640502,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": true,
+      "focusVisible": true,
+      "hover": true
+    },
+    {
+      "label": "dark-steady",
+      "clientMs": 5684.400000035763,
+      "themeClass": "dark",
+      "button": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgb(138, 132, 245)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0.15s",
+        "transitionTimingFunction": "ease"
+      },
+      "span": {
+        "color": "rgb(14, 20, 37)",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "opacity": "1",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "transitionProperty": "all",
+        "transitionDuration": "0s",
+        "transitionTimingFunction": "ease"
+      },
+      "body": {
+        "color": "rgb(245, 247, 249)",
+        "backgroundColor": "rgb(6, 9, 17)",
+        "opacity": "1",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "transitionProperty": "background-color, color",
+        "transitionDuration": "0.25s, 0.25s",
+        "transitionTimingFunction": "cubic-bezier(0.16, 1, 0.3, 1), cubic-bezier(0.16, 1, 0.3, 1)"
+      },
+      "contrast": 5.848950379810627,
+      "buttonClasses": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary text-primary-foreground hover:bg-primary/95 hover:shadow-sm active:scale-[0.98] ring-1 ring-primary/40 h-8 px-3 rounded-lg max-md:!h-auto max-md:py-2 gap-1.5 text-xs font-semibold shadow-sm",
+      "spanClasses": "",
+      "focused": true,
+      "focusVisible": true,
+      "hover": false
+    }
+  ],
+  "axeScreens": [
+    {
+      "theme": "light-steady",
+      "version": "4.14.0",
+      "violationCount": 0,
+      "manualReviewGroups": 1
+    },
+    {
+      "theme": "dark-steady",
+      "version": "4.14.0",
+      "violationCount": 0,
+      "manualReviewGroups": 1
+    }
+  ],
+  "nativePageErrors": 0,
+  "scope": "One bounded read-only CSS diagnostic on exact source11 synthetic fixture. Direct darkclass toggle reproduces original harness sampling; real mouse hover and keyboard focus sampled; settled1400ms contrast/axe controls. Original failed focused audit retained. No source/CSS edits or error filters.",
+  "testContext": "Chromium320x844 emulated mobile/hasTouch. Mouse-hover and keyboard event samples retained; desktophover media behavior not certified by this context.",
+  "interpretation": "Diagnostic completion0 establishes transientcontrast1.4465 at50ms and steadycontrast6.45/5.85. It is not aPASS for the transientUI state. Root authorized source12 to remove color/background interpolation.",
+  "rawProvenance": [
+    {
+      "path": "/tmp/faktura-private-contrast-transition-candidate11.json",
+      "sha256": "b4c4a8629ead719fa44da878a5314f2b0b83291b9c9e24e0a3e0c3c796870deb",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-contrast-transition-candidate11-execution.json",
+      "sha256": "7124fa6600fb28688a6575c9801b8aef614f9bee9d6f51f14c817e8fbbf37cd6",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-contrast-transition-candidate11.log",
+      "sha256": "fdef4ba8fa815bda7621962f967eee8ab1fe3a883c9a1dfb763402d8a81d462c",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    }
+  ],
+  "fixtureClose": {
+    "actualOwnedExitCode": 1,
+    "sourceGuard": "FAIL source drift during briefButton edit/restore after all browser phases",
+    "completionProof": {
+      "path": "/tmp/faktura-qa-server-final8-candidate11-lifecycle-targeted1-completion.json",
+      "sha256": "0ef4e4595d978dd5624160ee188bca0d20352bf28cb2a394c6d632a6ea26d920"
+    },
+    "resourcesClosed": true,
+    "current11PublicCDP": "not executed",
+    "fullmatrix11": "not executed"
+  }
+}

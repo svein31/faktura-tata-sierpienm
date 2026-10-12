@@ -27,6 +27,8 @@ jobs:
       - run: python3 -m pip install lxml==6.0.2
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run verify
+      - name: Verify performance measurement harness
+        run: node --test scripts/performance/*.test.mjs
       - name: Save synthetic audit evidence
         if: always()
         uses: actions/upload-artifact@v4

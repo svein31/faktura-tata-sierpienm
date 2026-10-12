@@ -1,0 +1,447 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate10-private-mobile",
+  "status": "complete",
+  "actualToolExitCode": 0,
+  "startedAt": "2026-10-11T13:14:36.930Z",
+  "finishedAt": "2026-10-11T13:15:03.949Z",
+  "before": {
+    "sourceSha256": "339037ad2014ec8b03ef191e33c1cb9eb476bc67b638aedf44646795299a903a",
+    "buildId": "mGIX8LuaRXDVJdRJZL6nm",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "82092eb2073af3d1be656bd87b694df26e7a6512ddce3ec426efa256f49b1b42"
+  },
+  "after": {
+    "sourceSha256": "339037ad2014ec8b03ef191e33c1cb9eb476bc67b638aedf44646795299a903a",
+    "buildId": "mGIX8LuaRXDVJdRJZL6nm",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "82092eb2073af3d1be656bd87b694df26e7a6512ddce3ec426efa256f49b1b42"
+  },
+  "unchanged": true,
+  "configuration": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "deviceScaleFactor": 1,
+    "isMobile": true,
+    "hasTouch": true,
+    "cpuSlowdownMultiplier": 4,
+    "networkLatencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 100000,
+    "connectionType": "cellular3g",
+    "cacheDisabled": true,
+    "serviceWorkers": "block",
+    "perRunReadyBudgetMs": 32000,
+    "totalBudgetMs": 110000,
+    "postReadyLcpSamplingMs": 1200
+  },
+  "completeRuns": 6,
+  "readinessGoal": {
+    "thresholdMs": 4000,
+    "allSixObservedReadyUnderThreshold": true,
+    "network150msCalibrated": false,
+    "goalOnCalibrated150msNetwork": "unverified",
+    "caveat": "Playwright intercepted same-origin requests. Requested CDP150ms latency was accepted, but observed documentTTFB19-23ms did not independently confirm latency; unique non-intercepting calibrated rerun is pending."
+  },
+  "runs": [
+    {
+      "route": "/dashboard",
+      "repetition": 1,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3565.199999988079,
+      "navigationLoadMs": 1848.5999999642372,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2240,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 25.69999998807907,
+        "requestStart": 5.899999976158142,
+        "ttfbMs": 19.80000001192093,
+        "domInteractive": 458,
+        "domContentLoadedEventEnd": 458.0999999642372,
+        "loadEventEnd": 1848.5999999642372,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 400948,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:39.348Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:39.357Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:14:39.364Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:14:39.580Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:39.622Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:14:39.658Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 2,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3588.2000000476837,
+      "navigationLoadMs": 1839.300000011921,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2192,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 29.200000047683716,
+        "requestStart": 9.800000011920929,
+        "ttfbMs": 19.400000035762787,
+        "domInteractive": 460.2000000476837,
+        "domContentLoadedEventEnd": 460.7000000476837,
+        "loadEventEnd": 1839.300000011921,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 400948,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:44.150Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:44.154Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:14:44.165Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:14:44.394Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:44.402Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:14:44.479Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 3,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3478.600000023842,
+      "navigationLoadMs": 1780.1000000238419,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2100,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 29,
+        "requestStart": 8.300000011920929,
+        "ttfbMs": 20.69999998807907,
+        "domInteractive": 437.30000001192093,
+        "domContentLoadedEventEnd": 437.39999997615814,
+        "loadEventEnd": 1780.1000000238419,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 400948,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:48.945Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:14:48.951Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:48.962Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:14:49.180Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:49.224Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:14:49.262Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 1,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2837.5,
+      "navigationLoadMs": 1933.7000000476837,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2224,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 25.600000023841858,
+        "requestStart": 6.600000023841858,
+        "ttfbMs": 19,
+        "domInteractive": 459.30000001192093,
+        "domContentLoadedEventEnd": 459.5,
+        "loadEventEnd": 1933.7000000476837,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 318763,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:53.788Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:14:53.799Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:53.806Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:54.051Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:14:54.111Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:14:54.253Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 2,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2988.699999988079,
+      "navigationLoadMs": 1979.800000011921,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2316,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 28.19999998807907,
+        "requestStart": 6.800000011920929,
+        "ttfbMs": 21.399999976158142,
+        "domInteractive": 440.5,
+        "domContentLoadedEventEnd": 440.5999999642372,
+        "loadEventEnd": 1979.800000011921,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 318763,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:57.980Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:14:57.984Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:14:58.000Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:14:58.270Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:14:58.362Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:14:58.466Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 3,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2795.900000035763,
+      "navigationLoadMs": 1901.5,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2136,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 29,
+        "requestStart": 6.199999988079071,
+        "ttfbMs": 22.80000001192093,
+        "domInteractive": 427,
+        "domContentLoadedEventEnd": 427,
+        "loadEventEnd": 1901.5,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 29,
+      "encodedTransferredBytes": 318763,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:15:02.072Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:15:02.079Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:15:02.080Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:15:02.353Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:15:02.436Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:15:02.547Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    }
+  ],
+  "unverified": [
+    "All routes and users",
+    "Production deployment/provider data",
+    "Field INP",
+    "Actual mobile devices",
+    "Requested150ms document-latency calibration"
+  ],
+  "scope": "Six bounded cold Chromium authenticated synthetic-fixture mobile page samples. Fresh context, disabled HTTP cache, service workers blocked/bypassed, CPU4/network150ms/200000Bps. Readiness includes actual data and meaningful DOM; headings alone do not count. Observed LCP is bounded to1200ms after data readiness and is not field LCP/INP. Cookie banner retained, only synthetic authentication and onboarding test state added. No PDFs, invoice creation or external production providers exercised.",
+  "rawProvenance": [
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile.json",
+      "sha256": "31f65b70ee8a16fbe2e4dc4663e4dba5a9f6ea3f0ce2db360ac55a86e79b91ac",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile-execution.json",
+      "sha256": "201ef4cac93a75e32bad3851be5f7d22dc2c6e728209bc768e50f292fbfe820e",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile.log",
+      "sha256": "4c7894ce21d379ab6a020531ebe24b1734b90af95a07c54d673b292b6f85c449",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    }
+  ]
+}

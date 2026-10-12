@@ -1,8 +1,9 @@
 import { isIsoCalendarDate } from "@/lib/nbp";
 export const recurrenceIntervals = ["weekly", "monthly", "quarterly", "yearly"] as const;
 export type RecurrenceInterval = typeof recurrenceIntervals[number];
+const warsawCalendarFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Warsaw", year: "numeric", month: "2-digit", day: "2-digit" });
 export function warsawDate(now = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Warsaw", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  return warsawCalendarFormatter.format(now);
 }
 export function addCalendarDays(date: string, days: number): string {
   if (!isIsoCalendarDate(date) || !Number.isInteger(days)) throw new Error("Nieprawidłowa data harmonogramu.");

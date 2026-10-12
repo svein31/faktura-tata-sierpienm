@@ -1,6 +1,8 @@
 import { ApiError } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
 import { todayISO } from "@/lib/utils";
+import type { Prisma, PrismaClient } from "@prisma/client";
+import { invoiceContractorSearchLookup, invoiceSummariesToDto, invoiceSummaryProjection } from "@/lib/invoice-summary";
 export const INVOICE_PAGE_SIZE = 30;
 const choices = {
   type: ["all", "sale", "purchase", "proforma"],
@@ -36,3 +38,63 @@ export function effectiveStatusExpression(today = todayISO()) {
   ], default: "issued" } };
 }
 export function literalRegex(value: string) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+
+/** Counts and the page share one database command. The facet retains only IDs;
+ * an indexed join reads selected summaries after the facet, so large legacy
+ * rows are never combined into one BSON document with a 16 MiB output limit.
+ */
+export function invoiceSearchPipeline(
+  scope: Prisma.InputJsonObject,
+  filters: ReturnType<typeof invoiceSearchParams>,
+  after: Prisma.InputJsonObject[] = [],
+): Prisma.InputJsonObject[] {
+  const match: { [key: string]: Prisma.InputJsonValue | null } = {};
+  if (filters.type === "proforma") match.isProforma = true;
+  else if (filters.type !== "all") {
+    match.type = filters.type;
+    if (filters.type === "sale") match.isProforma = { $ne: true };
+  }
+  if (filters.currency !== "all") match.currency = filters.currency;
+  if (filters.approval !== "all") match.$or = [{ type: { $ne: "purchase" } }, { approvalStatus: filters.approval === "approved" ? "approved" : { $ne: "approved" } }];
+  if (filters.status !== "all") match.$expr = { $eq: [effectiveStatusExpression(), filters.status] };
+  const selection: Prisma.InputJsonObject[] = [{ $match: match }];
+  if (filters.search) {
+    selection.push(invoiceContractorSearchLookup());
+    const regex = { $regex: literalRegex(filters.search), $options: "i" };
+    selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name", "searchContractor.nip"].map(field => ({ [field]: regex })) } });
+  }
+  return [
+    { $match: scope },
+    // These fields are never used by counts, filters or DTOs. Removing them
+    // here keeps archived XML and private delivery configuration out of facets.
+    { $project: { ksefXml: 0, autoKsefEmailConfig: 0, autoKsefEmailLeaseToken: 0, autoKsefEmailLockedUntil: 0 } },
+    { $facet: {
+      counts: [{ $group: { _id: null, all: { $sum: 1 }, sale: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "sale"] }, { $ne: ["$isProforma", true] }] }, 1, 0] } }, purchase: { $sum: { $cond: [{ $eq: ["$type", "purchase"] }, 1, 0] } }, proforma: { $sum: { $cond: [{ $eq: ["$isProforma", true] }, 1, 0] } }, approved: { $sum: { $cond: [{ $and: [{ $eq: ["$type", "purchase"] }, { $eq: ["$approvalStatus", "approved"] }] }, 1, 0] } } } }],
+      total: [...selection, { $count: "value" }],
+      rows: [...selection, ...after, { $sort: { issueDate: -1, _id: -1 } }, { $limit: INVOICE_PAGE_SIZE + 1 }, { $project: { _id: 1 } }],
+    } },
+    { $unwind: { path: "$rows", preserveNullAndEmptyArrays: true } },
+    { $lookup: {
+      from: "Invoice", localField: "rows._id", foreignField: "_id",
+      pipeline: [{ $match: scope }, ...invoiceSummaryProjection()], as: "invoices",
+    } },
+    { $project: { _id: 0, counts: 1, total: 1, invoices: 1, cursorId: { $toString: "$rows._id" } } },
+  ];
+}
+
+export async function readInvoiceSearchPage(
+  db: Pick<PrismaClient, "invoice">,
+  scope: Prisma.InputJsonObject,
+  filters: ReturnType<typeof invoiceSearchParams>,
+  after: Prisma.InputJsonObject[] = [],
+) {
+  type Row = { counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }[]; total: { value: number }[]; invoices: Array<Record<string, unknown>>; cursorId: string | null };
+  const result = await db.invoice.aggregateRaw({ pipeline: invoiceSearchPipeline(scope, filters, after) }) as unknown as Row[];
+  const data = result[0], invoices = invoiceSummariesToDto(result.slice(0, INVOICE_PAGE_SIZE).flatMap(row => row.invoices));
+  return {
+    invoices,
+    total: data.total[0]?.value || 0,
+    counts: data.counts[0] || { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 },
+    nextCursor: result.length > INVOICE_PAGE_SIZE ? result[INVOICE_PAGE_SIZE - 1].cursorId : null,
+  };
+}

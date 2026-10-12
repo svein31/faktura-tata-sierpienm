@@ -1,7 +1,7 @@
 import { filterCompanyIdsByMfa, catalogWhere } from "@/lib/company-scope";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getApiSessionUser } from "@/lib/auth";
 import { handleApiError, json } from "@/lib/api";
 import {
   companyBankAccountToDto,
@@ -28,13 +28,13 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const listMode = new URL(req.url).searchParams.get("invoiceMode") === "list";
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     if (!user) {
       return json({ error: "Nieautoryzowany.", code: "UNAUTHENTICATED" }, { status: 401 });
     }
 
     // 1. Pobierz członkostwa w zespołach
-    const [memberships, initialOwnedCompanies, companySettings] = await Promise.all([
+    const [memberships, initialOwnedCompanies, companySettings, ksef, notifications, prefs] = await Promise.all([
       prisma.companyMember.findMany({
         where: { userId: user.id },
         include: {
@@ -51,6 +51,11 @@ export async function GET(req: Request) {
         orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
       }),
       prisma.companySettings.findUnique({ where: { userId: user.id } }),
+      // User-only settings do not depend on company access or linked contacts.
+      // Resolve them alongside profiles instead of adding a later query wave.
+      prisma.ksefSettings.findUnique({ where: { userId: user.id } }),
+      prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 50 }),
+      prisma.notificationPreference.findUnique({ where: { userId: user.id } }),
     ]);
     let ownedCompanies = initialOwnedCompanies;
 
@@ -125,25 +130,23 @@ export async function GET(req: Request) {
     const permitted = new Set(await filterCompanyIdsByMfa(user.id, [...companyMap.keys()]));
     const allCompanies = Array.from(companyMap.values()).filter(c => permitted.has(c.id));
     const accessibleCompanyIds = allCompanies.map((c) => c.id);
-    const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
-      by: ["contractorId"], where: { sellerCompanyId: { in: accessibleCompanyIds } },
-    }) : [];
-    const linkedContactIds = linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id));
-
     // Pobierz powiązane dane (faktury, kontrahenci, produkty itp.)
-    const [ksef, contractors, products, invoices, notifications, prefs] = await Promise.all([
-      prisma.ksefSettings.findUnique({ where: { userId: user.id } }),
-      prisma.contractor.findMany({
-        where: { OR: [catalogWhere(user.id, accessibleCompanyIds), { id: { in: linkedContactIds }, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] },
-        orderBy: { createdAt: "desc" },
-      }),
+    const [contractors, products, invoices] = await Promise.all([
+      (async () => {
+        const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
+          by: ["contractorId"], where: { sellerCompanyId: { in: accessibleCompanyIds } },
+        }) : [];
+        const linkedContactIds = linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id));
+        return prisma.contractor.findMany({
+          where: { OR: [catalogWhere(user.id, accessibleCompanyIds), { id: { in: linkedContactIds }, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] },
+          orderBy: { createdAt: "desc" },
+        });
+      })(),
       prisma.product.findMany({
         where: catalogWhere(user.id, accessibleCompanyIds),
         orderBy: { createdAt: "desc" },
       }),
       listMode ? Promise.resolve([]) : readInvoiceSummaries(prisma, invoiceBootstrapScope(user.id, accessibleCompanyIds)),
-      prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 50 }),
-      prisma.notificationPreference.findUnique({ where: { userId: user.id } }),
     ]);
 
     const defaultCompany = allCompanies.find((c) => c.isDefault) ?? allCompanies[0] ?? null;

@@ -1,0 +1,2358 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate10-private-mobile-rerun1",
+  "status": "complete",
+  "actualToolExitCode": 0,
+  "startedAt": "2026-10-11T13:21:04.120Z",
+  "finishedAt": "2026-10-11T13:21:32.137Z",
+  "before": {
+    "sourceSha256": "339037ad2014ec8b03ef191e33c1cb9eb476bc67b638aedf44646795299a903a",
+    "buildId": "mGIX8LuaRXDVJdRJZL6nm",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "f9f8097712e9f047ebe7c75a6064e27820844d1028b2c6d9f6f4f61d726f81fa"
+  },
+  "after": {
+    "sourceSha256": "339037ad2014ec8b03ef191e33c1cb9eb476bc67b638aedf44646795299a903a",
+    "buildId": "mGIX8LuaRXDVJdRJZL6nm",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "f9f8097712e9f047ebe7c75a6064e27820844d1028b2c6d9f6f4f61d726f81fa"
+  },
+  "unchanged": true,
+  "configuration": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "deviceScaleFactor": 1,
+    "isMobile": true,
+    "hasTouch": true,
+    "cpuSlowdownMultiplier": 4,
+    "networkLatencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 100000,
+    "connectionType": "cellular3g",
+    "cacheDisabled": true,
+    "serviceWorkers": "block",
+    "perRunReadyBudgetMs": 32000,
+    "totalBudgetMs": 110000,
+    "postReadyLcpSamplingMs": 1200
+  },
+  "completeRuns": 6,
+  "fourSecondGoal": {
+    "metric": "Actual cold page data/criticalDOM readiness",
+    "metForAllMeasuredSamples": true,
+    "allRoutesAndUsers": "unverified",
+    "fieldData": "unverified"
+  },
+  "networkCalibrationScope": "Native same-origin health GET completed after150ms request configuration compared to0ms negativecontrol in each context after readiness/LCP metrics. Same-origin requests not intercepted. This establishes emulation for browser requests; navigation responseStart remains15-26ms and is not a real-world network/edge TTFB claim.",
+  "runs": [
+    {
+      "route": "/dashboard",
+      "repetition": 1,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3472.199999988079,
+      "navigationLoadMs": 1749.0999999642372,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2060,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 29.099999964237213,
+        "requestStart": 6.399999976158142,
+        "ttfbMs": 22.69999998807907,
+        "domInteractive": 443.89999997615814,
+        "domContentLoadedEventEnd": 446.89999997615814,
+        "loadEventEnd": 1749.0999999642372,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 180.20000004768372
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 30
+          },
+          "bodyCompletionDeltaMs": 150.20000004768372,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 22.69999998807907
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 402646,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:06.365Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:06.375Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:06.376Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:21:06.630Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:06.683Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:06.723Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:09.151Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:09.176Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2232.599999964237,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 721,
+              "top": 123,
+              "bottom": 844,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        },
+        {
+          "startTime": 2463.599999964237,
+          "value": 0.0046481567111227836,
+          "sources": [
+            {
+              "node": {
+                "tag": "A",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+              },
+              "previousRect": {
+                "x": 68,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 68,
+                "right": 208.109375
+              },
+              "currentRect": {
+                "x": 181.3125,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 181.3125,
+                "right": 321.421875
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": "Odśwież przegląd",
+                "className": "rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 16,
+                "right": 60
+              },
+              "currentRect": {
+                "x": 129.3125,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 129.3125,
+                "right": 173.3125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1454,
+              "top": 123,
+              "bottom": 1577,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 444.89999997615814,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 457.5,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2233.099999964237,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 721,
+            "top": 123,
+            "bottom": 844,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2438.5,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1454,
+            "top": 123,
+            "bottom": 1577,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 2,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3576.899999976158,
+      "navigationLoadMs": 1832.8999999761581,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2132,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 21.5,
+        "requestStart": 3.099999964237213,
+        "ttfbMs": 18.400000035762787,
+        "domInteractive": 504.5,
+        "domContentLoadedEventEnd": 508.5999999642372,
+        "loadEventEnd": 1832.8999999761581,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 174.20000004768372
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 24.80000001192093
+          },
+          "bodyCompletionDeltaMs": 149.4000000357628,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 18.400000035762787
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 402646,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:11.449Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:11.457Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:11.467Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:11.681Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:21:11.694Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:11.795Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:14.208Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:14.240Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2280.5,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 721,
+              "top": 123,
+              "bottom": 844,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        },
+        {
+          "startTime": 2451,
+          "value": 0.0046481567111227836,
+          "sources": [
+            {
+              "node": {
+                "tag": "A",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+              },
+              "previousRect": {
+                "x": 68,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 68,
+                "right": 208.109375
+              },
+              "currentRect": {
+                "x": 181.3125,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 181.3125,
+                "right": 321.421875
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": "Odśwież przegląd",
+                "className": "rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 16,
+                "right": 60
+              },
+              "currentRect": {
+                "x": 129.3125,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 129.3125,
+                "right": 173.3125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 721,
+              "top": 123,
+              "bottom": 844,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 506.0999999642372,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 522.3999999761581,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2280.599999964237,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 721,
+            "top": 123,
+            "bottom": 844,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2533.599999964237,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1454,
+            "top": 123,
+            "bottom": 1577,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 3,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 3695.2000000476837,
+      "navigationLoadMs": 1888.6000000238419,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2316,
+      "cls": 0.061076583745555975,
+      "navigation": {
+        "responseStart": 29.100000023841858,
+        "requestStart": 2.700000047683716,
+        "ttfbMs": 26.399999976158142,
+        "domInteractive": 453.2000000476837,
+        "domContentLoadedEventEnd": 459.60000002384186,
+        "loadEventEnd": 1888.6000000238419,
+        "transferSize": 49934
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 173.5999999642372
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 22.69999998807907
+          },
+          "bodyCompletionDeltaMs": 150.89999997615814,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 26.399999976158142
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 402646,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:16.666Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:16.678Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:16.678Z"
+        },
+        {
+          "path": "/api/overview",
+          "status": 200,
+          "at": "2026-10-11T13:21:16.927Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:16.967Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:17.005Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:19.383Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:19.408Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2498.600000023842,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 721,
+              "top": 123,
+              "bottom": 844,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        },
+        {
+          "startTime": 2737.100000023842,
+          "value": 0.0046481567111227836,
+          "sources": [
+            {
+              "node": {
+                "tag": "A",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+              },
+              "previousRect": {
+                "x": 68,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 68,
+                "right": 208.109375
+              },
+              "currentRect": {
+                "x": 181.3125,
+                "y": 272,
+                "width": 140.109375,
+                "height": 36,
+                "top": 272,
+                "bottom": 308,
+                "left": 181.3125,
+                "right": 321.421875
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": "Odśwież przegląd",
+                "className": "rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 16,
+                "right": 60
+              },
+              "currentRect": {
+                "x": 129.3125,
+                "y": 268,
+                "width": 44,
+                "height": 44,
+                "top": 268,
+                "bottom": 312,
+                "left": 129.3125,
+                "right": 173.3125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1454,
+              "top": 123,
+              "bottom": 1577,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": null
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 457.2000000476837,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 461.80000001192093,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2498.800000011921,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 721,
+            "top": 123,
+            "bottom": 844,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2693.800000011921,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1454,
+            "top": 123,
+            "bottom": 1577,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "repetition": 1,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2708.399999976158,
+      "navigationLoadMs": 1868.199999988079,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2076,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 22.19999998807907,
+        "requestStart": 2.899999976158142,
+        "ttfbMs": 19.30000001192093,
+        "domInteractive": 453.89999997615814,
+        "domContentLoadedEventEnd": 456.80000001192093,
+        "loadEventEnd": 1868.199999988079,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 161.19999998807907
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 15.599999964237213
+          },
+          "bodyCompletionDeltaMs": 145.60000002384186,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 19.30000001192093
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 320461,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:21.626Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:21.643Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:21.643Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:21.907Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:21.995Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:21:22.108Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:23.564Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:23.583Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2328.199999988079,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1103.25,
+              "top": 123,
+              "bottom": 1226.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        },
+        {
+          "startTime": 2686.300000011921,
+          "value": 0.011255783787426157,
+          "sources": [
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 113.34375,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 113.34375,
+                "right": 239.078125
+              },
+              "currentRect": {
+                "x": 16,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 141.734375
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 296,
+                "width": 89.34375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 105.34375
+              },
+              "currentRect": {
+                "x": 243.78125,
+                "y": 244,
+                "width": 89.34375,
+                "height": 44,
+                "top": 244,
+                "bottom": 288,
+                "left": 243.78125,
+                "right": 333.125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1283.25,
+              "top": 123,
+              "bottom": 1406.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 455.5999999642372,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 470.5,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2328.300000011921,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1103.25,
+            "top": 123,
+            "bottom": 1226.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2686.300000011921,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1283.25,
+            "top": 123,
+            "bottom": 1406.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "repetition": 2,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2726.399999976158,
+      "navigationLoadMs": 1861.800000011921,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2104,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 22.899999976158142,
+        "requestStart": 4.800000011920929,
+        "ttfbMs": 18.099999964237213,
+        "domInteractive": 453.69999998807907,
+        "domContentLoadedEventEnd": 456.0999999642372,
+        "loadEventEnd": 1861.800000011921,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 167.5
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 10.800000011920929
+          },
+          "bodyCompletionDeltaMs": 156.69999998807907,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 18.099999964237213
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 320461,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:25.802Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:25.813Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:25.818Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:26.061Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:26.120Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:21:26.263Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:27.758Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:27.772Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2300.599999964237,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1103.25,
+              "top": 123,
+              "bottom": 1226.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        },
+        {
+          "startTime": 2692.899999976158,
+          "value": 0.011255783787426157,
+          "sources": [
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 113.34375,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 113.34375,
+                "right": 239.078125
+              },
+              "currentRect": {
+                "x": 16,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 141.734375
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 296,
+                "width": 89.34375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 105.34375
+              },
+              "currentRect": {
+                "x": 243.78125,
+                "y": 244,
+                "width": 89.34375,
+                "height": 44,
+                "top": 244,
+                "bottom": 288,
+                "left": 243.78125,
+                "right": 333.125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1283.25,
+              "top": 123,
+              "bottom": 1406.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 454.5999999642372,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 460.5999999642372,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2300.699999988079,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1103.25,
+            "top": 123,
+            "bottom": 1226.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2693.800000011921,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1283.25,
+            "top": 123,
+            "bottom": 1406.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "repetition": 3,
+      "status": "complete",
+      "responseStatus": 200,
+      "readyMs": 2775.300000011921,
+      "navigationLoadMs": 1866.0999999642372,
+      "loadEventEndObserved": true,
+      "lcpObservedMs": 2148,
+      "cls": 0.06768421082185935,
+      "navigation": {
+        "responseStart": 17.69999998807907,
+        "requestStart": 2.5,
+        "ttfbMs": 15.199999988079071,
+        "domInteractive": 421.5999999642372,
+        "domContentLoadedEventEnd": 426.19999998807907,
+        "loadEventEnd": 1866.0999999642372,
+        "transferSize": 50110
+      },
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 162.0999999642372
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 19.19999998807907
+          },
+          "bodyCompletionDeltaMs": 142.89999997615814,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 15.199999988079071
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "encodedTransferredBytes": 320461,
+      "apiResponses": [
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:30.030Z"
+        },
+        {
+          "path": "/api/data",
+          "status": 200,
+          "at": "2026-10-11T13:21:30.043Z"
+        },
+        {
+          "path": "/api/subscription",
+          "status": 200,
+          "at": "2026-10-11T13:21:30.049Z"
+        },
+        {
+          "path": "/api/workspace/preferences",
+          "status": 200,
+          "at": "2026-10-11T13:21:30.290Z"
+        },
+        {
+          "path": "/api/pilot/events",
+          "status": 204,
+          "at": "2026-10-11T13:21:30.380Z"
+        },
+        {
+          "path": "/api/invoices/search",
+          "status": 200,
+          "at": "2026-10-11T13:21:30.492Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:31.992Z"
+        },
+        {
+          "path": "/api/health",
+          "status": 200,
+          "at": "2026-10-11T13:21:32.012Z"
+        }
+      ],
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled.",
+      "layoutShifts": [
+        {
+          "startTime": 2347,
+          "value": 0.05642842703443319,
+          "sources": [
+            {
+              "node": {
+                "tag": "MAIN",
+                "id": "main-content",
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0"
+              },
+              "previousRect": {
+                "x": 0,
+                "y": 71,
+                "width": 390,
+                "height": 773,
+                "top": 71,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              },
+              "currentRect": {
+                "x": 0,
+                "y": 123,
+                "width": 390,
+                "height": 721,
+                "top": 123,
+                "bottom": 844,
+                "left": 0,
+                "right": 390
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1103.25,
+              "top": 123,
+              "bottom": 1226.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        },
+        {
+          "startTime": 2744.800000011921,
+          "value": 0.011255783787426157,
+          "sources": [
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 113.34375,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 113.34375,
+                "right": 239.078125
+              },
+              "currentRect": {
+                "x": 16,
+                "y": 296,
+                "width": 125.734375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 141.734375
+              }
+            },
+            {
+              "node": {
+                "tag": "BUTTON",
+                "id": null,
+                "testId": null,
+                "role": null,
+                "ariaLabel": null,
+                "className": "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-45 disabled:scale-100 bg-primary/10 text-primary hover:bg-primary/15 active:scale-[0.98] h-9 px-4 text-[13px] gap-2 rounded-xl max-md:!h-auto max-md:py-2"
+              },
+              "previousRect": {
+                "x": 16,
+                "y": 296,
+                "width": 89.34375,
+                "height": 44,
+                "top": 296,
+                "bottom": 340,
+                "left": 16,
+                "right": 105.34375
+              },
+              "currentRect": {
+                "x": 243.78125,
+                "y": 244,
+                "width": 89.34375,
+                "height": 44,
+                "top": 244,
+                "bottom": 288,
+                "left": 243.78125,
+                "right": 333.125
+              }
+            }
+          ],
+          "geometry": {
+            "uiReady": "true",
+            "hasBusyDescendant": false,
+            "header": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 123,
+              "top": 0,
+              "bottom": 123,
+              "left": 0,
+              "right": 390
+            },
+            "headerChildCount": 3,
+            "main": {
+              "x": 0,
+              "y": 123,
+              "width": 390,
+              "height": 1283.25,
+              "top": 123,
+              "bottom": 1406.25,
+              "left": 0,
+              "right": 390
+            },
+            "pagination": {
+              "x": 16,
+              "y": 244,
+              "width": 358,
+              "height": 96,
+              "top": 244,
+              "bottom": 340,
+              "left": 16,
+              "right": 374
+            }
+          }
+        }
+      ],
+      "geometrySnapshots": [
+        {
+          "reason": "DOMContentLoaded",
+          "clientMs": 423.5999999642372,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 428.80000001192093,
+          "uiReady": null,
+          "hasBusyDescendant": true,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 71,
+            "top": 0,
+            "bottom": 71,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 2,
+          "main": {
+            "x": 0,
+            "y": 71,
+            "width": 390,
+            "height": 1032,
+            "top": 71,
+            "bottom": 1103,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": null
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2347.099999964237,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1103.25,
+            "top": 123,
+            "bottom": 1226.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        },
+        {
+          "reason": "ResizeObserver",
+          "clientMs": 2745.599999964237,
+          "uiReady": "true",
+          "hasBusyDescendant": false,
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 123,
+            "top": 0,
+            "bottom": 123,
+            "left": 0,
+            "right": 390
+          },
+          "headerChildCount": 3,
+          "main": {
+            "x": 0,
+            "y": 123,
+            "width": 390,
+            "height": 1283.25,
+            "top": 123,
+            "bottom": 1406.25,
+            "left": 0,
+            "right": 390
+          },
+          "pagination": {
+            "x": 16,
+            "y": 244,
+            "width": 358,
+            "height": 96,
+            "top": 244,
+            "bottom": 340,
+            "left": 16,
+            "right": 374
+          }
+        }
+      ]
+    }
+  ],
+  "knownLimitations": [
+    "Nonzero CLS remains actual in both private pages",
+    "All other routes, real-user devices and production provider datasets unverified",
+    "Field INP and global latency SLA unverified",
+    "LCP collection bounded to1200ms after meaningful data readiness",
+    "Real Safari and physical iOS devices unverified"
+  ],
+  "scope": "Six bounded cold Chromium authenticated synthetic-fixture mobile page samples. Fresh context, disabled HTTP cache, service workers blocked/bypassed, CPU4/network150ms/200000Bps. Same-origin browser requests are not intercepted by Playwright; only external-origin requests are aborted. Native health GET body-completion latency is compared with a0ms control after sample collection; unmet calibration invalidates the4s network-goal claim. Document TTFB alone cannot calibrate browser emulation. Layout-shift sources and header/main geometry are captured without node text. Readiness includes actual data and meaningful DOM; headings alone do not count. Observed LCP is bounded to1200ms after data readiness and is not field LCP/INP. Cookie banner retained, only synthetic authentication and onboarding test state added. No PDFs, invoice creation or external production providers exercised.",
+  "rawProvenance": [
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile-rerun1.json",
+      "sha256": "ddc1e37789b9dd720e868e365c72114a40a2158a2d8fe10c417173f280f2df2d",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile-rerun1-execution.json",
+      "sha256": "0d723866d546c8a3fe17ec96630e161b96fcd0dbb4044739d130d3a65ca1f740",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate10-private-mobile-rerun1.log",
+      "sha256": "41cd8ff60098a462f915eb6cdd75edf2def6d262194c82b85bee10ce07bbca5d",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    }
+  ],
+  "publication": {
+    "scope": "Sanitized bounded summary with node geometry only; no node text, fixture context or credential values copied."
+  }
+}

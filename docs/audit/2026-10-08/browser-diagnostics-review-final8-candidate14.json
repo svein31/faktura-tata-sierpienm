@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate14",
+  "reviewedAt": "2026-10-12T04:39:05.508Z",
+  "status": "All three engines functional/layout PASS; two console diagnostics remain of unverified cause",
+  "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+  "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+  "rawMatrix": {
+    "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage-final8-candidate14.json",
+    "sha256": "e20e3b3e0a73e4474e09fcfaaae1fbdf24b62a9895593aad573bba316bda5957",
+    "networkIssueCount": 132,
+    "consoleIssueCount": 93
+  },
+  "networkReview": [
+    {
+      "count": 54,
+      "status": 401,
+      "path": "/api/auth/me",
+      "assessment": "Expected authentication refusal on anonymous /, /login, /register and /invite screens"
+    },
+    {
+      "count": 63,
+      "status": 502,
+      "path": "/api/nbp",
+      "assessment": "Observed external-provider failure under intentional isolated test network blockade; real-provider health is unverified"
+    },
+    {
+      "count": 9,
+      "status": 404,
+      "assessment": "Expected negative tests using a deliberately missing route and missing capability tokens"
+    },
+    {
+      "count": 6,
+      "status": 400,
+      "assessment": "Expected deliberately invalid password reset submissions"
+    }
+  ],
+  "consoleReview": [
+    {
+      "count": 39,
+      "status": 401,
+      "assessment": "HTTP authentication-refusal console diagnostics"
+    },
+    {
+      "count": 42,
+      "status": 502,
+      "assessment": "HTTP NBP provider-blockade console diagnostics"
+    },
+    {
+      "count": 6,
+      "status": 404,
+      "assessment": "HTTP deliberately missing resource diagnostics"
+    },
+    {
+      "count": 4,
+      "status": 400,
+      "assessment": "HTTP deliberately invalid reset diagnostics"
+    },
+    {
+      "count": 1,
+      "engine": "webkit",
+      "assessment": "Requires review: Next RSC /invoices/new fallback TypeError Load failed on invoice detail screen. Next catches fetch failure and falls back to MPA navigation; exact initiating failure cause is unverified because original matrix console observations lack timestamps/requestfailed trace."
+    },
+    {
+      "count": 1,
+      "engine": "firefox",
+      "assessment": "Requires review: dashboard InvalidStateError Navigated away from page, console only. Exact cause is unverified; it must not be assumed harmless cancellation from this artifact."
+    }
+  ],
+  "nativePageErrors": {
+    "assessment": "No live pageerror observed: full matrix live listener assertions passed unconditionally and raw log contains no [mobile-js-error]; three independently generated private-prefetch snapshots contain pageErrors=[]",
+    "limits": "Listeners are intentionally detached during closing/recycling old documents. Teardown errors and every conditional UI state are not certified."
+  },
+  "diagnosticRetention": {
+    "consoleMessagesIdenticalToRaw": true,
+    "networkIssueCountsIdenticalToRaw": true,
+    "classification": "Original requires-review classifications retained; review metadata does not filter raw or published diagnostics"
+  },
+  "matrixOuter": "Original root-owned tool7723 became unavailable after quota gap: UNKNOWN. The recorded actual child0, hashes, source guards, fresh reports and resource closure were independently validated by a separate owned postgap receipt0.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-browser-diagnostics-review-final8-candidate14.json",
+      "sha256": "f695577c6c18ac5d8d12b7a407304db64a42711839a8b3b9485253f9ce3b7e84",
+      "bytes": 3386
+    },
+    "scope": "Own candidate14 source/build guards and actual observations retained. Synthetic credential/capability patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. No measurements inherited from older candidates."
+  }
+}

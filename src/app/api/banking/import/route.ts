@@ -4,7 +4,7 @@ import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { parseStatement } from "@/lib/banking/statement-parser";
 import { reconcile, type ReconciliationCandidate } from "@/lib/banking/reconciliation";
 import { requireCompanyAccess } from "@/lib/permissions";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { recordAuditLog } from "@/lib/audit";
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
           if (companyId) {
             const access = await companyAccess(tx, user.id, companyId, "canRecordPayments");
             ownerId = access.company.userId;
-            await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date() } });
+            await fenceCompanyWrite(tx, companyId);
           }
           await tx.bankStatementImport.create({ data: { userId: user.id, filename: String(body.filename || "wyciag").slice(0, 200), bankFormat: parsed.format, rowCount: matched.length, matchedCount, totalAmount: Math.round(matched.reduce((s, t) => s + t.amount, 0) * 100) / 100, fileHash } });
           const duplicates = new Map<string, number>();
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
             if (item.matchedInvoiceId) {
               const invoice = await tx.invoice.findFirst({ where: { id: item.matchedInvoiceId, ...scope } });
               if (!invoice || !isAccountingInvoice(invoice) || invoice.isCorrection || invoice.currency !== item.currency) throw new ApiError(409, "Dokument zmienił się od podglądu importu.");
-              if (invoice.sellerCompanyId) await companyAccess(tx, user.id, invoice.sellerCompanyId, "canRecordPayments");
+              if (invoice.sellerCompanyId) await (companyId ? companyAccess : companyWriteAccess)(tx, user.id, invoice.sellerCompanyId, "canRecordPayments");
               else if (user.role === "viewer") throw new ApiError(403, "Brak uprawnień do rejestracji płatności.");
               await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
               const amount = Math.abs(item.amount), paid = Math.round(((invoice.paidAmount || 0) + amount) * 100) / 100, total = invoice.totalGross || 0;

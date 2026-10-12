@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { excludeExisting, validateImportRows } from "@/lib/contractor-import";
 import { recordAuditLog } from "@/lib/audit";
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       // A company row write serializes competing imports; a conflict rolls back this entire batch.
       await prisma.$transaction(async tx => {
         await companyAccess(tx, user.id, company.id, "canIssueInvoices");
-        await tx.companyProfile.update({ where: { id: company.id }, data: { updatedAt: new Date() } });
+        await fenceCompanyWrite(tx, company.id);
         const matches = await tx.contractor.findMany({ where: { ...existingWhere, nip: { in: values.map(v => v.nip) } }, select: { nip: true } });
         const pending = excludeExisting(values, results, matches.map(row => row.nip));
         if (pending.length) {

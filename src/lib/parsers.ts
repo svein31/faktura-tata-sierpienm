@@ -14,6 +14,7 @@ import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
 import { invoiceTotals, VAT_RATES as UI_VAT_RATES } from "./format";
 import type { ExchangeRateRule, InvoiceLine } from "./types";
 import type { Address } from "./types";
+import { normalizeLogoUrl } from "./pdf/logo-safety";
 
 const VAT_RATES: readonly string[] = UI_VAT_RATES;
 
@@ -113,6 +114,7 @@ function parseLines(v: unknown, allowSettlementLines = false, correction = false
   }
   return v.map((raw, idx) => {
     const l = (raw ?? {}) as Record<string, unknown>;
+    if (typeof l.id === "string" && l.id.length > 128) throw new FieldError(`lines[${idx}].id`, "Identyfikator pozycji jest za długi (max 128).");
     const name = cleanStr(l.name, 500, `lines[${idx}].name`);
     if (!name) throw new ApiError(400, `Pozycja #${idx + 1}: podaj nazwę towaru/usługi.`);
 
@@ -149,6 +151,18 @@ function parseLines(v: unknown, allowSettlementLines = false, correction = false
   });
 }
 
+function parseOriginalLines(v: unknown, allowSettlementLines: boolean): Line[] | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (!Array.isArray(v) || v.length > 200) throw new FieldError("originalLines", "Oryginalne pozycje muszą być listą do 200 pozycji.");
+  if (v.length === 0) return [];
+  // A source can itself be a correction, whose quantity differences are signed.
+  try { return parseLines(v, allowSettlementLines, true); }
+  catch (error) {
+    if (error instanceof ApiError) throw new FieldError("originalLines", error.message);
+    throw error;
+  }
+}
+
 /* ── Profil Spółki / Firmy ─────────────────────────────────────────────── */
 import { parseInvoicePattern } from "@/lib/invoice-numbering";
 
@@ -167,6 +181,9 @@ export function parseCompanyProfileBody(body: Record<string, unknown>) {
     try { parseInvoicePattern(invoiceNumberPattern); }
     catch (error) { throw new ApiError(400, error instanceof Error ? error.message : "Nieprawidłowy format numeru."); }
   }
+  let logoUrl: string | null;
+  try { logoUrl = normalizeLogoUrl(body.logoUrl); }
+  catch (error) { throw new FieldError("logoUrl", error instanceof Error ? error.message : "Nieprawidłowe logo firmy."); }
 
   return {
     nip,
@@ -180,7 +197,7 @@ export function parseCompanyProfileBody(body: Record<string, unknown>) {
     bankAccount: cleanStr(body.bankAccount ?? body.iban, 60, "bankAccount") || null,
     ksefToken: body.ksefToken === undefined ? undefined : cleanStr(body.ksefToken, 500, "ksefToken") || null,
     isDefault: Boolean(body.isDefault),
-    logoUrl: typeof body.logoUrl === "string" ? body.logoUrl.trim() : null,
+    logoUrl,
   };
 }
 
@@ -266,6 +283,7 @@ export async function parseInvoiceBody(
 
   // Rate provenance and PLN totals are authoritative on the server.
   const lines = parseLines(body.lines, opts.allowSettlementLines === true, correction);
+  const originalLines = parseOriginalLines(body.originalLines, opts.allowSettlementLines === true);
   const taxPointDate = cleanStr(body.taxPointDate, 10, "taxPointDate") || null;
   if (taxPointDate && !isIsoCalendarDate(taxPointDate)) throw new ApiError(400, "Nieprawidłowa data obowiązku podatkowego.");
   let exchangeRate: number | null = null, exchangeRateUnit = 1;
@@ -341,7 +359,7 @@ export async function parseInvoiceBody(
     originalInvoiceNumber,
     originalKsefNumber: cleanStr(body.originalKsefNumber, 100, "originalKsefNumber") || null,
     originalIssueDate,
-    originalLines: Array.isArray(body.originalLines) ? (body.originalLines as unknown as Prisma.InputJsonValue) : undefined,
+    originalLines: originalLines as unknown as Prisma.InputJsonValue | undefined,
     // Offline
     isOffline: Boolean(body.isOffline),
     offlineReason: body.isOffline ? cleanStr(body.offlineReason, 30, "offlineReason") : null,

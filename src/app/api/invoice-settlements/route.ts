@@ -3,6 +3,7 @@ import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
+import { companyWriteAccess } from "@/lib/company-write";
 import { objectId, contractorForCompany } from "@/lib/company-scope";
 import { ApiError, cleanStr, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
@@ -48,6 +49,7 @@ export async function POST(req:Request){try{
  const saleDate=kind==="advance"?receivedDate:source.saleDate;
  const data=await parseInvoiceBody({number,type:"sale",status:kind==="advance"?"paid":"issued",documentStatus:"issued",contractorId:source.contractorId,sellerCompanyId:companyId,issueDate,saleDate,dueDate:addCalendarDays(issueDate,source.paymentTermDays),paymentTermDays:source.paymentTermDays,paymentMethod:source.paymentMethod,currency:source.currency,language:source.language,lines,...inheritedFx,notes:`Na podstawie proformy ${source.number}. ${advances.map(a=>`Zaliczka ${a.number}: ${invoiceTotals({lines:a.lines as unknown as InvoiceLine[]}).gross.toFixed(2)} ${source.currency}`).join("; ")}`}, {contractorOwnedBy:id=>contractorForCompany(user.id,id,companyId),companyOwnedBy:async id=>id===companyId,allowSettlementLines:true});
  const invoice=await prisma.$transaction(async tx=>{
+  await companyWriteAccess(tx,user.id,companyId,"canIssueInvoices");
   await assertAccountingPeriodsOpen(tx, [{ companyId, issueDate }]);
   const locked=await tx.invoice.updateMany({where:{id:source.id,isProforma:true,OR:[{version:source.version},...((source.version??1)<=1?[{version:{isSet:false}}]:[])]},data:{version:(source.version||1)+1}});if(!locked.count)throw new ApiError(409,"Proforma zmieniła się. Odśwież i ponów operację.");
   if(await tx.invoice.count({where:{sellerCompanyId:companyId,number}}))throw new ApiError(409,"Numer jest już używany.");

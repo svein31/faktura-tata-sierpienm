@@ -1,4 +1,4 @@
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { scanDocument } from "@/lib/document-safety";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     if (count >= 100) throw new ApiError(429, "Osiągnięto dzienny limit 100 dokumentów firmy.");
     await prisma.$transaction(async tx => {
       // This company mutex also serializes concurrent quota claims.
-      await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date() } });
+      await fenceCompanyWrite(tx, companyId);
       // Scanning can take seconds: recheck permissions under the company mutex.
       try { await companyAccess(tx, user.id, companyId, "canIssueInvoices"); }
       catch (error) {

@@ -6,7 +6,7 @@ import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/
 import { inboxAccess, reviewFields } from "@/lib/document-inbox";
 import { objectId } from "@/lib/company-scope";
 import { recordAuditLog } from "@/lib/audit";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, context: Context) {
   try {
@@ -35,10 +35,10 @@ export async function PATCH(req: Request, context: Context) {
     if (body.action === "approve" && record.ocrResult && body.ocrReviewed !== true) throw new ApiError(400, "Potwierdź sprawdzenie danych OCR z oryginałem.");
     const fields = body.action === "reject" ? null : reviewFields(body);
     const result = await prisma.$transaction(async tx => {
-      if (body.action === "approve" || body.action === "reject") await companyAccess(tx, user.id, companyId, "canExport");
+      if (body.action === "approve" || body.action === "reject") await companyWriteAccess(tx, user.id, companyId, "canExport");
       else {
-        try { await companyAccess(tx, user.id, companyId, "canIssueInvoices"); }
-        catch (e) { if (!(e instanceof ApiError) || e.status !== 403) throw e; await companyAccess(tx, user.id, companyId, "canExport"); }
+        try { await companyWriteAccess(tx, user.id, companyId, "canIssueInvoices"); }
+        catch (e) { if (!(e instanceof ApiError) || e.status !== 403) throw e; await companyWriteAccess(tx, user.id, companyId, "canExport"); }
       }
       const claimed = await tx.expenseScan.update({ where: { id, version: record.version }, data: { version: { increment: 1 }, status: body.action === "reject" ? "rejected" : body.action === "approve" ? "converted" : "needs_review", ...(fields ? { parsed: fields } : {}) } });
       await tx.ocrJob.updateMany({ where: { id, status: { in: ["queued", "processing"] } }, data: { status: "cancelled", leaseToken: null, lastError: "Dokument został opracowany ręcznie." } });

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { ApiError } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
@@ -12,7 +12,7 @@ export async function claimKsefTransmission(tx: Prisma.TransactionClient, input:
   const invoice = await tx.invoice.findUnique({ where: { id: input.invoiceId } });
   if (!invoice) throw new ApiError(404, "Nie znaleziono faktury.");
   if ((invoice.version || 1) !== (input.version || 1)) throw new ApiError(409, "Dokument zmienił się przed wysyłką. Odśwież dane.");
-  if (invoice.sellerCompanyId) await companyAccess(tx, input.userId, invoice.sellerCompanyId, "canSendKsef");
+  if (invoice.sellerCompanyId) await companyWriteAccess(tx, input.userId, invoice.sellerCompanyId, "canSendKsef");
   else if (invoice.userId !== input.userId) throw new ApiError(403, "Brak dostępu do faktury.");
   if (invoice.type === "purchase" || invoice.isProforma || invoice.documentStatus === "cancelled") throw new ApiError(400, "Ten dokument nie podlega wysyłce do KSeF.");
   if (invoice.ksefNumber || invoice.referenceNumber || ["sending", "verify_needed"].includes(invoice.ksefStatus || "")) throw new ApiError(409, "Najpierw zweryfikuj poprzednią wysyłkę w KSeF.");

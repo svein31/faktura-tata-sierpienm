@@ -1,0 +1,6590 @@
+{
+  "checkedAt": "2026-10-10T20:36:09.270Z",
+  "sourceSha256": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+  "buildId": "xgSEexMkddck8HqP_WFBa",
+  "scope": "Isolated synthetic account; rendered pages, WCAG A/AA automated checks; does not certify human/screen-reader accessibility",
+  "axeVersion": "4.14.0",
+  "results": [
+    {
+      "route": "/",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cennik",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/demo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/bez-vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/dla-osoby-prywatnej",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/jak-wystawic",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/koncowa",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/korygujaca",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/zaliczkowa",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/login",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "route": "/narzedzia",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/kalkulator-vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/limit-ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/podwykonawcy",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-cookies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-prywatnosci",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/pomoc",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/2027",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/fa3",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/jdg",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/kody-qr",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/limit-10000-zl",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/numer-faktury",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/odrzucona-faktura",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/offline24",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/upo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/aplikacja-mf",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/comarch",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/faktura-pl",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturownia",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturowo",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/ifirma",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/infakt",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/wfirma",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/powierzenie-danych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-biur-rachunkowych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-firm-uslugowych",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-freelancerow",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-jdg",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/na-telefonie",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/register",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "route": "/regulamin",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/reset-password",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/vat",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/vat/stawki",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/verify-email",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/portal/[synthetic-invoice-token]",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/portal/[synthetic-offer-token]",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invite/[synthetic-invitation-token]",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/accountant",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/accountant/portal",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/advances",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/analytics",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/audit",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/calendar",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/contractors",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cost-reviews",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 22
+        }
+      ]
+    },
+    {
+      "route": "/documents",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/expenses",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/finances",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/help",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 20
+        }
+      ]
+    },
+    {
+      "route": "/invoices/new",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 29,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/recurring",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/jpk",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 28,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/offers",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/orders",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/products",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "th-has-data-cells",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/projects",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/recurring",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/reminders",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/account",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/appearance",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/companies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/currencies",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/health",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/integrations",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/ksef",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/settings/pdf-templates",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/team",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/tax-estimate",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/warehouse",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/3f705a5e2e936dd54298a53a",
+      "theme": "light",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cennik",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/demo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/bez-vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/dla-osoby-prywatnej",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/jak-wystawic",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/koncowa",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/korygujaca",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/faktury/zaliczkowa",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/forgot-password",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/login",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 5
+        }
+      ]
+    },
+    {
+      "route": "/narzedzia",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/kalkulator-vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/narzedzia/limit-ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/podwykonawcy",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-cookies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/polityka-prywatnosci",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/pomoc",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/2027",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/fa3",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/jdg",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/kody-qr",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/limit-10000-zl",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/numer-faktury",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/odrzucona-faktura",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/offline24",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/poradnik-ksef/upo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/aplikacja-mf",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/comarch",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/faktura-pl",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturownia",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/fakturowo",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/ifirma",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/infakt",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/porownania/wfirma",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/powierzenie-danych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 20,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-biur-rachunkowych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-firm-uslugowych",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-freelancerow",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/dla-jdg",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/program-do-faktur/na-telefonie",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/register",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 7
+        }
+      ]
+    },
+    {
+      "route": "/regulamin",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/reset-password",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 4
+        }
+      ]
+    },
+    {
+      "route": "/vat",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 18,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/vat/stawki",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/verify-email",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "route": "/portal/[synthetic-invoice-token]",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 19,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/portal/[synthetic-offer-token]",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 3
+        }
+      ]
+    },
+    {
+      "route": "/invite/[synthetic-invitation-token]",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/accountant",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/accountant/portal",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/advances",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/analytics",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/audit",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/calendar",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/contractors",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/cost-reviews",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 22
+        }
+      ]
+    },
+    {
+      "route": "/documents",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/expenses",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/finances",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/help",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 20
+        }
+      ]
+    },
+    {
+      "route": "/invoices/new",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 29,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/recurring",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/jpk",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 28,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/offers",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 25,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/orders",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/products",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "th-has-data-cells",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/projects",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 22,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/recurring",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/reminders",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 21,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/account",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/appearance",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/companies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/currencies",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 26,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/health",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/integrations",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/ksef",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 27,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 14
+        }
+      ]
+    },
+    {
+      "route": "/settings/pdf-templates",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/settings/team",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 23,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "route": "/tax-estimate",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/warehouse",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 1
+        }
+      ]
+    },
+    {
+      "route": "/invoices/3f705a5e2e936dd54298a53a",
+      "theme": "dark",
+      "status": 200,
+      "version": "4.14.0",
+      "passes": 24,
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": 2
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "routes": 90,
+    "screenChecks": 180,
+    "failedScreens": 0,
+    "manualReviewScreens": 88
+  },
+  "wrapperValidation": {
+    "navigationScreens": 180,
+    "failedNavigations": [],
+    "finalLocationScreens": 180,
+    "changedFinalLocations": [],
+    "pageErrors": 0,
+    "scope": "Each requested rendered route must return HTTP 200 at the same pathname. All console warning/error, pageerror, failed request and HTTP>=400 diagnostics are retained without reclassification."
+  },
+  "runtimeDiagnostics": {
+    "navigations": [
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/",
+        "finalRoute": "/",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/cennik",
+        "finalRoute": "/cennik",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/demo",
+        "finalRoute": "/demo",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury",
+        "finalRoute": "/faktury",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/bez-vat",
+        "finalRoute": "/faktury/bez-vat",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/dla-osoby-prywatnej",
+        "finalRoute": "/faktury/dla-osoby-prywatnej",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/jak-wystawic",
+        "finalRoute": "/faktury/jak-wystawic",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/koncowa",
+        "finalRoute": "/faktury/koncowa",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/korygujaca",
+        "finalRoute": "/faktury/korygujaca",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/zaliczkowa",
+        "finalRoute": "/faktury/zaliczkowa",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/forgot-password",
+        "finalRoute": "/forgot-password",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/login",
+        "finalRoute": "/login",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia",
+        "finalRoute": "/narzedzia",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia/kalkulator-vat",
+        "finalRoute": "/narzedzia/kalkulator-vat",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia/limit-ksef",
+        "finalRoute": "/narzedzia/limit-ksef",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/podwykonawcy",
+        "finalRoute": "/podwykonawcy",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/polityka-cookies",
+        "finalRoute": "/polityka-cookies",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/polityka-prywatnosci",
+        "finalRoute": "/polityka-prywatnosci",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/pomoc",
+        "finalRoute": "/pomoc",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef",
+        "finalRoute": "/poradnik-ksef",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/2027",
+        "finalRoute": "/poradnik-ksef/2027",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/fa3",
+        "finalRoute": "/poradnik-ksef/fa3",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/jdg",
+        "finalRoute": "/poradnik-ksef/jdg",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/kody-qr",
+        "finalRoute": "/poradnik-ksef/kody-qr",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/limit-10000-zl",
+        "finalRoute": "/poradnik-ksef/limit-10000-zl",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/numer-faktury",
+        "finalRoute": "/poradnik-ksef/numer-faktury",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/odrzucona-faktura",
+        "finalRoute": "/poradnik-ksef/odrzucona-faktura",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/offline24",
+        "finalRoute": "/poradnik-ksef/offline24",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/upo",
+        "finalRoute": "/poradnik-ksef/upo",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania",
+        "finalRoute": "/porownania",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/aplikacja-mf",
+        "finalRoute": "/porownania/aplikacja-mf",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/comarch",
+        "finalRoute": "/porownania/comarch",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/faktura-pl",
+        "finalRoute": "/porownania/faktura-pl",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturownia",
+        "finalRoute": "/porownania/fakturownia",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturowo",
+        "finalRoute": "/porownania/fakturowo",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/ifirma",
+        "finalRoute": "/porownania/ifirma",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/infakt",
+        "finalRoute": "/porownania/infakt",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/wfirma",
+        "finalRoute": "/porownania/wfirma",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/powierzenie-danych",
+        "finalRoute": "/powierzenie-danych",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur",
+        "finalRoute": "/program-do-faktur",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "finalRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "finalRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-freelancerow",
+        "finalRoute": "/program-do-faktur/dla-freelancerow",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-jdg",
+        "finalRoute": "/program-do-faktur/dla-jdg",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/na-telefonie",
+        "finalRoute": "/program-do-faktur/na-telefonie",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/register",
+        "finalRoute": "/register",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/regulamin",
+        "finalRoute": "/regulamin",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/reset-password",
+        "finalRoute": "/reset-password",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/vat",
+        "finalRoute": "/vat",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/vat/stawki",
+        "finalRoute": "/vat/stawki",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/verify-email",
+        "finalRoute": "/verify-email",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-invoice-token]",
+        "finalRoute": "/portal/[synthetic-invoice-token]",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-offer-token]",
+        "finalRoute": "/portal/[synthetic-offer-token]",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/invite/[synthetic-invitation-token]",
+        "finalRoute": "/invite/[synthetic-invitation-token]",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/accountant",
+        "finalRoute": "/accountant",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/accountant/portal",
+        "finalRoute": "/accountant/portal",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/advances",
+        "finalRoute": "/advances",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/analytics",
+        "finalRoute": "/analytics",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/audit",
+        "finalRoute": "/audit",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/calendar",
+        "finalRoute": "/calendar",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/contractors",
+        "finalRoute": "/contractors",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/cost-reviews",
+        "finalRoute": "/cost-reviews",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/dashboard",
+        "finalRoute": "/dashboard",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/documents",
+        "finalRoute": "/documents",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/expenses",
+        "finalRoute": "/expenses",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/finances",
+        "finalRoute": "/finances",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/help",
+        "finalRoute": "/help",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/new",
+        "finalRoute": "/invoices/new",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices",
+        "finalRoute": "/invoices",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/recurring",
+        "finalRoute": "/invoices/recurring",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/jpk",
+        "finalRoute": "/jpk",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/ksef",
+        "finalRoute": "/ksef",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/offers",
+        "finalRoute": "/offers",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/orders",
+        "finalRoute": "/orders",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/products",
+        "finalRoute": "/products",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/projects",
+        "finalRoute": "/projects",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/recurring",
+        "finalRoute": "/recurring",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/reminders",
+        "finalRoute": "/reminders",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/account",
+        "finalRoute": "/settings/account",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/appearance",
+        "finalRoute": "/settings/appearance",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/companies",
+        "finalRoute": "/settings/companies",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/currencies",
+        "finalRoute": "/settings/currencies",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/health",
+        "finalRoute": "/settings/health",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/integrations",
+        "finalRoute": "/settings/integrations",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/ksef",
+        "finalRoute": "/settings/ksef",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/pdf-templates",
+        "finalRoute": "/settings/pdf-templates",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/team",
+        "finalRoute": "/settings/team",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/tax-estimate",
+        "finalRoute": "/tax-estimate",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/warehouse",
+        "finalRoute": "/warehouse",
+        "status": 200
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "finalRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/",
+        "finalRoute": "/",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/cennik",
+        "finalRoute": "/cennik",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/demo",
+        "finalRoute": "/demo",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury",
+        "finalRoute": "/faktury",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/bez-vat",
+        "finalRoute": "/faktury/bez-vat",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/dla-osoby-prywatnej",
+        "finalRoute": "/faktury/dla-osoby-prywatnej",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/jak-wystawic",
+        "finalRoute": "/faktury/jak-wystawic",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/koncowa",
+        "finalRoute": "/faktury/koncowa",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/korygujaca",
+        "finalRoute": "/faktury/korygujaca",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/zaliczkowa",
+        "finalRoute": "/faktury/zaliczkowa",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/forgot-password",
+        "finalRoute": "/forgot-password",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/login",
+        "finalRoute": "/login",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia",
+        "finalRoute": "/narzedzia",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia/kalkulator-vat",
+        "finalRoute": "/narzedzia/kalkulator-vat",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia/limit-ksef",
+        "finalRoute": "/narzedzia/limit-ksef",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/podwykonawcy",
+        "finalRoute": "/podwykonawcy",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/polityka-cookies",
+        "finalRoute": "/polityka-cookies",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/polityka-prywatnosci",
+        "finalRoute": "/polityka-prywatnosci",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/pomoc",
+        "finalRoute": "/pomoc",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef",
+        "finalRoute": "/poradnik-ksef",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/2027",
+        "finalRoute": "/poradnik-ksef/2027",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/fa3",
+        "finalRoute": "/poradnik-ksef/fa3",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/jdg",
+        "finalRoute": "/poradnik-ksef/jdg",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/kody-qr",
+        "finalRoute": "/poradnik-ksef/kody-qr",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/limit-10000-zl",
+        "finalRoute": "/poradnik-ksef/limit-10000-zl",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/numer-faktury",
+        "finalRoute": "/poradnik-ksef/numer-faktury",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/odrzucona-faktura",
+        "finalRoute": "/poradnik-ksef/odrzucona-faktura",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/offline24",
+        "finalRoute": "/poradnik-ksef/offline24",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/upo",
+        "finalRoute": "/poradnik-ksef/upo",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania",
+        "finalRoute": "/porownania",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/aplikacja-mf",
+        "finalRoute": "/porownania/aplikacja-mf",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/comarch",
+        "finalRoute": "/porownania/comarch",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/faktura-pl",
+        "finalRoute": "/porownania/faktura-pl",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturownia",
+        "finalRoute": "/porownania/fakturownia",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturowo",
+        "finalRoute": "/porownania/fakturowo",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/ifirma",
+        "finalRoute": "/porownania/ifirma",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/infakt",
+        "finalRoute": "/porownania/infakt",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/wfirma",
+        "finalRoute": "/porownania/wfirma",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/powierzenie-danych",
+        "finalRoute": "/powierzenie-danych",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur",
+        "finalRoute": "/program-do-faktur",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "finalRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "finalRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-freelancerow",
+        "finalRoute": "/program-do-faktur/dla-freelancerow",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-jdg",
+        "finalRoute": "/program-do-faktur/dla-jdg",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/na-telefonie",
+        "finalRoute": "/program-do-faktur/na-telefonie",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/register",
+        "finalRoute": "/register",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/regulamin",
+        "finalRoute": "/regulamin",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/reset-password",
+        "finalRoute": "/reset-password",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/vat",
+        "finalRoute": "/vat",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/vat/stawki",
+        "finalRoute": "/vat/stawki",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/verify-email",
+        "finalRoute": "/verify-email",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-invoice-token]",
+        "finalRoute": "/portal/[synthetic-invoice-token]",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-offer-token]",
+        "finalRoute": "/portal/[synthetic-offer-token]",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/invite/[synthetic-invitation-token]",
+        "finalRoute": "/invite/[synthetic-invitation-token]",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/accountant",
+        "finalRoute": "/accountant",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/accountant/portal",
+        "finalRoute": "/accountant/portal",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/advances",
+        "finalRoute": "/advances",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/analytics",
+        "finalRoute": "/analytics",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/audit",
+        "finalRoute": "/audit",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/calendar",
+        "finalRoute": "/calendar",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/contractors",
+        "finalRoute": "/contractors",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/cost-reviews",
+        "finalRoute": "/cost-reviews",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/dashboard",
+        "finalRoute": "/dashboard",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/documents",
+        "finalRoute": "/documents",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/expenses",
+        "finalRoute": "/expenses",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/finances",
+        "finalRoute": "/finances",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/help",
+        "finalRoute": "/help",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/new",
+        "finalRoute": "/invoices/new",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices",
+        "finalRoute": "/invoices",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/recurring",
+        "finalRoute": "/invoices/recurring",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/jpk",
+        "finalRoute": "/jpk",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/ksef",
+        "finalRoute": "/ksef",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/offers",
+        "finalRoute": "/offers",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/orders",
+        "finalRoute": "/orders",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/products",
+        "finalRoute": "/products",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/projects",
+        "finalRoute": "/projects",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/recurring",
+        "finalRoute": "/recurring",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/reminders",
+        "finalRoute": "/reminders",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/account",
+        "finalRoute": "/settings/account",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/appearance",
+        "finalRoute": "/settings/appearance",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/companies",
+        "finalRoute": "/settings/companies",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/currencies",
+        "finalRoute": "/settings/currencies",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/health",
+        "finalRoute": "/settings/health",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/integrations",
+        "finalRoute": "/settings/integrations",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/ksef",
+        "finalRoute": "/settings/ksef",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/pdf-templates",
+        "finalRoute": "/settings/pdf-templates",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/team",
+        "finalRoute": "/settings/team",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/tax-estimate",
+        "finalRoute": "/tax-estimate",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/warehouse",
+        "finalRoute": "/warehouse",
+        "status": 200
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "finalRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "status": 200
+      }
+    ],
+    "finalLocations": [
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/",
+        "finalRoute": "/"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/cennik",
+        "finalRoute": "/cennik"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/demo",
+        "finalRoute": "/demo"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury",
+        "finalRoute": "/faktury"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/bez-vat",
+        "finalRoute": "/faktury/bez-vat"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/dla-osoby-prywatnej",
+        "finalRoute": "/faktury/dla-osoby-prywatnej"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/jak-wystawic",
+        "finalRoute": "/faktury/jak-wystawic"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/koncowa",
+        "finalRoute": "/faktury/koncowa"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/korygujaca",
+        "finalRoute": "/faktury/korygujaca"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/faktury/zaliczkowa",
+        "finalRoute": "/faktury/zaliczkowa"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/forgot-password",
+        "finalRoute": "/forgot-password"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/login",
+        "finalRoute": "/login"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia",
+        "finalRoute": "/narzedzia"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia/kalkulator-vat",
+        "finalRoute": "/narzedzia/kalkulator-vat"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/narzedzia/limit-ksef",
+        "finalRoute": "/narzedzia/limit-ksef"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/podwykonawcy",
+        "finalRoute": "/podwykonawcy"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/polityka-cookies",
+        "finalRoute": "/polityka-cookies"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/polityka-prywatnosci",
+        "finalRoute": "/polityka-prywatnosci"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/pomoc",
+        "finalRoute": "/pomoc"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef",
+        "finalRoute": "/poradnik-ksef"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/2027",
+        "finalRoute": "/poradnik-ksef/2027"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/fa3",
+        "finalRoute": "/poradnik-ksef/fa3"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/jdg",
+        "finalRoute": "/poradnik-ksef/jdg"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/kody-qr",
+        "finalRoute": "/poradnik-ksef/kody-qr"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/limit-10000-zl",
+        "finalRoute": "/poradnik-ksef/limit-10000-zl"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/numer-faktury",
+        "finalRoute": "/poradnik-ksef/numer-faktury"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/odrzucona-faktura",
+        "finalRoute": "/poradnik-ksef/odrzucona-faktura"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/offline24",
+        "finalRoute": "/poradnik-ksef/offline24"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/upo",
+        "finalRoute": "/poradnik-ksef/upo"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania",
+        "finalRoute": "/porownania"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/aplikacja-mf",
+        "finalRoute": "/porownania/aplikacja-mf"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/comarch",
+        "finalRoute": "/porownania/comarch"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/faktura-pl",
+        "finalRoute": "/porownania/faktura-pl"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturownia",
+        "finalRoute": "/porownania/fakturownia"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturowo",
+        "finalRoute": "/porownania/fakturowo"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/ifirma",
+        "finalRoute": "/porownania/ifirma"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/infakt",
+        "finalRoute": "/porownania/infakt"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/porownania/wfirma",
+        "finalRoute": "/porownania/wfirma"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/powierzenie-danych",
+        "finalRoute": "/powierzenie-danych"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur",
+        "finalRoute": "/program-do-faktur"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "finalRoute": "/program-do-faktur/dla-biur-rachunkowych"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "finalRoute": "/program-do-faktur/dla-firm-uslugowych"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-freelancerow",
+        "finalRoute": "/program-do-faktur/dla-freelancerow"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-jdg",
+        "finalRoute": "/program-do-faktur/dla-jdg"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/na-telefonie",
+        "finalRoute": "/program-do-faktur/na-telefonie"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/register",
+        "finalRoute": "/register"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/regulamin",
+        "finalRoute": "/regulamin"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/reset-password",
+        "finalRoute": "/reset-password"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/vat",
+        "finalRoute": "/vat"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/vat/stawki",
+        "finalRoute": "/vat/stawki"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/verify-email",
+        "finalRoute": "/verify-email"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-invoice-token]",
+        "finalRoute": "/portal/[synthetic-invoice-token]"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-offer-token]",
+        "finalRoute": "/portal/[synthetic-offer-token]"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "requestedRoute": "/invite/[synthetic-invitation-token]",
+        "finalRoute": "/invite/[synthetic-invitation-token]"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/accountant",
+        "finalRoute": "/accountant"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/accountant/portal",
+        "finalRoute": "/accountant/portal"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/advances",
+        "finalRoute": "/advances"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/analytics",
+        "finalRoute": "/analytics"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/audit",
+        "finalRoute": "/audit"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/calendar",
+        "finalRoute": "/calendar"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/contractors",
+        "finalRoute": "/contractors"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/cost-reviews",
+        "finalRoute": "/cost-reviews"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/dashboard",
+        "finalRoute": "/dashboard"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/documents",
+        "finalRoute": "/documents"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/expenses",
+        "finalRoute": "/expenses"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/finances",
+        "finalRoute": "/finances"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/help",
+        "finalRoute": "/help"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/new",
+        "finalRoute": "/invoices/new"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices",
+        "finalRoute": "/invoices"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/recurring",
+        "finalRoute": "/invoices/recurring"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/jpk",
+        "finalRoute": "/jpk"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/ksef",
+        "finalRoute": "/ksef"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/offers",
+        "finalRoute": "/offers"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/orders",
+        "finalRoute": "/orders"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/products",
+        "finalRoute": "/products"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/projects",
+        "finalRoute": "/projects"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/recurring",
+        "finalRoute": "/recurring"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/reminders",
+        "finalRoute": "/reminders"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/account",
+        "finalRoute": "/settings/account"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/appearance",
+        "finalRoute": "/settings/appearance"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/companies",
+        "finalRoute": "/settings/companies"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/currencies",
+        "finalRoute": "/settings/currencies"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/health",
+        "finalRoute": "/settings/health"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/integrations",
+        "finalRoute": "/settings/integrations"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/ksef",
+        "finalRoute": "/settings/ksef"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/pdf-templates",
+        "finalRoute": "/settings/pdf-templates"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/settings/team",
+        "finalRoute": "/settings/team"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/tax-estimate",
+        "finalRoute": "/tax-estimate"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/warehouse",
+        "finalRoute": "/warehouse"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "requestedRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "finalRoute": "/invoices/3f705a5e2e936dd54298a53a"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/",
+        "finalRoute": "/"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/cennik",
+        "finalRoute": "/cennik"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/demo",
+        "finalRoute": "/demo"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury",
+        "finalRoute": "/faktury"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/bez-vat",
+        "finalRoute": "/faktury/bez-vat"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/dla-osoby-prywatnej",
+        "finalRoute": "/faktury/dla-osoby-prywatnej"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/jak-wystawic",
+        "finalRoute": "/faktury/jak-wystawic"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/koncowa",
+        "finalRoute": "/faktury/koncowa"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/korygujaca",
+        "finalRoute": "/faktury/korygujaca"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/faktury/zaliczkowa",
+        "finalRoute": "/faktury/zaliczkowa"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/forgot-password",
+        "finalRoute": "/forgot-password"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/login",
+        "finalRoute": "/login"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia",
+        "finalRoute": "/narzedzia"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia/kalkulator-vat",
+        "finalRoute": "/narzedzia/kalkulator-vat"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/narzedzia/limit-ksef",
+        "finalRoute": "/narzedzia/limit-ksef"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/podwykonawcy",
+        "finalRoute": "/podwykonawcy"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/polityka-cookies",
+        "finalRoute": "/polityka-cookies"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/polityka-prywatnosci",
+        "finalRoute": "/polityka-prywatnosci"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/pomoc",
+        "finalRoute": "/pomoc"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef",
+        "finalRoute": "/poradnik-ksef"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/2027",
+        "finalRoute": "/poradnik-ksef/2027"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/fa3",
+        "finalRoute": "/poradnik-ksef/fa3"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/jdg",
+        "finalRoute": "/poradnik-ksef/jdg"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/kody-qr",
+        "finalRoute": "/poradnik-ksef/kody-qr"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/limit-10000-zl",
+        "finalRoute": "/poradnik-ksef/limit-10000-zl"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/numer-faktury",
+        "finalRoute": "/poradnik-ksef/numer-faktury"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/odrzucona-faktura",
+        "finalRoute": "/poradnik-ksef/odrzucona-faktura"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/offline24",
+        "finalRoute": "/poradnik-ksef/offline24"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/poradnik-ksef/upo",
+        "finalRoute": "/poradnik-ksef/upo"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania",
+        "finalRoute": "/porownania"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/aplikacja-mf",
+        "finalRoute": "/porownania/aplikacja-mf"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/comarch",
+        "finalRoute": "/porownania/comarch"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/faktura-pl",
+        "finalRoute": "/porownania/faktura-pl"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturownia",
+        "finalRoute": "/porownania/fakturownia"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/fakturowo",
+        "finalRoute": "/porownania/fakturowo"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/ifirma",
+        "finalRoute": "/porownania/ifirma"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/infakt",
+        "finalRoute": "/porownania/infakt"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/porownania/wfirma",
+        "finalRoute": "/porownania/wfirma"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/powierzenie-danych",
+        "finalRoute": "/powierzenie-danych"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur",
+        "finalRoute": "/program-do-faktur"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-biur-rachunkowych",
+        "finalRoute": "/program-do-faktur/dla-biur-rachunkowych"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-firm-uslugowych",
+        "finalRoute": "/program-do-faktur/dla-firm-uslugowych"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-freelancerow",
+        "finalRoute": "/program-do-faktur/dla-freelancerow"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/dla-jdg",
+        "finalRoute": "/program-do-faktur/dla-jdg"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/program-do-faktur/na-telefonie",
+        "finalRoute": "/program-do-faktur/na-telefonie"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/register",
+        "finalRoute": "/register"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/regulamin",
+        "finalRoute": "/regulamin"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/reset-password",
+        "finalRoute": "/reset-password"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/vat",
+        "finalRoute": "/vat"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/vat/stawki",
+        "finalRoute": "/vat/stawki"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/verify-email",
+        "finalRoute": "/verify-email"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-invoice-token]",
+        "finalRoute": "/portal/[synthetic-invoice-token]"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/portal/[synthetic-offer-token]",
+        "finalRoute": "/portal/[synthetic-offer-token]"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "requestedRoute": "/invite/[synthetic-invitation-token]",
+        "finalRoute": "/invite/[synthetic-invitation-token]"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/accountant",
+        "finalRoute": "/accountant"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/accountant/portal",
+        "finalRoute": "/accountant/portal"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/advances",
+        "finalRoute": "/advances"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/analytics",
+        "finalRoute": "/analytics"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/audit",
+        "finalRoute": "/audit"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/calendar",
+        "finalRoute": "/calendar"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/contractors",
+        "finalRoute": "/contractors"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/cost-reviews",
+        "finalRoute": "/cost-reviews"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/dashboard",
+        "finalRoute": "/dashboard"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/documents",
+        "finalRoute": "/documents"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/expenses",
+        "finalRoute": "/expenses"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/finances",
+        "finalRoute": "/finances"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/help",
+        "finalRoute": "/help"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/new",
+        "finalRoute": "/invoices/new"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices",
+        "finalRoute": "/invoices"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/recurring",
+        "finalRoute": "/invoices/recurring"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/jpk",
+        "finalRoute": "/jpk"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/ksef",
+        "finalRoute": "/ksef"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/offers",
+        "finalRoute": "/offers"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/orders",
+        "finalRoute": "/orders"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/products",
+        "finalRoute": "/products"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/projects",
+        "finalRoute": "/projects"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/recurring",
+        "finalRoute": "/recurring"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/reminders",
+        "finalRoute": "/reminders"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/account",
+        "finalRoute": "/settings/account"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/appearance",
+        "finalRoute": "/settings/appearance"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/companies",
+        "finalRoute": "/settings/companies"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/currencies",
+        "finalRoute": "/settings/currencies"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/health",
+        "finalRoute": "/settings/health"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/integrations",
+        "finalRoute": "/settings/integrations"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/ksef",
+        "finalRoute": "/settings/ksef"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/pdf-templates",
+        "finalRoute": "/settings/pdf-templates"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/settings/team",
+        "finalRoute": "/settings/team"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/tax-estimate",
+        "finalRoute": "/tax-estimate"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/warehouse",
+        "finalRoute": "/warehouse"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "requestedRoute": "/invoices/3f705a5e2e936dd54298a53a",
+        "finalRoute": "/invoices/3f705a5e2e936dd54298a53a"
+      }
+    ],
+    "pageErrors": [],
+    "consoleIssues": [
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/login",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/register",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/login",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/register",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "type": "error",
+        "message": "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+      }
+    ],
+    "networkIssues": [
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/cennik",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/demo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/bez-vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/dla-osoby-prywatnej",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/jak-wystawic",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/koncowa",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/korygujaca",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/faktury/zaliczkowa",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/forgot-password",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/login",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/login",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/narzedzia",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/narzedzia/kalkulator-vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/narzedzia/limit-ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/podwykonawcy",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/polityka-cookies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/polityka-prywatnosci",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/pomoc",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/2027",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/fa3",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/jdg",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/kody-qr",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/limit-10000-zl",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/numer-faktury",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/odrzucona-faktura",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/offline24",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/poradnik-ksef/upo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/aplikacja-mf",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/comarch",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/faktura-pl",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/fakturownia",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/fakturowo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/ifirma",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/infakt",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/porownania/wfirma",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/powierzenie-danych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur/dla-biur-rachunkowych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur/dla-firm-uslugowych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur/dla-freelancerow",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur/dla-jdg",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/program-do-faktur/na-telefonie",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/register",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/register",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/regulamin",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/reset-password",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/vat/stawki",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/verify-email",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/portal/[synthetic-invoice-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/portal/[synthetic-offer-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/accountant",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/accountant/portal",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/advances",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/analytics",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/audit",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/calendar",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/contractors",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/cost-reviews",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/dashboard",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/documents",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/expenses",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/finances",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/help",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/invoices/new",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/invoices",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/invoices/recurring",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/jpk",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/offers",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/orders",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/products",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/projects",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/recurring",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/reminders",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/account",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/appearance",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/companies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/health",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/integrations",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/pdf-templates",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/settings/team",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/tax-estimate",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/warehouse",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "light",
+        "context": "protected",
+        "route": "/invoices/3f705a5e2e936dd54298a53a",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/cennik",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/demo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/bez-vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/dla-osoby-prywatnej",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/jak-wystawic",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/koncowa",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/korygujaca",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/faktury/zaliczkowa",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/forgot-password",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/login",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/login",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/narzedzia",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/narzedzia/kalkulator-vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/narzedzia/limit-ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/podwykonawcy",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/polityka-cookies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/polityka-prywatnosci",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/pomoc",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/2027",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/fa3",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/jdg",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/kody-qr",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/limit-10000-zl",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/numer-faktury",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/odrzucona-faktura",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/offline24",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/poradnik-ksef/upo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/aplikacja-mf",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/faktura-pl",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/fakturownia",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/fakturowo",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/ifirma",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/infakt",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/porownania/wfirma",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/powierzenie-danych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur/dla-biur-rachunkowych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur/dla-firm-uslugowych",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur/dla-freelancerow",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur/dla-jdg",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/program-do-faktur/na-telefonie",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/register",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/register",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/regulamin",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/reset-password",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/vat",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/vat/stawki",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/verify-email",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/portal/[synthetic-invoice-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/portal/[synthetic-offer-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "path": "/api/auth/me",
+        "method": "GET",
+        "status": 401,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "public",
+        "route": "/invite/[synthetic-invitation-token]",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/accountant",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/accountant/portal",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/advances",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/analytics",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/audit",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/calendar",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/contractors",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/cost-reviews",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/dashboard",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/documents",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/expenses",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/finances",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/help",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/invoices/new",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/invoices",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/invoices/recurring",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/jpk",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/offers",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/orders",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/products",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/projects",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/recurring",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/reminders",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/account",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/appearance",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/companies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/currencies",
+        "path": "/api/nbp",
+        "method": "GET",
+        "status": 502,
+        "resourceType": "fetch"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/health",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/integrations",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/ksef",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/pdf-templates",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/settings/team",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/tax-estimate",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/warehouse",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      },
+      {
+        "theme": "dark",
+        "context": "protected",
+        "route": "/invoices/3f705a5e2e936dd54298a53a",
+        "path": "/api/pilot/events",
+        "method": "DELETE",
+        "resourceType": "fetch",
+        "failure": "net::ERR_ABORTED"
+      }
+    ]
+  },
+  "sourceIdentityChecks": {
+    "before": {
+      "phase": "before",
+      "checkedAt": "2026-10-10T20:36:07.809Z",
+      "sourceSha256": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+      "buildId": "xgSEexMkddck8HqP_WFBa"
+    },
+    "after": {
+      "phase": "after",
+      "checkedAt": "2026-10-10T20:41:59.371Z",
+      "sourceSha256": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+      "buildId": "xgSEexMkddck8HqP_WFBa"
+    }
+  },
+  "harnessProvenance": {
+    "before": {
+      "/tmp/faktura-qa-axe-tailwind4.mjs": "033824a152780602cc9d9a3b05ee73c57339a6d71a575f33f4e5afa5843df342",
+      "/workspace/faktura-tata-sierpienm/scripts/audit/accessibility-routes.mjs": "0baeec5bc269df4ed347a90d6e5099c3742ab601390a8d9f4a3708697fb073bf",
+      "/workspace/faktura-tata-sierpienm/scripts/qa-inventory.mjs": "aa269ff7cb04a2c1dc03644f5cff3d8d9a37095a393cdc34d00597b07195f326",
+      "/workspace/faktura-tata-sierpienm/scripts/audit/api-inventory-evidence.mjs": "79508a4f8b0751d81f9d842bea91795b625fbcf25b07ab6d21a8e14266b54762",
+      "/workspace/faktura-tata-sierpienm/scripts/performance/loopback-only.cjs": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "/tmp/faktura-qa-tools/node_modules/axe-core/axe.min.js": "20c09fe157a8a34a30e241aaa1fcdade657734f08ab379ecfbeb7d45cc46e878",
+      "/workspace/faktura-tata-sierpienm/node_modules/playwright-core/browsers.json": "545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946"
+    },
+    "after": {
+      "/tmp/faktura-qa-axe-tailwind4.mjs": "033824a152780602cc9d9a3b05ee73c57339a6d71a575f33f4e5afa5843df342",
+      "/workspace/faktura-tata-sierpienm/scripts/audit/accessibility-routes.mjs": "0baeec5bc269df4ed347a90d6e5099c3742ab601390a8d9f4a3708697fb073bf",
+      "/workspace/faktura-tata-sierpienm/scripts/qa-inventory.mjs": "aa269ff7cb04a2c1dc03644f5cff3d8d9a37095a393cdc34d00597b07195f326",
+      "/workspace/faktura-tata-sierpienm/scripts/audit/api-inventory-evidence.mjs": "79508a4f8b0751d81f9d842bea91795b625fbcf25b07ab6d21a8e14266b54762",
+      "/workspace/faktura-tata-sierpienm/scripts/performance/loopback-only.cjs": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "/tmp/faktura-qa-tools/node_modules/axe-core/axe.min.js": "20c09fe157a8a34a30e241aaa1fcdade657734f08ab379ecfbeb7d45cc46e878",
+      "/workspace/faktura-tata-sierpienm/node_modules/playwright-core/browsers.json": "545d52f8382c391e605562c330e9c1c534a16045898203037a49bb8bd769a946"
+    },
+    "unchanged": true
+  },
+  "execution": {
+    "candidate": "final8-candidate8",
+    "runtimeDirectory": "/tmp/faktura-a11y-final8-candidate8-runtime-b0cvDZ",
+    "fixture": "Isolated synthetic root account, invoice, local capability portals, invitation and three expense workflow states",
+    "providerAccess": "Agent-owned synthetic fixture server uses loopback-only provider guard; Chromium contexts deny non-loopback browser traffic",
+    "reportScope": "Chromium, 1280x900, light/dark settled pages; WCAG A/AA axe automation does not certify all UI states, keyboard or screen-reader accessibility",
+    "command": {
+      "executable": "node",
+      "argv": [
+        "/tmp/faktura-qa-axe-tailwind4.mjs"
+      ],
+      "env": {
+        "QA_EXPECTED_SOURCE": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+        "QA_EXPECTED_BUILD": "xgSEexMkddck8HqP_WFBa",
+        "QA_EVIDENCE_LABEL": "final8-candidate8",
+        "QA_CONTEXT_PATH": "/tmp/faktura-qa-context-final8-candidate8.json",
+        "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
+        "NODE_OPTIONS": "--require=/workspace/faktura-tata-sierpienm/scripts/performance/loopback-only.cjs"
+      }
+    },
+    "wrapperPlannedExitCode": 0,
+    "actualChildExitRecordedBy": "/tmp/faktura-browser-phase-axe-final8-candidate8.json"
+  },
+  "publication": {
+    "sanitized": true,
+    "rawSourceSha256": "927a83b201b435ec77eb53cc846e2426047475b43344999764d1067ccfa63308",
+    "rawSourcePath": "/tmp/faktura-a11y-final8-candidate8-runtime-b0cvDZ/artifacts/qa/accessibility-routes.json",
+    "rawArtifactLocation": "LOCAL_WORKSPACE_ONLY",
+    "scope": "Only published document strings replace synthetic capability path tokens, database URI and session value patterns. Original unfiltered raw report and logs remain private locally; results are unchanged."
+  }
+}

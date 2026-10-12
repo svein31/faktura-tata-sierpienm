@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-11T08:19:38.172478+00:00",
+  "sourceSha256": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+  "buildId": "xgSEexMkddck8HqP_WFBa",
+  "harnessSha256": "7a6374908793d18c1b65dd80ee4a3811f69423daf5536355cac7a88596058be9",
+  "scope": "Bounded candidate8 read-only browser diagnostics only. Application fetch and source unchanged. Original failed matrix remains failed; these diagnostics locate a departing-document fetch race. All raw native errors and logs retained locally. Current passive observer uses lifecycle listeners, so actual BFCache preservation is unverified.",
+  "exactH1FirstDiagnostic": {
+    "actualOwnedToolSession": 64111,
+    "actualObservedOuterExitCode": 0,
+    "cycles": 6,
+    "pageErrors": 0,
+    "invoiceRequestCount": 1,
+    "conclusion": "Did not reproduce; does not clear failed fullmatrix.",
+    "rawReportSha256": "0a11f71e2f2eb9b63c2dce3e42d4579d5f6fefbcbbc698ada62c8253a0e13bc9",
+    "rawReport": "LOCAL_WORKSPACE_ONLY /tmp/faktura-webkit-app-document-diagnostic-final8-candidate8-history-probe1-rerun1.json"
+  },
+  "hydratedDiagnostic": {
+    "actualOwnedToolSession": 28123,
+    "actualObservedOuterExitCode": 0,
+    "cycles": 6,
+    "readiness": "uiReady=true; main h1 visible after DataBootstrap store hydration; no main aria-busy loader; document fonts and two frames settled.",
+    "pageErrors": 1,
+    "domErrorCount": 0,
+    "unhandledRejectionCount": 0,
+    "invoiceRequestCount": 8,
+    "sourceAndBuildAndHarnessUnchanged": true,
+    "actualObservedErrorPhase": "iteration-3-goto-dashboard",
+    "error": "Same-origin invoices/search access-control diagnostic from current compiled invoices page byte3542.",
+    "ordering": {
+      "oldDocumentId": "df033767-8fe2-4827-b510-872225165153",
+      "beforeUnloadElapsedMs": 9868,
+      "nativePageErrorElapsedMs": 9876,
+      "pageHideElapsedMs": 9908,
+      "sameOldDocumentForBeforeUnloadAndPageHide": true,
+      "pageErrorAfterBeforeUnloadMs": 8,
+      "pageErrorBeforePageHideMs": 32
+    },
+    "rawReportSha256": "f3890ef02abd822fdd44c709dc871a2482212f1c8c7233b6ffd0990cc0063397",
+    "rawReport": "LOCAL_WORKSPACE_ONLY /tmp/faktura-webkit-app-document-diagnostic-final8-candidate8-history-probe1-rerun2.json",
+    "actualExecutionProofSha256": "3f22fd48870d8a06efdd95abac7edb779ccae3a235bf7fa58563a3b8f531a11b"
+  },
+  "nativeNavigationCapabilityProbe": {
+    "actualOwnedToolSession": 63517,
+    "actualObservedOuterExitCode": 0,
+    "durationMs": 6075,
+    "sourceAndBuildUnchanged": true,
+    "results": [
+      {
+        "engine": "webkit",
+        "browserVersion": "26.6",
+        "capabilities": {
+          "navigationPropertyInWindow": true,
+          "navigationAddEventListenerType": "function",
+          "navigationTransitionType": "object",
+          "navigateEventClassType": "function",
+          "navigateEventSignalOnPrototype": true,
+          "documentWasDiscardedType": "undefined",
+          "documentWasDiscarded": null,
+          "isSecureContext": true
+        },
+        "actualCrossDocumentNavigateSignalsAreAbortSignals": true,
+        "nativePageErrors": 0
+      },
+      {
+        "engine": "chromium",
+        "browserVersion": "153.0.8010.12",
+        "capabilities": {
+          "navigationPropertyInWindow": true,
+          "navigationAddEventListenerType": "function",
+          "navigationTransitionType": "object",
+          "navigateEventClassType": "function",
+          "navigateEventSignalOnPrototype": true,
+          "documentWasDiscardedType": "boolean",
+          "documentWasDiscarded": false,
+          "isSecureContext": true
+        },
+        "actualCrossDocumentNavigateSignalsAreAbortSignals": true,
+        "nativePageErrors": 0
+      },
+      {
+        "engine": "firefox",
+        "browserVersion": "155.0",
+        "capabilities": {
+          "navigationPropertyInWindow": true,
+          "navigationAddEventListenerType": "function",
+          "navigationTransitionType": "object",
+          "navigateEventClassType": "function",
+          "navigateEventSignalOnPrototype": true,
+          "documentWasDiscardedType": "undefined",
+          "documentWasDiscarded": null,
+          "isSecureContext": true
+        },
+        "actualCrossDocumentNavigateSignalsAreAbortSignals": true,
+        "nativePageErrors": 0
+      }
+    ],
+    "orderingCaveat": "location.assign push navigate precedes beforeunload, while actual goBack traverse navigate follows beforeunload by event order (Chromium client gap1.4ms; WebKit/Firefox same millisecond).",
+    "canceledNavigationSignalAbort": "unverified; no cancellation attempted in this capability probe",
+    "rawReportSha256": "d5153fbced3600b0ad6b4c8a12f6e986ef6ae9aed3effd80d37b24ae049d616c",
+    "rawReport": "LOCAL_WORKSPACE_ONLY /tmp/faktura-navigation-events-all3-final8-candidate8.json"
+  },
+  "fixtureCleanup": {
+    "actualOwnedToolSession": 41038,
+    "actualObservedOuterExitCode": 0,
+    "ownedPidsAllAbsent": true,
+    "bothOwnedPortsClosed": true,
+    "activeMatchingProcessCount": 0,
+    "fixtureGuardsUnchanged": true,
+    "completionProofSha256": "cfcef87db84da44bed97079310cddf9ffe1681e331e131606583d6aeb3aa65d1"
+  },
+  "unverified": [
+    "Actual native prompt Stay cancellation",
+    "Actual browser BFCache restoration/preservation",
+    "Physical Safari/iOS devices",
+    "Current failed matrix Firefox phase (not executed)"
+  ],
+  "publication": {
+    "sanitized": true,
+    "rawArtifactsUnchanged": true,
+    "scope": "Compact factual publication contains no local fixture cookie/password/database URI or capability token values; raw local artifacts and proof hashes remain distinct."
+  }
+}

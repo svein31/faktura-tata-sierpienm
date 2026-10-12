@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate13-lifecycle-targeted1",
+  "startedAt": "2026-10-11T18:09:43.755Z",
+  "finishedAt": "2026-10-11T18:16:57.161Z",
+  "before": {
+    "phase": "before-fixture",
+    "checkedAt": "2026-10-11T18:09:43.648Z",
+    "sourceSha256": "92aa9410c23daedf4023ee407a86beea1b353fa030503f9de854d07e52d5a584",
+    "buildId": "5RPdmv0wKMdKJD1F5KND4",
+    "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+    "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+    "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+  },
+  "after": {
+    "phase": "after-fixture-cleanup",
+    "checkedAt": "2026-10-11T18:16:57.100Z",
+    "sourceSha256": "92aa9410c23daedf4023ee407a86beea1b353fa030503f9de854d07e52d5a584",
+    "buildId": "5RPdmv0wKMdKJD1F5KND4",
+    "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+    "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+    "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+  },
+  "unchanged": true,
+  "fixtureReady": true,
+  "base": "http://127.0.0.1:45149",
+  "contextPath": "/tmp/faktura-qa-context-final8-candidate13-lifecycle-targeted1.json",
+  "contextCredentials": "Synthetic session/password values stored locally mode0600; not copied to proof",
+  "appliedMigrations": [
+    "001-company-catalog",
+    "002-user-mfa",
+    "003-recurring-occurrences",
+    "004-integrations",
+    "005-due-reminders",
+    "006-invoice-settlements",
+    "007-document-workspace",
+    "008-company-workflows",
+    "009-ocr-jobs",
+    "010-projects",
+    "011-pdf-versions",
+    "012-invoice-search",
+    "013-subscriptions",
+    "014-stripe-subscriptions",
+    "015-auth-rate-limit",
+    "016-session-digests",
+    "017-launch-safety",
+    "018-performance-indexes",
+    "019-email-safety",
+    "020-pilot-metrics",
+    "021-queue-throughput",
+    "022-subscription-nullable-identifiers"
+  ],
+  "cleanup": "Owned Next/Mongo/Prisma resources stopped and disconnected before wrapper completion",
+  "appLog": {
+    "path": "/tmp/faktura-qa-server-app-final8-candidate13-lifecycle-targeted1.log",
+    "bytes": 145,
+    "sha256": "c97be39ef639c9edba3cca59f26f76de1ae1909dfb10c44f9b8a1b09a96d77b2"
+  },
+  "scope": "Fresh synthetic loopback-only database; all forward migrations including022; server-side external billing/email/MF/OCR/etc provider connections blocked",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-qa-server-final8-candidate13-lifecycle-targeted1-execution.json",
+      "sha256": "8949610d48dba8c82e226108df99fd4f79e08b20ed3ecde2c281ea754683d2f5",
+      "bytes": 2535
+    },
+    "scope": "Own candidate13 source/build guards and actual observations retained. Synthetic credential/capability string patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. Candidate14 results are not inherited."
+  }
+}

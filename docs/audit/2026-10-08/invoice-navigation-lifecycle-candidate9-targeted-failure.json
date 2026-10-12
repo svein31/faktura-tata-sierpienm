@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-11T12:59:37.971092+00:00",
+  "sourceSha256": "782a7f7a0f454afb9d1efb434c85849f412fca3ab532c7d34360277de8ef7d5a",
+  "buildId": "YE5h2XZWJLAIU2MqDBakD",
+  "harnessSha256": "8bb818de13a3a70ed8dd673fea34d2fc2b424e5522794d67aa79d2bd383e0212",
+  "status": "failed",
+  "scope": "Bounded candidate9 actual targeted regression on fresh loopback-only synthetic fixture. Native errors remain fatal; no fullmatrix9 ran. Existing failed8 evidence remains preserved. The original targeted locator error was fixed only in a unique /tmp wrapper; the corrected invocation then found a genuine remaining document-departure race.",
+  "initialAttempt": {
+    "actualOwnedToolSession": 82902,
+    "actualObservedOuterExitCode": 1,
+    "completedChecks": 0,
+    "nativePageErrors": 0,
+    "cause": "Probe expected exact invoice link accessible name QA/001/2026; actual rendered accessible name includes FV Sprzedaż · PLN. Invoice query200/one result was present.",
+    "rawReportSha256": "7c545331451329992623ee5e5b5ec51147e9f595aeecd52d7974ae8501a831ec",
+    "actualExecutionProofSha256": "18a268311bf3efbaa01dd1b09873c0d2d2a0c344f07e85eb2fc81ade1e5e5cd0"
+  },
+  "correctedAttempt": {
+    "actualOwnedToolSession": 9125,
+    "actualObservedOuterExitCode": 1,
+    "completedChecks": [
+      {
+        "engine": "webkit",
+        "name": "Hydrated initial invoice search renders actual fixture document",
+        "status": "checked"
+      }
+    ],
+    "nativePageErrors": 1,
+    "domErrorCount": 0,
+    "unhandledRejectionCount": 0,
+    "sourceBuildHarnessWrapperUnchanged": true,
+    "error": "Same-origin invoices/search native WebKit access-control diagnostic in newly compiled invoices chunk page-3b8df6a7be9794af.js:1:4127.",
+    "observedPhase": "pending-debounce-history",
+    "ordering": {
+      "nativePageErrorAt": "2026-10-11T12:55:07.775Z",
+      "oldDocumentPageHideAt": "2026-10-11T12:55:07.793Z",
+      "oldDocumentId": "bec49253-9941-4bd3-820e-eb2b36967986",
+      "precedingNativeEventsOnOldDocument": [
+        {
+          "at": "2026-10-11T12:55:07.393Z",
+          "sameDocument": true,
+          "navigationType": "replace",
+          "destinationPath": "/invoices"
+        }
+      ],
+      "crossDocumentNavigateEventRecordedBeforeErrorOnOldDocument": false,
+      "beforeUnloadTimestamp": "unverified; targeted observer deliberately did not install permanent beforeunload listener"
+    },
+    "rawReport": "LOCAL_WORKSPACE_ONLY /tmp/faktura-invoice-search-lifecycle-final8-candidate9-lifecycle-targeted1-rerun1.json",
+    "rawReportSha256": "8776a1c338e00a6c582bb26fa3a35a70243702301ae5a040afa1db4ff14edbbe",
+    "rawLogSha256": "f36c3d0fda8eab8f8baa1642be05097d283ff7bf0eb3fbd8e65ee9dc591b92f0",
+    "actualExecutionProofSha256": "11429f42fde031ed3a23bbdc9dcf917e45ca897b5b98a2126a4e5b256c13816b"
+  },
+  "skippedChecks": [
+    "Modern native canceled navigation and signal.abort recovery",
+    "Active HTTP503 error and trusted retry",
+    "Legacy feature-hidden interruption/background reload/trusted retry",
+    "Persisted pageshow simulation",
+    "Chromium targeted phase",
+    "Firefox targeted phase",
+    "Candidate9 fullall3 matrix"
+  ],
+  "fixtureCleanup": {
+    "actualOwnedToolSession": 67034,
+    "actualObservedOuterExitCode": 0,
+    "fixtureGuardsUnchanged": true,
+    "allOwnedPidsAbsent": true,
+    "allOwnedPortsClosed": true,
+    "activeMatchingProcessCount": 0,
+    "completionProofSha256": "298880dcc825f1e09e8dc7561e972fb96698ec35c598cd83144a8f12098ccf63"
+  },
+  "publication": {
+    "sanitized": true,
+    "scope": "Compact summary contains no fixture cookie/password/database URI or capability token values. Raw executed local proofs and logs retained separately."
+  }
+}

@@ -4,7 +4,7 @@ const Module = require('node:module'), originalLoad = Module._load;
 const user = { id: 'a'.repeat(24) }, companyId = 'b'.repeat(24);
 let authenticated = true, permitted = true, reads = 0, proposals = [];
 Module._load = function (request, parent, main) {
-  if (request === '@/lib/auth') return { getSessionUser: async () => authenticated ? user : null };
+  if (request === '@/lib/auth') return { getApiSessionUser: async () => authenticated ? user : null };
   if (request === '@/lib/permissions') return { requireCompanyAccess: async () => permitted ? { ok: true } : { ok: false, status: 403, error: 'Brak dostępu.' } };
   if (request === '@/lib/db') return { prisma: {
     companyProfile: { findUniqueOrThrow: async () => { reads++; return { invoiceNumberPattern: '{PREFIX} {NN}/{MM}/{YYYY}' }; } },

@@ -1,6 +1,7 @@
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { captureInvoicePrint } from "@/lib/pdf/invoice-print";
 import { requireCompanyAccess } from "@/lib/permissions";
+import { companyWriteAccess } from "@/lib/company-write";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -210,9 +211,16 @@ export async function performIncomingSync(companyId?: string | null) {
     // Atomowa rezerwacja — blokuje równoległe duplikaty (unikalny index)
     let reservationId: string;
     try {
-      const reservation = await prisma.ksefIncomingImport.create({
-        data: { userId: user.id, ksefReferenceNumber: `${companyProfile?.id || user.id}:${ksefNumber}` },
-      });
+      const reservation = companyProfile
+        ? await prisma.$transaction(async tx => {
+            await companyWriteAccess(tx, user.id, companyProfile.id, "canSendKsef");
+            return tx.ksefIncomingImport.create({
+              data: { userId: user.id, ksefReferenceNumber: `${companyProfile.id}:${ksefNumber}` },
+            });
+          })
+        : await prisma.ksefIncomingImport.create({
+            data: { userId: user.id, ksefReferenceNumber: `${user.id}:${ksefNumber}` },
+          });
       reservationId = reservation.id;
     } catch (err) {
       if ((err as { code?: string }).code === "P2002") continue; // już importowane
@@ -223,19 +231,30 @@ export async function performIncomingSync(companyId?: string | null) {
       const xml = await client.downloadInvoiceXml(token, ksefNumber);
       const parsed = parseFa3IncomingInvoice(xml, ksefNumber);
 
-      // Upsert kontrahenta-sprzedawcy
-      let contractor = await prisma.contractor.findFirst({
-        where: { userId: user.id, nip: parsed.seller.nip },
+      const acquiredAt =
+        header.acquisitionDate
+        ?? header.acquisitionTimestamp
+        ?? syncTo.toISOString();
+
+      const invoice = await prisma.$transaction(async tx => {
+      if (companyProfile) await companyWriteAccess(tx, user.id, companyProfile.id, "canSendKsef");
+      await assertAccountingPeriodsOpen(tx, [{ companyId: companyProfile?.id, issueDate: parsed.issueDate }]);
+      // Upsert kontrahenta-sprzedawcy w autoryzowanej transakcji faktury.
+      let contractor = await tx.contractor.findFirst({
+        where: companyProfile
+          ? { companyId: companyProfile.id, nip: parsed.seller.nip }
+          : { userId: user.id, nip: parsed.seller.nip, OR: [{ companyId: null }, { companyId: { isSet: false } }] },
       });
       if (contractor) {
-        contractor = await prisma.contractor.update({
+        contractor = await tx.contractor.update({
           where: { id: contractor.id },
           data: { name: parsed.seller.name, address: parsed.seller.address },
         });
       } else {
-        contractor = await prisma.contractor.create({
+        contractor = await tx.contractor.create({
           data: {
             userId: user.id,
+            companyId: companyProfile?.id ?? null,
             name: parsed.seller.name,
             nip: parsed.seller.nip,
             address: parsed.seller.address,
@@ -243,14 +262,6 @@ export async function performIncomingSync(companyId?: string | null) {
           },
         });
       }
-
-      const acquiredAt =
-        header.acquisitionDate
-        ?? header.acquisitionTimestamp
-        ?? syncTo.toISOString();
-
-      const invoice = await prisma.$transaction(async tx => {
-      await assertAccountingPeriodsOpen(tx, [{ companyId: companyProfile?.id, issueDate: parsed.issueDate }]);
       const invoice = await tx.invoice.create({
         data: {
           userId: user.id,

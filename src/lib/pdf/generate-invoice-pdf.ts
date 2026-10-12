@@ -9,6 +9,8 @@ import { buildKsefVerificationUrl, generateQrPngBuffer } from "../ksef";
 import { getTaxIdLabel } from "../validation";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "./print-config";
 import { remoteLogo } from "./remote-logo";
+import { decodeLogoDataUrl, normalizeLogoUrl, validateLogoBytes } from "./logo-safety";
+import { preparePngForEmbedding } from "./png-embedding";
 
 /**
  * Bezpieczne mapowanie znaków dla standardowych fontów PDF (WinAnsi).
@@ -107,55 +109,21 @@ export async function generateInvoicePdfBuffer(
 
   if (effectiveCompany.logoUrl) {
     try {
-      const rawLogo = effectiveCompany.logoUrl;
-      let imgBuffer: Buffer | null = null;
-      let isPng = false;
-
-      if (rawLogo.startsWith("data:image/png;base64,")) {
-        imgBuffer = Buffer.from(rawLogo.replace("data:image/png;base64,", ""), "base64");
-        isPng = true;
-      } else if (rawLogo.startsWith("data:image/jpeg;base64,") || rawLogo.startsWith("data:image/jpg;base64,")) {
-        imgBuffer = Buffer.from(rawLogo.replace(/^data:image\/jpe?g;base64,/, ""), "base64");
-        isPng = false;
-      } else if (rawLogo.startsWith("data:")) {
-        const comma = rawLogo.indexOf(",");
-        if (comma !== -1) {
-          imgBuffer = Buffer.from(rawLogo.slice(comma + 1), "base64");
-          isPng = rawLogo.includes("image/png");
-        }
-      } else if (rawLogo.startsWith("http://") || rawLogo.startsWith("https://")) {
-        try {
-          const fetched = await remoteLogo(rawLogo);
-          imgBuffer = fetched.bytes;
-          isPng = fetched.isPng;
-        } catch {
-          console.warn("[PDF] Logo URL niedostępne lub nie spełnia wymagań publicznego HTTPS/PNG/JPG.");
-        }
+      const rawLogo = effectiveCompany.logoUrl.trim();
+      let image: ReturnType<typeof decodeLogoDataUrl>;
+      if (rawLogo.startsWith("data:")) image = decodeLogoDataUrl(rawLogo);
+      else {
+        const fetched = await remoteLogo(normalizeLogoUrl(rawLogo)!);
+        const metadata = validateLogoBytes(fetched.bytes, fetched.isPng ? "png" : "jpeg");
+        // An exact array also avoids pooled Buffer offsets in the JPEG embedder.
+        image = { bytes: Uint8Array.from(fetched.bytes), ...metadata };
       }
-
-      if (imgBuffer && imgBuffer.length <= 2 * 1024 * 1024) {
-        try {
-          logoImage = isPng ? await pdfDoc.embedPng(imgBuffer) : await pdfDoc.embedJpg(imgBuffer);
-        } catch {
-          // Fallback: próba drugiego formatu
-          try {
-            logoImage = isPng ? await pdfDoc.embedJpg(imgBuffer) : await pdfDoc.embedPng(imgBuffer);
-          } catch (embedErr) {
-            console.warn("[PDF] Nie udało się osadzić obrazu logo (obsługiwane: PNG, JPG):", embedErr);
-          }
-        }
-
-        if (logoImage) {
-          const dims = logoImage.scale(1);
-          const maxW = 100;
-          const maxH = 46;
-          const scale = Math.min(maxW / dims.width, maxH / dims.height, 1);
-          logoWidth = dims.width * scale;
-          logoHeight = dims.height * scale;
-        }
-      }
-    } catch (e) {
-      console.warn("[PDF] Nie udało się osadzić logo:", e);
+      logoImage = image.format === "png" ? await pdfDoc.embedPng(await preparePngForEmbedding(image.bytes)) : await pdfDoc.embedJpg(image.bytes);
+      const scale = Math.min(100 / image.width, 46 / image.height, 1);
+      logoWidth = image.width * scale;
+      logoHeight = image.height * scale;
+    } catch {
+      console.warn("[PDF] Pominięto nieprawidłowe lub niedostępne logo firmy (PNG/JPG, do 2 MB, 4096 px na bok, 4 mln pikseli).");
     }
   }
 

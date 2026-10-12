@@ -3,7 +3,7 @@ import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ApiError, cleanStr } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { recordAuditLog } from "@/lib/audit";
 import { applyStockDocumentInTransaction, cancelStockDocumentInTransaction, isStockDocumentType, normalizeDocumentLines } from "./stock-engine";
@@ -28,7 +28,7 @@ export async function warehouseCommand(user: Actor, body: Record<string, unknown
   if (Buffer.byteLength(serialized) > 64000) throw new ApiError(413, "Operacja jest zbyt duża.");
   const commandId = hash(`${user.id}:${companyId}:${key}`).slice(0, 24), payloadHash = hash(serialized);
   return prisma.$transaction(async tx => {
-    const access = await companyAccess(tx, user.id, companyId, "canIssueInvoices");
+    const access = await companyWriteAccess(tx, user.id, companyId, "canIssueInvoices");
     const previous = await tx.workspaceCommand.findUnique({ where: { id: commandId } });
     if (previous) {
       if (previous.payloadHash !== payloadHash) throw new ApiError(409, "Ten identyfikator został użyty do innej operacji.");

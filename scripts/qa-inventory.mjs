@@ -31,7 +31,7 @@ async function filesBelow(directory,codeOnly=true) {
   return result.sort();
 }
 export async function sourceFingerprint() {
-  const files=[...await filesBelow(path.join(root,'src'),false),...await filesBelow(path.join(root,'lib'),false),...await filesBelow(path.join(root,'public'),false),...await filesBelow(path.join(root,'netlify'),false),...['prisma/schema.prisma','app.js','netlify.toml','next.config.mjs','postcss.config.mjs','tailwind.config.ts','tailwind.config.js','package.json','package-lock.json'].map(file=>path.join(root,file)).filter(existsSync)].sort();
+  const files=[...await filesBelow(path.join(root,'src'),false),...await filesBelow(path.join(root,'lib'),false),...await filesBelow(path.join(root,'public'),false),...await filesBelow(path.join(root,'netlify'),false),...['prisma/schema.prisma','app.js','netlify.toml','next.config.mjs','postcss.config.mjs','tailwind.config.ts','tailwind.config.js','tailwind-compat.config.cjs','package.json','package-lock.json'].map(file=>path.join(root,file)).filter(existsSync)].sort();
   const hash=createHash('sha256');
   for(const file of files)hash.update(path.relative(root,file).replaceAll('\\','/')+'\0').update(await readFile(file)).update('\0');
   return hash.digest('hex');

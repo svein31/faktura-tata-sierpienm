@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess, getCompanyMembership } from "@/lib/permissions";
+import { companyWriteAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { recordAuditLog } from "@/lib/audit";
@@ -22,6 +23,7 @@ export async function POST(req: Request) {
     if (body.action === "retry") {
       if (!objectId(body.id)) throw new ApiError(400,"Nieprawidłowe ID.");
       const changed=await prisma.$transaction(async tx => {
+        await companyWriteAccess(tx,user.id,companyId,"canIssueInvoices");
         const result=await tx.dueReminderDelivery.updateMany({where:{id:body.id as string,companyId,status:{in:["failed","verify_needed"]},OR:[{channel:"email"},{channel:null},{channel:{isSet:false}}]},data:{status:"pending",error:null}});
         if(!result.count)throw new ApiError(409,"Nie można ponowić tej wiadomości.");
         await recordAuditLog({client:tx,companyId,userId:user.id,action:"due_reminder_retry",entityType:"reminder",entityId:body.id as string});return result;
@@ -34,6 +36,7 @@ export async function POST(req: Request) {
     const invoice=await prisma.invoice.findFirst({where:{id:body.invoiceId,sellerCompanyId:companyId}});
     if(!invoice || invoice.type!=="sale" || invoice.isProforma || invoice.isCorrection)throw new ApiError(400,"Wybierz fakturę sprzedaży VAT.");
     const setting=await prisma.$transaction(async tx=>{
+      await companyWriteAccess(tx,user.id,companyId,"canIssueInvoices");
       const record=await tx.dueReminderSetting.upsert({where:{invoiceId:invoice.id},create:{invoiceId:invoice.id,companyId,userId:user.id,enabled:body.enabled as boolean,...channelData},update:{enabled:body.enabled as boolean,userId:user.id,nextCheckAt:new Date(),...channelData}});
       await recordAuditLog({client:tx,companyId,userId:user.id,documentId:invoice.id,entityType:"invoice",entityId:invoice.id,action:"due_reminder_configured",details:{enabled:record.enabled}});return record;
     });return json({setting});

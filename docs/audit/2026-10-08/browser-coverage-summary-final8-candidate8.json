@@ -1,0 +1,554 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T20:45:33.666Z",
+  "scope": "isolated app fixture; conditional unseen controls and unclicked actions remain unverified",
+  "sourceSha256": "bb3bd5f9c2ef1713f0f37d20eba90a7ffe293df2bc4ecf5893d54645fedb5927",
+  "buildId": "xgSEexMkddck8HqP_WFBa",
+  "selectedEngines": [
+    "chromium",
+    "webkit",
+    "firefox"
+  ],
+  "browserLifecycle": [],
+  "engines": [
+    {
+      "engine": "chromium",
+      "status": "failed"
+    }
+  ],
+  "completedEngines": [],
+  "layoutChecks": 0,
+  "layoutFailures": [],
+  "networkIssues": [],
+  "consoleIssues": [],
+  "totals": {
+    "observations": 0,
+    "visibleControlInstances": 0,
+    "checkedScenarios": 19
+  },
+  "visited": [],
+  "scenarios": [
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-dashboard-no-background-route-prefetch",
+      "status": "checked",
+      "route": "/dashboard",
+      "observationMs": 3000,
+      "intentionalInteractions": 0,
+      "observedRequests": 29,
+      "unrelatedRoutePrefetchRequests": 0,
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-sidebar-user-navigation-without-background-preload",
+      "status": "checked",
+      "routes": [
+        "/dashboard",
+        "/analytics"
+      ],
+      "destinationRequests": 1,
+      "destinationHeadingVisible": true,
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-refresh-back-forward-without-browser-errors",
+      "status": "checked",
+      "route": "/dashboard",
+      "steps": [
+        {
+          "iteration": 1,
+          "name": "dashboard-goto",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 1,
+          "name": "dashboard-reload",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 1,
+          "name": "invoices-goto",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 1,
+          "name": "back-dashboard",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 1,
+          "name": "forward-invoices",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 2,
+          "name": "dashboard-goto",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 2,
+          "name": "dashboard-reload",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 2,
+          "name": "invoices-goto",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 2,
+          "name": "back-dashboard",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 2,
+          "name": "forward-invoices",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 3,
+          "name": "dashboard-goto",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 3,
+          "name": "dashboard-reload",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 3,
+          "name": "invoices-goto",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 3,
+          "name": "back-dashboard",
+          "path": "/dashboard",
+          "headingVisible": true,
+          "pageErrors": 0
+        },
+        {
+          "iteration": 3,
+          "name": "forward-invoices",
+          "path": "/invoices",
+          "headingVisible": true,
+          "pageErrors": 0
+        }
+      ],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-pointer-warmup-normal",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "normal",
+      "intent": "pointer",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "4g"
+      },
+      "expectedWarmup": true,
+      "warmupRequests": 1,
+      "responseStatuses": [
+        200
+      ],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-focus-warmup-normal",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "normal",
+      "intent": "focus",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "4g"
+      },
+      "expectedWarmup": true,
+      "warmupRequests": 1,
+      "responseStatuses": [
+        200
+      ],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-pointer-warmup-save-data",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "save-data",
+      "intent": "pointer",
+      "connectionHint": {
+        "saveData": true,
+        "effectiveType": "4g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-focus-warmup-save-data",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "save-data",
+      "intent": "focus",
+      "connectionHint": {
+        "saveData": true,
+        "effectiveType": "4g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-pointer-warmup-2g",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "2g",
+      "intent": "pointer",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "2g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-focus-warmup-2g",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "2g",
+      "intent": "focus",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "2g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-pointer-warmup-slow-2g",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "slow-2g",
+      "intent": "pointer",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "slow-2g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "name": "private-invoice-focus-warmup-slow-2g",
+      "status": "checked",
+      "route": "/dashboard",
+      "destination": "/invoices/new",
+      "mode": "slow-2g",
+      "intent": "focus",
+      "connectionHint": {
+        "saveData": false,
+        "effectiveType": "slow-2g"
+      },
+      "expectedWarmup": false,
+      "warmupRequests": 0,
+      "responseStatuses": [],
+      "pageErrors": 0
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "name": "cookie-banner-print-and-screen-return",
+      "status": "checked",
+      "route": "/",
+      "screen": {
+        "display": "block",
+        "rendered": true,
+        "visibleControls": 5
+      },
+      "print": {
+        "display": "none",
+        "rendered": false,
+        "visibleControls": 0
+      },
+      "restored": {
+        "display": "block",
+        "rendered": true,
+        "visibleControls": 5
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+      "status": "checked",
+      "route": "/",
+      "screen": {
+        "overlay": {
+          "display": "flex",
+          "rendered": true
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": true
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": true
+        },
+        "visibleControls": 10
+      },
+      "print": {
+        "overlay": {
+          "display": "none",
+          "rendered": false
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": false
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": false
+        },
+        "visibleControls": 0
+      },
+      "restored": {
+        "overlay": {
+          "display": "flex",
+          "rendered": true
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": true
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": true
+        },
+        "visibleControls": 10
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "name": "cookie-privacy-escape-focus-restoration",
+      "status": "checked",
+      "route": "/",
+      "dialogClosed": true,
+      "trigger": {
+        "connected": true,
+        "focused": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "light",
+      "name": "cookie-privacy-close-button-focus-restoration",
+      "status": "checked",
+      "route": "/",
+      "dialogClosed": true,
+      "trigger": {
+        "connected": true,
+        "focused": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "name": "cookie-banner-print-and-screen-return",
+      "status": "checked",
+      "route": "/",
+      "screen": {
+        "display": "block",
+        "rendered": true,
+        "visibleControls": 5
+      },
+      "print": {
+        "display": "none",
+        "rendered": false,
+        "visibleControls": 0
+      },
+      "restored": {
+        "display": "block",
+        "rendered": true,
+        "visibleControls": 5
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "name": "cookie-privacy-dialog-and-backdrop-print-and-screen-return",
+      "status": "checked",
+      "route": "/",
+      "screen": {
+        "overlay": {
+          "display": "flex",
+          "rendered": true
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": true
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": true
+        },
+        "visibleControls": 10
+      },
+      "print": {
+        "overlay": {
+          "display": "none",
+          "rendered": false
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": false
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": false
+        },
+        "visibleControls": 0
+      },
+      "restored": {
+        "overlay": {
+          "display": "flex",
+          "rendered": true
+        },
+        "panel": {
+          "display": "flex",
+          "rendered": true
+        },
+        "backdrop": {
+          "display": "block",
+          "rendered": true
+        },
+        "visibleControls": 10
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "name": "cookie-privacy-escape-focus-restoration",
+      "status": "checked",
+      "route": "/",
+      "dialogClosed": true,
+      "trigger": {
+        "connected": true,
+        "focused": true
+      }
+    },
+    {
+      "engine": "chromium",
+      "theme": "dark",
+      "name": "cookie-privacy-close-button-focus-restoration",
+      "status": "checked",
+      "route": "/",
+      "dialogClosed": true,
+      "trigger": {
+        "connected": true,
+        "focused": true
+      }
+    }
+  ],
+  "publication": {
+    "sanitized": true,
+    "rawSourceSha256": "d37fb754f77da2b71dd9703df7a59fde28990491343d0f8a2f07ba82e51a7fec",
+    "scope": "Only the published document copy replaces synthetic capability path tokens, database URI and session value patterns. Raw artifact, child logs, and generated snapshots are retained unfiltered locally."
+  }
+}

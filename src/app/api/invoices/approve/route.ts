@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { invoiceToDto } from "@/lib/dto";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { recordAuditLog } from "@/lib/audit";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       for (const companyId of new Set(invoices.map(i => i.sellerCompanyId).filter(Boolean))) {
         const access = await companyAccess(tx, user.id, companyId!);
         if (!["owner", "admin", "accountant"].includes(access.role)) throw new ApiError(403, "Brak uprawnień do akceptacji faktury.");
-        await tx.companyProfile.update({ where: { id: companyId! }, data: { updatedAt: new Date() } });
+        await fenceCompanyWrite(tx, companyId!);
       }
       for (const invoice of invoices) {
         if (invoice.costReviewId) throw new ApiError(409, "Dokument wymaga decyzji w obiegu kosztów.");

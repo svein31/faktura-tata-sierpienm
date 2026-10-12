@@ -21,9 +21,9 @@ export async function teamActor(tx:import("@prisma/client").Prisma.TransactionCl
 }
 /** Accepting a delegated invitation rechecks its issuer's current grants, without requiring the issuer's browser session. */
 export async function teamInvitationGrantor(tx:import("@prisma/client").Prisma.TransactionClient,userId:string,companyId:string){
- const {companyAccess}=await import("./company-write");
+ const {companyAccess,fenceCompanyWrite}=await import("./company-write");
  const access=await companyAccess(tx,userId,companyId,"canManageTeam");
- await tx.companyProfile.update({where:{id:companyId},data:{updatedAt:new Date()}});
+ await fenceCompanyWrite(tx,companyId);
  const member=await tx.companyMember.findUnique({where:{companyId_userId:{companyId,userId}}});
  const permissions={...DEFAULT_ROLE_PERMISSIONS[access.role as CompanyRole]};
  if(member&&access.role!=="owner")for(const key of Object.keys(permissions) as (keyof CompanyPermissions)[])permissions[key]=member[key]??permissions[key];

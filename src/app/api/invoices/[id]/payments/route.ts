@@ -10,6 +10,7 @@ import { recordAuditLog } from "@/lib/audit";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { parseInvoicePayment } from "@/lib/invoice-payment";
 import { warsawDate } from "@/lib/scheduling";
+import { companyWriteAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
 
@@ -98,6 +99,15 @@ export async function POST(req: Request, { params }: Ctx) {
         ledger = await prisma.$transaction(async tx => {
           const current = await tx.invoice.findUnique({ where: { id: invoice.id } });
           if (!current) throw new ApiError(404, "Nie znaleziono faktury.");
+          if (current.sellerCompanyId) {
+            await companyWriteAccess(tx, user.id, current.sellerCompanyId, "canRecordPayments");
+          } else if (current.userId !== user.id) {
+            throw new ApiError(404, "Nie znaleziono faktury.");
+          }
+          if (!current.sellerCompanyId) {
+            const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
+            if (!actor || !["owner", "accountant"].includes(actor.role)) throw new ApiError(403, "Brak uprawnienia do rejestrowania wpłat.");
+          }
           if (current.type !== "sale" || current.isProforma || current.status === "draft" || current.documentStatus === "draft" || current.documentStatus === "cancelled") throw new ApiError(409, "Wpłatę można zarejestrować do wystawionej faktury sprzedaży.");
           await assertAccountingPeriodsOpen(tx, [{ companyId: current.sellerCompanyId, issueDate: current.issueDate }]);
           // Claim the invoice inside the ledger transaction. Concurrent payments,

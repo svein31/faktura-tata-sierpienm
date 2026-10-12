@@ -4,6 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
 import { requireCompanyAccess } from "@/lib/permissions";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { companyProfileToDto, contractorToDto, invoiceToDto } from "@/lib/dto";
 import { buildFa3Xml, validateFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { buildKsefOfflineCertUrl, buildKsefVerificationUrl } from "@/lib/ksef/qr";
@@ -76,6 +77,8 @@ export async function POST(req: Request) {
     const qrCodeI = buildKsefVerificationUrl(params);
     const qrCodeII = buildKsefOfflineCertUrl({ ...params, certificatePem, privateKeyPem: signer.privateKeyPem, contextType: "Nip", contextValue: nip });
     const updated = await prisma.$transaction(async tx => {
+      await companyAccess(tx, user.id, invoice.sellerCompanyId, "canIssueInvoices");
+      await companyWriteAccess(tx, user.id, invoice.sellerCompanyId, "canSendKsef");
       await assertAccountingPeriodsOpen(tx, [{ companyId: invoice.sellerCompanyId, issueDate: invoice.issueDate }]);
       const issuedAt = await claimInvoiceQuota(tx, user.id, invoice.sellerCompanyId);
       const changed = await tx.invoice.updateMany({ where: { id: invoice.id, version: invoice.version, status: "draft", referenceNumber: null, qrCodeII: null }, data: {

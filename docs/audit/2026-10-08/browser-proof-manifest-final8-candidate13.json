@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate13",
+  "publishedAt": "2026-10-11T18:18:34.730Z",
+  "sourceSha256": "92aa9410c23daedf4023ee407a86beea1b353fa030503f9de854d07e52d5a584",
+  "buildId": "5RPdmv0wKMdKJD1F5KND4",
+  "publishedArtifacts": [
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/native-contrast-final8-candidate13.json",
+      "sha256": "88929d8efbc78d3b24486958349027fcb174d292b0c21653c3c3983de04f4954",
+      "bytes": 107801,
+      "rawPath": "/tmp/faktura-private-contrast-transition-candidate13.json",
+      "rawSha256": "f5d18b0b45850aa22a5586ba39c50ba5d18407f6c44d6fccf20404320d16b394",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/native-contrast-execution-final8-candidate13.json",
+      "sha256": "2389bcab07bbcb7f993bdf9595e06dcafe4ed57401ccb8f263b511e1d7e8c896",
+      "bytes": 1786,
+      "rawPath": "/tmp/faktura-private-contrast-transition-candidate13-execution.json",
+      "rawSha256": "bacfbc74e7c378f76848be6856fbee7af9acb8219368db2310663d19613bb2b1",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/invoice-search-lifecycle-final8-candidate13.json",
+      "sha256": "31464c77d2caee5bb486b0bc4a340d3126f3700ef10776f902eb6451924d96a7",
+      "bytes": 10925,
+      "rawPath": "/tmp/faktura-invoice-search-lifecycle-final8-candidate13-lifecycle-targeted1.json",
+      "rawSha256": "fc0822db94044f561309112878d4e0a4ab5b3c11841af06f5b493ed48c577394",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/invoice-search-lifecycle-execution-final8-candidate13.json",
+      "sha256": "f57e8d6ca2d63d14fc8ae1bb4628be2331f763c499dd64cb84c7f0188c0f6bd0",
+      "bytes": 1880,
+      "rawPath": "/tmp/faktura-invoice-search-lifecycle-final8-candidate13-lifecycle-targeted1-execution.json",
+      "rawSha256": "128e780387f8c918a052de22e62c951114aa53cbc58a610ae83f07acebdaaf84",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/private-mobile-page-lab-final8-candidate13.json",
+      "sha256": "0844d241f5058dceb67e0c7578c18cf0c64799ad1e7ff43502ce60c63d003079",
+      "bytes": 251227,
+      "rawPath": "/tmp/faktura-private-mobile-page-lab-final8-candidate13-private-mobile.json",
+      "rawSha256": "15998874c95d5cd6afb901d0644fa9e6e61b23efaa1103cf383abaf6a899cbe4",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/private-mobile-page-lab-execution-final8-candidate13.json",
+      "sha256": "c1fa5ae0cac67320f379a962dcd9a8aa414ba82c12f957a3f97f20acd700b49d",
+      "bytes": 1845,
+      "rawPath": "/tmp/faktura-private-mobile-page-lab-final8-candidate13-private-mobile-execution.json",
+      "rawSha256": "f49d826311d989c798d0bdeeb9f9ac4c1562138c8819da3d53d4edb5c134e625",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/private-loading-states-final8-candidate13.json",
+      "sha256": "d250fdd863f60daa0018b0caad1255d2a0b71473348e20f2cfdd081b00002d92",
+      "bytes": 390591,
+      "rawPath": "/tmp/faktura-private-loading-states-final8-candidate13-private-states.json",
+      "rawSha256": "fbb7479707d42549ef039a1ca1d3cd4c992824b967df776cbbbb547f4c94cfa9",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/private-loading-states-execution-final8-candidate13.json",
+      "sha256": "3829905315fedb24ea03b0c6a19cea09ccab7202b60c423dc0efbdeb38bbcf8b",
+      "bytes": 1840,
+      "rawPath": "/tmp/faktura-private-loading-states-final8-candidate13-private-states-execution.json",
+      "rawSha256": "ac8469a9bbfc33d8307b149431fd436389880cabb702f95bfb8f49622d58e372",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-fixture-execution-final8-candidate13.json",
+      "sha256": "53a13ab4034af3a14324a094fcd1ef9ebeb216e16e634eb064c5af4d427778f7",
+      "bytes": 3086,
+      "rawPath": "/tmp/faktura-qa-server-final8-candidate13-lifecycle-targeted1-execution.json",
+      "rawSha256": "8949610d48dba8c82e226108df99fd4f79e08b20ed3ecde2c281ea754683d2f5",
+      "credentialFindings": 0
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-fixture-completion-final8-candidate13.json",
+      "sha256": "35ffb4f50bd6dbc18a0124b410dae3a460d54820071814b9570d498a6161bfcc",
+      "bytes": 107771,
+      "rawPath": "/tmp/faktura-qa-server-final8-candidate13-lifecycle-targeted1-completion.json",
+      "rawSha256": "813dd649afbf63e37232d083253f5d8ace9eb8648d76287a99b27e013079e441",
+      "credentialFindings": 0
+    }
+  ],
+  "privateCredentialScan": {
+    "checkedArtifacts": 10,
+    "findings": 0,
+    "method": "Exact privately-read fixture cookie/value/password/MongoURI plus session, MongoURI, capability, JWT and Bearer patterns; values never printed"
+  },
+  "unexecuted": [
+    "public CDP3",
+    "full all3 matrix"
+  ],
+  "scope": "Own candidate13 completed baseline only. Native contrast16 samples,8 actual scale samples and2 axe controls with1 incomplete group each; targeted24 qualifications/raw6 injected503 responses and4 console errors retained; private6 calibrated cold meaningful readiness<4s/CLS0; focused42checks/16 scopedaxe0violations with1 incomplete group each. Source13 fixture stopped unchanged before root source14 compressedPNG correction. Public CDP3/full all3 matrix13 were not launched after isolated security defect reproduced. No final release result claimed."
+}

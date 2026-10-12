@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { requireCompanyAccess } from "@/lib/permissions";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
 import { isIsoCalendarDate } from "@/lib/nbp";
@@ -22,6 +23,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const autoSend = body.autoSend === undefined ? Boolean(invoice.recurringAutoSend) : body.autoSend === true;
     if (autoSend && (invoice.isProforma || !(await requireCompanyAccess(user.id, invoice.sellerCompanyId, "canSendKsef")).ok)) throw new ApiError(403, "Brak uprawnienia do automatycznej wysyłki KSeF.");
     const updated = await prisma.$transaction(async tx => {
+      await companyWriteAccess(tx, user.id, invoice.sellerCompanyId, "canIssueInvoices");
+      if (autoSend) await companyAccess(tx, user.id, invoice.sellerCompanyId, "canSendKsef");
       const result = await tx.invoice.updateMany({ where: { id, OR: [{ version: invoice.version }, ...((invoice.version ?? 1) <= 1 ? [{ version: { isSet: false } }] : [])] }, data: {
         isRecurring: true, recurringPaused: body.paused === undefined ? Boolean(invoice.recurringPaused) : body.paused === true,
         recurringInterval: interval, recurringNextDate: nextDate, recurringAnchorDay: nextDate === invoice.recurringNextDate ? invoice.recurringAnchorDay ?? Number(nextDate.slice(8)) : Number(nextDate.slice(8)),

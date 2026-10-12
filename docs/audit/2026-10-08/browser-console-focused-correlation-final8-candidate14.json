@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+  "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+  "sourceRaw": "/tmp/faktura-candidate14-console-focused.json",
+  "cases": [
+    {
+      "console": {
+        "utc": "2026-10-12T04:42:41.256Z",
+        "monotonicMs": 78173.69894700001,
+        "id": 27,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 390,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "message": "[JavaScript Error: \"InvalidStateError: Navigated away from page\"]",
+        "location": {
+          "url": "",
+          "line": 0,
+          "column": 0,
+          "lineNumber": 0,
+          "columnNumber": 0
+        }
+      },
+      "precedingNativePagehide": {
+        "utc": "2026-10-12T04:42:41.226Z",
+        "monotonicMs": 78143.319923,
+        "kind": "native-lifecycle",
+        "id": 27,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 390,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "event": "pagehide",
+        "persisted": false,
+        "documentUrl": "http://127.0.0.1:45151/dashboard",
+        "timeOrigin": 1791780160008,
+        "clientPerformanceMs": 1216,
+        "visibility": "visible"
+      },
+      "pagehideToConsoleMs": 30.37902400000894,
+      "precedingMainFrameNavigation": {
+        "utc": "2026-10-12T04:42:41.256Z",
+        "monotonicMs": 78173.38009600001,
+        "kind": "main-frame-navigation",
+        "id": 27,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 390,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "url": "http://127.0.0.1:45151/dashboard"
+      },
+      "followingCriticalUiReady": {
+        "utc": "2026-10-12T04:42:41.530Z",
+        "monotonicMs": 78447.00794200001,
+        "kind": "critical-ui-ready",
+        "id": 27,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 390,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "path": "/dashboard",
+        "after": "trusted-click-back-reload"
+      },
+      "consoleToReadyMs": 273.3089949999994,
+      "assessment": "Observed temporal association with native reload/pagehide and subsequent critical UI readiness; no script callsite/stack or causal source identified. Original matrix diagnostic remains separate."
+    },
+    {
+      "console": {
+        "utc": "2026-10-12T04:42:52.389Z",
+        "monotonicMs": 89306.760616,
+        "id": 36,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 1280,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "message": "[JavaScript Error: \"InvalidStateError: Navigated away from page\"]",
+        "location": {
+          "url": "",
+          "line": 0,
+          "column": 0,
+          "lineNumber": 0,
+          "columnNumber": 0
+        }
+      },
+      "precedingNativePagehide": {
+        "utc": "2026-10-12T04:42:52.347Z",
+        "monotonicMs": 89263.92380500001,
+        "kind": "native-lifecycle",
+        "id": 36,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 1280,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "event": "pagehide",
+        "persisted": false,
+        "documentUrl": "http://127.0.0.1:45151/dashboard",
+        "timeOrigin": 1791780171065,
+        "clientPerformanceMs": 1281,
+        "visibility": "visible"
+      },
+      "pagehideToConsoleMs": 42.83681099998648,
+      "precedingMainFrameNavigation": {
+        "utc": "2026-10-12T04:42:52.389Z",
+        "monotonicMs": 89306.705765,
+        "kind": "main-frame-navigation",
+        "id": 36,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 1280,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "url": "http://127.0.0.1:45151/dashboard"
+      },
+      "followingCriticalUiReady": {
+        "utc": "2026-10-12T04:42:52.794Z",
+        "monotonicMs": 89710.79264500001,
+        "kind": "critical-ui-ready",
+        "id": 36,
+        "closing": false,
+        "closed": false,
+        "engine": "firefox",
+        "width": 1280,
+        "repetition": 3,
+        "lane": "settled-real-user-click-history-refresh",
+        "route": "/dashboard",
+        "path": "/dashboard",
+        "after": "trusted-click-back-reload"
+      },
+      "consoleToReadyMs": 404.03202900000906,
+      "assessment": "Observed temporal association with native reload/pagehide and subsequent critical UI readiness; no script callsite/stack or causal source identified. Original matrix diagnostic remains separate."
+    }
+  ],
+  "scope": "Read-only derived correlation, no test/callback/error filtering. Observed timestamps are retained; temporal association does not prove the underlying callsite or harmlessness.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-candidate14-console-focused-correlation.json",
+      "sha256": "eafe9abadf13dcdf9da1046cdc2571363ef9d5206f5a32c3f6aacc5e9acf167f",
+      "bytes": 5354
+    },
+    "scope": "Own candidate14 source/build guards and actual observations retained. Synthetic credential/capability patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. No measurements inherited from older candidates."
+  }
+}

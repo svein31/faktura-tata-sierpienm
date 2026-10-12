@@ -63,6 +63,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
   const companies = useAppStore((s) => s.companies);
   const company = useAppStore((s) => s.company);
+  const hydrated = useAppStore((s) => s.hydrated);
   const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
   const setSelectedCompanyId = useAppStore((s) => s.setSelectedCompanyId);
   const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);
@@ -148,8 +149,14 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       </div>
 
         {/* Company Switcher z widoczną rolą użytkownika */}
-        {activeCompany && (
-          <div className="relative order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2" ref={companyMenuRef}>
+          {/* Keep the mobile company row stable while bootstrap resolves. */}
+          <div className={`relative order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2 ${!activeCompany ? "sm:hidden" : ""}`} ref={companyMenuRef}>
+            {!activeCompany ? hydrated ? (
+              <Link prefetch={false} href="/settings/companies" className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-xs font-semibold transition-colors hover:bg-muted/40 hover:border-border">
+                <Building2 aria-hidden="true" className="size-4 text-primary" />
+                Dodaj firmę
+              </Link>
+            ) : <div aria-hidden="true" inert className="invisible min-h-11" /> : <>
             <button
               type="button"
               ref={companyTriggerRef}
@@ -225,8 +232,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 </div>
               </div>
             )}
+            </>}
           </div>
-        )}
 
       <div className="order-2 flex shrink-0 items-center gap-1 sm:order-3 sm:ml-auto sm:gap-2">
         {/* Przycisk wyszukiwania / Command Palette */}

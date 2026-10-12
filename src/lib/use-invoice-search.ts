@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useAppStore } from "@/lib/store";
 import type { Invoice } from "@/lib/types";
+import { createInvoiceSearchLifecycle } from "@/lib/invoice-search-lifecycle";
 type Result = { invoices: Invoice[]; total: number; counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }; nextCursor: string | null };
 const EMPTY: Result = { invoices: [], total: 0, counts: { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: null };
 export function useInvoiceSearch(filters: Record<string, string>, enabled = true) {
@@ -13,22 +14,39 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
   const [state, setState] = React.useState<{ url: string; data: Result }>({ url: "", data: EMPTY });
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(true);
-  const [revision, reload] = React.useReducer(n => n + 1, 0);
+  const [revision, refresh] = React.useReducer(n => n + 1, 0);
+  const lifecycle = React.useRef<ReturnType<typeof createInvoiceSearchLifecycle> | null>(null);
+  React.useEffect(() => {
+    const current = createInvoiceSearchLifecycle(window, refresh, () => {
+      setLoading(false); setError("Przerwano pobieranie faktur. Spróbuj ponownie.");
+    });
+    lifecycle.current = current;
+    return () => { current.dispose(); lifecycle.current = null; };
+  }, []);
+  const reload = React.useCallback((event?: { isTrusted?: boolean }) => {
+    lifecycle.current?.retry(event);
+    refresh();
+  }, []);
   const mutations = useAppStore(s => s.invoices);
   React.useEffect(() => {
-    if (!enabled) return;
+    const current = lifecycle.current;
+    if (!enabled || !current || current.departing) return;
     const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const cancel = () => { clearTimeout(timer); controller.abort(); };
+    const release = current.track(cancel);
     setLoading(true); setError("");
-    const timer = setTimeout(() => {
+    timer = setTimeout(() => {
+      if (controller.signal.aborted || current.departing) return;
       fetch(url, { signal: controller.signal }).then(async res => {
         const data = await res.json(); if (!res.ok) throw new Error(data.error || "Nie udało się pobrać faktur.");
         if (!controller.signal.aborted) setState({ url, data });
       }).catch(e => { if (!controller.signal.aborted) setError(e.message); })
-        .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+        .finally(() => { release(); if (!controller.signal.aborted) setLoading(false); });
     }, 200);
-    return () => { clearTimeout(timer); controller.abort(); };
+    return () => { cancel(); release(); };
   }, [url, revision, mutations, enabled]);
-  React.useEffect(() => { const refresh = () => { if (document.visibilityState === "visible") reload(); }; document.addEventListener("visibilitychange", refresh); return () => document.removeEventListener("visibilitychange", refresh); }, []);
+  React.useEffect(() => { const visible = () => { if (document.visibilityState === "visible" && !lifecycle.current?.departing) refresh(); }; document.addEventListener("visibilitychange", visible); return () => document.removeEventListener("visibilitychange", visible); }, []);
   const data = enabled && state.url === url ? state.data : EMPTY;
   return { ...data, loading, error, reload, page: cursors.length, key: url,
     first: () => setPaging({ key: filterKey, cursors: [""] }),

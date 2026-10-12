@@ -24,6 +24,10 @@ import { checkInvoiceApprovalHttp } from './audit-invoice-approval-regression.mj
 import { checkAuthenticationProofFencing } from './audit-auth-proof-regression.mjs';
 import { checkInvitationProofHttp } from './audit-invitation-proof-regression.mjs';
 import { checkSubscriptionNullableIndexes } from './subscription-nullable-index-regression.mjs';
+import { checkApiSessionIdentity } from './api-session-identity-regression.mjs';
+import { checkCompanyAccessRead } from './company-access-read-regression.mjs';
+import { checkCompanyWriteFence } from './company-write-fence-regression.mjs';
+import { checkMfaPolicyFence } from './mfa-policy-fence-regression.mjs';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -164,6 +168,14 @@ try {
   for (const migration of ['018-performance-indexes', '019-email-safety', '020-pilot-metrics', '021-queue-throughput', '022-subscription-nullable-identifiers']) {
     await migrateData(mongoClient.db('fakturo_integration'), 'up', migration);
   }
+  await checkApiSessionIdentity(db, { rawDb: mongoClient.db('fakturo_integration') });
+  await checkCompanyAccessRead({ db, mongoDb: mongoClient.db('fakturo_integration') });
+  await checkCompanyWriteFence({ db, mongoDb: mongoClient.db('fakturo_integration') });
+  await checkMfaPolicyFence({ db, mongoDb: mongoClient.db('fakturo_integration') });
+  const invoiceEditFence = spawn(process.execPath, ['--test', '--test-reporter=tap', 'scripts/invoice-edit-write-fence-native.mjs'], {
+    env: { ...process.env, DATABASE_URL: '' }, stdio: 'inherit', timeout: 60000,
+  });
+  assert.equal((await once(invoiceEditFence, 'exit'))[0], 0, 'Invoice edit and delete must recheck permissions inside their write transaction');
   await checkPasswordResetAtomic(db);
   await checkPasswordChangeAtomic(db);
   await checkAuthenticationProofFencing(db);

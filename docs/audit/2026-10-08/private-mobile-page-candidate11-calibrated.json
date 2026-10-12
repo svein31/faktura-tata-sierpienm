@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "kind": "calibrated-private-mobile-page",
+  "label": "final8-candidate11-private-mobile",
+  "startedAt": "2026-10-11T13:32:11.545Z",
+  "finishedAt": "2026-10-11T13:32:39.588Z",
+  "actualToolExitCode": 0,
+  "before": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "f9f8097712e9f047ebe7c75a6064e27820844d1028b2c6d9f6f4f61d726f81fa"
+  },
+  "after": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "f9f8097712e9f047ebe7c75a6064e27820844d1028b2c6d9f6f4f61d726f81fa"
+  },
+  "unchanged": true,
+  "status": "complete",
+  "configuration": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "deviceScaleFactor": 1,
+    "isMobile": true,
+    "hasTouch": true,
+    "cpuSlowdownMultiplier": 4,
+    "networkLatencyMs": 150,
+    "downloadBytesPerSecond": 200000,
+    "uploadBytesPerSecond": 100000,
+    "connectionType": "cellular3g",
+    "cacheDisabled": true,
+    "serviceWorkers": "block",
+    "perRunReadyBudgetMs": 32000,
+    "totalBudgetMs": 110000,
+    "postReadyLcpSamplingMs": 1200
+  },
+  "completeRuns": 6,
+  "fourSecondGoal": {
+    "metric": "Actual cold page data/criticalDOM readiness",
+    "metForAllMeasuredSamples": true,
+    "allRoutesAndUsers": "unverified",
+    "fieldData": "unverified"
+  },
+  "runs": [
+    {
+      "route": "/dashboard",
+      "repetition": 1,
+      "status": "complete",
+      "readyMs": 3393.7999999523163,
+      "lcpObservedMs": 1968,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 22.399999976158142,
+        "requestStart": 6.099999964237213,
+        "ttfbMs": 16.30000001192093,
+        "domInteractive": 428.2999999523163,
+        "domContentLoadedEventEnd": 431,
+        "loadEventEnd": 1729.8999999761581,
+        "transferSize": 50054
+      },
+      "navigationLoadMs": 1729.8999999761581,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 166.5
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 17.30000001192093
+          },
+          "bodyCompletionDeltaMs": 149.19999998807907,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 16.30000001192093
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 2,
+      "status": "complete",
+      "readyMs": 3511.800000011921,
+      "lcpObservedMs": 2076,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 32.30000001192093,
+        "requestStart": 15.5,
+        "ttfbMs": 16.80000001192093,
+        "domInteractive": 430.60000002384186,
+        "domContentLoadedEventEnd": 433.5,
+        "loadEventEnd": 1810.4000000357628,
+        "transferSize": 50054
+      },
+      "navigationLoadMs": 1810.4000000357628,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 166.89999997615814
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 13.899999976158142
+          },
+          "bodyCompletionDeltaMs": 153,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 16.80000001192093
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/dashboard",
+      "repetition": 3,
+      "status": "complete",
+      "readyMs": 3539,
+      "lcpObservedMs": 2148,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 22.600000023841858,
+        "requestStart": 2.700000047683716,
+        "ttfbMs": 19.899999976158142,
+        "domInteractive": 438.30000001192093,
+        "domContentLoadedEventEnd": 445.4000000357628,
+        "loadEventEnd": 1842.4000000357628,
+        "transferSize": 50054
+      },
+      "navigationLoadMs": 1842.4000000357628,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 164.80000001192093
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 24.19999998807907
+          },
+          "bodyCompletionDeltaMs": 140.60000002384186,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 19.899999976158142
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+overview200, ThemeProvider uiReady, DataBootstrap loader gone, rendered revenue section and chartSVG, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 1,
+      "status": "complete",
+      "readyMs": 2839.099999964237,
+      "lcpObservedMs": 2176,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 18.599999964237213,
+        "requestStart": 3.099999964237213,
+        "ttfbMs": 15.5,
+        "domInteractive": 465.80000001192093,
+        "domContentLoadedEventEnd": 467.80000001192093,
+        "loadEventEnd": 1928.300000011921,
+        "transferSize": 50229
+      },
+      "navigationLoadMs": 1928.300000011921,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 173.30000001192093
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 11.899999976158142
+          },
+          "bodyCompletionDeltaMs": 161.4000000357628,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 15.5
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 2,
+      "status": "complete",
+      "readyMs": 2835.899999976158,
+      "lcpObservedMs": 2176,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 24.5,
+        "requestStart": 5.199999988079071,
+        "ttfbMs": 19.30000001192093,
+        "domInteractive": 458.89999997615814,
+        "domContentLoadedEventEnd": 461.5,
+        "loadEventEnd": 1894.800000011921,
+        "transferSize": 50229
+      },
+      "navigationLoadMs": 1894.800000011921,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 168
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 13
+          },
+          "bodyCompletionDeltaMs": 155,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 19.30000001192093
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    },
+    {
+      "route": "/invoices",
+      "repetition": 3,
+      "status": "complete",
+      "readyMs": 2855,
+      "lcpObservedMs": 2212,
+      "cls": 0,
+      "navigation": {
+        "responseStart": 24.19999998807907,
+        "requestStart": 3.599999964237213,
+        "ttfbMs": 20.600000023841858,
+        "domInteractive": 443.2999999523163,
+        "domContentLoadedEventEnd": 447,
+        "loadEventEnd": 1967.2999999523163,
+        "transferSize": 50229
+      },
+      "navigationLoadMs": 1967.2999999523163,
+      "loadEventEndObserved": true,
+      "coldEvidence": {
+        "sameOriginRequestsIntercepted": false,
+        "networkLatencyCalibration": {
+          "method": "Same-context native health GET body completion at requested150ms compared with immediate0ms negativecontrol after readiness/LCP sampling. Same-origin requests not intercepted.",
+          "throttled": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 169
+          },
+          "zeroThrottleControl": {
+            "status": 200,
+            "bodyBytes": 153,
+            "bodyCompletionMs": 17.69999998807907
+          },
+          "bodyCompletionDeltaMs": 151.30000001192093,
+          "requestedLatencyMs": 150,
+          "minimumThrottledMs": 125,
+          "minimumDeltaMs": 100,
+          "calibrated": true,
+          "documentTtfbMs": 20.600000023841858
+        },
+        "cacheDisabled": true,
+        "serviceWorkerBypass": true,
+        "cachedResponses": 0
+      },
+      "pageErrorCount": 0,
+      "consoleMessageCount": 1,
+      "recordedNetworkEvents": 31,
+      "readiness": "Real bootstrap200+invoice search200, loading text gone and actual fixture invoice visible, fonts/two frames settled."
+    }
+  ],
+  "scope": "Six bounded cold Chromium authenticated synthetic-fixture mobile page samples. Fresh context, disabled HTTP cache, service workers blocked/bypassed, CPU4/network150ms/200000Bps. Same-origin browser requests are not intercepted by Playwright; only external-origin requests are aborted. Native health GET body-completion latency is compared with a0ms control after sample collection; unmet calibration invalidates the4s network-goal claim. Document TTFB alone cannot calibrate browser emulation. Layout-shift sources and header/main geometry are captured without node text. Readiness includes actual data and meaningful DOM; headings alone do not count. Observed LCP is bounded to1200ms after data readiness and is not field LCP/INP. Cookie banner retained, only synthetic authentication and onboarding test state added. No PDFs, invoice creation or external production providers exercised.",
+  "unverified": [
+    "All routes/users and field latency",
+    "Production deployment/provider data",
+    "Field INP",
+    "Real Safari/physical iOS"
+  ],
+  "rawProvenance": [
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate11-private-mobile.json",
+      "sha256": "2eecdb9a1ad0fd90f8254a236b539933f2ca52942995aeeacaee727cbe34c2a1",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate11-private-mobile-execution.json",
+      "sha256": "fe14ad2caff1e80765dfc3d14d08de83dc5b26a7c61c6b901ad1752c99509600",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-mobile-page-lab-final8-candidate11-private-mobile.log",
+      "sha256": "8d44db311500635d68f9ba2a8319a4298521896b62c4431d5661cff0068d0324",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    }
+  ]
+}

@@ -1,0 +1,458 @@
+{
+  "generatedAt": "2026-10-09T21:35:29.070791+00:00",
+  "scope": "dependency-toolchain security and isolated Chromium CSS compatibility; root load200/application QA remains separate",
+  "statuses": {
+    "dependencyInstall": "passed",
+    "allDependenciesNpmAudit": "passed-zero-advisories",
+    "productionDependenciesNpmAudit": "passed-zero-advisories",
+    "chromiumCssCompatibility": "passed-in-described-fixtures",
+    "candidateApplicationBuild": "passed-after-Prisma-cache-environment-retry-reported-by-root",
+    "fullCandidateApplicationQa": "pending",
+    "candidateLoad200LatencyAndThroughput": "pending",
+    "productionDeployment": "not-verified"
+  },
+  "versions": {
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "tailwind-merge": "3.7.0",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
+  },
+  "commands": [
+    {
+      "command": "npm ci --ignore-scripts",
+      "exitCode": 0,
+      "artifact": {
+        "path": "/tmp/faktura-tailwind4-npm-ci.log",
+        "sha256": "368b8de243654dd8dce12009a8e9ad8cce8621eeea7d9960ecc67870b8131dd0",
+        "bytes": 370
+      }
+    },
+    {
+      "command": "npm audit --audit-level=low --json",
+      "exitCode": 0,
+      "artifact": {
+        "path": "/tmp/faktura-tailwind4-audit-all-final.json",
+        "sha256": "be9ef8ab828d45f6e64b11771a2cf29d947902ddff5786725908889daf2a51d7",
+        "bytes": 365
+      },
+      "report": {
+        "auditReportVersion": 2,
+        "vulnerabilities": {},
+        "metadata": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 0,
+            "critical": 0,
+            "total": 0
+          },
+          "dependencies": {
+            "prod": 167,
+            "dev": 179,
+            "optional": 60,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 382
+          }
+        }
+      }
+    },
+    {
+      "command": "npm audit --omit=dev --audit-level=low --json",
+      "exitCode": 0,
+      "artifact": {
+        "path": "/tmp/faktura-tailwind4-audit-prod-final.json",
+        "sha256": "be9ef8ab828d45f6e64b11771a2cf29d947902ddff5786725908889daf2a51d7",
+        "bytes": 365
+      },
+      "report": {
+        "auditReportVersion": 2,
+        "vulnerabilities": {},
+        "metadata": {
+          "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 0,
+            "critical": 0,
+            "total": 0
+          },
+          "dependencies": {
+            "prod": 167,
+            "dev": 179,
+            "optional": 60,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 382
+          }
+        }
+      }
+    }
+  ],
+  "removedVulnerablePackages": [
+    {
+      "name": "braces",
+      "remaining": []
+    },
+    {
+      "name": "micromatch",
+      "remaining": []
+    },
+    {
+      "name": "fast-glob",
+      "remaining": []
+    },
+    {
+      "name": "postcss-selector-parser",
+      "remaining": []
+    },
+    {
+      "name": "postcss-nested",
+      "remaining": []
+    }
+  ],
+  "frozenFiles": [
+    {
+      "path": "package.json",
+      "sha256": "051ca01c529244f62c5960a6ebf8711f72fcd4717e23fe82ae129c7142909f7e",
+      "bytes": 2504,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "2f92a64eabfb831686dcbe3b57927eeb927cb90b101f27d2eb1dcdd60c523269",
+      "bytes": 182909,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "postcss.config.mjs",
+      "sha256": "9e85eb3351615a2374712fd99903bc2f3d868e2887337ed6384730a45b663f20",
+      "bytes": 294,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "tailwind.config.ts",
+      "sha256": "83ebaf3815a535332cd4c142656612b9283ab4ad24e96fe798207d0873c753c1",
+      "bytes": 15025,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "tailwind-compat.config.cjs",
+      "sha256": "74f1a630fea475e96e3bef2098cfb164831028a335e0b8062c9ff60a0fc6d92e",
+      "bytes": 4010,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "ec4d0256dc02444a80ecbd7e730521c1e1d84239bd132db68fa167a0f050280a",
+      "bytes": 16242,
+      "matchesAtDocumentation": true
+    },
+    {
+      "path": "scripts/audit/ui-primitives-regression.mjs",
+      "sha256": "cbe923a63891bb949673f9714b76d9979d869c45f43d8d384cc9a485b8b4e3a6",
+      "bytes": 24980,
+      "matchesAtDocumentation": true
+    }
+  ],
+  "styleValidation": {
+    "browser": "Chromium",
+    "version": "153.0.8010.12",
+    "cases": 24,
+    "profiles": [
+      {
+        "profile": {
+          "width": 1024,
+          "height": 2100,
+          "dark": false,
+          "motion": "reduce"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 9
+      },
+      {
+        "profile": {
+          "width": 1024,
+          "height": 2100,
+          "dark": false,
+          "motion": "no-preference"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 10
+      },
+      {
+        "profile": {
+          "width": 1024,
+          "height": 2100,
+          "dark": true,
+          "motion": "reduce"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 9
+      },
+      {
+        "profile": {
+          "width": 1024,
+          "height": 2100,
+          "dark": true,
+          "motion": "no-preference"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 10
+      },
+      {
+        "profile": {
+          "width": 320,
+          "height": 2800,
+          "dark": false,
+          "motion": "reduce"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 9
+      },
+      {
+        "profile": {
+          "width": 320,
+          "height": 2800,
+          "dark": false,
+          "motion": "no-preference"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 10
+      },
+      {
+        "profile": {
+          "width": 320,
+          "height": 2800,
+          "dark": true,
+          "motion": "reduce"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 9
+      },
+      {
+        "profile": {
+          "width": 320,
+          "height": 2800,
+          "dark": true,
+          "motion": "no-preference"
+        },
+        "changedPixels": 0,
+        "maxChannelDifference": 0,
+        "geometryDifferences": 0,
+        "computedSerializationDifferenceCount": 10
+      }
+    ],
+    "comparisons": 192,
+    "zeroChangedPixels": true,
+    "zeroGeometryDifferences": true,
+    "computedSerializationDifferencesRetained": true,
+    "productionOptimized": true,
+    "styleInputs": [
+      {
+        "path": "/tmp/faktura-tailwind3-global-baseline.css",
+        "sha256": "c77a607d1b0f31eb8de1f1983ed6158e68e269dc511a75e7f7688a8fd9050751"
+      },
+      {
+        "path": "/tmp/faktura-tailwind4-global-production.css",
+        "sha256": "72fb4f6cf06f0cb25e446f7640bbc199b5e60ffee16eb558b7fb58058c3a399a"
+      }
+    ],
+    "artifact": {
+      "path": "/tmp/faktura-tailwind-computed-diff.json",
+      "sha256": "1e5a0269e3501600dea9330e464c8e1121dd145141681bd4bc52c6d1cf5c43ea",
+      "bytes": 76126
+    }
+  },
+  "classMergeValidation": {
+    "cases": 9,
+    "status": "passed",
+    "artifact": {
+      "path": "/tmp/faktura-tailwind4-merge-smoke.json",
+      "sha256": "4c29729b5969503b310bd531d5424efffdffdd7b608f95124d471fe0cf0134ef",
+      "bytes": 1248
+    }
+  },
+  "candidateBuild": {
+    "observedBuildId": "QZm5xjoNRpOoWOMTL_PiO",
+    "verificationSource": "root report of successful cached build plus retained build output; this agent did not execute build",
+    "initialAttempt": {
+      "path": "/tmp/faktura-load200-build-candidate1.log",
+      "sha256": "72c5845c67a4d447368c0c5f48f22aa9ea3ad2dbc7acc11c14b3327bb3bbba52",
+      "bytes": 223,
+      "status": "failed-Prisma-EROFS-cache-environment"
+    },
+    "retry": {
+      "path": "/tmp/faktura-load200-build-candidate1-cache.log",
+      "sha256": "fe086b9a8d20802a600c6640d14f1cd33696484c19b6446acb77b0732561ca3f",
+      "bytes": 19493,
+      "status": "passed-reported-by-root"
+    },
+    "applicationQa": "pending"
+  },
+  "priorCiWebKit": {
+    "status": "previous-CI-failure-reported-by-root-new-app-regression-required",
+    "newRunVerifiedByThisAgent": false
+  },
+  "load200HistoricalBaseline": {
+    "artifact": {
+      "path": "/workspace/faktura-tata-sierpienm/artifacts/performance/load200-baseline.json",
+      "sha256": "fe98455c726f2f9f0c821621ea374b57e9eab70cda947e18e1b576b40587eb62",
+      "bytes": 25344
+    },
+    "revision": "f9e1e106d7e61e21cefaa0487e116315fab2348e",
+    "buildId": "EtIKJoZ6X52nNorRlxheE",
+    "startedAt": "2026-10-09T21:05:29.153Z",
+    "completedAt": "2026-10-09T21:08:15.226Z",
+    "method": {
+      "isolatedDatabase": true,
+      "externalProviderCalls": "blocked by process preload; credentials replaced",
+      "model": "closed-model concurrent workers, no think time",
+      "coordinatedOmission": "Latency does not include time waiting before a worker can issue its next request. This test measures local saturation, not a fixed arrival-rate production SLA.",
+      "userCount": 1000,
+      "invoicesPerUser": 30,
+      "syntheticXmlBytesPerInvoice": 6039,
+      "warmPdf": true,
+      "requestMix": [
+        "bootstrap",
+        "list",
+        "list",
+        "list",
+        "search",
+        "detail",
+        "detail",
+        "create",
+        "pdf",
+        "pdf"
+      ],
+      "secondsPerStage": 15,
+      "machine": {
+        "logicalCpus": 3,
+        "totalMemoryBytes": 10452496384,
+        "node": "v24.19.0",
+        "cpuQuota": "200000 100000",
+        "memoryLimitBytes": "8589934592"
+      },
+      "databaseAndAppLocation": "same host; no CDN, serverless cold start or internet RTT",
+      "productionCapacityNote": "Worker count and seeded user count do not imply the application supports that many simultaneous real users. Repeat in a matching staging environment before increasing public traffic."
+    },
+    "phases": [
+      {
+        "workers": 20,
+        "requests": 1463,
+        "errors": 0,
+        "requestsPerSecond": 96.17,
+        "latencyMs": {
+          "p50": 181.25,
+          "p95": 488.18,
+          "p99": 578.73,
+          "max": 711.11
+        },
+        "ttfbMs": {
+          "p50": 180.35,
+          "p95": 487.8
+        }
+      },
+      {
+        "workers": 50,
+        "requests": 1424,
+        "errors": 0,
+        "requestsPerSecond": 93.05,
+        "latencyMs": {
+          "p50": 438.06,
+          "p95": 1372.76,
+          "p99": 1522.51,
+          "max": 1699.22
+        },
+        "ttfbMs": {
+          "p50": 437.88,
+          "p95": 1372.72
+        }
+      },
+      {
+        "workers": 100,
+        "requests": 1386,
+        "errors": 0,
+        "requestsPerSecond": 88.36,
+        "latencyMs": {
+          "p50": 922.05,
+          "p95": 2686.33,
+          "p99": 3296.15,
+          "max": 3494.54
+        },
+        "ttfbMs": {
+          "p50": 921.95,
+          "p95": 2686.28
+        }
+      },
+      {
+        "workers": 200,
+        "requests": 1473,
+        "errors": 0,
+        "requestsPerSecond": 90.46,
+        "latencyMs": {
+          "p50": 1799.2,
+          "p95": 5333.37,
+          "p99": 6230.33,
+          "max": 6829.71
+        },
+        "ttfbMs": {
+          "p50": 1798.99,
+          "p95": 5333.26
+        }
+      }
+    ],
+    "fixtureIntegrity": {
+      "successfulCreateResponses": 622,
+      "persistedCreatedInvoices": 622,
+      "persistedNumberClaims": 622,
+      "exactlyOnce": true
+    },
+    "candidateResult": false,
+    "latencyBelow1SecondAt200Workers": false
+  },
+  "summaryArtifact": {
+    "path": "/tmp/faktura-tailwind4-security-summary.json",
+    "sha256": "35dfa60a39e6f14f92ea50453be439ddd5d62b7433b7dd9a1b5c34ea01ac8054",
+    "bytes": 4506
+  },
+  "cssSizes": {
+    "oldUnminifiedBytes": 113377,
+    "oldGzipBytes": 18487,
+    "newOptimizedBytes": 115665,
+    "newOptimizedGzipBytes": 18366,
+    "applesToApplesTransferComparison": false
+  },
+  "browserMinimums": {
+    "Safari": "16.4",
+    "Chrome": "111",
+    "Firefox": "128"
+  },
+  "limitations": [
+    "Browser minimums for Tailwind4: Safari16.4+,Chrome111+,Firefox128+; older engines not supported.",
+    "This agent ran isolated Chromium CSS comparisons, not final application build or full application/browser regression.",
+    "Computed serialization changes such as rgba→oklab, transparent shadow components and individual translate are retained in the raw diagnostic; actual sampled pixels and geometry match.",
+    "Only nine previously captured tailwind-merge input combinations were compared.",
+    "npm audit reports known registry advisories for a concrete lockfile; it is not a complete application penetration test.",
+    "Prior CI WebKit failure and final application/API regression require a fresh root-owned run on the new build.",
+    "Historical closed-model local load does not certify production concurrency or a fixed arrival-rate SLA."
+  ]
+}

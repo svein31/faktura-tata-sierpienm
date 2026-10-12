@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { assertObjectId, handleApiError, json } from "@/lib/api";
+import { ApiError, assertObjectId, handleApiError, json } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { recordAuditLog } from "@/lib/audit";
+import { companyWriteAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
 
@@ -37,9 +38,15 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       return json({ error: "Brak uprawnień do odwołania tego zaproszenia.", code: "FORBIDDEN" }, { status: 403 });
     }
 
-    await prisma.teamInvitation.update({
-      where: { id: invitation.id },
-      data: { status: "revoked" },
+    await prisma.$transaction(async tx => {
+      const current = await tx.teamInvitation.findUnique({ where: { id: invitation.id } });
+      if (!current) throw new ApiError(404, "Nie znaleziono zaproszenia.");
+      if (current.companyId) {
+        await companyWriteAccess(tx, user.id, current.companyId, "canManageTeam");
+      } else if (current.userId !== user.id) {
+        throw new ApiError(403, "Brak uprawnień do odwołania tego zaproszenia.");
+      }
+      await tx.teamInvitation.update({ where: { id: current.id }, data: { status: "revoked" } });
     });
 
     if (invitation.companyId) {

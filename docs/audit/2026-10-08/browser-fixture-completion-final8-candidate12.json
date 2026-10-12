@@ -1,0 +1,4151 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate12-lifecycle-targeted1",
+  "observedAt": "2026-10-11T18:01:36.557Z",
+  "ownedToolSession": 24361,
+  "actualOwnedToolExitCode": 0,
+  "fixtureGuardStatus": "PASS",
+  "fixtureProof": {
+    "path": "/tmp/faktura-qa-server-final8-candidate12-lifecycle-targeted1-execution.json",
+    "sha256": "9e0d558870693a26345fac0ccebf195a5a63d229713fde68819922a988d4eef2",
+    "unchanged": true,
+    "before": {
+      "phase": "before-fixture",
+      "checkedAt": "2026-10-11T17:56:46.932Z",
+      "sourceSha256": "f8834e647f1e76eab6a036a9db2f857ee5e33494d18534c495fdad7e60d17249",
+      "buildId": "ZictPZLvCsULwvfac2O8w",
+      "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+      "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+    },
+    "after": {
+      "phase": "after-fixture-cleanup",
+      "checkedAt": "2026-10-11T18:00:48.462Z",
+      "sourceSha256": "f8834e647f1e76eab6a036a9db2f857ee5e33494d18534c495fdad7e60d17249",
+      "buildId": "ZictPZLvCsULwvfac2O8w",
+      "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+      "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+    },
+    "cleanup": "Owned Next/Mongo/Prisma resources stopped and disconnected before wrapper completion"
+  },
+  "currentSourceSha256": "f8834e647f1e76eab6a036a9db2f857ee5e33494d18534c495fdad7e60d17249",
+  "ownedProcesses": [
+    {
+      "pid": 353501,
+      "name": null,
+      "stateAfter": "absent"
+    },
+    {
+      "pid": 353540,
+      "name": null,
+      "stateAfter": "absent"
+    },
+    {
+      "pid": 353541,
+      "name": null,
+      "stateAfter": "absent"
+    },
+    {
+      "pid": 353686,
+      "name": null,
+      "stateAfter": "absent"
+    }
+  ],
+  "ports": [
+    {
+      "port": 45148,
+      "status": "ECONNREFUSED"
+    },
+    {
+      "port": 45735,
+      "status": "ECONNREFUSED"
+    }
+  ],
+  "activeBrowserProcesses": [],
+  "inactiveZombieBrowserCount": 675,
+  "procScan": {
+    "method": "All numeric /proc entries: state + executable readlink + comm and first cmdline executable fallback; zombies separate",
+    "exeReadFailureCount": 1194,
+    "fallbackExecutableScan": [
+      {
+        "pid": 10057,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10264,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10423,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10497,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10499,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10501,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10502,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10524,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10525,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10550,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10577,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10589,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10598,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10614,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10627,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10636,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107198,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107199,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107300,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107301,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107369,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 107370,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 10984,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 110289,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 110290,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 111021,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 111022,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 111686,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 111687,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 111845,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 112322,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 112421,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 112422,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 134885,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 134886,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 13750,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 13751,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 13877,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 13878,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 138979,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 138980,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14024,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14026,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14028,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14029,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14051,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14052,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14077,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14104,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14116,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14117,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14141,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14154,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14163,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 141922,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 141923,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 142337,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 142338,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14268,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 142876,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 142877,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143009,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143010,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14302,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14304,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14306,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14307,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143262,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143263,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14330,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14332,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143482,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 143483,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14356,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14382,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14394,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14403,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14419,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14431,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14440,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14467,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 144900,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 144901,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14502,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14504,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14506,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14507,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14529,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14530,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14552,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14583,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14595,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14606,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14620,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14633,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14646,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 146507,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 146540,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 146541,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 14715,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 15770,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 15771,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 15818,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 164516,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 164517,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 167708,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 167709,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 167748,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 167979,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 167980,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 168085,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 168086,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 168917,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 168918,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 169270,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 169271,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 170015,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 170016,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 170978,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 170979,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 17130,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 17131,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 172753,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 172754,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 172884,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 173177,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 173178,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 173906,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 173907,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 174019,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 174048,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 174049,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 175421,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 175422,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 17865,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 17866,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18014,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18015,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18159,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18160,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18283,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18284,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18436,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18439,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18440,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18441,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18464,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18466,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18490,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18516,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18528,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18529,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18553,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18565,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18576,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18588,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18623,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18625,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18628,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18629,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18651,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18652,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18677,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18704,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18716,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18717,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18741,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18753,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18767,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18779,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18814,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18817,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18819,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18820,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18841,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18844,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18867,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18894,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18906,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18915,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18931,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18944,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18955,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 18980,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19193,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19194,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19494,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19495,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19578,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19630,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 19631,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 197985,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 197986,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 199604,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 199605,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 199705,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 201685,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 201686,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 201778,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211589,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211590,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211708,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211710,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211713,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211714,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211736,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211739,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211762,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211788,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211800,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211801,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211826,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211838,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211848,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211876,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211911,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211913,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211915,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211916,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211939,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211942,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211962,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 211991,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212003,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212005,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212028,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212040,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212051,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212073,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212115,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212117,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212119,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212120,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212143,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212146,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212169,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212197,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212209,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212220,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212234,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212247,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212257,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 212281,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218138,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218139,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218228,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218326,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218327,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218681,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 218682,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248308,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248309,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248429,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248432,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248433,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248434,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248458,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248461,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248485,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248510,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248521,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248533,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248547,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248560,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248570,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248582,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248616,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248618,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248620,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248621,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248643,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248645,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248669,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248697,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248709,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248710,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248734,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248757,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248767,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248779,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248813,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248815,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248818,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248819,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248841,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248844,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248867,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248893,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248905,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248916,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248930,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248943,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248964,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 248976,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 255453,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 255454,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 256447,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 256448,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 256667,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 256668,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 257270,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 257271,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 257673,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 257674,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 258141,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 258142,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 258716,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 258717,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 2918,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 2919,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 293081,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 293082,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 29526,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 29527,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 29685,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 29686,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 298252,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 298253,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299225,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299226,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299367,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299370,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299371,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299372,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299396,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299398,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299422,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299448,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299460,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299471,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299486,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299499,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299508,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299561,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299596,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299599,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299600,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299601,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299625,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299628,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299651,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299676,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299688,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299689,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299713,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299725,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299735,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299770,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299805,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299808,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299809,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299810,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299834,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299837,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299860,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299885,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299897,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299907,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299922,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299935,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299945,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 299966,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 300050,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 300051,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 300514,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 300515,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 301225,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 303258,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 303259,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 306933,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 306934,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307055,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307057,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307058,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307060,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307083,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307086,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307109,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307135,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307148,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307157,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307173,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307185,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307195,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307222,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307256,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307258,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307260,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307261,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307283,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307286,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307309,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307336,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307348,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307350,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307373,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307386,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307398,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307425,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307459,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307462,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307463,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307464,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307487,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307490,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307513,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307539,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307551,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307552,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307577,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307589,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307601,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307628,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307698,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 307699,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 308486,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 308487,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 308945,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 308946,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 309665,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 311823,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 311824,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 311959,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 311996,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 311997,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 312082,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 313183,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 313184,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 313545,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 313546,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 314334,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 314335,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 314426,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 314528,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 314529,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 32800,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 332190,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 332191,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343259,
+        "comm": "MiniBrowser",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343623,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343624,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343691,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343976,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 343977,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344301,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344302,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344463,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344466,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344467,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344468,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344491,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344494,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344517,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344544,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344556,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344557,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344580,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344593,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344603,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344821,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344856,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344859,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344860,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344861,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344885,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344892,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344911,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344937,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344949,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344960,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344975,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344987,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 344998,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345086,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345121,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345123,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345126,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345127,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345150,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345157,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345182,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345208,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345220,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345221,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345245,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345257,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345267,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345353,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345405,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 345406,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 348785,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 348786,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 349151,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 349152,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 349781,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 349782,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 350212,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 350213,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354059,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354060,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354361,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354362,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354451,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354776,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 354777,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 4417,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 4418,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 45140,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 45141,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 47691,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 47692,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 47760,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 47761,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 48345,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 48346,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 48496,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 48497,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49267,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49268,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49336,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49337,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49624,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49625,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49780,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49781,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49986,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 49987,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 50707,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 50708,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51303,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51304,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51368,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51369,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51464,
+        "comm": "MiniBrowser",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 51535,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 53891,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 53892,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54278,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54279,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54561,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54562,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54718,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54719,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54946,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 54947,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 55697,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 55698,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 57501,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 57502,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 57962,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 57963,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 60441,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 60442,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 60618,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 60619,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 60659,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61410,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61411,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61452,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61571,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61698,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 61699,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62449,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62451,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62452,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62469,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62471,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62490,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62546,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62547,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62563,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62864,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62901,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62905,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62906,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62922,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62924,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 62952,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 63051,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 63052,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 64289,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 64290,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 64973,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 64974,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 65039,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 65588,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 65589,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 66245,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 66246,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 67757,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 67758,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 69908,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 69909,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70140,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70141,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70304,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70305,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70816,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70817,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 70888,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 71615,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 71616,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 71661,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 72481,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 72482,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 75441,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 75442,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 78434,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 78435,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79277,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79278,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79593,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79594,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79862,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 79863,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 80839,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 80840,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 81041,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 81042,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 81261,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 82688,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 82689,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 82804,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8547,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8550,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8551,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8552,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8575,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8578,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8601,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8628,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 86346,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 86347,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8640,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8651,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8664,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 86702,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 86703,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8688,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 87016,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 87017,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 8741,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 87828,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 87829,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 89339,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 89340,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 89898,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 89899,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 90310,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 90311,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 90431,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 90432,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 92818,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 92819,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 92836,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 92859,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 93162,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 93381,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 93382,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 95063,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 95064,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 96212,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 96213,
+        "comm": "chrome-headless",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9755,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9838,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9841,
+        "comm": "chrome_crashpad",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9842,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9843,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9874,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9875,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9890,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9930,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9942,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9943,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      },
+      {
+        "pid": 9989,
+        "comm": "chrome",
+        "state": "Z",
+        "method": "comm+cmdline first executable fallback"
+      }
+    ]
+  },
+  "phaseObservations": [
+    {
+      "phase": "nativecontrast",
+      "ownedToolSession": 32701,
+      "actualOwnedToolExitCode": 0,
+      "actualSamples": 16
+    },
+    {
+      "phase": "targeted24",
+      "ownedToolSession": 57657,
+      "actualOwnedToolExitCode": 0
+    },
+    {
+      "phase": "private6",
+      "ownedToolSession": 54540,
+      "actualOwnedToolExitCode": 0
+    }
+  ],
+  "scope": "Own observed tool exits preserved. Source12 stopped cleanly unchanged before root source13 scale-transition correction. Private6 was already complete when HOLD arrived, so retained as its own source12 observations only. No focused/public/full matrix12 launched. Old zombie browser processes are inactive and are not claimed removed.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-qa-server-final8-candidate12-lifecycle-targeted1-completion.json",
+      "sha256": "4bca22407dd05c902ca9f41c530ee808ddef0af45acc243a7db298a850efa41b",
+      "bytes": 105570
+    },
+    "scope": "Own candidate12 source/build guards and actual observations retained. Synthetic credential/capability string patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. Candidate13 results are not inherited."
+  }
+}

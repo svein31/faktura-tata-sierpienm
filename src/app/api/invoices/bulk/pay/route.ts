@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { invoiceTotals, round2 } from "@/lib/format";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { recordAuditLog } from "@/lib/audit";
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const ids = entries.map(item => item.id as string);
     if (new Set(ids).size !== ids.length) throw new ApiError(400, "Powtórzone faktury w żądaniu.");
     const count = await prisma.$transaction(async tx => {
-      await companyAccess(tx, user.id, company.id, "canRecordPayments");
+      await companyWriteAccess(tx, user.id, company.id, "canRecordPayments");
       const invoices = await tx.invoice.findMany({ where: { id: { in: ids }, sellerCompanyId: company.id }, include: { payments: true } });
       if (invoices.length !== ids.length) throw new ApiError(403, "Brak dostępu do części faktur.");
       await assertAccountingPeriodsOpen(tx, invoices.map(invoice => ({ companyId: company.id, issueDate: invoice.issueDate })));

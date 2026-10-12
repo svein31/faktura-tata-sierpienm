@@ -1,0 +1,818 @@
+{
+  "schemaVersion": 1,
+  "kind": "focused-mobile-ui-and-axe",
+  "label": "final8-candidate11-private-states-rerun1",
+  "startedAt": "2026-10-11T13:34:53.556Z",
+  "finishedAt": "2026-10-11T13:35:18.883Z",
+  "actualToolExitCode": 1,
+  "before": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "cd703cbc9cedc2db7e3362faa98866fb282c2e9e87acdc2e295cc96cfd6b1e61"
+  },
+  "after": {
+    "sourceSha256": "bcd2f1fd6b309404a91d162e6e5fa5afde66c847219b8e035e5fc66f29b884a0",
+    "buildId": "r-VhHAA5roCm5-zjj7zzk",
+    "harnessSha256": "2f4f1463f9eebf5f3a7e5c11cfd70dcfe30a1467cf441edc269504cda011313f",
+    "wrapperSha256": "cd703cbc9cedc2db7e3362faa98866fb282c2e9e87acdc2e295cc96cfd6b1e61"
+  },
+  "unchanged": true,
+  "status": "failed",
+  "failure": {
+    "name": "AssertionError",
+    "message": "Scoped modified surfaces must have no known automated axe violation\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Scoped modified surfaces must have no known automated axe violation\n\n1 !== 0\n\n    at scopedAxe (file:///tmp/faktura-private-loading-states-v2.mjs:13:977)\n    at async file:///tmp/faktura-private-loading-states-v2.mjs:24:4"
+  },
+  "checks": [
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "free-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "serverState": "Actual synthetic server data"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "free-company",
+      "name": "Pagination empty count/loading/special query stays within viewport and correct disabled controls",
+      "status": "checked",
+      "pending": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 124,
+          "right": 304,
+          "bottom": 368
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 20,
+          "right": 304,
+          "bottom": 264
+        },
+        "statusScrollWidth": 288,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 16,
+              "y": 324,
+              "width": 123.890625,
+              "height": 44,
+              "right": 139.890625,
+              "bottom": 368
+            }
+          }
+        ],
+        "viewport": 320,
+        "documentWidth": 320
+      },
+      "complete": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 124,
+          "right": 304,
+          "bottom": 368
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 20,
+          "right": 304,
+          "bottom": 264
+        },
+        "statusScrollWidth": 288,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 16,
+              "y": 324,
+              "width": 123.890625,
+              "height": 44,
+              "right": 139.890625,
+              "bottom": 368
+            }
+          }
+        ],
+        "viewport": 320,
+        "documentWidth": 320
+      },
+      "state": "Test-only invoice search response total; underlying fixture invoices remain untouched"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "free-company",
+      "name": "Pagination long count/loading/special query stays within viewport and correct disabled controls",
+      "status": "checked",
+      "pending": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 124,
+          "right": 304,
+          "bottom": 368
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 20,
+          "right": 304,
+          "bottom": 264
+        },
+        "statusScrollWidth": 288,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 16,
+              "y": 324,
+              "width": 123.890625,
+              "height": 44,
+              "right": 139.890625,
+              "bottom": 368
+            }
+          }
+        ],
+        "viewport": 320,
+        "documentWidth": 320
+      },
+      "complete": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 124,
+          "right": 304,
+          "bottom": 368
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 288,
+          "height": 20,
+          "right": 304,
+          "bottom": 264
+        },
+        "statusScrollWidth": 288,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 16,
+              "y": 324,
+              "width": 123.890625,
+              "height": 44,
+              "right": 139.890625,
+              "bottom": 368
+            }
+          }
+        ],
+        "viewport": 320,
+        "documentWidth": 320
+      },
+      "state": "Test-only invoice search response total; underlying fixture invoices remain untouched"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "pro-long-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "serverState": "Test-only response variant"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "pro-long-company",
+      "name": "Pro upgrade slot stays inaccessible/unfocusable while long company label fits",
+      "status": "checked",
+      "inert": {
+        "inert": true,
+        "visibility": "hidden",
+        "focusRefused": true
+      },
+      "nonHit": {
+        "width": 102.03125,
+        "height": 40,
+        "excludedFromHitTesting": true
+      },
+      "keyboardTabSteps": 12,
+      "state": "Simulated Pro subscription plus long company name"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "no-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "serverState": "Test-only response variant"
+    },
+    {
+      "engine": "webkit",
+      "width": 320,
+      "scenario": "no-company",
+      "name": "No-company mobile action visible, accessible44px target and actual navigation",
+      "status": "checked",
+      "height": 44,
+      "focus": true,
+      "destination": "/settings/companies",
+      "state": "Simulated empty-company bootstrap; no production data modified"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "free-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "serverState": "Actual synthetic server data"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "free-company",
+      "name": "Pagination empty count/loading/special query stays within viewport and correct disabled controls",
+      "status": "checked",
+      "pending": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 72,
+          "right": 374,
+          "bottom": 316
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 20,
+          "right": 374,
+          "bottom": 264
+        },
+        "statusScrollWidth": 358,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 217.75,
+              "y": 272,
+              "width": 123.890625,
+              "height": 44,
+              "right": 341.640625,
+              "bottom": 316
+            }
+          }
+        ],
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "complete": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 72,
+          "right": 374,
+          "bottom": 316
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 20,
+          "right": 374,
+          "bottom": 264
+        },
+        "statusScrollWidth": 358,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 217.75,
+              "y": 272,
+              "width": 123.890625,
+              "height": 44,
+              "right": 341.640625,
+              "bottom": 316
+            }
+          }
+        ],
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "state": "Test-only invoice search response total; underlying fixture invoices remain untouched"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "free-company",
+      "name": "Pagination long count/loading/special query stays within viewport and correct disabled controls",
+      "status": "checked",
+      "pending": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 72,
+          "right": 374,
+          "bottom": 316
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 20,
+          "right": 374,
+          "bottom": 264
+        },
+        "statusScrollWidth": 358,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 217.75,
+              "y": 272,
+              "width": 123.890625,
+              "height": 44,
+              "right": 341.640625,
+              "bottom": 316
+            }
+          }
+        ],
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "complete": {
+        "rect": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 72,
+          "right": 374,
+          "bottom": 316
+        },
+        "status": {
+          "x": 16,
+          "y": 244,
+          "width": 358,
+          "height": 20,
+          "right": 374,
+          "bottom": 264
+        },
+        "statusScrollWidth": 358,
+        "buttons": [
+          {
+            "text": "Poprzednia",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 272,
+              "width": 97.578125,
+              "height": 44,
+              "right": 113.578125,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Następna",
+            "disabled": true,
+            "rect": {
+              "x": 121.578125,
+              "y": 272,
+              "width": 88.171875,
+              "height": 44,
+              "right": 209.75,
+              "bottom": 316
+            }
+          },
+          {
+            "text": "Pierwsza strona",
+            "disabled": false,
+            "rect": {
+              "x": 217.75,
+              "y": 272,
+              "width": 123.890625,
+              "height": 44,
+              "right": 341.640625,
+              "bottom": 316
+            }
+          }
+        ],
+        "viewport": 390,
+        "documentWidth": 390
+      },
+      "state": "Test-only invoice search response total; underlying fixture invoices remain untouched"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "pro-long-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "serverState": "Test-only response variant"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "pro-long-company",
+      "name": "Pro upgrade slot stays inaccessible/unfocusable while long company label fits",
+      "status": "checked",
+      "inert": {
+        "inert": true,
+        "visibility": "hidden",
+        "focusRefused": true
+      },
+      "nonHit": {
+        "width": 102.03125,
+        "height": 40,
+        "excludedFromHitTesting": true
+      },
+      "keyboardTabSteps": 12,
+      "state": "Simulated Pro subscription plus long company name"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "no-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "serverState": "Test-only response variant"
+    },
+    {
+      "engine": "webkit",
+      "width": 390,
+      "scenario": "no-company",
+      "name": "No-company mobile action visible, accessible44px target and actual navigation",
+      "status": "checked",
+      "height": 44,
+      "focus": true,
+      "destination": "/settings/companies",
+      "state": "Simulated empty-company bootstrap; no production data modified"
+    },
+    {
+      "engine": "chromium",
+      "width": 320,
+      "scenario": "free-company",
+      "name": "Company bootstrap reserves44px mobile row; header and main anchor remain stable",
+      "status": "checked",
+      "pending": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "complete": {
+        "headerHeight": 123,
+        "mainY": 123,
+        "viewport": 320,
+        "documentWidth": 320,
+        "bodyWidth": 320
+      },
+      "serverState": "Actual synthetic server data"
+    }
+  ],
+  "completeChecks": 15,
+  "completeEngines": [
+    "webkit"
+  ],
+  "selectedEngines": [
+    "webkit",
+    "chromium",
+    "firefox"
+  ],
+  "remainingScopes": "Only WebKit14 UI checks and Chromium320free-company header completed. Chromium remaining UI states, Firefox and15 of16 planned axe screens were not executed.",
+  "axeScreens": [
+    {
+      "engine": "chromium",
+      "width": 320,
+      "scenario": "free-company",
+      "route": "/dashboard",
+      "theme": "light",
+      "version": "4.14.0",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                ".hover\\:bg-primary\\/95 > span"
+              ],
+              "reason": "Fix any of the following:\n  Element has insufficient color contrast of 1.44 (foreground color: #616571, background color: #746eef, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1",
+              "contrastData": [
+                {
+                  "fgColor": "#616571",
+                  "bgColor": "#746eef",
+                  "contrastRatio": 1.44,
+                  "fontSize": "9.0pt (12px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "manualReviewGroups": 1
+    }
+  ],
+  "nativePageErrors": 0,
+  "rootCause": "Actual transient foreground/background color interpolation during direct dark-to-light theme toggle. One coordinated CSSprobe reproduces exact50ms colors/ratio1.4465; settledlight/dark contrast and axe passed. User requested all UI states, so root authorized source12 sharedButton transition-property fix. Original failure retained; no allowlist.",
+  "priorAttempt": {
+    "actualToolExitCode": 1,
+    "rawSha256": "d2a422f0d2efe293533ddda7787bcd294402e3e789520f7e9ee42b4f04708a64",
+    "scope": "Original /tmp wrapper assertedcoarse-pointer44px CSS in a fine-pointer narrow desktop context. Rerun explicitlyhasTouch andmatchMedia guard."
+  },
+  "scope": "Bounded320/390 coarse-pointer hasTouch mobile UI states in all3 engines using fresh source synthetic fixture. Pro tier/long name/no-company/empty&long totals are explicit test-only response variants; server billing/data security and real Safari/iOS are not certified. Actual native pageerrors retained/fatal; no application or production data modified.",
+  "rawProvenance": [
+    {
+      "path": "/tmp/faktura-private-loading-states-final8-candidate11-private-states-rerun1.json",
+      "sha256": "8e87abdc5f0326e3dfd471a5e682332d75404e95d0d7ffd42e96016a92cea1d2",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-loading-states-final8-candidate11-private-states-rerun1-execution.json",
+      "sha256": "07a8ff9b69443fb4849091c740a532e34415520366b152b15451e17a370a03f5",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    },
+    {
+      "path": "/tmp/faktura-private-loading-states-final8-candidate11-private-states-rerun1.log",
+      "sha256": "ffbc356a2ed97779963bfdbaf406e7d197c2eb8b5d09c252ed2a7fec492d1b60",
+      "access": "LOCAL_WORKSPACE_ONLY"
+    }
+  ]
+}

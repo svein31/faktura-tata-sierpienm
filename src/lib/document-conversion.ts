@@ -3,6 +3,7 @@ import { parseInvoiceBody } from "@/lib/parsers";
 import { scopedContractor } from "@/lib/document-scope";
 import { warsawDate, addCalendarDays } from "@/lib/scheduling";
 import type { Prisma } from "@prisma/client";
+import { fenceCompanyWrite } from "@/lib/company-write";
 
 export async function conversionInvoiceData(userId: string, document: { companyId: string | null; contractorId: string | null; currency: string }, lines: unknown[], notes: string) {
   await scopedContractor(userId, document.contractorId || "", document.companyId);
@@ -12,7 +13,7 @@ export async function conversionInvoiceData(userId: string, document: { companyI
 
 /** Serialize conversion numbering per company; a concurrent conversion retries after 409. */
 export async function conversionNumber(tx: Prisma.TransactionClient, companyId: string | null, userId: string) {
-  if (companyId) await tx.companyProfile.update({ where: { id:companyId }, data: { updatedAt: new Date() } });
+  if (companyId) await fenceCompanyWrite(tx, companyId);
   else await tx.user.update({ where: { id:userId }, data: { updatedAt: new Date() } });
   const where = companyId ? { sellerCompanyId: companyId } : { userId, sellerCompanyId: null };
   let sequence = await tx.invoice.count({ where: { ...where, type: "sale" } }) + 1;

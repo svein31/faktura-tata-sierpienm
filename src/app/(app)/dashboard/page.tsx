@@ -56,14 +56,18 @@ export default function DashboardPage() {
     <header className="flex flex-wrap items-center justify-between gap-3">
       <div><h1 className="text-2xl font-semibold tracking-tight">Przegląd</h1><p className="text-xs text-muted-foreground">Dokumenty, potwierdzenia i płatności wymagające działania</p></div>
       <div className="flex flex-wrap items-center gap-2">
-        {showUpgrade && <Link prefetch={false}
+        {/* Reserve the link's natural width before the subscription arrives. */}
+        <Link prefetch={false}
           href="/settings/account?tab=billing"
-          className="group relative inline-flex min-h-10 items-center gap-1.5 overflow-hidden rounded-lg border border-violet-300/60 bg-gradient-to-r from-violet-800 via-purple-700 to-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-900/30 transition-[transform,box-shadow,filter] duration-300 hover:brightness-110 hover:shadow-lg hover:shadow-violet-500/35 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-hidden={!showUpgrade || undefined}
+          tabIndex={showUpgrade ? undefined : -1}
+          inert={!showUpgrade || undefined}
+          className={`group relative inline-flex min-h-10 items-center gap-1.5 overflow-hidden rounded-lg border border-violet-300/60 bg-gradient-to-r from-violet-800 via-purple-700 to-amber-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm shadow-violet-900/30 transition-[transform,box-shadow,filter] duration-300 hover:brightness-110 hover:shadow-lg hover:shadow-violet-500/35 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${!showUpgrade ? "invisible" : ""}`}
         >
           <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/25 blur-md transition-transform duration-700 motion-safe:group-hover:translate-x-[500%] motion-reduce:hidden" />
           <Crown aria-hidden="true" className="relative size-4 text-amber-200 transition-transform duration-300 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110" />
           <span className="relative">Kup Pro</span>
-        </Link>}
+        </Link>
         <button onClick={reload} aria-label="Odśwież przegląd" className="rounded-lg border p-2.5 text-muted-foreground hover:text-foreground"><RefreshCw className="size-4" /></button>
         <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"><Plus className="size-4" /> Nowa faktura</Link>
       </div>

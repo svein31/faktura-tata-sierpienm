@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { ApiError, cleanStr } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 import { periodKeys } from "@/lib/accounting-period";
 import { accountingWorkspaceId, type AccountingTask } from "@/lib/accounting-workspace";
 import { effectiveDocumentStatus, isAccountingInvoice, monthlySummary } from "@/lib/accountant-summary";
@@ -51,7 +51,7 @@ export async function accountingReadiness(tx: Prisma.TransactionClient, companyI
 
 /** Caller supplies the same transaction used for the period mutex, readiness check and immutable event. */
 export async function changeAccountingPeriod(tx: Prisma.TransactionClient, actor: { id: string; name?: string | null; email?: string | null }, body: Record<string, unknown>) {
-  const { company, role } = await companyAccess(tx, actor.id, body.companyId, "canExport");
+  const { company, role } = await companyWriteAccess(tx, actor.id, body.companyId, "canExport");
   if (!["close", "reopen"].includes(String(body.action))) throw new ApiError(400, "Wybierz zamknięcie lub ponowne otwarcie.");
   if (role !== "owner" && (role !== "accountant" || body.action === "reopen")) throw new ApiError(403, "Okres zamyka właściciel lub księgowość. Ponowne otwarcie wymaga właściciela.");
   const reason = cleanStr(body.reason, 1000, "uzasadnienie");

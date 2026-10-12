@@ -10,6 +10,7 @@ import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
 import type { CompanyProfile, CompanyBankAccount } from "@/lib/types";
+import { LOGO_REQUIREMENTS, MAX_LOGO_BYTES, normalizeLogoUrl } from "@/lib/pdf/logo-safety";
 
 interface CompanyModalProps {
   open: boolean;
@@ -57,6 +58,10 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
   const [loadingGus, setLoadingGus] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const previewLogoUrl = React.useMemo(() => {
+    try { return normalizeLogoUrl(form.logoUrl) ?? undefined; }
+    catch { return undefined; }
+  }, [form.logoUrl]);
 
   // Rachunki wielowalutowe
   const [bankAccounts, setBankAccounts] = React.useState<CompanyBankAccount[]>([]);
@@ -257,6 +262,11 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
 
     if (!form.companyName.trim()) {
       newErrors.companyName = "Nazwa firmy / spółki jest wymagana.";
+    }
+    try { normalizeLogoUrl(form.logoUrl); }
+    catch (error) {
+      newErrors.logoUrl = error instanceof Error ? error.message : LOGO_REQUIREMENTS;
+      toast("error", "Nieprawidłowe logo", newErrors.logoUrl);
     }
 
     setErrors(newErrors);
@@ -642,14 +652,14 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
             <Label className="font-semibold text-[13px] flex items-center gap-1.5">
               <ImageIcon className="h-4 w-4 text-primary" /> Logo firmy na fakturze (nagłówek)
             </Label>
-            <span className="text-[11px] text-muted-foreground">PNG, JPG, SVG (max 2 MB)</span>
+            <span className="text-[11px] text-muted-foreground">PNG, JPG (max 2 MB)</span>
           </div>
 
           {form.logoUrl ? (
             <div className="flex items-center gap-4 p-3 bg-card rounded-xl border border-border">
               <div className="relative flex items-center justify-center p-2 bg-white rounded-lg border border-border/60 max-w-[180px] max-h-[70px] overflow-hidden">
                 <img
-                  src={form.logoUrl}
+                  src={previewLogoUrl}
                   alt="Podgląd logo"
                   className="max-h-12 max-w-full object-contain"
                 />
@@ -683,20 +693,26 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                   onClick={() => {
                     const el = document.createElement("input");
                     el.type = "file";
-                    el.accept = "image/png,image/jpeg,image/webp,image/svg+xml";
+                    el.accept = "image/png,image/jpeg";
                     el.onchange = (e) => {
                       const file = (e.target as HTMLInputElement).files?.[0];
                       if (!file) return;
-                      if (file.size > 2 * 1024 * 1024) {
-                        toast("error", "Zbyt duży plik", "Maksymalny dopuszczalny rozmiar logo to 2 MB.");
+                      if (file.size > MAX_LOGO_BYTES) {
+                        toast("error", "Zbyt duży plik", LOGO_REQUIREMENTS);
                         return;
                       }
                       const reader = new FileReader();
                       reader.onload = (ev) => {
-                        const res = ev.target?.result as string;
-                        setField("logoUrl", res);
-                        toast("success", "Wgrano logo", file.name);
+                        try {
+                          const logo = normalizeLogoUrl(ev.target?.result);
+                          if (!logo) throw new Error(LOGO_REQUIREMENTS);
+                          setField("logoUrl", logo);
+                          toast("success", "Wgrano logo", file.name);
+                        } catch (error) {
+                          toast("error", "Nieprawidłowe logo", error instanceof Error ? error.message : LOGO_REQUIREMENTS);
+                        }
                       };
+                      reader.onerror = () => toast("error", "Nieprawidłowe logo", "Nie udało się odczytać pliku logo.");
                       reader.readAsDataURL(file);
                     };
                     el.click();

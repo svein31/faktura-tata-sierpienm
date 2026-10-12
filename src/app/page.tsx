@@ -74,7 +74,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge zgodności */}
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-700 dark:text-emerald-400">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-800 dark:text-emerald-400">
               <ShieldCheck className="h-4 w-4" />
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>

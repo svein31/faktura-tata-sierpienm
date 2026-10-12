@@ -34,11 +34,13 @@ export function percentile(values, quantile) {
 
 export function summary(samples, elapsedMs) {
   const successful = samples.filter(sample => sample.ok);
+  const atOrAboveOneSecond = samples.filter(sample => sample.elapsedMs >= 1000);
   return {
     requests: samples.length, successful: successful.length, errors: samples.length - successful.length,
     errorRate: Number((samples.length ? (samples.length - successful.length) / samples.length : 0).toFixed(6)),
     requestsPerSecond: rounded(samples.length * 1000 / elapsedMs),
     latencyMs: { p50: percentile(samples.map(sample => sample.elapsedMs), 0.5), p95: percentile(samples.map(sample => sample.elapsedMs), 0.95), p99: percentile(samples.map(sample => sample.elapsedMs), 0.99), max: rounded(samples.reduce((maximum, sample) => Math.max(maximum, sample.elapsedMs), 0)) },
+    oneSecondBudget: { thresholdMs: 1000, comparison: 'elapsedMs < 1000; includes errors', below: samples.length - atOrAboveOneSecond.length, atOrAbove: atOrAboveOneSecond.length, exceededFraction: Number((samples.length ? atOrAboveOneSecond.length / samples.length : 0).toFixed(6)), allRequestsBelow: samples.length > 0 && atOrAboveOneSecond.length === 0 },
     ttfbMs: { p50: percentile(samples.map(sample => sample.ttfbMs).filter(Number.isFinite), 0.5), p95: percentile(samples.map(sample => sample.ttfbMs).filter(Number.isFinite), 0.95) },
     bytes: samples.reduce((sum, sample) => sum + (sample.bytes || 0), 0),
     statusCounts: Object.fromEntries([...new Set(samples.map(sample => String(sample.status)))].map(status => [status, samples.filter(sample => String(sample.status) === status).length])),

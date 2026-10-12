@@ -7,18 +7,18 @@ import { companyBankAccountToDto } from "@/lib/dto";
 import { validateAccountNumber, isValidSwiftBic } from "@/lib/banking/validation";
 import { recordAuditLog } from "@/lib/audit";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
+import { companyWriteAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /** Serialize even the first defaults through an existing company document, with bounded conflict retries. */
-async function bankAccountTransaction<T>(companyId: string, operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+async function bankAccountTransaction<T>(companyId: string, userId: string, operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       return await prisma.$transaction(async tx => {
-        const company = await tx.companyProfile.findUniqueOrThrow({ where: { id: companyId }, select: { updatedAt: true } });
-        await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date(Math.max(Date.now(), company.updatedAt.getTime() + 1)) } });
+        await companyWriteAccess(tx, userId, companyId, "canManageBankAccounts");
         return operation(tx);
       });
     } catch (error) {
@@ -107,7 +107,7 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ error: "Kod SWIFT/BIC musi składać się z 8 lub 11 znaków alfanumerycznych." }, { status: 400 });
     }
 
-    const created = await bankAccountTransaction(companyId, async tx => {
+    const created = await bankAccountTransaction(companyId, user.id, async tx => {
     if (isDefault) {
       await tx.companyBankAccount.updateMany({
         where: { companyId, currency },
@@ -167,7 +167,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     if (!account) return json({ error: "Nie znaleziono rachunku tej firmy." }, { status: 404 });
     const profiles = await prisma.companyProfile.findMany({ where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true } });
     if (accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName)) return json({ error: "Rachunek jest przypisany do innej firmy." }, { status: 409 });
-    const updated = await bankAccountTransaction(companyId, async tx => {
+    const updated = await bankAccountTransaction(companyId, user.id, async tx => {
       await tx.companyBankAccount.updateMany({ where: { companyId, currency: account.currency }, data: { isDefault: false } });
       return tx.companyBankAccount.update({ where: { id: account.id }, data: { isDefault: true } });
     });
@@ -198,6 +198,7 @@ export async function DELETE(req: Request, { params }: Ctx) {
     if (!accountId) {
       return json({ error: "Brak identyfikatora rachunku." }, { status: 400 });
     }
+    assertObjectId(accountId);
 
     const account = await prisma.companyBankAccount.findFirst({
       where: { id: accountId, companyId },
@@ -206,7 +207,9 @@ export async function DELETE(req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono rachunku bankowego.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    await prisma.companyBankAccount.delete({ where: { id: account.id } });
+    await bankAccountTransaction(companyId, user.id, async tx => {
+      await tx.companyBankAccount.delete({ where: { id: account.id } });
+    });
 
     // Zapis w historii audytowej
     await recordAuditLog({

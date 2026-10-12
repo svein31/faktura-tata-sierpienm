@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate14-postgap",
+  "status": "PASS",
+  "actual": {
+    "checkedAt": "2026-10-12T04:36:02.474Z",
+    "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+    "harnessSha256": "eb09f56d5ee028bf87896144bfdfdee0d5003f396e9b9661d744c7178841681d",
+    "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+    "revision": "f9e1e106d7e61e21cefaa0487e116315fab2348e"
+  },
+  "checkedArtifacts": [
+    {
+      "path": "/tmp/faktura-load200-candidate14-identity.json",
+      "sha256": "81c14668219d6079d0b534663622ca607ca938f7f8870fc43fa2653a2a51ca8d",
+      "bytes": 313
+    },
+    {
+      "path": "/tmp/faktura-final8-candidate14-gates-execution.json",
+      "sha256": "dc3d5f513e69acfcb14117c0c8e818799634d101ebc7f42497a5c9bec227da7c",
+      "bytes": 4693
+    },
+    {
+      "path": "/tmp/faktura-final8-candidate14-gates-outer-observed.json",
+      "sha256": "a6c330535b3265afaf19132d93eba9503770692e714c24543bcfaa29b1560306",
+      "bytes": 1015
+    },
+    {
+      "path": "/tmp/faktura-browser-execution-final8-candidate14.json",
+      "sha256": "7372f6b905b15bcaa2ef503cf9225da1f0118b86fa53342ce0268b493fb07acf",
+      "bytes": 88498
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage-final8-candidate14.json",
+      "bytes": 24489413,
+      "sha256": "e20e3b3e0a73e4474e09fcfaaae1fbdf24b62a9895593aad573bba316bda5957"
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/artifacts/audit/browser-coverage-summary-final8-candidate14.json",
+      "bytes": 389904,
+      "sha256": "d97649ff0d5ca93db703dd154120ba04e9e3b30f147dbc882e46510750d29b25"
+    },
+    {
+      "path": "/workspace/faktura-tata-sierpienm/docs/audit/2026-10-08/browser-coverage-summary-final8-candidate14.json",
+      "bytes": 387467,
+      "sha256": "d7cf64120a2e08e7edc51296c2eac36118306fb602260bfd1ca8cdb20ed61201"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/cookie-print-chromium.json",
+      "bytes": 4883,
+      "sha256": "9a8c9131fa647e228a5c64f79358ca62b7e62896e619554937214883d59ce01d"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/cookie-print-firefox.json",
+      "bytes": 4882,
+      "sha256": "a69d49b231f29b0ec685bbdb2acf1e428251cf3fbb7670c892244b6af38d3ce0"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/cookie-print-webkit.json",
+      "bytes": 4881,
+      "sha256": "d5b02daab0ce4842db07a9e94019fd34683cba6869e36be5af8330fbef42257c"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/expenses-filter-chromium.json",
+      "bytes": 7483,
+      "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/expenses-filter-firefox.json",
+      "bytes": 7483,
+      "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/expenses-filter-webkit.json",
+      "bytes": 7483,
+      "sha256": "639c1b844ca0050813c0051d6bc301111ff25e4aa63f13b70aca98ce569e53f9"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/financial-chromium.json",
+      "bytes": 733,
+      "sha256": "8203fc1b0072761e69d17bc59c9f7c2d3a96d614af111b562f365ca345f0c95b"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/financial-firefox.json",
+      "bytes": 733,
+      "sha256": "8203fc1b0072761e69d17bc59c9f7c2d3a96d614af111b562f365ca345f0c95b"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/financial-webkit.json",
+      "bytes": 733,
+      "sha256": "8203fc1b0072761e69d17bc59c9f7c2d3a96d614af111b562f365ca345f0c95b"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/invitation-chromium.json",
+      "bytes": 715,
+      "sha256": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/invitation-firefox.json",
+      "bytes": 715,
+      "sha256": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/invitation-webkit.json",
+      "bytes": 715,
+      "sha256": "ea14ee563b24b24a40e77d4a0a2f82ff15c204dcf90fe0cca453f3507a78e3b8"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/primitives-chromium.json",
+      "bytes": 4085,
+      "sha256": "e6937f63c50298e325a5212c2fc3ea7f450b2d20b01c95e50f67e791f65c0336"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/primitives-firefox.json",
+      "bytes": 4090,
+      "sha256": "5b9358b0773cdb1557276ddd8e367f664a73ba8def20c0edb7f7b169b0fddc01"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/primitives-webkit.json",
+      "bytes": 4092,
+      "sha256": "a64fd511ffabedb3862a7f1064230602d99d2dc765c5b252d7a329a5129e680f"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/private-prefetch-chromium.json",
+      "bytes": 215601,
+      "sha256": "cbe207ee34983aab534b06d631f7460cde2b7f72679116319eef3a83308a21ff"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/private-prefetch-firefox.json",
+      "bytes": 221311,
+      "sha256": "38c8bb24dfb916b7f924775304d962bf0f79b10e8cf8cd7faa5f1a8c79609b8b"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/private-prefetch-webkit.json",
+      "bytes": 207473,
+      "sha256": "8182ae3d6e5a86de3e21fa9c464ecd2211bffc6fba03eca6e474de0fcfba3ff0"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/team-clipboard-chromium.json",
+      "bytes": 511,
+      "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/team-clipboard-firefox.json",
+      "bytes": 511,
+      "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+    },
+    {
+      "path": "/tmp/faktura-browser-generated-final8-candidate14/team-clipboard-webkit.json",
+      "bytes": 511,
+      "sha256": "be8e1c2470e74930591b6e7dd616ff15faccbc07761d62ba22254ce804b3c4ee"
+    },
+    {
+      "path": "/tmp/faktura-qa-server-final8-candidate14-lifecycle-targeted1-completion.json",
+      "sha256": "3efc37296cd818719a0a2925cabb0a55a48b3a49b7bec87a1778ebd25e06f562",
+      "bytes": 109482
+    }
+  ],
+  "gateChildren": [
+    {
+      "name": "build",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:24:46.705Z"
+    },
+    {
+      "name": "type",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:24:54.259Z"
+    },
+    {
+      "name": "lint",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:24:59.635Z"
+    },
+    {
+      "name": "unit",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:25:44.927Z",
+      "actualTestCounts": [
+        7,
+        570
+      ]
+    },
+    {
+      "name": "perf-unit",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:25:45.957Z"
+    },
+    {
+      "name": "integration",
+      "exitCode": 0,
+      "signal": null,
+      "endedAt": "2026-10-11T18:27:08.075Z"
+    }
+  ],
+  "originalGateRootOuter": {
+    "ownedSessionId": 34105,
+    "actualOuterExitCode": 0,
+    "observedAt": "2026-10-11T18:27:22.185541+00:00"
+  },
+  "matrix": {
+    "actualRecordedChildExit": {
+      "code": 0,
+      "signal": null
+    },
+    "originalOwnedRootSession": 7723,
+    "originalOuterWait": "UNKNOWN: original owned tool session unavailable after quota/user gap; no inferred outer exit",
+    "unchanged": true,
+    "harnessUnchanged": true,
+    "reportsFresh": true,
+    "completedEngines": [
+      "chromium",
+      "webkit",
+      "firefox"
+    ],
+    "layoutChecks": 1010,
+    "layoutFailures": 0,
+    "totals": {
+      "observations": 1010,
+      "visibleControlInstances": 33572,
+      "checkedScenarios": 246
+    },
+    "networkIssueCount": 132,
+    "consoleIssueCount": 93,
+    "snapshotsChecked": 21
+  },
+  "cleanup": {
+    "ownedProcesses": [
+      {
+        "pid": 363500,
+        "state": "absent"
+      },
+      {
+        "pid": 363512,
+        "state": "absent"
+      },
+      {
+        "pid": 363513,
+        "state": "absent"
+      },
+      {
+        "pid": 363640,
+        "state": "absent"
+      }
+    ],
+    "ports": [
+      {
+        "port": 45150,
+        "status": "ECONNREFUSED"
+      },
+      {
+        "port": 34619,
+        "status": "ECONNREFUSED"
+      }
+    ],
+    "activeFixtureFamilyProcesses": [],
+    "activeBrowserProcesses": [],
+    "inactiveZombieBrowserCount": 702,
+    "procExeReadFailureCount": 1271,
+    "fallbackExecutableCount": 702,
+    "method": "All numeric /proc entries scanned: process state and executable readlink, comm and first cmdline executable fallback when inaccessible. Zombie browsers are inactive and not claimed removed.",
+    "fullMatrixResources": "All active mongod/next-server/Mongo helper/browser processes absent. Exact full-matrix Mongo port and owned PIDs were not recorded by original harness; process scan verifies current resource-family absence, not individual historical identity."
+  },
+  "scope": "Fresh owned postgap identity/hash/report/resource receipt only. The original full-matrix child0 is validated, but unavailable outer tool session7723 remains UNKNOWN. No browser/test/load rerun and no inherited measurements.",
+  "postgapOwnedDirectToolObservation": {
+    "actualExitCode": 0,
+    "observedAt": "2026-10-12T04:36:03Z",
+    "scope": "Actual direct exec tool completion observed by owning browser release agent. Separate fresh receipt; original full matrix tool7723 outer remains UNKNOWN."
+  },
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-final8-candidate14-postgap-guard.json",
+      "sha256": "2a12b57e1c01a04a2939d799f7dc1630548ae6be73ab0ceaa00a33688711d743",
+      "bytes": 9571
+    },
+    "scope": "Own candidate14 source/build guards and actual observations retained. Synthetic credential/capability patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. No measurements inherited from older candidates."
+  }
+}

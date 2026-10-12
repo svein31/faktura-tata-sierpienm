@@ -31,10 +31,10 @@ async function buildFixture() {
   try {
     await new Promise((resolve, reject) => compiler.run((error, stats) => error ? reject(error) : stats.hasErrors() ? reject(new Error(stats.toString({ all: false, errors: true }))) : resolve()));
   } finally { await new Promise(resolve => compiler.close(resolve)); }
-  const postcss = require("postcss"), tailwind = require("tailwindcss"), loadConfig = require("tailwindcss/loadConfig");
-  const config = loadConfig(join(root, "tailwind.config.ts"));
-  config.content = [join(root, "src/**/*.tsx"), join(directory, "ui-primitives-fixture.tsx")];
-  const css = await postcss([tailwind(config), require("autoprefixer")]).process(await readFile(join(root, "src/app/globals.css"), "utf8"), { from: join(root, "src/app/globals.css") });
+  const postcss = require("postcss"), tailwind = require("@tailwindcss/postcss");
+  const source = await readFile(join(root, "src/app/globals.css"), "utf8");
+  // Compile the same application CSS with the actual v4 PostCSS plugin, adding only synthetic fixture candidates.
+  const css = await postcss([tailwind({ base: root }), require(join(root, "tailwind-compat.config.cjs"))(), require("autoprefixer")]).process(`${source}\n@source ${JSON.stringify(join(directory, "ui-primitives-fixture.tsx"))};`, { from: join(root, "src/app/globals.css") });
   return { output, js: await readFile(join(output, "fixture.js")), css: css.css };
 }
 
@@ -266,7 +266,7 @@ export async function auditUiPrimitives(browser, { outputPath } = {}) {
           left: native.style.left, top: native.style.top,
           ariaHidden: native.getAttribute("aria-hidden"), tabIndex: native.tabIndex,
           proxyPosition: style.position, proxyWidth: style.width, proxyHeight: style.height,
-          proxyClip: style.clip,
+          proxyClip: style.clip, proxyClipPath: style.clipPath, proxyOverflow: style.overflow,
         };
       });
       const fixedBefore = await geometry();
@@ -277,7 +277,12 @@ export async function auditUiPrimitives(browser, { outputPath } = {}) {
       assert.equal(fixedBefore.ariaHidden, "true"); assert.equal(fixedBefore.tabIndex, -1);
       assert.equal(fixedBefore.proxyPosition, "absolute");
       assert.equal(fixedBefore.proxyWidth, "1px"); assert.equal(fixedBefore.proxyHeight, "1px");
-      assert.equal(fixedBefore.proxyClip, "rect(0px, 0px, 0px, 0px)");
+      // Tailwind 3 used a zero-area clip rectangle; Tailwind 4 uses inset(50%).
+      // Both fully clip this 1px native proxy while retaining form validation.
+      assert.ok(
+        fixedBefore.proxyClip === "rect(0px, 0px, 0px, 0px)" || fixedBefore.proxyClipPath === "inset(50%)",
+        `The native proxy must remain fully visually clipped: ${JSON.stringify(fixedBefore)}`
+      );
       // Causal DOM recreation of the prior missing-anchor styles; this is not
       // represented as a test of an older compiled application build.
       await page.locator('#select-form select[aria-hidden="true"]').evaluate(native => {

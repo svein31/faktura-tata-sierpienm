@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, assertObjectId, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, companyWriteAccess } from "@/lib/company-write";
 import { assertAccountingPeriodsOpen } from "@/lib/accounting-period";
 import { effectiveDocumentStatus, isAccountingInvoice } from "@/lib/accountant-summary";
 import { recordAuditLog } from "@/lib/audit";
@@ -44,7 +44,7 @@ export async function PATCH(req: Request) {
     if (!["match", "ignore"].includes(String(body.action))) throw new ApiError(400, "Wybierz przypisanie lub pominięcie.");
     if (body.action === "match") { assertObjectId(body.documentId); if (!["invoice", "expense"].includes(String(body.kind))) throw new ApiError(400, "Wybierz dokument."); }
     const result = await prisma.$transaction(async tx => {
-      const { company } = await companyAccess(tx, user.id, body.companyId, "canRecordPayments");
+      const { company } = await companyWriteAccess(tx, user.id, body.companyId, "canRecordPayments");
       const transaction = await tx.bankTransaction.findFirst({ where: { id: body.transactionId as string, ...scope(company.id) } });
       if (!transaction) throw new ApiError(404, "Nie znaleziono transakcji.");
       if (!["unmatched", "ambiguous"].includes(transaction.matchStatus) || transaction.updatedAt.toISOString() !== body.revision) throw new ApiError(409, "Transakcja zmieniła się lub jest już rozliczona. Odśwież listę.");

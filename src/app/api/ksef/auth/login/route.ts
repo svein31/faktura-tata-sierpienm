@@ -1,4 +1,4 @@
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { requireRecentAuth } from "@/lib/security-policy";
 import { isValidNipFormat } from "@/lib/validation";
 import { prisma } from "@/lib/db";
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     const validUntilDate = authResult.validUntil ? new Date(authResult.validUntil) : new Date(Date.now() + 8 * 3600 * 1000);
 
     const ksefSession = await prisma.$transaction(async tx => {
-      await tx.companyProfile.update({ where: { id: profile.id }, data: { updatedAt: new Date() } });
+      await fenceCompanyWrite(tx, profile.id);
       await companyAccess(tx, user.id, profile.id, "canManageIntegrations");
       const existing = await tx.ksefSession.findUnique({ where: { referenceNumber: authResult.referenceNumber } });
       if (existing && (existing.userId !== profile.userId || existing.nip !== nip || existing.environment !== environment)) throw new ApiError(409, "Otrzymano identyfikator sesji należący do innej konfiguracji.");

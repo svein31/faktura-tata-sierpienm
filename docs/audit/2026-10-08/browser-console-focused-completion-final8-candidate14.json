@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "label": "final8-candidate14-console-focused",
+  "observedAt": "2026-10-12T04:43:41.742Z",
+  "status": "PASS",
+  "currentSourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+  "fixtureOwnedTool": {
+    "sessionId": 39435,
+    "actualObservedOuterExitCode": 0
+  },
+  "phaseOwnedTool": {
+    "sessionId": 12713,
+    "actualObservedOuterExitCode": 0
+  },
+  "fixtureProof": {
+    "path": "/tmp/faktura-qa-server-final8-candidate14-console-focused-execution.json",
+    "sha256": "faf7e777f2f758a3c626e15b0dda059837008050bc9dd3f7007f94cf66bc3ac9",
+    "unchanged": true,
+    "before": {
+      "phase": "before-fixture",
+      "checkedAt": "2026-10-12T04:39:47.079Z",
+      "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+      "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+      "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+      "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+    },
+    "after": {
+      "phase": "after-fixture-cleanup",
+      "checkedAt": "2026-10-12T04:43:29.552Z",
+      "sourceSha256": "4c3d79d51bc12bf1856c0e63637ec156935e5070b0566e90e307a780aa1ae2cf",
+      "buildId": "j7yf1Y2WBJZ6W17DQlzpy",
+      "wrapperSha256": "521c3e5ad1d23fb5f9c25ab79ea422f81e25b72ab016060070806d6ab5d94862",
+      "guardSha256": "0d86358005823a2854571795d487f9b57fb770ef6a32206130c3df9e5ab37f29",
+      "migrationHarnessSha256": "2bbcee6fd78c489676974d40c38715ada341389f9d4c57e2501eee597a300cb1"
+    }
+  },
+  "phaseProof": {
+    "path": "/tmp/faktura-candidate14-console-focused-execution.json",
+    "sha256": "cd1e05c4c821384509ec4cef52072890887ad56f8354534118ef7c17ee1b2c76",
+    "actualChildExit": {
+      "code": 0,
+      "signal": null
+    },
+    "unchanged": true
+  },
+  "rawProof": {
+    "path": "/tmp/faktura-candidate14-console-focused.json",
+    "sha256": "d782f295a7f83e66512acb87bc0e6d03e3ab853a5a845fd359d13447074bd726",
+    "checks": 36,
+    "consoleIssues": 2,
+    "pageErrors": 0,
+    "requestFailures": 24
+  },
+  "ownedProcesses": [
+    {
+      "pid": 391990,
+      "role": "fixture owner",
+      "state": "absent"
+    },
+    {
+      "pid": 392004,
+      "role": "isolated Mongo",
+      "state": "absent"
+    },
+    {
+      "pid": 392005,
+      "role": "Mongo helper",
+      "state": "absent"
+    },
+    {
+      "pid": 392131,
+      "role": "Next server",
+      "state": "absent"
+    }
+  ],
+  "ports": [
+    {
+      "port": 45151,
+      "status": "ECONNREFUSED"
+    },
+    {
+      "port": 33745,
+      "status": "ECONNREFUSED"
+    },
+    {
+      "port": 44416,
+      "status": "ECONNREFUSED"
+    }
+  ],
+  "activeFixtureFamilyProcesses": [],
+  "activeBrowserProcesses": [],
+  "inactiveZombieBrowserCount": 702,
+  "procExeReadFailureCount": 1278,
+  "resourceScanMethod": "All numeric /proc entries: process state/executable readlink plus comm and first cmdline executable fallback. Inactive zombie browsers are separate, not claimed removed.",
+  "scope": "Both actual owned outer0 observations taken before this cleanup receipt. All4 directly captured fixture PIDs absent, fresh fixture app/Mongo ports closed, prior full matrix app44416 (identified from raw WebKit console URL) also closed. Source14 remains frozen; no new app/script changes.",
+  "publication": {
+    "sanitized": true,
+    "rawSource": {
+      "path": "/tmp/faktura-candidate14-console-focused-completion.json",
+      "sha256": "b6161220a803a9fd010806e656f8728303eab43aa21d15e3e674099ce2888ea2",
+      "bytes": 3414
+    },
+    "scope": "Own candidate14 source/build guards and actual observations retained. Synthetic credential/capability patterns replaced only in published copy; raw proof, console/network diagnostics and logs remain unfiltered locally. No measurements inherited from older candidates."
+  }
+}

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getApiSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json } from "@/lib/api";
 import { objectId } from "@/lib/company-scope";
 import { requireCompanyAccess } from "@/lib/permissions";
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 /** Small authenticated preview; POST still reserves the definitive number atomically. */
 export async function GET(req: Request) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiSessionUser();
     if (!user) throw new ApiError(401, "Nieautoryzowany.");
     const params = new URL(req.url).searchParams, companyId = params.get("companyId");
     if (!objectId(companyId)) throw new ApiError(400, "Wybierz firmę.");

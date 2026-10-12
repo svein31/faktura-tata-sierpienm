@@ -9,6 +9,8 @@ next-env.d.ts
 .DS_Store
 *.log
 tmp/pdfs/
+# Generated QA output; publish only reviewed summaries under docs/.
+artifacts/
 
 # Bazy danych SQLite (dane użytkowników)
 prisma/data/

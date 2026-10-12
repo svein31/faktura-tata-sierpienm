@@ -7,18 +7,20 @@ import { SessionProvider } from "@/lib/session-context";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { PublicDeferred } from "@/components/public-deferred";
 
-// The Latin and Latin Extended A subsets preserve Polish names and variable weights.
-// Keeping the two real fonts ahead of the metric-adjusted fallback avoids mixing
-// Polish letters with Arial, while next/font gives both assets immutable hashes.
+// Keep the self-hosted Polish subsets available to styles that use --font-sans.
+// The current font-sans utility uses the system stack, so preloading these
+// optional faces would transfer unused assets on every initial navigation.
 const interLatin = localFont({
   src: "./fonts/fakturaprosto-sans-latin-variable.woff2",
   display: "swap",
+  preload: false,
   weight: "100 900",
   adjustFontFallback: "Arial",
 });
 const interExtended = localFont({
   src: "./fonts/fakturaprosto-sans-extended-variable.woff2",
   display: "swap",
+  preload: false,
   weight: "100 900",
   adjustFontFallback: false,
 });

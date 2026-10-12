@@ -7,6 +7,7 @@ import { ApiError, handleApiError, json, readJson } from "@/lib/api";
 import { companyProfileToDto } from "@/lib/dto";
 import { parseCompanyProfileBody } from "@/lib/parsers";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
+import { validateInlineLogoForStorage } from "@/lib/pdf/png-embedding";
 
 export const runtime = "nodejs";
 
@@ -48,6 +49,7 @@ export async function POST(req: Request) {
 
     const body = await readJson(req);
     const data = parseCompanyProfileBody(body);
+    await validateInlineLogoForStorage(data.logoUrl);
     if (data.bankAccount) {
       const profiles = await prisma.companyProfile.findMany({
         where: { userId: user.id }, select: { id: true, bankAccount: true, companyName: true },

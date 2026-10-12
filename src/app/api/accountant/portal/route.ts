@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { ApiError, handleApiError, json, readJson } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { objectId } from "@/lib/company-scope";
 import { isAccountingInvoice } from "@/lib/accountant-summary";
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     if (body.action === "comment" && (!message || message.length > 2000)) throw new ApiError(400, "Uwaga musi mieć od 1 do 2000 znaków.");
     await prisma.$transaction(async tx => {
       const actor = await accountant(tx, user.id, companyId);
-      await tx.companyProfile.update({ where: { id: companyId }, data: { updatedAt: new Date() } });
+      await fenceCompanyWrite(tx, companyId);
       for (const item of items) {
         const invoice = item.kind === "invoice" ? await tx.invoice.findFirst({ where: { id: item.id, sellerCompanyId: companyId } }) : null;
         const expense = item.kind === "expense" ? await tx.expense.findFirst({ where: { id: item.id, companyId } }) : null;

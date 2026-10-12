@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { Prisma, ProjectEntry } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { ApiError, cleanStr } from "@/lib/api";
-import { companyAccess } from "@/lib/company-write";
+import { companyWriteAccess } from "@/lib/company-write";
 import { objectId } from "@/lib/company-scope";
 import { isIsoCalendarDate } from "@/lib/nbp";
 import { isAccountingInvoice } from "@/lib/accountant-summary";
@@ -85,7 +85,7 @@ export async function projectDetails(tx: Db, companyId: string, id: string) {
 
 export async function projectCommand(userId: string, body: Record<string, unknown>) {
   return prisma.$transaction(async tx => {
-    const { company } = await companyAccess(tx, userId, body.companyId, "canExport");
+    const { company } = await companyWriteAccess(tx, userId, body.companyId, "canExport");
     const action = String(body.action);
     if (action === "create") {
       const name = cleanStr(body.name, 150, "nazwa"), description = cleanStr(body.description, 2000, "opis");

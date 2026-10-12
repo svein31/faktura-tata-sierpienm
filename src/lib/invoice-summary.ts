@@ -9,6 +9,7 @@ const objectIdFields = ["userId", "sellerCompanyId", "bookedBy", "costReviewId",
 const scalarDefaults = Object.fromEntries((Prisma.dmmf.datamodel.models.find(model => model.name === "Invoice")?.fields ?? [])
   .filter(field => field.kind === "scalar" && (typeof field.default === "string" || typeof field.default === "number" || typeof field.default === "boolean" || Array.isArray(field.default) || !field.isRequired))
   .map(field => [field.name, field.isRequired && field.default !== undefined && (typeof field.default !== "object" || Array.isArray(field.default)) ? field.default : null]));
+const scalarDefaultEntries = Object.entries(scalarDefaults);
 
 /** Accounting lines, currency, settlement/recurring and payment totals stay complete.
  * Archived XML/UPO and repeated company/payment relations are fetched for one detail only.
@@ -19,13 +20,26 @@ export async function readInvoiceSummaries(
 ) {
   const records = await db.invoice.aggregateRaw({ pipeline: [
     { $match: scope },
-    { $addFields: { hasUpo: { $gt: [{ $strLenCP: { $trim: { input: { $ifNull: ["$upoXml", ""] } } } }, 0] } } },
-    { $project: { upoXml: 0, ksefXml: 0, autoKsefEmailConfig: 0, autoKsefEmailLeaseToken: 0, autoKsefEmailLockedUntil: 0 } },
+    ...invoiceSummaryProjection(),
     { $sort: order },
   ] }) as unknown as Array<Record<string, unknown>>;
+  return invoiceSummariesToDto(records);
+}
+
+/** The list facet uses the same projection and decoder as the full bootstrap.
+ * Keeping them shared avoids a second read of every selected document.
+ */
+export function invoiceSummaryProjection(): Prisma.InputJsonObject[] {
+  return [
+    { $addFields: { hasUpo: { $gt: [{ $strLenCP: { $trim: { input: { $ifNull: ["$upoXml", ""] } } } }, 0] } } },
+    { $project: { upoXml: 0, ksefXml: 0, autoKsefEmailConfig: 0, autoKsefEmailLeaseToken: 0, autoKsefEmailLockedUntil: 0, searchContractor: 0 } },
+  ];
+}
+
+export function invoiceSummariesToDto(records: Array<Record<string, unknown>>) {
   return records.map(record => {
     const row: Record<string, unknown> = { ...record, id: (record._id as { $oid: string }).$oid };
-    for (const [field, value] of Object.entries(scalarDefaults)) if (!(field in row)) row[field] = value;
+    for (const [field, value] of scalarDefaultEntries) if (!(field in row)) row[field] = value;
     // Only known BSON scalar fields are decoded; invoice-line and metadata JSON stays untouched.
     for (const field of dateFields) {
       const value = row[field] as { $date?: string } | null | undefined;
@@ -35,7 +49,7 @@ export async function readInvoiceSummaries(
       const value = row[field] as { $oid?: string } | null | undefined;
       if (value?.$oid) row[field] = value.$oid;
     }
-    return { ...invoiceToDto(row as unknown as DbInvoice), hasUpo: Boolean(record.hasUpo), detailsLoaded: false };
+    return Object.assign(invoiceToDto(row as unknown as DbInvoice), { hasUpo: Boolean(record.hasUpo), detailsLoaded: false });
   });
 }
 

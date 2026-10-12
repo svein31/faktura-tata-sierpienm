@@ -7,6 +7,7 @@ import { assertObjectId, ApiError, handleApiError, json, readJson } from "@/lib/
 import { companyProfileToDto } from "@/lib/dto";
 import { parseCompanyProfileBody } from "@/lib/parsers";
 import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
+import { validateInlineLogoForStorage } from "@/lib/pdf/png-embedding";
 
 export const runtime = "nodejs";
 
@@ -67,6 +68,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     const body = await readJson(req);
     if (Object.hasOwn(body, "ksefToken")) await requireRecentAuth(user.id);
     const data = parseCompanyProfileBody(body);
+    await validateInlineLogoForStorage(data.logoUrl);
     if (data.bankAccount && normalizedBankAccount(data.bankAccount) !== normalizedBankAccount(existing.bankAccount)) {
       const profiles = await prisma.companyProfile.findMany({
         where: { userId: user.id }, select: { id: true, bankAccount: true, companyName: true },
