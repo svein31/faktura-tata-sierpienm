@@ -86,7 +86,7 @@ jobs:
         run: node scripts/production-mobile.mjs
       - name: Save production mobile audit screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-mobile-audit
           path: artifacts/mobile
