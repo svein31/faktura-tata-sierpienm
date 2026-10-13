@@ -552,7 +552,6 @@ video {
     border: 1px solid hsl(var(--surface-edge));
     border-radius: 16px;
     background-color: hsl(var(--card));
-    background-image: radial-gradient(ellipse at 100% 0%, hsl(var(--surface-accent) / var(--surface-tint)), transparent 65%);
     color: hsl(var(--card-foreground));
     box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)),
       0 2px 4px hsl(224 45% 4% / 0.03), 0 12px 28px -18px hsl(224 45% 4% / 0.18);
@@ -577,6 +576,7 @@ video {
   :is(.surface-card, .surface-card-hover)[data-tone] {
     /* Keep form cards in their established containing block. */
     position: relative;
+    background-image: radial-gradient(ellipse at 100% 0%, hsl(var(--surface-accent) / var(--surface-tint)), transparent 65%);
     --surface-tint: 0.045;
     --surface-accent-edge: 0.28;
   }
