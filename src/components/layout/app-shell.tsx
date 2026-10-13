@@ -21,14 +21,14 @@ export function AppShell({ user, needsTermsAcceptance, children }: { user: Sessi
 
   return (
     <SessionProvider user={user}>
-      <div className="min-h-dvh min-w-0 bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+      <div className="app-shell min-h-dvh min-w-0 bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <DeferredOverlays needsTermsAcceptance={needsTermsAcceptance} />
         <div inert={needsTermsAcceptance || undefined} aria-hidden={needsTermsAcceptance || undefined}>
         <Sidebar />
         <MobileSidebar open={mobileOpen} onClose={closeMobile} />
         <div className="lg:pl-64 flex min-h-dvh min-w-0 flex-col">
           <Topbar onMenu={() => setMobileOpen(true)} />
-          <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0">
+          <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8 min-w-0">
             {user.emailVerificationRequired && !user.emailVerified && <EmailVerificationNotice />}
             <DataBootstrap>
               <WorkspaceNavigation />{children}

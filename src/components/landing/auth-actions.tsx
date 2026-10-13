@@ -21,7 +21,7 @@ export function LandingHeaderActions() {
   const prefetch = useIntentPrefetch();
 
   return (
-    <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto sm:gap-3">
+    <div className="flex w-full min-w-0 items-center gap-2 sm:ml-auto sm:w-auto sm:shrink-0 sm:gap-3">
       {status === "authenticated" ? (
         <Link prefetch={false} href="/dashboard" onPointerEnter={() => prefetch("/dashboard")} onFocus={() => prefetch("/dashboard")} className={`inline-flex min-h-11 min-w-0 w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground sm:min-h-9 sm:w-auto ${focus}`}>
           Przejdź do aplikacji <ArrowRight aria-hidden="true" className="size-4" />

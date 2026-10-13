@@ -41,7 +41,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       className={cn(
         // Keep theme foreground/background pairs atomic to preserve text contrast.
-        "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-[transform,scale,box-shadow] duration-150 cursor-pointer",
+        "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-[transform,scale,box-shadow,background-color,border-color,color] duration-150 cursor-pointer",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-45 disabled:scale-100",
         variants[variant],

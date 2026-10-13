@@ -1,0 +1,127 @@
+{
+  "scope": "Isolated REAL PaymentCalendar and AnimatedCounter formats with synthetic invoice/expense hooks; no DOM text overrides; not production data",
+  "viewport": 1280,
+  "status": "passed",
+  "results": [
+    {
+      "size": "large",
+      "status": "passed",
+      "documentWidth": 1280,
+      "genericCardHook": true,
+      "cards": [
+        {
+          "tone": "income",
+          "text": "+1 234 567,89 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 25,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "expense",
+          "text": "-2 469 135,78 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 25,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "balance",
+          "text": "-1 234 567,89 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 25,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "office",
+          "text": "ZUS (Spółki kapitałowe)",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 50,
+          "fontSize": "18px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "normal",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)"
+        }
+      ]
+    },
+    {
+      "size": "extreme",
+      "status": "passed",
+      "documentWidth": 1280,
+      "genericCardHook": true,
+      "cards": [
+        {
+          "tone": "income",
+          "text": "+999 999 999 999 999,90 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 50,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "expense",
+          "text": "-1 999 999 999 999 999,80 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 50,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "balance",
+          "text": "-999 999 999 999 999,90 zł",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 50,
+          "fontSize": "20px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "inline-size",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)"
+        },
+        {
+          "tone": "office",
+          "text": "ZUS (Spółki kapitałowe)",
+          "cardWidth": 226,
+          "textWidth": 178,
+          "textScrollWidth": 178,
+          "textHeight": 50,
+          "fontSize": "18px",
+          "overflowWrap": "normal",
+          "whiteSpace": "normal",
+          "container": "normal",
+          "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)"
+        }
+      ]
+    }
+  ]
+}

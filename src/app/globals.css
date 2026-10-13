@@ -457,12 +457,21 @@ video {
     --status-pending: 38 92% 48%;
     --status-overdue: 350 84% 54%;
     --status-draft: 220 12% 52%;
+
+    --finance-income: 158 76% 25%;
+    --finance-expense: 340 72% 39%;
+    --finance-balance: 258 63% 46%;
+    --finance-office: 214 78% 38%;
+    --finance-warning: 35 88% 30%;
+    --surface-edge: 220 22% 85%;
+    --surface-highlight: 0 0% 100%;
+    --surface-highlight-alpha: 0.85;
   }
 
   .dark {
     --background: 224 45% 4.5%;
     --foreground: 220 25% 97%;
-    --card: 224 38% 7.8%;
+    --card: 224 34% 9%;
     --card-foreground: 220 25% 97%;
     --popover: 224 40% 7%;
     --popover-foreground: 220 25% 97%;
@@ -485,6 +494,15 @@ video {
     --status-pending: 38 92% 52%;
     --status-overdue: 350 84% 60%;
     --status-draft: 220 14% 58%;
+
+    --finance-income: 158 58% 63%;
+    --finance-expense: 340 76% 73%;
+    --finance-balance: 258 82% 79%;
+    --finance-office: 214 86% 76%;
+    --finance-warning: 40 86% 68%;
+    --surface-edge: 222 23% 21%;
+    --surface-highlight: 220 35% 88%;
+    --surface-highlight-alpha: 0.07;
   }
 
   * {
@@ -524,7 +542,100 @@ video {
   }
 }
 
+@layer components {
+  /* Shared surfaces: decoration never clips menus, content or focus outlines. */
+  .surface-card,
+  .surface-card-hover {
+    --surface-accent: var(--primary);
+    --surface-tint: 0;
+    --surface-accent-edge: 0.12;
+    border: 1px solid hsl(var(--surface-edge));
+    border-radius: 16px;
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)),
+      0 2px 4px hsl(224 45% 4% / 0.03), 0 12px 28px -18px hsl(224 45% 4% / 0.18);
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  }
+
+  :is(.surface-card, .surface-card-hover)[data-tone]::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(125deg, hsl(var(--surface-highlight) / 0.12),
+      transparent 38%, hsl(var(--surface-accent) / var(--surface-accent-edge)) 78%, transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+  }
+
+  :is(.surface-card, .surface-card-hover)[data-tone] {
+    /* Keep form cards in their established containing block. */
+    position: relative;
+    background-image: radial-gradient(ellipse at 100% 0%, hsl(var(--surface-accent) / var(--surface-tint)), transparent 65%);
+    --surface-tint: 0.045;
+    --surface-accent-edge: 0.28;
+  }
+  :is(.surface-card, .surface-card-hover)[data-tone="income"] { --surface-accent: var(--finance-income); }
+  :is(.surface-card, .surface-card-hover)[data-tone="expense"] { --surface-accent: var(--finance-expense); }
+  :is(.surface-card, .surface-card-hover)[data-tone="balance"] { --surface-accent: var(--finance-balance); }
+  :is(.surface-card, .surface-card-hover)[data-tone="office"] { --surface-accent: var(--finance-office); }
+
+  .dark :is(.surface-card, .surface-card-hover) {
+    box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)),
+      0 2px 5px hsl(224 45% 2% / 0.16), 0 16px 32px -20px hsl(224 45% 2% / 0.5);
+  }
+  .dark :is(.surface-card, .surface-card-hover)[data-tone] { --surface-tint: 0.07; }
+
+  .finance-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 1px solid hsl(var(--surface-accent) / 0.2);
+    background: linear-gradient(145deg, hsl(var(--surface-accent) / 0.14), hsl(var(--surface-accent) / 0.05));
+    color: hsl(var(--surface-accent));
+    box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha));
+  }
+
+  .app-shell {
+    background-image: radial-gradient(ellipse at 85% 0%, hsl(var(--primary) / 0.035), transparent 48%);
+  }
+  .app-shell :where(a, button, summary):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :is(.surface-card, .surface-card-hover):hover,
+    :is(.surface-card, .surface-card-hover):focus-within {
+      border-color: hsl(var(--surface-accent) / 0.32);
+    }
+    .surface-card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)),
+        0 18px 36px -20px hsl(224 45% 4% / 0.28), 0 4px 16px -10px hsl(var(--surface-accent) / 0.12);
+    }
+    .dark .surface-card-hover:hover {
+      box-shadow: inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)),
+        0 18px 36px -18px hsl(224 45% 2% / 0.65), 0 4px 16px -10px hsl(var(--surface-accent) / 0.16);
+    }
+  }
+}
+
 @layer utilities {
+  .text-finance-income { color: hsl(var(--finance-income)); }
+  .text-finance-expense { color: hsl(var(--finance-expense)); }
+  .text-finance-balance { color: hsl(var(--finance-balance)); }
+  .text-finance-office { color: hsl(var(--finance-office)); }
+  .text-finance-warning { color: hsl(var(--finance-warning)); }
   @keyframes toast-enter {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -548,24 +659,11 @@ video {
     background-image: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
   }
 
-  .surface-card {
-    @apply rounded-2xl border border-border/70 bg-card text-card-foreground transition-all duration-200;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
-  }
-
-  .surface-card-hover {
-    @apply rounded-2xl border border-border/70 bg-card text-card-foreground transition-all duration-200 hover:border-primary/30 hover:-translate-y-0.5 dark:hover:border-primary/25;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
-  }
-  .surface-card-hover:hover {
-    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.06), 0 12px 28px -4px rgba(0, 0, 0, 0.1);
-  }
-
   .hover-lift {
     transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .hover-lift:hover {
-    transform: translateY(-1.5px);
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover { transform: translateY(-1.5px); }
   }
 
   .glass-panel {
