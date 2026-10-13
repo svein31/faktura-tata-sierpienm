@@ -12,7 +12,18 @@ Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę
 - Dashboard ma spójne panele spraw do załatwienia, przychodów, KSeF i ostatnich dokumentów oraz bezpośredni skrót do terminarza. Doprecyzowano hierarchię kwot, wierszy i statusu dostępności bramki.
 - Hover widgetów rozjaśnia krawędź i unosi kartę o 2 px wyłącznie na urządzeniach z precyzyjnym wskaźnikiem i obsługą hover. Preferencja ograniczenia ruchu wyłącza przesunięcia.
 - Filtry i daty ujawniają stan przez `aria-pressed`; daty mają pełne etykiety i obsługę strzałek, Home oraz End. Dolne akcje terminarza są pojedynczymi linkami, bez zagnieżdżonych przycisków i dodatkowych punktów fokusu.
+- Wielkość kwot 20–26 px zależy od dostępnej szerokości karty. Duże kwoty zawijają się pomiędzy grupami cyfr, a jednostka `zł` pozostaje w całości. Zachowano klasę `bg-card` wspólnego komponentu, aby utrzymać zgodność jego istniejących konsumentów i audytu kontrastu.
 
 ## Walidacja
 
-Wyniki kompilacji, analizy statycznej, regresji i pomiarów przeglądarkowych zostaną dopisane po zakończeniu uruchomionych kontroli. Pomiary UI używają rzeczywistych komponentów i syntetycznych danych w izolowanym środowisku; nie są odczytem danych produkcyjnych.
+- **69/69 kontroli UI zakończonych sukcesem**: rzeczywiste komponenty dashboardu, terminarza i wspólnej karty w Chromium, w izolowanym środowisku z danymi syntetycznymi. Obejmuje to 24 kombinacje dwóch widoków, dwóch motywów i szerokości 320, 390, 768, 1024, 1280 oraz 1440 px. Sprawdzono brak poziomego overflow, padding, obramowania, kontrast tekstów finansowych i statusów co najmniej 4,5:1, pełny tytuł terminu urzędowego oraz wyrenderowany wykres.
+- Interakcje: nawigacja dat strzałkami/Home/End, filtry, miesiące, waluty, otwieranie dokumentów, status KSeF, unoszenie karty dokładnie o 2 px na desktopie, brak unoszenia na dotyku i przy ograniczeniu ruchu. **Brak błędów JavaScript i konsoli.**
+- **Dwa dodatkowe przypadki dużych kwot zakończone sukcesem** przy 1280 px: `1 234 567,89 zł` oraz `999 999 999 999 999,90 zł`. Rzeczywiste formatery liczników zachowują całą walutę i mieszczą zawartość kart; ekstremalna kwota zajmuje dwie linie.
+- Lokalny lint całego projektu zakończył się kodem 0; po końcowych poprawkach ponowny lint zmienionych komponentów również zakończył się kodem 0.
+- CI pierwszej migawki `5b7991a`: build, TypeScript, lint i **586 testów jednostkowych (7 + 579)** przeszły. Audyt przeglądarkowy wykrył zależność selektora od klasy `bg-card`; poprawiono zgodność komponentu bez zmiany testu. Bieżący wynik pełnych kontroli końcowej gałęzi oraz podglądy Netlify są dostępne w [PR #40](https://github.com/svein31/faktura-tata-sierpienm/pull/40).
+
+[Dowody pomiarów UI](UI-FINANCE-POLISH.evidence.json) · [Przypadki dużych kwot](UI-FINANCE-POLISH.large-amounts.json)
+
+Pomiary i poniższe zdjęcia pokazują rzeczywiste komponenty w izolowanej powłoce z danymi syntetycznymi. Nie są odczytem danych ani zdjęciem sesji produkcyjnej. Pełna powłoka aplikacji i wcześniejsze przepływy finansowe są dodatkowo objęte istniejącym CI.
+
+[Terminarz — komputer](UI-CALENDAR-DESKTOP.png) · [Terminarz — telefon](UI-CALENDAR-MOBILE.png) · [Dashboard — komputer](UI-DASHBOARD-DESKTOP.png)

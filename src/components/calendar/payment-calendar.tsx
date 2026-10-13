@@ -300,47 +300,47 @@ export function PaymentCalendar() {
       <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">Podsumowanie obejmuje tylko PLN. Daty podatkowe są ogólne; obowiązki zależą od sposobu rozliczania firmy.</p>
       {/* Pasek podsumowania finansowego */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card data-tone="income" className="surface-card-hover min-w-0 p-5 sm:p-6">
+        <Card data-tone="income" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
             <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Planowane wpływy</span>
             <div className="finance-icon">
               <TrendingUp className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
           </div>
-          <p className="break-words text-[clamp(1.25rem,2vw,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-income">
-            <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN")}`} />
+          <p className="text-[clamp(1.25rem,11cqi,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-income">
+            <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN").replace(/[\u00a0\u202f]/g, " ")}`} />
           </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Do zapłaty przez klientów (PLN): <span className="font-medium tabular-nums text-foreground">{formatMoney(monthStats.unpaidIncomes, "PLN")}</span>
           </p>
         </Card>
 
-        <Card data-tone="expense" className="surface-card-hover min-w-0 p-5 sm:p-6">
+        <Card data-tone="expense" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
             <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Planowane wydatki</span>
             <div className="finance-icon">
               <TrendingDown className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
           </div>
-          <p className="break-words text-[clamp(1.25rem,2vw,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-expense">
-            <AnimatedCounter value={monthStats.totalExpenses} format={(v: number) => `-${formatMoney(v, "PLN")}`} />
+          <p className="text-[clamp(1.25rem,11cqi,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-expense">
+            <AnimatedCounter value={monthStats.totalExpenses} format={(v: number) => `-${formatMoney(v, "PLN").replace(/[\u00a0\u202f]/g, " ")}`} />
           </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
             Pozostało do uregulowania (PLN): <span className="font-medium tabular-nums text-foreground">{formatMoney(monthStats.unpaidExpenses, "PLN")}</span>
           </p>
         </Card>
 
-        <Card data-tone="balance" className="surface-card-hover min-w-0 p-5 sm:p-6">
+        <Card data-tone="balance" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
             <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Bilans miesiąca</span>
             <div className="finance-icon">
               <Scale className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
           </div>
-          <p className="break-words text-[clamp(1.25rem,2vw,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-balance">
+          <p className="text-[clamp(1.25rem,11cqi,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-balance">
             <AnimatedCounter
               value={monthStats.balance}
-              format={(v: number) => `${v >= 0 ? "+" : ""}${formatMoney(v, "PLN")}`}
+              format={(v: number) => `${v >= 0 ? "+" : ""}${formatMoney(v, "PLN").replace(/[\u00a0\u202f]/g, " ")}`}
             />
           </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">

@@ -1,0 +1,1605 @@
+{
+  "date": "2026-10-13",
+  "scope": "Isolated REAL source components with synthetic hooks/data and approximate AppShell widths; not production/authenticated end-to-end evidence",
+  "checks": [
+    {
+      "name": "calendar dark 320: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 320,
+        "document": 320,
+        "body": 320,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 320: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 62,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 320: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 246,
+        "scrollWidth": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar dark 390: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 390: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 62,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 390: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 316,
+        "scrollWidth": 316,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar dark 768: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 768,
+        "document": 768,
+        "body": 768,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 768: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 768: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 302,
+        "scrollWidth": 302,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar dark 1024: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1024,
+        "document": 1024,
+        "body": 1024,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 1024: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 1024: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 294,
+        "scrollWidth": 294,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar dark 1280: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1280,
+        "document": 1280,
+        "body": 1280,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 1280: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 1280: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 178,
+        "scrollWidth": 178,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar dark 1440: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(238, 134, 169, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(238, 134, 169, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(184, 158, 245, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(184, 158, 245, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar dark 1440: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 6.104
+      }
+    },
+    {
+      "name": "calendar dark 1440: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 218,
+        "scrollWidth": 218,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 320: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 320,
+        "document": 320,
+        "body": 320,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 320: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 62,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 320: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 246,
+        "scrollWidth": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 390: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 390: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 62,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 390: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 316,
+        "scrollWidth": 316,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 768: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 768,
+        "document": 768,
+        "body": 768,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 352,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 768: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 768: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 302,
+        "scrollWidth": 302,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 1024: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1024,
+        "document": 1024,
+        "body": 1024,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 344,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 1024: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 1024: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 294,
+        "scrollWidth": 294,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 1280: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1280,
+        "document": 1280,
+        "body": 1280,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 228,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 1280: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 1280: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 178,
+        "scrollWidth": 178,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "calendar light 1440: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "expense",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(171, 28, 76, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(171, 28, 76, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "balance",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(88, 43, 191, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(88, 43, 191, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 268,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "calendar light 1440: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 63,
+        "minimum": 4.806
+      }
+    },
+    {
+      "name": "calendar light 1440: complete next tax title",
+      "status": "passed",
+      "evidence": {
+        "text": "ZUS (Spółki kapitałowe)",
+        "width": 218,
+        "scrollWidth": 218,
+        "whiteSpace": "normal",
+        "textOverflow": "clip"
+      }
+    },
+    {
+      "name": "dashboard dark 320: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 320,
+        "document": 320,
+        "body": 320,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 320: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard dark 390: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 390: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard dark 768: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 768,
+        "document": 768,
+        "body": 768,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 720,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 720,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 768: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard dark 1024: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1024,
+        "document": 1024,
+        "body": 1024,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 704,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 704,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 1024: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard dark 1280: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1280,
+        "document": 1280,
+        "body": 1280,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 640,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 300,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 1280: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard dark 1440: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 800,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(106, 215, 175, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(106, 215, 175, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 300,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(141, 187, 246, 0.07), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(214, 221, 235, 0.12), rgba(0, 0, 0, 0) 38%, rgba(141, 187, 246, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard dark 1440: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 7.46
+      }
+    },
+    {
+      "name": "dashboard light 320: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 320,
+        "document": 320,
+        "body": 320,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 288,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 320: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "dashboard light 390: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 390,
+        "document": 390,
+        "body": 390,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 358,
+            "padding": [
+              20,
+              20,
+              20,
+              20
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 390: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "dashboard light 768: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 768,
+        "document": 768,
+        "body": 768,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 720,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 720,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 768: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "dashboard light 1024: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1024,
+        "document": 1024,
+        "body": 1024,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 704,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 704,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 1024: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "dashboard light 1280: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1280,
+        "document": 1280,
+        "body": 1280,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 640,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 300,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 1280: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "dashboard light 1440: no horizontal document overflow; shared surfaces and widget padding",
+      "status": "passed",
+      "evidence": {
+        "viewport": 1440,
+        "document": 1440,
+        "body": 1440,
+        "cards": [
+          {
+            "tone": "income",
+            "width": 800,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(15, 112, 77, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(15, 112, 77, 0.28) 78%, rgba(0, 0, 0, 0))"
+          },
+          {
+            "tone": "office",
+            "width": 300,
+            "padding": [
+              24,
+              24,
+              24,
+              24
+            ],
+            "borderRadius": "16px",
+            "backgroundImage": "radial-gradient(at 100% 0%, rgba(21, 87, 172, 0.043), rgba(0, 0, 0, 0) 65%)",
+            "pseudo": "linear-gradient(125deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 38%, rgba(21, 87, 172, 0.28) 78%, rgba(0, 0, 0, 0))"
+          }
+        ],
+        "overflowing": []
+      }
+    },
+    {
+      "name": "dashboard light 1440: conservative composited financial/muted contrast >=4.5",
+      "status": "passed",
+      "evidence": {
+        "count": 33,
+        "minimum": 5.227
+      }
+    },
+    {
+      "name": "calendar keyboard ArrowRight/Left/Down/Home/End selects and focuses dates",
+      "status": "passed"
+    },
+    {
+      "name": "calendar filter aria-pressed updates real details for invoices, expenses, taxes and unpaid",
+      "status": "passed"
+    },
+    {
+      "name": "calendar month next/previous/today remain functional",
+      "status": "passed"
+    },
+    {
+      "name": "calendar reduced motion suppresses hover lift",
+      "status": "passed",
+      "evidence": {
+        "transform": "none",
+        "translate": "none",
+        "transitionDuration": "1e-06s"
+      }
+    },
+    {
+      "name": "dashboard currency controls update real amount and pressed state",
+      "status": "passed"
+    },
+    {
+      "name": "dashboard recent documents expand and KSeF connection status updates",
+      "status": "passed"
+    },
+    {
+      "name": "desktop fine pointer hover lifts financial card by exactly 2px",
+      "status": "passed",
+      "evidence": {
+        "transform": "matrix(1, 0, 0, 1, 0, -2)",
+        "hover": true
+      }
+    },
+    {
+      "name": "touch pointer does not lift cards after tap",
+      "status": "passed",
+      "evidence": {
+        "transform": "none",
+        "hover": false
+      }
+    },
+    {
+      "name": "no JavaScript page errors or React console errors",
+      "status": "passed"
+    }
+  ],
+  "issues": [],
+  "errors": []
+}

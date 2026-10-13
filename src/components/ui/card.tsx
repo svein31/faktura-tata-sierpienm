@@ -5,7 +5,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "surface-card min-w-0",
+        "surface-card min-w-0 bg-card",
         className
       )}
       {...props}
