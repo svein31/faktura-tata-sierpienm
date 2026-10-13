@@ -4,7 +4,7 @@ Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę
 
 ## Poprawki
 
-- Wspólny `Card` i panele dashboardu korzystają z jednej powierzchni: neutralna krawędź, cienki gradient obramowania, wewnętrzny refleks oraz miękki cień. Dekoracja nie przechwytuje kliknięć i nie wymaga przycinania zawartości ani menu.
+- Wspólny `Card` i panele dashboardu korzystają z jednej powierzchni: neutralna krawędź, wewnętrzny refleks oraz miękki cień. Oznaczone karty finansowe dodatkowo mają cienki gradient obramowania. Dekoracja nie przechwytuje kliknięć i nie wymaga przycinania zawartości ani menu.
 - Warianty finansowe skupiają delikatną poświatę przy ikonie: zieleń wpływów, róż wydatków, fiolet bilansu i niebieski urzędów. Zamiast jaskrawych kwot wprowadzono semantyczne kolory dopasowane oddzielnie do jasnego i ciemnego motywu. Ostrzeżenia o terminie mają czytelny odcień bursztynu.
 - Naprawiono brakujące odstępy i cienie. Terminarz używa rzeczywistego paddingu 20–24 px; konfiguracja udostępnia także używane w innych widokach `4.5`, `shadow-2xs`, `shadow-xs` i `shadow-apple-*`.
 - Ujednolicono nagłówki stron, odstępy powłoki aplikacji, przejścia przycisków i widoczny fokus w nawigacji. Liczby mają cyfry o stałej szerokości; opisy i etykiety finansowe mają 12–14 px. Długie nazwy podatków i dokumentów zawijają się.
@@ -13,6 +13,7 @@ Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę
 - Hover widgetów rozjaśnia krawędź i unosi kartę o 2 px wyłącznie na urządzeniach z precyzyjnym wskaźnikiem i obsługą hover. Preferencja ograniczenia ruchu wyłącza przesunięcia.
 - Filtry i daty ujawniają stan przez `aria-pressed`; daty mają pełne etykiety i obsługę strzałek, Home oraz End. Dolne akcje terminarza są pojedynczymi linkami, bez zagnieżdżonych przycisków i dodatkowych punktów fokusu.
 - Wielkość kwot 20–26 px zależy od dostępnej szerokości karty. Duże kwoty zawijają się pomiędzy grupami cyfr, a jednostka `zł` pozostaje w całości. Zachowano klasę `bg-card` wspólnego komponentu, aby utrzymać zgodność jego istniejących konsumentów i audytu kontrastu.
+- Po pełnym audycie WebKit przywrócono zwykłym kartom statyczne pozycjonowanie z wersji bazowej. Warstwa gradientowa i jej pozycjonowanie dotyczą wyłącznie oznaczonych kart finansowych, aby dekoracja nie zmieniała bloków odniesienia ukrytych elementów formularzy. Nie dodano globalnego przycinania strony ani menu.
 
 ## Walidacja
 

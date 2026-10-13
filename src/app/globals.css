@@ -549,7 +549,6 @@ video {
     --surface-accent: var(--primary);
     --surface-tint: 0;
     --surface-accent-edge: 0.12;
-    position: relative;
     border: 1px solid hsl(var(--surface-edge));
     border-radius: 16px;
     background-color: hsl(var(--card));
@@ -560,7 +559,7 @@ video {
     transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
   }
 
-  :is(.surface-card, .surface-card-hover)::before {
+  :is(.surface-card, .surface-card-hover)[data-tone]::before {
     content: "";
     position: absolute;
     inset: -1px;
@@ -576,6 +575,8 @@ video {
   }
 
   :is(.surface-card, .surface-card-hover)[data-tone] {
+    /* Keep form cards in their established containing block. */
+    position: relative;
     --surface-tint: 0.045;
     --surface-accent-edge: 0.28;
   }
