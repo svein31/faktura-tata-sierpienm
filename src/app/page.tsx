@@ -28,6 +28,8 @@ import { publisherSchema, websiteSchema, softwareSchema } from "@/lib/seo/schema
 
 export const metadata = pageMetadata("/", "FakturaProsto — faktury online i KSeF", "Wystawiaj faktury online, sprawdź KSeF i wypróbuj darmowe demo.");
 
+const navLinkClass = "inline-flex h-11 shrink-0 items-center rounded-sm transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-background";
+
 export default function LandingPage() {
 
   return (
@@ -37,27 +39,29 @@ export default function LandingPage() {
       ] }} />
       {/* ── NAWIGACJA GŁÓWNA ── */}
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background">
-        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-x-3 gap-y-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:py-0 sm:px-6">
+        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:h-16 sm:flex-nowrap sm:py-0 sm:px-6">
           <Logo className="w-full shrink-0 sm:w-auto" />
 
-          <nav className="hidden xl:flex items-center gap-6 text-[13.5px] font-medium text-muted-foreground">
-            <a href="#funkcje" className="focus-visible:text-foreground">
+          <nav aria-label="Nawigacja główna" className="hidden shrink-0 items-center gap-4 whitespace-nowrap text-[13.5px] font-medium leading-5 text-muted-foreground min-[1120px]:flex xl:gap-5">
+            <a href="#funkcje" className={navLinkClass}>
               Funkcje
             </a>
-            <a href="#ksef" className="focus-visible:text-foreground">
+            <a href="#ksef" className={navLinkClass}>
               KSeF 2.0 & FA(3)
             </a>
-            <Link prefetch={false} href="/cennik" className="focus-visible:text-foreground">Cennik</Link>
-            <a href="#jak-dziala" className="focus-visible:text-foreground">
+            <Link prefetch={false} href="/cennik" className={navLinkClass}>Cennik</Link>
+            <a href="#jak-dziala" className={navLinkClass}>
               Jak to działa
             </a>
-            <Link prefetch={false} href="/demo" className="text-primary focus-visible:underline flex items-center gap-1">
-              <span>Piaskownica Demo</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary border border-primary/20 font-semibold">
-                Bez logowania
+            <Link prefetch={false} href="/demo" className={`group text-primary ${navLinkClass}`}>
+              <span className="inline-flex items-baseline gap-2">
+                <span>Demo</span>
+                <span className="text-[11px] font-medium text-primary/90 underline decoration-transparent underline-offset-4 transition-colors group-hover:text-foreground group-hover:decoration-primary/70 group-focus-visible:text-foreground group-focus-visible:decoration-primary/70">
+                  Bez logowania
+                </span>
               </span>
             </Link>
-            <Link prefetch={false} href="/program-do-faktur" className="focus-visible:text-foreground">Program do faktur</Link>
+            <Link prefetch={false} href="/program-do-faktur" className={navLinkClass}>Program do faktur</Link>
           </nav>
 
           <LandingHeaderActions />
@@ -398,7 +402,7 @@ export default function LandingPage() {
               <Link prefetch={false} href="/narzedzia" className="hover:text-foreground transition-colors">Kalkulatory</Link>
               <Link prefetch={false} href="/cennik" className="hover:text-foreground transition-colors">Cennik Free i Pro</Link>
               <Link prefetch={false} href="/demo" className="hover:text-foreground transition-colors">
-                Piaskownica Demo
+                Demo
               </Link>
               <LandingFooterActions />
             </div>

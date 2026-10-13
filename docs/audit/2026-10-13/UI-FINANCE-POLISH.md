@@ -1,4 +1,4 @@
-# Dashboard i terminarz — dopracowanie UI, 13 października 2026
+# Dashboard, terminarz i nawigacja — dopracowanie UI, 13 października 2026
 
 Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę prezentacji i obsługę klawiaturą; obliczenia kwot, terminy podatkowe, zapis faktur i integracja KSeF pozostają poza zakresem zmian.
 
@@ -14,6 +14,8 @@ Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę
 - Filtry i daty ujawniają stan przez `aria-pressed`; daty mają pełne etykiety i obsługę strzałek, Home oraz End. Dolne akcje terminarza są pojedynczymi linkami, bez zagnieżdżonych przycisków i dodatkowych punktów fokusu.
 - Wielkość kwot 20–26 px zależy od dostępnej szerokości karty. Duże kwoty zawijają się pomiędzy grupami cyfr, a jednostka `zł` pozostaje w całości. Zachowano klasę `bg-card` wspólnego komponentu, aby utrzymać zgodność jego istniejących konsumentów i audytu kontrastu.
 - Po pełnym audycie WebKit przywrócono zwykłym kartom statyczne pozycjonowanie z wersji bazowej. Warstwa gradientowa i jej pozycjonowanie dotyczą wyłącznie oznaczonych kart finansowych, aby dekoracja nie zmieniała bloków odniesienia ukrytych elementów formularzy. Nie dodano globalnego przycinania strony ani menu.
+- W górnej nawigacji strony głównej skrócono „Piaskownica Demo” do „Demo”, także w stopce. Etykiety KSeF, instrukcji i programu do faktur pozostają w jednej linii; linki mają wspólną wysokość 44 px, wyrównanie i widoczny fokus. Odstępy uwzględniają przyciski logowania, które są wyrównane do prawej. Pełne menu jest dostępne od 1120 px.
+- „Bez logowania” jest tekstowym akcentem przy „Demo”, wyrównanym do linii bazowej. Usunięto tło i ramkę plakietki. Hover oraz fokus rozjaśniają tekst i dodają subtelne podkreślenie bez przesuwania elementów.
 
 ## Walidacja
 
@@ -21,10 +23,13 @@ Baza zmian: `2d4bba5ef2f920c5090314e5550b2d4c8ad3044a`. Zakres obejmuje warstwę
 - Interakcje: nawigacja dat strzałkami/Home/End, filtry, miesiące, waluty, otwieranie dokumentów, status KSeF, unoszenie karty dokładnie o 2 px na desktopie, brak unoszenia na dotyku i przy ograniczeniu ruchu. **Brak błędów JavaScript i konsoli.**
 - **Dwa dodatkowe przypadki dużych kwot zakończone sukcesem** przy 1280 px: `1 234 567,89 zł` oraz `999 999 999 999 999,90 zł`. Rzeczywiste formatery liczników zachowują całą walutę i mieszczą zawartość kart; ekstremalna kwota zajmuje dwie linie.
 - Lokalny lint całego projektu zakończył się kodem 0; po końcowych poprawkach ponowny lint zmienionych komponentów również zakończył się kodem 0.
-- CI pierwszej migawki `5b7991a`: build, TypeScript, lint i **586 testów jednostkowych (7 + 579)** przeszły. Audyt przeglądarkowy wykrył zależność selektora od klasy `bg-card`; poprawiono zgodność komponentu bez zmiany testu. Bieżący wynik pełnych kontroli końcowej gałęzi oraz podglądy Netlify są dostępne w [PR #40](https://github.com/svein31/faktura-tata-sierpienm/pull/40).
+- Pełny CI migawki finansowej `d9f7265`: build, TypeScript, lint, **586 testów jednostkowych (7 + 579)**, integracje, pomiary regresji oraz audyt wszystkich widoków i interakcji w Chromium, WebKit i Firefox zakończyły się sukcesem. Kontrole bezpieczeństwa i oba podglądy Netlify także przeszły. Bieżący wynik pełnych kontroli gałęzi oraz podglądy Netlify są dostępne w [PR #40](https://github.com/svein31/faktura-tata-sierpienm/pull/40).
+- Dodatkowa poprawka nawigacji: lokalny TypeScript i pełny lint przeszły; **80/80 wariantów układu** rzeczywistej strony Next.js w Chromium i WebKit, w obu motywach, dla użytkownika zalogowanego i anonimowego, przy szerokościach 320, 390, 640, 768, 1024, 1119, 1120, 1240, 1280 i 1440 px. Brak poziomego przepełnienia, zawijania widocznych etykiet menu i kolizji z przyciskami. Cztery kontrole hover/fokusu potwierdziły przezroczyste tło, podkreślenie bez przesunięcia i widoczny fokus klawiatury. Brak błędów JavaScript. Odpowiedź sesji podstawiono danymi syntetycznymi na lokalnym serwerze; pomiary nie korzystają z danych produkcyjnych.
 
 [Dowody pomiarów UI](UI-FINANCE-POLISH.evidence.json) · [Przypadki dużych kwot](UI-FINANCE-POLISH.large-amounts.json)
 
 Pomiary i poniższe zdjęcia pokazują rzeczywiste komponenty w izolowanej powłoce z danymi syntetycznymi. Nie są odczytem danych ani zdjęciem sesji produkcyjnej. Pełna powłoka aplikacji i wcześniejsze przepływy finansowe są dodatkowo objęte istniejącym CI.
 
 [Terminarz — komputer](UI-CALENDAR-DESKTOP.png) · [Terminarz — telefon](UI-CALENDAR-MOBILE.png) · [Dashboard — komputer](UI-DASHBOARD-DESKTOP.png)
+
+[Nawigacja — komputer](UI-LANDING-HEADER-DESKTOP.png) · [Nawigacja — telefon](UI-LANDING-HEADER-MOBILE.png)
