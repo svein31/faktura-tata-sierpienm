@@ -13,13 +13,13 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-6 flex flex-wrap items-center justify-between gap-4", className)}>
+    <div className={cn("mb-6 flex flex-wrap items-start justify-between gap-4 sm:items-center", className)}>
       <div className="min-w-0">
-        <h1 className="break-words text-xl font-bold tracking-tight text-foreground sm:text-2xl lg:text-[26px]">
+        <h1 className="break-words text-2xl font-semibold leading-tight tracking-tight text-foreground lg:text-[28px]">
           {title}
         </h1>
         {description && (
-          <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         )}

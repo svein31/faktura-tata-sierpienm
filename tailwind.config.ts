@@ -612,6 +612,14 @@ const config: Config = {
     ...legacyTheme,
     colors: legacyColors,
     extend: {
+      spacing: { "4.5": "1.125rem" },
+      boxShadow: {
+        "2xs": "0 1px 2px hsl(224 45% 4% / 0.04)",
+        xs: "0 1px 3px hsl(224 45% 4% / 0.08)",
+        "apple-sm": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 12px 28px -18px hsl(224 45% 4% / 0.18)",
+        "apple-md": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 18px 36px -20px hsl(224 45% 4% / 0.28)",
+        "apple-lg": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 24px 64px -24px hsl(224 45% 4% / 0.4)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
