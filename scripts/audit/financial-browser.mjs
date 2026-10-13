@@ -33,10 +33,15 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
     context.setDefaultTimeout(15000); context.setDefaultNavigationTimeout(30000);
     await context.addCookies([{ name: 'auth_session', value: token, url: base, httpOnly: true, sameSite: 'Lax' }]);
     await context.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
-    const writeResponses = [];
+    const writeResponses = [], ksefMutationRequests = [];
     const errorListener = error => pageErrors.push(error.message);
     const observe = observed => {
       observed.on('pageerror', errorListener);
+      observed.on('request', request => {
+        if (new URL(request.url()).pathname.startsWith('/api/ksef/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method())) {
+          ksefMutationRequests.push({ method: request.method(), path: new URL(request.url()).pathname });
+        }
+      });
       observed.on('response', response => { if (new URL(response.url()).pathname === '/api/invoices' && response.request().method() === 'POST') writeResponses.push(response); });
     };
     let page = await context.newPage(); observe(page);
@@ -116,6 +121,84 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
     const afterCorrection = await db.invoice.findUniqueOrThrow({ where: { id: original.id } });
     assert.equal(afterCorrection.version, originalStored.version); assert.deepEqual(afterCorrection.lines, originalStored.lines); assert.equal(afterCorrection.totalGross, originalStored.totalGross);
     checks.push('Detail → abandoned edit → back → signed correction → explicit preflight/save/reload preserves original identity and values');
+    // Synthetic acceptance is persisted only in this isolated database. No send,
+    // status reconciliation, MF session or other external provider is invoked.
+    const acceptedSources = [
+      { key: 'KSEF_ACCEPTED', status: 'ksef_active', documentStatus: 'accepted', jsonOnly: false },
+      { key: 'KSEF_STALE_DRAFT', status: 'draft', documentStatus: 'draft', jsonOnly: false },
+      { key: 'KSEF_LEGACY_JSON', status: 'draft', documentStatus: 'draft', jsonOnly: true },
+    ];
+    for (const [index, scenario] of acceptedSources.entries()) {
+      const sourceResponse = await context.request.post('/api/invoices', { data: {
+        number: `QA/${marker}/${scenario.key}`, type: 'sale', status: 'issued',
+        sellerCompanyId: company.id, contractorId: buyer.id, issueDate: today,
+        saleDate: today, dueDate: today, currency: 'PLN', language: 'PL', paymentMethod: 'transfer',
+        lines: [{ id: `accepted-line-${index}`, name: `KSeF ${scenario.key} Żółć <&>`, quantity: 1, netPrice: 100, vatRate: '23', unit: 'szt.' }],
+      } });
+      const sourceData = await sourceResponse.json();
+      assert.ok(sourceResponse.ok(), `${scenario.key}: ${JSON.stringify(sourceData)}`);
+      const sourceId = sourceData.invoice.id;
+      const sourceKsefNumber = `${company.nip}-${today.replaceAll('-', '')}-${marker.slice(0, 6).toUpperCase()}-${marker.slice(6).toUpperCase()}-${String(index + 1).padStart(2, '0')}`;
+      const acceptedAt = `${today}T12:00:00.000Z`;
+      await db.invoice.update({ where: { id: sourceId }, data: {
+        status: scenario.status, documentStatus: scenario.documentStatus,
+        ksefNumber: scenario.jsonOnly ? null : sourceKsefNumber,
+        ksefStatus: scenario.jsonOnly ? null : 'accepted',
+        ksef: { number: sourceKsefNumber, status: 'ACTIVE', environment: 'test', sentAt: acceptedAt },
+        upoXml: `<UPO><Dokument><NumerKSeFDokumentu>${sourceKsefNumber}</NumerKSeFDokumentu><DataPrzyjeciaDokumentu>${acceptedAt}</DataPrzyjeciaDokumentu></Dokument></UPO>`,
+        ksefXml: `<SyntheticQAOriginal><Number>${sourceData.invoice.number}</Number></SyntheticQAOriginal>`,
+      } });
+      const beforeAcceptedCorrection = await db.invoice.findUniqueOrThrow({ where: { id: sourceId } });
+      await navigate(`/invoices/${sourceId}`);
+      const createCorrection = page.getByRole('button', { name: 'Wystaw korektę', exact: true });
+      await expect(createCorrection).toBeVisible();
+      await createCorrection.click();
+      await expect(page).toHaveURL(new RegExp(`correctionFrom=${sourceId}`));
+      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('0');
+      await expect(page.getByText(`Numer KSeF oryginału: ${sourceKsefNumber}`, { exact: false })).toBeVisible();
+      await chooseManual(`QA/${marker}/${scenario.key}/CORRECTION`);
+      await page.getByLabel('Przyczyna korekty (pole wymagane w schemacie FA(3)) *', { exact: true }).fill(`Zwrot połowy ${scenario.key} Żółć <&>`);
+      await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('-0.5');
+      const acceptedPreflight = await submit(page.getByRole('button', { name: 'Zapisz korektę', exact: true }).first(), '/api/invoices/preflight');
+      assert.equal(acceptedPreflight.canProceed, true, `${scenario.key} preflight`);
+      assert.equal(acceptedPreflight.totals.gross, -61.5);
+      const saved = await submit(page.getByRole('dialog').getByRole('button', { name: 'Zatwierdzam i kontynuuję', exact: true }), '/api/invoices');
+      assert.notEqual(saved.invoice.id, sourceId);
+      assert.equal(saved.invoice.isCorrection, true);
+      assert.equal(saved.invoice.originalInvoiceId, sourceId);
+      assert.equal(saved.invoice.originalInvoiceNumber, beforeAcceptedCorrection.number);
+      assert.equal(saved.invoice.originalKsefNumber, sourceKsefNumber);
+      assert.equal(saved.invoice.totalNet, -50); assert.equal(saved.invoice.totalVat, -11.5); assert.equal(saved.invoice.totalGross, -61.5);
+      const storedCorrection = await db.invoice.findUniqueOrThrow({ where: { id: saved.invoice.id } });
+      assert.deepEqual(storedCorrection.originalLines, beforeAcceptedCorrection.lines);
+      assert.equal(storedCorrection.originalKsefNumber, sourceKsefNumber);
+      await expect(page).toHaveURL(/\/invoices$/); await waitForRenderedLayout(page);
+      await navigate(`/invoices/${saved.invoice.id}`); await refresh();
+      await expect(page.locator('.invoice-paper')).toContainText(beforeAcceptedCorrection.number);
+      await expect(page.locator('.invoice-paper')).toContainText('-61,50');
+      const xmlDownload = page.waitForEvent('download');
+      await page.getByRole('button', { name: 'Pobierz FA(3)', exact: true }).click();
+      const download = await xmlDownload;
+      assert.equal(await download.failure(), null, `${scenario.key} XML download`);
+      const xmlStream = await download.createReadStream();
+      assert.ok(xmlStream, `${scenario.key} XML stream`);
+      const xmlParts = []; for await (const part of xmlStream) xmlParts.push(part);
+      const xml = Buffer.concat(xmlParts).toString('utf8');
+      assert.ok(xml.includes('<RodzajFaktury>KOR</RodzajFaktury>'));
+      assert.ok(xml.includes(`<NrFaKorygowanej>${beforeAcceptedCorrection.number}</NrFaKorygowanej>`));
+      assert.ok(xml.includes(`<NrKSeFFaKorygowanej>${sourceKsefNumber}</NrKSeFFaKorygowanej>`));
+      assert.ok(xml.includes('<NrKSeF>1</NrKSeF>'));
+      assert.ok(!xml.includes('<NrKSeFN>'), `${scenario.key} must reference its accepted KSeF original`);
+      const pdfResponse = await context.request.get(`/api/invoices/${saved.invoice.id}/pdf`, { timeout: 30000 });
+      assert.ok(pdfResponse.ok(), `${scenario.key} correction PDF: HTTP ${pdfResponse.status()}`);
+      assert.match(pdfResponse.headers()['content-type'] || '', /^application\/pdf\b/);
+      const pdf = await pdfResponse.body();
+      assert.equal(pdf.subarray(0, 5).toString('ascii'), '%PDF-'); assert.ok(pdf.length > 500);
+      const afterAcceptedCorrection = await db.invoice.findUniqueOrThrow({ where: { id: sourceId } });
+      assert.deepEqual(afterAcceptedCorrection, beforeAcceptedCorrection, `${scenario.key} original must remain unchanged, including raw legacy statuses and KSeF fields`);
+      checks.push(`${scenario.key}: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields`);
+    }
+    assert.deepEqual(ksefMutationRequests, [], 'Correction QA must never dispatch a KSeF transmission or mutate a provider session');
     await fresh(); await chooseManual(`QA/${marker}/NBP`); await chooseBuyer();
     await page.getByRole('textbox', { name: 'Nazwa pozycji 1', exact: true }).fill('Test kursu NBP');
     await page.getByRole('spinbutton', { name: 'Cena netto pozycji 1', exact: true }).fill('1');

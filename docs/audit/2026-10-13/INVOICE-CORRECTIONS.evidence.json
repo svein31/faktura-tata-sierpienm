@@ -1,0 +1,152 @@
+{
+  "scope": "Local prepublication invoice-correction regression",
+  "parent": "c4389e84a14a2c774e42f14bdb91f03756b02def",
+  "gates": {
+    "path": "/tmp/faktura-correction-gates-20261013-execution.json",
+    "sha256": "cc408bab89dee19a7706a020c54d2194d99e43672ce14ce513848b67e317cf41",
+    "result": [
+      {
+        "name": "build",
+        "startedAt": "2026-10-13T13:20:19.472Z",
+        "endedAt": "2026-10-13T13:21:15.246Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "sourceAfter": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "log": "/tmp/faktura-correction-build-20261013.log"
+      },
+      {
+        "name": "typecheck",
+        "startedAt": "2026-10-13T13:21:15.247Z",
+        "endedAt": "2026-10-13T13:21:24.056Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "sourceAfter": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "log": "/tmp/faktura-correction-typecheck-20261013.log"
+      },
+      {
+        "name": "lint",
+        "startedAt": "2026-10-13T13:21:24.056Z",
+        "endedAt": "2026-10-13T13:21:30.047Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "sourceAfter": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "log": "/tmp/faktura-correction-lint-20261013.log"
+      },
+      {
+        "name": "test",
+        "startedAt": "2026-10-13T13:21:30.048Z",
+        "endedAt": "2026-10-13T13:22:20.803Z",
+        "exitCode": 0,
+        "signal": null,
+        "sourceBefore": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "sourceAfter": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "log": "/tmp/faktura-correction-test-20261013.log"
+      }
+    ]
+  },
+  "browser": {
+    "path": "/tmp/faktura-correction-browser-20261013-execution.json",
+    "sha256": "a276697f7aa29d4e6e3692183ecee7109b2731f9ff5ed64acfd74cf4126c1a19",
+    "result": {
+      "startedAt": "2026-10-13T13:24:31.761Z",
+      "finishedAt": "2026-10-13T13:26:54.247Z",
+      "before": {
+        "sourceSha256": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "buildId": "WTmR6lbj3N9v733xg_xdj"
+      },
+      "after": {
+        "sourceSha256": "6d5842ef22ab81d4895e690923ab56bcbd6125c1fbd3a0e8893df1097b6040ba",
+        "buildId": "WTmR6lbj3N9v733xg_xdj"
+      },
+      "unchanged": true,
+      "results": [
+        {
+          "engine": "chromium",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "1.005 × 10: visible preview equals saved/reloaded 10.10 net and 12.42 gross",
+            "Ordinary zero quantity stays an explicit validation error and never reaches invoice POST",
+            "Detail → abandoned edit → back → signed correction → explicit preflight/save/reload preserves original identity and values",
+            "KSEF_ACCEPTED: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_STALE_DRAFT: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_LEGACY_JSON: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "Slow EUR request cannot replace the newer USD rate; refresh has a loading state",
+            "NBP outage clears stale rate, shows an error and blocks save without a financial write",
+            "Explicit refresh recovers a current, visible official exchange rate after the outage"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "webkit",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "1.005 × 10: visible preview equals saved/reloaded 10.10 net and 12.42 gross",
+            "Ordinary zero quantity stays an explicit validation error and never reaches invoice POST",
+            "Detail → abandoned edit → back → signed correction → explicit preflight/save/reload preserves original identity and values",
+            "KSEF_ACCEPTED: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_STALE_DRAFT: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_LEGACY_JSON: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "Slow EUR request cannot replace the newer USD rate; refresh has a loading state",
+            "NBP outage clears stale rate, shows an error and blocks save without a financial write",
+            "Explicit refresh recovers a current, visible official exchange rate after the outage"
+          ],
+          "status": "passed"
+        },
+        {
+          "engine": "firefox",
+          "scope": "isolated-loopback-synthetic",
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "checks": [
+            "1.005 × 10: visible preview equals saved/reloaded 10.10 net and 12.42 gross",
+            "Ordinary zero quantity stays an explicit validation error and never reaches invoice POST",
+            "Detail → abandoned edit → back → signed correction → explicit preflight/save/reload preserves original identity and values",
+            "KSEF_ACCEPTED: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_STALE_DRAFT: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "KSEF_LEGACY_JSON: visible detail action → signed correction → preflight/save/reload/XML/PDF preserves original KSeF reference and all raw original fields",
+            "Slow EUR request cannot replace the newer USD rate; refresh has a loading state",
+            "NBP outage clears stale rate, shows an error and blocks save without a financial write",
+            "Explicit refresh recovers a current, visible official exchange rate after the outage"
+          ],
+          "status": "passed"
+        }
+      ],
+      "error": null,
+      "resourcesStopped": true,
+      "scope": "Isolated MongoDB with forward migrations, real browser/form/API/PDF/XML; external server providers blocked; no production writes"
+    }
+  },
+  "observedOwnedOuterExits": {
+    "gatesSession58879": 0,
+    "browserSession93084": 0
+  },
+  "verifiedCleanup": {
+    "ownedPidsAbsent": [
+      4683,
+      4695,
+      4696,
+      4842,
+      5099
+    ],
+    "nextPortClosed": 45163
+  },
+  "notVerified": [
+    "Customer invoice raw fields",
+    "Physical Safari/iOS",
+    "Real MF correction delivery",
+    "Future remote CI and deployment"
+  ]
+}

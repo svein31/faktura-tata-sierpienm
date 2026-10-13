@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { ApiError, assertObjectId } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
+import { correctionOriginalKsefNumber, isCorrectableInvoiceSource } from "@/lib/invoice-correction-eligibility";
 
 /** Resolve a linked correction from an authorised source, never client-supplied snapshots. */
 export async function resolveInvoiceCorrectionSource(
@@ -21,7 +22,7 @@ export async function resolveInvoiceCorrectionSource(
     select: {
       id: true, userId: true, sellerCompanyId: true, type: true, status: true,
       documentStatus: true, documentKind: true, isProforma: true, currency: true,
-      number: true, issueDate: true, ksefNumber: true, lines: true,
+      number: true, issueDate: true, issuedAt: true, ksefNumber: true, ksef: true, lines: true,
     },
   });
   const notFound = () => new ApiError(404, "Nie znaleziono dostępnej faktury do skorygowania.");
@@ -32,10 +33,10 @@ export async function resolveInvoiceCorrectionSource(
   } else if (original.userId !== userId) throw notFound();
   const sellerId = typeof body.sellerCompanyId === "string" ? body.sellerCompanyId.trim().toLowerCase() || null : null;
   if (sellerId !== original.sellerCompanyId) throw new ApiError(400, "Korekta musi należeć do firmy wystawiającej fakturę pierwotną.");
-  if (original.type !== "sale" || original.isProforma || original.status === "draft" || original.documentStatus === "draft" || original.documentStatus === "cancelled")
-    throw new ApiError(409, "Skorygować można wystawioną fakturę sprzedaży. Szkic edytuj, a proformę rozlicz właściwym dokumentem.");
   if (original.documentKind === "advance" || original.documentKind === "final")
     throw new ApiError(400, "Korekta rozliczenia zaliczki wymaga przeliczenia całego rozliczenia; ten formularz obsługuje korekty zwykłych faktur.");
+  if (!isCorrectableInvoiceSource(original))
+    throw new ApiError(409, "Skorygować można wystawioną fakturę sprzedaży. Szkic edytuj, a proformę rozlicz właściwym dokumentem.");
   if (String(body.type || "").trim() !== "sale" || body.isProforma === true || body.isRecurring === true)
     throw new ApiError(400, "Korekta jest odrębną fakturą sprzedaży, bez proformy i harmonogramu cyklicznego.");
   if (String(body.currency || "PLN").trim().toUpperCase() !== original.currency)
@@ -44,7 +45,7 @@ export async function resolveInvoiceCorrectionSource(
     throw new ApiError(400, "Data korekty nie może poprzedzać daty faktury pierwotnej.");
   return {
     ...body, originalInvoiceId: original.id, originalInvoiceNumber: original.number,
-    originalIssueDate: original.issueDate, originalKsefNumber: original.ksefNumber || null,
+    originalIssueDate: original.issueDate, originalKsefNumber: correctionOriginalKsefNumber(original),
     originalLines: original.lines,
   };
 }

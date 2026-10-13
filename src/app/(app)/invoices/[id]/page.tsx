@@ -36,6 +36,7 @@ import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PrintVersions } from "@/components/invoice/print-versions";
 import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
 import { ksefProgress } from "@/lib/ksef/progress";
+import { isCorrectableInvoiceSource } from "@/lib/invoice-correction-eligibility";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney, round2 } from "@/lib/format";
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
@@ -354,7 +355,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             <Pencil className="h-3.5 w-3.5" /> Edytuj
           </Button>)}
 
-          {invoice.type === "sale" && !invoice.isProforma && status !== "draft" && invoice.documentStatus !== "cancelled" && invoice.documentKind !== "advance" && invoice.documentKind !== "final" && (
+          {isCorrectableInvoiceSource(invoice) && (
             <Button variant="outline" size="sm" onClick={handleCreateCorrection} className="rounded-xl gap-1.5 text-xs">
               <FilePenLine className="h-3.5 w-3.5" /> Wystaw korektę
             </Button>

@@ -35,6 +35,7 @@ import { useAppStore } from "@/lib/store";
 import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, parseInvoicePattern } from "@/lib/invoice-numbering";
 import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
 import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
+import { correctionOriginalKsefNumber, isCorrectableInvoiceSource } from "@/lib/invoice-correction-eligibility";
 import { getContractor } from "@/lib/store";
 import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
@@ -291,7 +292,7 @@ export function InvoiceCreator() {
         if (!response.ok) throw new Error(data.error || "Nie udało się wczytać faktury do sklonowania.");
         if (controller.signal.aborted) return;
         const src: Invoice = data.invoice;
-        if (correctionId && (src.type !== "sale" || src.isProforma || src.status === "draft" || src.documentStatus === "draft" || src.documentStatus === "cancelled" || src.sellerCompanyId !== defaultCompany.id || src.documentKind === "advance" || src.documentKind === "final")) throw new Error("Otwórz wystawioną zwykłą fakturę sprzedaży w jej firmie, aby przygotować korektę.");
+        if (correctionId && (!isCorrectableInvoiceSource(src) || src.sellerCompanyId !== defaultCompany.id)) throw new Error("Otwórz wystawioną zwykłą fakturę sprzedaży w jej firmie, aby przygotować korektę.");
         clonedFrom.current = cloneKey;
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
@@ -303,7 +304,7 @@ export function InvoiceCreator() {
           originalInvoiceId: correctionId ? src.id : "",
           originalInvoiceNumber: correctionId ? src.number : "",
           originalIssueDate: correctionId ? src.issueDate : "",
-          originalKsefNumber: correctionId ? src.ksefNumber || src.ksef?.number || "" : "",
+          originalKsefNumber: correctionId ? correctionOriginalKsefNumber(src) || "" : "",
           // A correction contains differences. Zero placeholders require a deliberate
           // user input and cannot accidentally copy another full sale or refund.
           lines: src.lines.map(line => ({ ...line, quantity: correctionId ? 0 : line.quantity })),

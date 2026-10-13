@@ -27,7 +27,7 @@ test('linked corrections use actual authorised source metadata instead of forged
 
 test('revoked company access and another actor legacy source are indistinguishable from a missing source', async () => {
   permitted = false;
-  for (const record of [null, source, { ...source, documentKind: 'advance' }, { ...source, sellerCompanyId: null, userId: 'd'.repeat(24) }])
+  for (const record of [null, source, { ...source, documentKind: 'advance' }, { ...source, status: 'draft', documentStatus: 'draft', ksef: { number: 'legacy-ksef' } }, { ...source, sellerCompanyId: null, userId: 'd'.repeat(24) }])
     await assert.rejects(resolveInvoiceCorrectionSource(db(record), actor, body), error => error.status === 404 && error.message === 'Nie znaleziono dostępnej faktury do skorygowania.');
   permitted = true;
 });
@@ -36,10 +36,48 @@ test('correction source rejects self-reference, wrong seller/currency, draft and
   await assert.rejects(resolveInvoiceCorrectionSource(db(source), actor, body, sourceId), error => error.status === 400);
   for (const patch of [{ sellerCompanyId: 'd'.repeat(24) }, { currency: 'EUR' }, { issueDate: '2026-09-30' }, { type: 'purchase' }, { isProforma: true }, { isRecurring: true }])
     await assert.rejects(resolveInvoiceCorrectionSource(db(source), actor, { ...body, ...patch }), error => error.status === 400);
-  for (const patch of [{ status: 'draft' }, { documentStatus: 'cancelled' }, { isProforma: true }, { type: 'purchase' }])
+  for (const patch of [{ status: 'draft', ksefNumber: null }, { documentStatus: 'draft', ksefNumber: null }, { status: 'cancelled' }, { documentStatus: 'cancelled' }, { isProforma: true }, { type: 'purchase' }])
     await assert.rejects(resolveInvoiceCorrectionSource(db({ ...source, ...patch }), actor, body), error => error.status === 409);
   for (const documentKind of ['advance', 'final'])
     await assert.rejects(resolveInvoiceCorrectionSource(db({ ...source, documentKind }), actor, body), error => error.status === 400);
+});
+
+test('linked accepted legacy originals retain their persisted reference despite stale draft fields', async () => {
+  permitted = true;
+  for (const fields of [{ status: 'draft' }, { documentStatus: 'draft' }, { status: 'draft', documentStatus: 'draft' }]) {
+    for (const reference of [{ ksefNumber: ' real-ksef-number ', ksef: null }, { ksefNumber: null, ksef: { number: ' legacy-ksef-number ', status: 'ACTIVE' } }]) {
+      const original = { ...source, ...fields, ...reference };
+      const resolved = await resolveInvoiceCorrectionSource(db(original), actor, { ...body, originalKsefNumber: 'forged', originalInvoiceNumber: 'forged', originalLines: [] });
+      assert.equal(resolved.originalKsefNumber, reference.ksefNumber ? 'real-ksef-number' : 'legacy-ksef-number');
+      assert.equal(resolved.originalInvoiceNumber, source.number);
+      assert.deepEqual(resolved.originalLines, source.lines);
+    }
+  }
+});
+
+test('known persisted issuance recovers stale ordinary document draft without a KSeF reference', async () => {
+  permitted = true;
+  const original = { ...source, documentStatus: 'draft', ksefNumber: null, issuedAt: new Date('2026-10-01T10:00:00Z') };
+  const resolved = await resolveInvoiceCorrectionSource(db(original), actor, body);
+  assert.equal(resolved.originalKsefNumber, null);
+  assert.equal(resolved.originalInvoiceNumber, source.number);
+});
+
+test('forged request references cannot make a persisted genuine draft correctable', async () => {
+  permitted = true;
+  const draft = { ...source, status: 'draft', documentStatus: 'draft', ksefNumber: null };
+  for (const fields of [{}, { ksef: { number: '  ' } }, { ksef: { number: 200, status: 'ACTIVE' } }])
+    await assert.rejects(resolveInvoiceCorrectionSource(db({ ...draft, ...fields }), actor, { ...body, ksefNumber: 'forged', ksef: { number: 'forged' }, originalKsefNumber: 'forged' }), error => error.status === 409);
+});
+
+test('reference metadata is selected from the persisted source and scalar canonical reference wins', async () => {
+  permitted = true;
+  let query;
+  const selected = { invoice: { findUnique: async args => { query = args; return { ...source, ksef: { number: 'legacy-number' } }; } } };
+  const resolved = await resolveInvoiceCorrectionSource(selected, actor, body);
+  assert.equal(query.select.issuedAt, true);
+  assert.equal(query.select.ksef, true);
+  assert.equal(resolved.originalKsefNumber, source.ksefNumber);
 });
 
 test('unlinked external corrections and normal invoices do not read unrelated source data', async () => {
