@@ -143,7 +143,7 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Za Twoją zgodą uruchamiamy własny pomiar etapów korzystania i wydajności oraz Google Analytics 4 do odsłon publicznych stron i źródeł odwiedzin. Google nie otrzymuje odsłon panelu, logowania, rejestracji, konta ani danych faktur, kontrahentów, e-maili, NIP-ów i kwot. Publiczne adresy wysyłamy bez parametrów i fragmentów, a źródło odesłania ograniczamy do protokołu i domeny. Google Signals i funkcje reklamowe są wyłączone.
+                  Za Twoją zgodą uruchamiamy własny pomiar etapów korzystania i wydajności oraz Google Analytics 4 do odsłon publicznych stron, źródeł odwiedzin i kliknięć prowadzących do rejestracji lub demo. Kliknięcie oznacza zainteresowanie, a nie utworzenie konta ani zakup. Google nie otrzymuje odsłon panelu, logowania, ekranu rejestracji, konta ani danych formularzy, faktur, kontrahentów, e-maili, NIP-ów i kwot. Publiczne adresy wysyłamy bez parametrów i fragmentów, a źródło odesłania ograniczamy do protokołu i domeny. Google Signals i funkcje reklamowe są wyłączone.
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   Własny pomiar przechowujemy do 30 dni. Cookies GA4 mają czas życia do 30 dni bez automatycznego odnawiania; retencja danych w Google zależy od osobnego ustawienia usługi. Wycofanie zgody zatrzymuje kolejne zdarzenia i usuwa cookies GA4 z przeglądarki, ale nie usuwa historii już przesłanej do Google. Szczegóły znajdziesz w polityce prywatności.

@@ -42,6 +42,38 @@ function safeReferrer(): string {
   try { return document.referrer ? new URL(document.referrer).origin : ""; }
   catch { return ""; }
 }
+function pageContext(location: string) {
+  return { page_location: location, page_referrer: safeReferrer(), page_title: PAGE_TITLE };
+}
+
+function trackPublicCta(event: MouseEvent): void {
+  try {
+    // Native keyboard activation also dispatches a primary click. Capture it
+    // before Next changes history and disables measurement on /register.
+    if (event.button !== 0 || event.defaultPrevented) return;
+    const target = event.target as Element | null;
+    const element = target?.nodeType === 3 ? target.parentElement : target;
+    const link = element?.closest?.("a[href]");
+    const href = link?.getAttribute("href")?.trim();
+    if (!href || href.startsWith("#") || link?.hasAttribute("download")) return;
+    const destination = new URL(href, document.baseURI || window.location.href);
+    if (!/^https?:$/.test(destination.protocol) || destination.origin !== window.location.origin ||
+        destination.username || destination.password) return;
+    const name = destination.pathname === "/register" ? "registration_click" :
+      destination.pathname === "/demo" ? "demo_click" : null;
+    if (!name) return;
+    const location = publicLocation();
+    const accepted = consented();
+    if (!accepted || !location) { suspend(!accepted); return; }
+    syncGoogleAnalyticsRoute();
+    if (!enabled || browser()[`ga-disable-${GOOGLE_ANALYTICS_ID}`]) return;
+    send("event", name, {
+      ...pageContext(location),
+      // Store a constant route, never the anchor's text, search or fragment.
+      link_url: `${window.location.origin}${name === "registration_click" ? "/register" : "/demo"}`,
+    });
+  } catch { /* Optional measurement must never interrupt an anchor or navigation. */ }
+}
 
 function expireAnalyticsCookies() {
   const names = document.cookie.split(";").map(value => value.trim().split("=")[0]).filter(name => /^_ga(?:_|$)/.test(name));
@@ -134,7 +166,7 @@ export function syncGoogleAnalyticsRoute(): void {
     if (location === lastPage) return;
     // Defaults also keep Google's delayed engagement events free of URL parameters,
     // personal document titles and private referrer paths.
-    const page = { page_location: location, page_referrer: safeReferrer(), page_title: PAGE_TITLE };
+    const page = pageContext(location);
     send("set", page);
     send("event", "page_view", page);
     lastPage = location;
@@ -165,10 +197,12 @@ export function installGoogleAnalytics(): () => void {
     window.addEventListener("fakturo-consent-updated", sync);
     window.addEventListener("focus", sync);
     window.addEventListener("popstate", sync, true);
+    document.addEventListener("click", trackPublicCta, true);
     teardown = () => {
       window.removeEventListener("fakturo-consent-updated", sync);
       window.removeEventListener("focus", sync);
       window.removeEventListener("popstate", sync, true);
+      document.removeEventListener("click", trackPublicCta, true);
       if (history.pushState === wrappedPush) history.pushState = pushState;
       if (history.replaceState === wrappedReplace) history.replaceState = replaceState;
       teardown = null;
