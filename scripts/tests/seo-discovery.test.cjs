@@ -8,8 +8,9 @@ test('sitemap collection dates include the latest linked article without fabrica
   assert.equal(contentModifiedAt('/porownania'), '2026-10-08');
   assert.equal(contentModifiedAt('/faktury'), '2026-10-02');
   assert.equal(contentModifiedAt('/faktury/jak-wystawic'), '2026-09-24');
-  assert.equal(contentModifiedAt('/'), undefined);
+  assert.equal(contentModifiedAt('/'), '2026-10-15', 'Homepage product answers were actually published on this date');
   const items = sitemap();
+  assert.equal(items.find(item => item.url === 'https://fakturaprosto.pl/').lastModified.toISOString(), '2026-10-15T12:00:00.000Z');
   assert.equal(items.find(item => item.url === 'https://fakturaprosto.pl/porownania').lastModified.toISOString(), '2026-10-08T12:00:00.000Z');
   assert.equal(new Set(items.map(item => item.url)).size, items.length);
   assert.ok(items.every(item => !/^\/(api|portal|login|register|verify-email|settings|dashboard)(\/|$)/.test(new URL(item.url).pathname)));

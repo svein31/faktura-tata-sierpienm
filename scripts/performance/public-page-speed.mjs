@@ -48,7 +48,9 @@ const network = profile === 'mobile-slow'
 const proxyServer = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
 const median = values => {
   const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
-  return sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+  if (!sorted.length) return null;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 };
 const rounded = value => Number.isFinite(value) ? Math.round(value) : null;
 const range = values => {
@@ -221,11 +223,12 @@ try {
   const healthAfter = health();
   const revisionStable = healthBefore.revision === healthAfter.revision;
   const buildMarkers = [...new Set(measurements.map(item => item.nextBuildMarker))];
-  const buildStable = buildMarkers.length === 1 && typeof buildMarkers[0] === 'string';
+  const buildStable = buildMarkers.length === 1 && typeof buildMarkers[0] === 'string' && buildMarkers[0].trim().length > 0;
   await reportJson(output, {
     schemaVersion: 2, incomplete: false, phase, measuredAt, completedAt: new Date().toISOString(),
     base, browser: browser.version(), healthBefore, healthAfter, revisionStable, buildMarkers, buildStable, method, summary, measurements,
   });
   if (!revisionStable || !buildStable) console.warn('Deployment revision or public build marker changed/missing. Do not use this report as a confirmed comparable baseline.');
   console.log(JSON.stringify({ output, revisionStable, buildStable, summary }));
+  if (expectedRevision) assert.equal(healthAfter.revision, expectedRevision, 'Expected deployment changed during measurement; report is not comparable');
 } finally { await browser.close(); }
