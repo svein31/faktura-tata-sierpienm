@@ -24,6 +24,7 @@ export const PRIVATE_CRAWL_RULES = PRIVATE_CRAWL_PREFIXES.flatMap(path => [
 export const INDEXABLE_PATHS = [...STATIC_INDEXABLE_PATHS, ...topics.map(topic => topic.path)];
 
 const hubModifiedAt: Record<string, string> = {
+  "/": "2026-10-15", // Product answers and homepage copy updated on this date.
   "/faktury": "2026-10-02", "/poradnik-ksef": "2026-10-02",
   "/program-do-faktur": "2026-10-02", "/porownania": "2026-10-02",
   "/narzedzia": "2026-10-02", "/vat": REVIEW_DATE,
