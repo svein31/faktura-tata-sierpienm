@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PUBLIC_ORIGIN } from "./content";
+import { PUBLIC_ORIGIN, topicCategory, topicDates, type Topic } from "./content";
 
 const origin = PUBLIC_ORIGIN;
 export function publicMetadata(
@@ -31,3 +31,17 @@ export function pageMetadata(path: string, fallbackTitle = "FakturaProsto", fall
   return publicMetadata(path, copy?.title || fallbackTitle.slice(0, 60), copy?.description || fallbackDescription.slice(0, 155));
 }
 export function pageCopy(path: string) { return onpage.find(page => page.url === path); }
+
+export function topicMetadata(topic: Topic): Metadata {
+  const metadata = pageMetadata(topic.path, topic.title, topic.description);
+  const dates = topicDates(topic);
+  return {
+    ...metadata,
+    authors: [{ name: "Redakcja FakturaProsto", url: `${PUBLIC_ORIGIN}/pomoc` }],
+    openGraph: {
+      ...metadata.openGraph,
+      type: "article", publishedTime: dates.publishedAt, modifiedTime: dates.modifiedAt,
+      authors: [`${PUBLIC_ORIGIN}/pomoc`], section: topicCategory(topic.path).name,
+    },
+  };
+}

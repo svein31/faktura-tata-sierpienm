@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
+import { AppLoadingSkeleton } from "./app-loading-skeleton";
 
 /**
  * Jednorazowy bootstrap danych zalogowanego użytkownika (GET /api/data).
@@ -69,49 +69,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
       <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setAttempt(n => n + 1)}>Spróbuj ponownie</button>
     </div>
   );
-  if (!hydrated || dataMode !== mode) {
-    return (
-      <div className="space-y-6 animate-in fade-in duration-300" aria-busy="true">
-        {/* Nagłówek — natychmiast widoczna struktura */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1.5">
-            <Skeleton className="h-6 w-36 rounded-lg" />
-            <Skeleton className="h-3.5 w-56 rounded-lg" />
-          </div>
-          <Skeleton className="h-9 w-32 rounded-xl" />
-        </div>
-
-        {/* Metryki — subtelne karty */}
-        <StatsSkeleton count={4} />
-
-        {/* Tabela — cienkie linie imitujące wiersze */}
-        <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
-          <div className="border-b border-border/30 bg-muted/20 px-4 py-3 flex items-center justify-between">
-            <Skeleton className="h-3.5 w-24" />
-            <Skeleton className="h-3.5 w-16" />
-          </div>
-          <div className="p-4 space-y-1">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between gap-4 py-2.5 border-b border-border/20 last:border-0">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded-lg" />
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3.5 w-28" />
-                    <Skeleton className="h-2.5 w-20" />
-                  </div>
-                </div>
-                <div className="hidden items-center gap-2 sm:flex">
-                  <Skeleton className="h-3.5 w-20" />
-                  <Skeleton className="h-5 w-14 rounded-full" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <p className="sr-only">Ładowanie danych…</p>
-      </div>
-    );
-  }
+  if (!hydrated || dataMode !== mode) return <AppLoadingSkeleton />;
 
   return <>{children}</>;
 }

@@ -1,4 +1,4 @@
-import { PUBLIC_ORIGIN, REVIEW_DATE, topics } from "./content";
+import { PUBLIC_ORIGIN, REVIEW_DATE, topics, topicDates } from "./content";
 import { SUBSCRIPTION_PLANS } from "../subscription-plans";
 
 export const STATIC_INDEXABLE_PATHS = [
@@ -7,6 +7,19 @@ export const STATIC_INDEXABLE_PATHS = [
   "/narzedzia/limit-ksef", "/regulamin", "/polityka-prywatnosci", "/polityka-cookies",
   "/powierzenie-danych", "/podwykonawcy",
 ] as const;
+
+// These are crawler hints, not access control. Authentication and token checks
+// remain mandatory. Keep sign-in pages crawlable so their noindex is readable.
+export const PRIVATE_CRAWL_PREFIXES = [
+  "/api", "/portal", "/invite", "/accountant", "/advances", "/analytics", "/audit",
+  "/calendar", "/contractors", "/cost-reviews", "/dashboard", "/documents", "/expenses",
+  "/finances", "/help", "/invoices", "/jpk", "/ksef", "/offers", "/orders", "/products",
+  "/projects", "/recurring", "/reminders", "/settings", "/tax-estimate", "/warehouse",
+] as const;
+
+export const PRIVATE_CRAWL_RULES = PRIVATE_CRAWL_PREFIXES.flatMap(path => [
+  `${path}$`, `${path}?`, `${path}/`,
+]);
 
 export const INDEXABLE_PATHS = [...STATIC_INDEXABLE_PATHS, ...topics.map(topic => topic.path)];
 
@@ -18,12 +31,12 @@ const hubModifiedAt: Record<string, string> = {
 
 export function contentModifiedAt(path: string): string | undefined {
   const topic = topics.find(item => item.path === path);
-  if (topic) return topic.modifiedAt || topic.publishedAt || REVIEW_DATE;
+  if (topic) return topicDates(topic).modifiedAt;
   if (!hubModifiedAt[path]) return undefined;
   // A collection's rendered cards change when their linked article changes.
   // Do not fabricate today's date on each deployment.
   return [hubModifiedAt[path], ...topics.filter(item => item.path.startsWith(`${path}/`))
-    .map(item => item.modifiedAt || item.publishedAt || REVIEW_DATE)].sort().at(-1);
+    .map(item => topicDates(item).modifiedAt)].sort().at(-1);
 }
 
 export function llmsText(): string {

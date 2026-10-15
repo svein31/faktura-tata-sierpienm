@@ -28,24 +28,32 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
     refresh();
   }, []);
   const mutations = useAppStore(s => s.invoices);
+  const previousSearch = React.useRef(filters.search ?? "");
   React.useEffect(() => {
     const current = lifecycle.current;
     if (!enabled || !current || current.departing) return;
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const cancel = () => { clearTimeout(timer); controller.abort(); };
     const release = current.track(cancel);
     setLoading(true); setError("");
-    timer = setTimeout(() => {
+    const search = filters.search ?? "";
+    const debounce = previousSearch.current !== search;
+    previousSearch.current = search;
+    const request = () => {
       if (controller.signal.aborted || current.departing) return;
       fetch(url, { signal: controller.signal }).then(async res => {
         const data = await res.json(); if (!res.ok) throw new Error(data.error || "Nie udało się pobrać faktur.");
         if (!controller.signal.aborted) setState({ url, data });
       }).catch(e => { if (!controller.signal.aborted) setError(e.message); })
         .finally(() => { release(); if (!controller.signal.aborted) setLoading(false); });
-    }, 200);
+    };
+    // Debounce typing only. Initial load, page changes and explicit refreshes
+    // should start the request immediately, without an artificial 200 ms wait.
+    if (debounce) timer = setTimeout(request, 200);
+    else request();
     return () => { cancel(); release(); };
-  }, [url, revision, mutations, enabled]);
+  }, [url, revision, mutations, enabled, filters.search]);
   React.useEffect(() => { const visible = () => { if (document.visibilityState === "visible" && !lifecycle.current?.departing) refresh(); }; document.addEventListener("visibilitychange", visible); return () => document.removeEventListener("visibilitychange", visible); }, []);
   const data = enabled && state.url === url ? state.data : EMPTY;
   return { ...data, loading, error, reload, page: cursors.length, key: url,

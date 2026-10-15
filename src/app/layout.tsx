@@ -7,6 +7,7 @@ import { SessionProvider } from "@/lib/session-context";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { PublicDeferred } from "@/components/public-deferred";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { COOKIE_CONSENT_VISIBILITY_SCRIPT } from "@/lib/cookie-consent";
 
 // Keep the self-hosted Polish subsets available to styles that use --font-sans.
 // The current font-sans utility uses the system stack, so preloading these
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pl" suppressHydrationWarning className="dark" style={{ "--font-sans": fontFamily } as React.CSSProperties}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: COOKIE_CONSENT_VISIBILITY_SCRIPT }} />
       </head>
       <body className="font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen">
         <ThemeProvider>
