@@ -8,19 +8,19 @@
 
 export const LEGAL_VERSIONS = {
   terms: "1.1.0-2026-10-07",
-  privacy: "1.2.0-2026-10-08",
-  cookies: "1.1.0-2026-10-08",
+  privacy: "1.3.0-2026-10-15",
+  cookies: "1.2.0-2026-10-15",
   dpa: "1.1.0-2026-10-07",
-  subprocessors: "1.0.0-2026-09-13",
+  subprocessors: "1.1.0-2026-10-15",
 } as const;
 
 export const EFFECTIVE_DATE = "7 października 2026 r.";
 export const LEGAL_EFFECTIVE_DATES = {
   terms: EFFECTIVE_DATE,
-  privacy: "8 października 2026 r.",
-  cookies: "8 października 2026 r.",
+  privacy: "15 października 2026 r.",
+  cookies: "15 października 2026 r.",
   dpa: EFFECTIVE_DATE,
-  subprocessors: "13 września 2026 r.",
+  subprocessors: "15 października 2026 r.",
 } as const;
 
 export interface OperatorConfig {
@@ -71,7 +71,7 @@ export const OPERATOR_CONFIG: OperatorConfig = {
 export interface SubprocessorInfo {
   id: string;
   name: string;
-  category: "database" | "hosting" | "email" | "infrastructure" | "payments";
+  category: "database" | "hosting" | "email" | "infrastructure" | "payments" | "analytics";
   categoryLabel: string;
   purpose: string;
   location: string;
@@ -124,6 +124,16 @@ export const SUBPROCESSORS: SubprocessorInfo[] = [
     transferMechanism: "EU-US Data Privacy Framework (DPF) oraz Standardowe Klauzule Umowne (SCC) zatwierdzone przez KE.",
     privacyPolicyUrl: "https://stripe.com/legal/privacy-center",
   },
+  {
+    id: "google-analytics",
+    name: "Google Ireland Limited / Google LLC (Google Analytics 4)",
+    category: "analytics",
+    categoryLabel: "Opcjonalne statystyki publicznych stron",
+    purpose: "Po zgodzie analitycznej: pomiar odsłon publicznych stron i źródeł odwiedzin. Bez panelu, logowania, danych kont, faktur, kontrahentów i płatności; Google nie otrzymuje powierzonych danych księgowych Klienta.",
+    location: "Irlandia (UE) / infrastruktura Google, w tym USA",
+    transferMechanism: "Zgodnie z warunkami ochrony danych Google: mechanizmy transferu opisane przez Google, w tym DPF lub SCC, zależnie od podmiotu odbierającego i zakresu usługi.",
+    privacyPolicyUrl: "https://policies.google.com/privacy?hl=pl",
+  },
 ];
 
 export interface CookieItem {
@@ -140,6 +150,15 @@ export interface CookieItem {
  * Rzeczywisty inwentarz plików cookies i technologii pamięci przeglądarki.
  */
 export const COOKIE_INVENTORY: CookieItem[] = [
+  {
+    name: "_ga / _ga_4P218PFSBX",
+    category: "analytics",
+    categoryLabel: "Analityczne (opcjonalne)",
+    provider: "Google Analytics 4; cookies własnej domeny fakturaprosto.pl",
+    purpose: "Pseudonimowy identyfikator przeglądarki i stan sesji do statystyk publicznych stron. Ustawiane wyłącznie po zgodzie; bez funkcji reklamowych i Google Signals.",
+    expiry: "Do 30 dni, bez automatycznego odnawiania terminu przy kolejnych odsłonach; usuwane z przeglądarki po wycofaniu zgody",
+    type: "cookie",
+  },
   {
     name: "fakturo_pilot",
     category: "analytics",

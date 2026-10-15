@@ -8,6 +8,7 @@ import { COOKIE_INVENTORY } from "@/lib/legal/config";
 
 const essentialCookies = COOKIE_INVENTORY.filter((cookie) => cookie.category === "essential");
 const functionalCookies = COOKIE_INVENTORY.filter((cookie) => cookie.category === "functional");
+const analyticsCookies = COOKIE_INVENTORY.filter((cookie) => cookie.category === "analytics");
 
 interface CookiePreferencesDialogProps {
   functionalConsent: boolean;
@@ -59,7 +60,7 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
             {/* Treść modalu */}
             <div className="min-w-0 space-y-5 break-words text-xs text-slate-600 dark:text-slate-300">
               <p className="leading-relaxed">
-                Szanujemy Twoją prywatność. Serwis FakturaProsto stosuje wyłącznie technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — opcjonalne preferencje i analitykę etapów korzystania z aplikacji.
+                Szanujemy Twoją prywatność. Serwis FakturaProsto stosuje technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — opcjonalne preferencje, własny pomiar korzystania i Google Analytics 4 do statystyk publicznych stron.
               </p>
 
               {/* Kategoria 1: Niezbędne (Zawsze aktywne) */}
@@ -142,8 +143,14 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                   </label>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Za Twoją zgodą mierzymy wyłącznie etapy: wejście, rejestracja, pierwsza faktura, akceptacja KSeF i Pro. Nie zapisujemy treści faktur, NIP-ów, adresów e-mail ani odwiedzanych adresów. Dane pomiaru usuwamy po 30 dniach; wycofanie zgody usuwa dane tej przeglądarki.
+                  Za Twoją zgodą uruchamiamy własny pomiar etapów korzystania i wydajności oraz Google Analytics 4 do odsłon publicznych stron i źródeł odwiedzin. Google nie otrzymuje odsłon panelu, logowania, rejestracji, konta ani danych faktur, kontrahentów, e-maili, NIP-ów i kwot. Publiczne adresy wysyłamy bez parametrów i fragmentów, a źródło odesłania ograniczamy do protokołu i domeny. Google Signals i funkcje reklamowe są wyłączone.
                 </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  Własny pomiar przechowujemy do 30 dni. Cookies GA4 mają czas życia do 30 dni bez automatycznego odnawiania; retencja danych w Google zależy od osobnego ustawienia usługi. Wycofanie zgody zatrzymuje kolejne zdarzenia i usuwa cookies GA4 z przeglądarki, ale nie usuwa historii już przesłanej do Google. Szczegóły znajdziesz w polityce prywatności.
+                </p>
+                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono pt-1">
+                  Używane: {analyticsCookies.map((c) => c.name).join(", ")}
+                </div>
               </div>
 
               {/* Kategoria 4: Reklamowe — nieaktywna */}

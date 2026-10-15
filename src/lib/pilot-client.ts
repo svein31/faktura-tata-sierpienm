@@ -1,12 +1,6 @@
 // Loaded after idle. No third-party scripts, URL collection or data-layer payloads.
-const VERSION = "1.1.0-2026-10-08";
-export function hasPilotClientConsent() {
-  try {
-    const raw = document.cookie.split(";").map(value => value.trim()).find(value => value.startsWith("fakturo_consent="));
-    const consent = JSON.parse(decodeURIComponent(raw?.slice("fakturo_consent=".length) || "null"));
-    return consent?.version === VERSION && consent.analytics === true;
-  } catch { return false; }
-}
+import { hasAnalyticsConsent } from "./cookie-consent";
+export const hasPilotClientConsent = hasAnalyticsConsent;
 let visitPromise: Promise<boolean> | null = null;
 
 export function ensurePilotVisit(): Promise<boolean> {

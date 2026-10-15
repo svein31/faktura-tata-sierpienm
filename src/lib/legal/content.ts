@@ -233,7 +233,10 @@ export const PRIVACY_POLICY: LegalDocument = {
 | **Zapewnienie bezpieczeństwa teleinformatycznego i audyt** | Zanonimizowany adres IP, identyfikator sesji, znaczniki czasu operacji (Audit Log) | Art. 6 ust. 1 lit. f RODO (prawnie uzasadniony interes — ochrona przed atakami i rozliczalność) |
 | **Utrwalenie akceptacji regulaminu i zgód** | Wersja dokumentu, czas serwera, identyfikator użytkownika, status zgody | Art. 6 ust. 1 lit. c RODO w zw. z art. 5 ust. 2 RODO (zasada rozliczalności) |
 | **Komunikacja marketingowa (newsletter / nowości)** | Adres e-mail | Art. 6 ust. 1 lit. a RODO (dobrowolna zgoda — wyłącznie po zaznaczeniu opcjonalnego pola) |
-| **Dobrowolny pomiar korzystania i wydajności** | Pseudonim przeglądarki (HMAC), daty pięciu etapów korzystania, numeryczne TTFB/LCP/INP/CLS, ogólna klasa publiczne/aplikacja i telefon/desktop; bez URL, IP, User-Agent, e-maila, NIP-u, danych faktur i kwot | Art. 6 ust. 1 lit. a RODO i art. 399 PKE — wyłącznie aktualna zgoda analityczna; dane pseudonimowe, nie anonimowe |`,
+| **Dobrowolny własny pomiar korzystania i wydajności** | Pseudonim przeglądarki (HMAC), daty pięciu etapów korzystania, numeryczne TTFB/LCP/INP/CLS, ogólna klasa publiczne/aplikacja i telefon/desktop; bez URL, IP, User-Agent, e-maila, NIP-u, danych faktur i kwot | Art. 6 ust. 1 lit. a RODO i art. 399 PKE — wyłącznie aktualna zgoda analityczna; dane pseudonimowe, nie anonimowe |
+| **Statystyki publicznych stron — Google Analytics 4** | Pseudonimowy identyfikator przeglądarki i sesji, odsłony dozwolonych publicznych stron bez parametrów adresu i fragmentów, źródło odesłania ograniczone do domeny z protokołem, dane techniczne urządzenia i przeglądarki przetwarzane przez Google | Art. 6 ust. 1 lit. a RODO i art. 399 PKE — wyłącznie aktualna zgoda analityczna |
+
+Tag Google jest pobierany dopiero po udzieleniu zgody analitycznej. Integracja GA4 obejmuje wyłącznie dozwolone strony publiczne, np. stronę główną, ofertę i materiały informacyjne. Nie wysyła odsłon panelu, stron logowania, rejestracji, konta ani innych stron prywatnych. Nie przekazujemy do GA4 treści faktur, danych kontrahentów, adresów e-mail, NIP-ów, kwot ani identyfikatorów kont. Adres publicznej strony jest wysyłany bez części po znaku „?” i „#”, a adres odsyłający wyłącznie jako protokół i domena, bez ścieżki, parametrów i fragmentu. Połączenie z Google ujawnia dostawcy dane sieciowe niezbędne do jego obsługi; nie określamy tego pomiaru jako anonimowego. Google Signals, personalizacja reklam i zgody reklamowe są wyłączone.`,
     },
     {
       title: "3. Zróżnicowane okresy przechowywania danych (Retencja)",
@@ -246,7 +249,8 @@ export const PRIVACY_POLICY: LegalDocument = {
 5. **Kopie zapasowe (backupy bazy danych)**: Usunięcie z aktywnej bazy nie modyfikuje wcześniej wykonanych kopii. Dane mogą w nich pozostać do wygaśnięcia skonfigurowanej retencji. Okres i wykonywanie kopii zależą od wdrożonej konfiguracji Operatora i dostawcy; aplikacja nie narzuca automatycznego terminu 30 ani 60 dni. Kopie służą odzyskiwaniu po awarii, a nie dalszemu korzystaniu z usuniętego Konta.
 6. **Rozliczenia z Operatorem**: Historia płatności i wymagane dokumenty dotyczące zakupu usługi mogą pozostawać w systemie płatniczym Stripe lub w dokumentacji Operatora niezależnie od usunięcia Konta. Usunięcie Konta zatrzymuje jego subskrypcje; nie oznacza usunięcia historycznych rozliczeń u dostawcy płatności.
 7. **Wycofanie zgody marketingowej**: Dane przetwarzane na podstawie zgody są usuwane lub zaprzestajemy ich przetwarzania w tym celu niezwłocznie po wycofaniu zgody.
-8. **Opcjonalny pomiar pilota i wydajności**: Identyfikator przeglądarki, etapy i próbki wydajności wygasają najpóźniej 30 dni po utworzeniu identyfikatora. Wycofanie zgody usuwa etapy, próbki i cookie tej przeglądarki. Do końca pierwotnego terminu pozostaje wyłącznie HMAC oraz znacznik wycofania i data wygaśnięcia, aby zatrzymać zapisy już będące w trakcie przetwarzania. Dane nie są powiązane z Kontem; użycie innego urządzenia lub samodzielne usunięcie cookie uniemożliwia powiązanie poprzednich pomiarów, które wygasną automatycznie. Pomiar nie obejmuje wszystkich użytkowników i może pozostawać wyłączony przez Operatora.`,
+8. **Opcjonalny własny pomiar pilota i wydajności**: Identyfikator przeglądarki, etapy i próbki wydajności wygasają najpóźniej 30 dni po utworzeniu identyfikatora. Wycofanie zgody usuwa etapy, próbki i cookie tej przeglądarki. Do końca pierwotnego terminu pozostaje wyłącznie HMAC oraz znacznik wycofania i data wygaśnięcia, aby zatrzymać zapisy już będące w trakcie przetwarzania. Dane nie są powiązane z Kontem; użycie innego urządzenia lub samodzielne usunięcie cookie uniemożliwia powiązanie poprzednich pomiarów, które wygasną automatycznie. Pomiar nie obejmuje wszystkich użytkowników i może pozostawać wyłączony przez Operatora.
+9. **Google Analytics 4**: Pliki cookies GA4 w przeglądarce mają czas życia do 30 dni, bez automatycznego odnawiania terminu przy kolejnych odsłonach. Jest to czas życia identyfikatorów w urządzeniu, a nie termin usunięcia danych na serwerach Google. Retencja danych na poziomie użytkownika i zdarzenia jest odrębnym ustawieniem usługi GA4 zarządzanym w panelu Google Analytics; zalecamy Operatorowi ustawienie 2 miesięcy i wyłączenie resetowania przy nowej aktywności. Kod strony nie ustawia ani nie potwierdza tej konfiguracji. Ustawienie to nie określa czasu przechowywania wszystkich zbiorczych raportów. Wycofanie zgody blokuje kolejne zdarzenia GA4 i usuwa cookies GA4 z tej przeglądarki, lecz nie usuwa automatycznie historycznych danych już przesłanych do Google. W sprawie realizacji praw dotyczących tych danych skontaktuj się z Operatorem pod adresem ${OPERATOR_CONFIG.emailPrivacy}.`,
     },
     {
       title: "4. Odbiorcy danych i podwykonawcy (Podprocesorzy)",
@@ -255,6 +259,7 @@ export const PRIVACY_POLICY: LegalDocument = {
    b) **Dostawcy hostingu i infrastruktury serwerowej**: cyber_Folks S.A. (serwery w Polsce) oraz Netlify Inc. (serwery aplikacyjne i routing sieciowy).
    c) **Dostawca wysyłki poczty elektronicznej**: Resend Inc. lub operator własnego serwera pocztowego SMTP — doręczanie powiadomień i faktur PDF.
    d) **Dostawca obsługi płatności i subskrypcji**: Stripe Inc. / Stripe Payments Europe, Ltd. — bezpieczne przetwarzanie płatności bezgotówkowych i transakcji subskrypcyjnych.
+   e) **Dostawca opcjonalnych statystyk stron publicznych**: Google Ireland Limited / Google LLC — Google Analytics 4, wyłącznie po zgodzie analitycznej, w zakresie opisanym powyżej. Google nie otrzymuje w tej integracji powierzonych danych księgowych Klienta.
 2. Pełny, stale aktualizowany wykaz podwykonawców wraz z lokalizacją danych i mechanizmami prawnymi dostępny jest pod adresem ${OPERATOR_CONFIG.serviceUrl}/podwykonawcy.
 3. Ponadto dane mogą być przekazywane uprawnionym organom państwowym (np. Urzędy Skarbowe, sądy, organy ścigania) wyłącznie na podstawie wyraźnego i wiążącego żądania opartego o właściwe przepisy prawa.
 4. Integracje z systemami publicznymi:
@@ -267,11 +272,13 @@ export const PRIVACY_POLICY: LegalDocument = {
    - **MongoDB Inc.** (USA),
    - **Netlify Inc.** (USA),
    - **Resend Inc.** (USA),
-   - **Stripe Inc.** (USA / Irlandia).
-2. **Rzetelność informacji**: Nie twierdzimy fałszywie, że dane nigdy nie opuszczają terytorium EOG. Zapewniamy jednak, że transfer danych do tych podmiotów odbywa się wyłącznie w oparciu o prawnie wiążące i zatwierdzone mechanizmy ochronne zgodne z Rozdziałem V RODO:
-   a) **Decyzja wykonawcza Komisji Europejskiej z dnia 10 lipca 2023 r.** stwierdzająca odpowiedni stopień ochrony danych w ramach ram ochrony danych UE-USA (*EU-US Data Privacy Framework* — DPF), do których certyfikowani są nasi partnerzy technologiczni,
-   b) **Standardowe Klauzule Umowne (SCC)** przyjęte przez Komisję Europejską na mocy decyzji wykonawczej (UE) 2021/914, zawarte w umowach powierzenia z dostawcami.
-3. Transmisja danych jest szyfrowana w tranzycie (TLS 1.2 / TLS 1.3) oraz w spoczynku (*encryption at rest* - AES-256 w MongoDB Atlas).`,
+   - **Stripe Inc.** (USA / Irlandia),
+   - **Google Ireland Limited / Google LLC** (Irlandia / USA) — opcjonalne statystyki publicznych stron.
+2. Transfery poza EOG wymagają podstawy zgodnej z Rozdziałem V RODO. Mechanizmy wskazywane w warunkach naszych dostawców obejmują, zależnie od podmiotu odbierającego i zakresu usługi:
+   a) **Decyzję wykonawczą Komisji Europejskiej z dnia 10 lipca 2023 r.** dotyczącą ram ochrony danych UE-USA (*EU-US Data Privacy Framework* — DPF), w zakresie objętym ważną certyfikacją odbiorcy,
+   b) **Standardowe Klauzule Umowne (SCC)** przyjęte przez Komisję Europejską na mocy decyzji wykonawczej (UE) 2021/914 i przewidziane w warunkach przetwarzania danych dostawcy.
+3. W przypadku Google Analytics zakres i warunki transferów opisują warunki przetwarzania danych Google (https://business.safety.google/adsprocessorterms/) oraz informacje Google o mechanizmach transferu (https://policies.google.com/privacy/frameworks?hl=pl). Mogą one obejmować DPF lub SCC, zależnie od podmiotu odbierającego i zakresu usługi.
+4. Transmisja danych jest szyfrowana w tranzycie (TLS 1.2 / TLS 1.3) oraz w spoczynku (*encryption at rest* - AES-256 w MongoDB Atlas).`,
     },
     {
       title: "6. Prawa osób, których dane dotyczą",
@@ -353,16 +360,23 @@ export const COOKIE_POLICY: LegalDocument = {
 | **__Secure-next-auth.session-token** | Cookie (HttpOnly, Secure) | Niezbędne | Bezpieczny token sesyjny frameworka NextAuth. | 30 dni |
 | **fakturaprosto_consent** / **fakturo_consent** | Cookie | Niezbędne | Zapamiętanie decyzji Użytkownika w przedmiocie zgód na pliki cookies (CMP). | 12 miesięcy |
 | **fakturo_pilot** | Cookie (HttpOnly, Secure, SameSite=Lax) | Analityczne (opcjonalne) | Pseudonim do dobrowolnego pomiaru etapów korzystania i TTFB/LCP/INP/CLS; bez danych faktur i adresów URL. | Maksymalnie 30 dni; usuwane przy wycofaniu zgody |
+| **_ga** / **_ga_4P218PFSBX** | Cookie własnej domeny (Google Analytics 4) | Analityczne (opcjonalne) | Pseudonimowy identyfikator przeglądarki i stan sesji do statystyk wyłącznie publicznych stron. | Do 30 dni, bez automatycznego odnawiania; usuwane z przeglądarki po wycofaniu zgody |
 | **fakturaprosto-theme** / **fakturo-theme** | LocalStorage | Niezbędne | Zapamiętanie wybranego trybu graficznego (ciemny / jasny) w celu uniknięcia migotania ekranu. | Trwałe (do wyczyszczenia) |
 | **pref_currency / pref_payment_terms** | LocalStorage | Funkcjonalne (opcjonalne) | Zapamiętanie preferowanych domyślnych ustawień wystawiania faktur (np. waluta EUR, termin 14 dni). | Trwałe |
 
-*Aktualny stan*: W Serwisie nie są wdrożone żadne zewnętrzne piksele śledzące (np. Meta Pixel) ani skrypty analityczne stron trzecich przesyłające dane poza infrastrukturę Operatora. Własny pomiar pilota i wydajności uruchamia się wyłącznie po aktualnej zgodzie analitycznej i konfiguracji Operatora. Zapisujemy pseudonim HMAC, pięć etapów korzystania oraz numeryczne próbki wydajności z ogólną klasą strony i urządzenia. Identyfikator próbki jest hashowany. To dane pseudonimowe, nie anonimowe; nie zawierają danych faktur, e-maili, NIP-ów, IP, User-Agent ani odwiedzanych URL.`,
+**Własny pomiar pilota i wydajności** uruchamia się wyłącznie po aktualnej zgodzie analitycznej i konfiguracji Operatora. Zapisujemy pseudonim HMAC, pięć etapów korzystania oraz numeryczne próbki wydajności z ogólną klasą strony i urządzenia. Identyfikator próbki jest hashowany. To dane pseudonimowe, nie anonimowe; nie zawierają danych faktur, e-maili, NIP-ów, IP, User-Agent ani odwiedzanych URL. Retencja tego własnego pomiaru wynosi do 30 dni.
+
+**Google Analytics 4** jest odrębnym, zewnętrznym pomiarem uruchamianym dopiero po zgodzie analitycznej. Tag nie jest pobierany przed zgodą. Mierzy odsłony dozwolonych stron publicznych i źródła odwiedzin; nie wysyła odsłon panelu, logowania, rejestracji, konta ani stron prywatnych. Adres strony nie zawiera parametrów ani fragmentu, a adres odsyłający ograniczamy do protokołu i domeny. Nie przekazujemy danych faktur, kontrahentów, kont, e-maili, NIP-ów i kwot. Google przetwarza także dane techniczne połączenia i urządzenia zgodnie ze swoją polityką prywatności: https://policies.google.com/privacy?hl=pl.
+
+Cookies GA4 są ustawiane dla bieżącej domeny na okres do 30 dni, z wyłączonym automatycznym odnawianiem terminu (cookie_update: false). Ten okres nie oznacza 30-dniowej retencji danych w Google Analytics. Retencję danych użytkowników i zdarzeń ustawia Operator w panelu GA4; zalecana konfiguracja to 2 miesiące bez resetowania przy nowej aktywności. Kod strony nie zmienia tej konfiguracji, a ustawienie nie obejmuje wszystkich raportów zbiorczych. Google Signals oraz funkcje personalizacji i przechowywania danych reklamowych pozostają wyłączone, także po wyborze „Akceptuj wszystkie”. Nie stosujemy Meta Pixel.`,
     },
     {
       title: "4. Zarządzanie zgodami i wycofanie zgody",
       content: `1. Użytkownik ma prawo w dowolnym momencie zmienić swoje preferencje lub wycofać uprzednio wyrażoną zgodę na opcjonalne pliki cookies.
 2. Wycofanie zgody jest równie łatwe jak jej udzielenie — w stopce każdej strony Serwisu oraz w Ustawieniach Konta znajduje się stały link **„Ustawienia prywatności / Cookies”**, który otwiera panel CMP.
-3. W przypadku wycofania zgody Serwis natychmiast zaprzestaje korzystania z danej kategorii technologii i podejmuje próbę usunięcia odpowiednich identyfikatorów z przeglądarki. Wycofanie zgody analitycznej usuwa cookie pilota oraz etapy i próbki tej przeglądarki. W razie awarii połączenia usunięcie jest ponawiane po odzyskaniu kontaktu z serwisem. Sam HMAC ze znacznikiem wycofania i datą wygaśnięcia pozostaje do końca pierwotnych 30 dni wyłącznie po to, aby zablokować trwające zapisy.
+3. W przypadku wycofania zgody Serwis natychmiast zaprzestaje korzystania z danej kategorii technologii i podejmuje próbę usunięcia odpowiednich identyfikatorów z przeglądarki:
+   - **Własny pomiar pilota**: usuwane są cookie pilota oraz etapy i próbki tej przeglądarki. W razie awarii połączenia usunięcie jest ponawiane po odzyskaniu kontaktu z serwisem. Sam HMAC ze znacznikiem wycofania i datą wygaśnięcia pozostaje do końca pierwotnych 30 dni wyłącznie po to, aby zablokować trwające zapisy.
+   - **Google Analytics 4**: blokowane są kolejne zdarzenia, a cookies _ga i _ga_4P218PFSBX usuwane z przeglądarki. Wycofanie zgody nie cofa zdarzeń już wysłanych i nie usuwa automatycznie ich historii na serwerach Google. W sprawie usunięcia takich danych skontaktuj się z Operatorem pod adresem ${OPERATOR_CONFIG.emailPrivacy}.
 4. Użytkownik może także zarządzać plikami cookies bezpośrednio w ustawieniach swojej przeglądarki internetowej:
    - **Google Chrome**: Ustawienia → Prywatność i bezpieczeństwo → Pliki cookie i inne dane witryn.
    - **Mozilla Firefox**: Opcje → Prywatność i bezpieczeństwo → Ciasteczka i dane witryn.
@@ -470,11 +484,11 @@ export const SUBPROCESSORS_DOCUMENT: LegalDocument = {
       title: "1. Zasady doboru i nadzoru nad podwykonawcami",
       content: `Zgodnie z art. 28 ust. 2 i ust. 4 RODO oraz § 5 Umowy Powierzenia Przetwarzania Danych (DPA), publikujemy aktualny, pełny wykaz podmiotów trzecich, z których usług korzystamy w celu zapewnienia sprawnego i bezpiecznego działania platformy FakturaProsto (${OPERATOR_CONFIG.serviceUrl}).
 
-Każdy z wymienionych podwykonawców został zweryfikowany pod kątem stosowania odpowiednich środków technicznych i organizacyjnych, a współpraca opiera się na wiążących umowach powierzenia danych (Data Processing Agreements — DPA) lub standardowych klauzulach umownych zatwierdzonych przez Komisję Europejską.`,
+Rozróżniamy dostawców uczestniczących w świadczeniu usług na danych powierzonych przez Klienta od dostawcy dobrowolnych statystyk publicznych stron. Google Analytics 4 służy wyłącznie statystykom Operatora po zgodzie odwiedzającego; nie jest odbiorcą danych księgowych powierzonych na podstawie DPA. Zakres usług i warunki przetwarzania każdego dostawcy wskazujemy poniżej.`,
     },
     {
-      title: "2. Rejestr zatwierdzonych podprocesorów",
-      content: `Poniższa tabela zawiera podmioty przetwarzające powierzone dane osobowe na nasze udokumentowane zlecenie:
+      title: "2. Rejestr dostawców i zakres przetwarzania",
+      content: `Poniżej wskazujemy dostawców infrastruktury oraz odrębnie dostawcę opcjonalnych statystyk publicznych stron:
 
 ### 1. Baza danych w chmurze
 - **Podmiot**: MongoDB Inc. (usługa MongoDB Atlas)
@@ -505,7 +519,17 @@ Każdy z wymienionych podwykonawców został zweryfikowany pod kątem stosowania
 - **Siedziba**: San Francisco, Stany Zjednoczone
 - **Zakres**: Przekazywanie wiadomości e-mail z fakturami w załączniku PDF, linków resetowania haseł i powiadomień.
 - **Lokalizacja danych**: Region UE / USA.
-- **Podstawa transferu poza EOG**: Standardowe Klauzule Umowne (SCC) oraz Data Privacy Framework.`,
+- **Podstawa transferu poza EOG**: Standardowe Klauzule Umowne (SCC) oraz Data Privacy Framework.
+
+---
+
+### 4. Opcjonalne statystyki publicznych stron — Google Analytics 4
+- **Podmiot**: Google Ireland Limited / Google LLC.
+- **Cel**: Statystyki odsłon publicznych stron i źródeł odwiedzin, wyłącznie po zgodzie analitycznej. Operator jest administratorem tego pomiaru.
+- **Zakres**: Pseudonimowe identyfikatory przeglądarki i sesji, publiczny adres bez parametrów i fragmentu, źródło odesłania ograniczone do protokołu i domeny oraz dane techniczne przetwarzane przez Google. Bez danych faktur, kontrahentów, kont i płatności; bez odsłon panelu, logowania, rejestracji i stron prywatnych.
+- **Lokalizacja**: Irlandia (UE) oraz infrastruktura Google, w tym USA.
+- **Warunki i transfery**: Warunki przetwarzania danych: https://business.safety.google/adsprocessorterms/; mechanizmy transferu: https://policies.google.com/privacy/frameworks?hl=pl; polityka prywatności: https://policies.google.com/privacy?hl=pl. Google opisuje stosowanie DPF lub SCC, zależnie od podmiotu odbierającego i zakresu usługi.
+- **Relacja do DPA Klienta**: Google w tej integracji nie przetwarza powierzonych danych księgowych Klienta. Rezygnacja z analityki nie ogranicza usług fakturowania.`,
     },
     {
       title: "3. Organy publiczne i rejestry państwowe (odrębni administratorzy)",

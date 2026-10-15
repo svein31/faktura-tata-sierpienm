@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
 const ts = require(path.join(process.cwd(), 'node_modules/typescript'));
+require('../register-ts.cjs');
 
 const source = fs.readFileSync(path.join(process.cwd(), 'src/components/legal/cookie-consent-banner.tsx'), 'utf8');
 const compiled = ts.transpileModule(source + '\nexport { getCookie };\n', {
@@ -14,6 +15,7 @@ function readConsent(cookie) {
   const document = { cookie };
   const requireStub = name => {
     if (name === 'next/dynamic') return () => function DeferredDialog() {};
+    if (name === '@/lib/cookie-consent') return require('../../src/lib/cookie-consent.ts');
     if (['react', 'next/link', 'lucide-react', 'react/jsx-runtime'].includes(name)) return {};
     throw new Error('Unexpected component import: ' + name);
   };

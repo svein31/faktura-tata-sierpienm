@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/toast";
 import { SessionProvider } from "@/lib/session-context";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { PublicDeferred } from "@/components/public-deferred";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 // Keep the self-hosted Polish subsets available to styles that use --font-sans.
 // The current font-sans utility uses the system stack, so preloading these
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SessionProvider deferPublicCheck>
               {children}
               <CookieConsentBanner />
+              <GoogleAnalytics />
               <PublicDeferred />
             </SessionProvider>
           </ToastProvider>

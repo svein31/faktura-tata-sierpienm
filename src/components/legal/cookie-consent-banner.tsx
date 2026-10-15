@@ -4,14 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { Cookie, Sliders } from "lucide-react";
 import dynamic from "next/dynamic";
+import { COOKIE_CONSENT_NAME as CONSENT_COOKIE_NAME, COOKIE_CONSENT_VERSION as CONSENT_VERSION } from "@/lib/cookie-consent";
 // Inventory, focus trapping and dialog animations load only when preferences open.
 const CookiePreferencesDialog = dynamic(
   () => import("./cookie-preferences-dialog").then((module) => module.CookiePreferencesDialog),
   { ssr: false, loading: () => <p role="status" className="no-print fixed inset-x-4 bottom-4 z-50 rounded-xl border bg-card p-4 text-sm shadow-lg">Otwieranie ustawień prywatności…</p> }
 );
-
-const CONSENT_COOKIE_NAME = "fakturo_consent";
-const CONSENT_VERSION = "1.1.0-2026-10-08";
 
 export interface CookiePreferences {
   version: string;
@@ -178,7 +176,7 @@ export function CookieConsentBanner() {
                   </h3>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Cookies niezbędne zapewniają działanie serwisu. Za Twoją zgodą zapisujemy preferencje i mierzymy etapy korzystania z aplikacji.
+                  Cookies niezbędne zapewniają działanie serwisu. Za Twoją zgodą zapisujemy preferencje, mierzymy etapy korzystania z aplikacji i korzystamy z Google Analytics na stronach publicznych.
                 </p>
                 <div className="flex items-center gap-3 text-[11px] pt-0.5">
                   <Link prefetch={false} href="/polityka-cookies" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Polityka cookies</Link>

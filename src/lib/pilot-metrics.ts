@@ -2,8 +2,9 @@ import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { MongoClient } from "mongodb";
 import { after } from "next/server";
+import { COOKIE_CONSENT_NAME, COOKIE_CONSENT_VERSION } from "./cookie-consent";
 
-export const PILOT_CONSENT_VERSION = "1.1.0-2026-10-08";
+export const PILOT_CONSENT_VERSION = COOKIE_CONSENT_VERSION;
 export const PILOT_COOKIE = "fakturo_pilot";
 export const PILOT_RETENTION_MS = 30 * 86400000;
 export const PILOT_EVENTS = ["visit", "register", "first_invoice", "ksef", "pro"] as const;
@@ -19,7 +20,7 @@ export function cookieValue(req: Request, name: string) {
 
 export function hasPilotConsent(req: Request) {
   try {
-    const consent = JSON.parse(cookieValue(req, "fakturo_consent") || "null");
+    const consent = JSON.parse(cookieValue(req, COOKIE_CONSENT_NAME) || "null");
     return consent?.version === PILOT_CONSENT_VERSION && consent.analytics === true;
   } catch { return false; }
 }
