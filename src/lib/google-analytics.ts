@@ -78,8 +78,22 @@ function trackPublicCta(event: MouseEvent): void {
 function expireAnalyticsCookies() {
   const names = document.cookie.split(";").map(value => value.trim().split("=")[0]).filter(name => /^_ga(?:_|$)/.test(name));
   const hostname = window.location.hostname;
-  // Also remove older domain-scoped cookies, if a prior tag created any.
-  const domains = ["", ...hostname.split(".").map((_, index, parts) => parts.slice(index).join(".")).filter(value => value.includes("."))];
+  // IPs and localhost use host-only cookies. Domain attributes for these hosts
+  // (or IPv4 suffixes such as 0.0.1) are rejected by browsers such as Firefox.
+  const supportsDomainCookies = hostname.includes(".") && !hostname.includes(":") && !/^\d+(?:\.\d+){3}$/.test(hostname) &&
+    !/(?:^|\.)localhost$/i.test(hostname);
+  const domains = [""];
+  if (supportsDomainCookies) {
+    let domain = hostname;
+    domains.push(domain);
+    // Only the product's parent domain is known to accept legacy cookies.
+    // Guessing suffixes on other hosts would attempt public suffixes such as
+    // netlify.app or co.uk, which browsers reject.
+    while (domain.endsWith(".fakturaprosto.pl")) {
+      domain = domain.slice(domain.indexOf(".") + 1);
+      domains.push(domain);
+    }
+  }
   for (const name of names) for (const domain of domains) {
     document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${domain ? `; Domain=${domain}` : ""}`;
   }
