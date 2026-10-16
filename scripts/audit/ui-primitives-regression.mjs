@@ -42,9 +42,16 @@ async function buildFixture() {
 export async function auditUiPrimitives(browser, { outputPath } = {}) {
   fixturePromise ||= buildFixture();
   const fixture = await fixturePromise;
-  const server = createServer((request, response) => {
+  const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "no-store");
-    if (request.url === "/fixture.js") { response.setHeader("Content-Type", "application/javascript"); response.end(fixture.js); }
+    if (request.url === "/favicon.ico") { response.statusCode = 204; response.end(); }
+    else if (request.url === "/fixture.js") { response.setHeader("Content-Type", "application/javascript"); response.end(fixture.js); }
+    else if (/^\/[a-zA-Z0-9_.-]+\.js$/.test(request.url || "")) {
+      try {
+        const chunk = await readFile(join(fixture.output, request.url.slice(1)));
+        response.setHeader("Content-Type", "application/javascript"); response.end(chunk);
+      } catch { response.statusCode = 404; response.end(); }
+    }
     else if (request.url === "/fixture.css") { response.setHeader("Content-Type", "text/css"); response.end(fixture.css); }
     else if (request.url === "/") { response.setHeader("Content-Type", "text/html"); response.end('<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated UI QA</title><link rel="stylesheet" href="/fixture.css"></head><body><div id="root"></div><script defer src="/fixture.js"></script></body></html>'); }
     else { response.statusCode = 404; response.end(); }
@@ -53,6 +60,8 @@ export async function auditUiPrimitives(browser, { outputPath } = {}) {
   const context = await browser.newContext({ viewport: { width: 1024, height: 900 }, reducedMotion: "reduce" });
   const page = await context.newPage();
   const consoleErrors = [];
+  const panelChunks = [];
+  page.on("request", request => { if (request.url().includes("notification-panel")) panelChunks.push(request.url()); });
   page.on("pageerror", error => consoleErrors.push(error.message));
   page.on("console", message => { if (message.type() === "error") consoleErrors.push(message.text()); });
   const checks = [];
@@ -218,17 +227,22 @@ export async function auditUiPrimitives(browser, { outputPath } = {}) {
       }
       await page.keyboard.press("Escape"); await command.waitFor({ state: "detached" });
     });
-    await check("notifications: failed writes report error, retain unread state and Escape restores trigger", async () => {
+    await check("notifications: panel downloads on first open only, failed writes retain unread state and Escape restores trigger", async () => {
+      assert.equal(panelChunks.length, 0, "A closed notification bell must not download its panel");
       await page.evaluate(() => { window.failNotificationWrites = true; });
       const trigger = page.getByRole("button", { name: "Powiadomienia (2 nieprzeczytanych)", exact: true });
       await trigger.click();
       const popup = page.getByRole("dialog", { name: "Powiadomienia", exact: true }); await popup.waitFor();
       await popup.getByRole("button", { name: "Przeczytane", exact: true }).click();
+      assert.equal(panelChunks.length, 1, "Opening the bell downloads exactly one lazy panel chunk");
       await page.getByText("Nie oznaczono wszystkich powiadomień", { exact: true }).waitFor();
       assert.equal(await page.getByText("Oznaczono jako przeczytane", { exact: true }).count(), 0);
       assert.equal(await trigger.count(), 1);
       await page.keyboard.press("Escape"); await popup.waitFor({ state: "detached" });
       assert.equal(await trigger.evaluate(element => element === document.activeElement), true);
+      await trigger.click(); await popup.getByRole("button", { name: "Przeczytane", exact: true }).waitFor();
+      assert.equal(panelChunks.length, 1, "Reopening the notification panel reuses its downloaded code");
+      await page.keyboard.press("Escape"); await popup.waitFor({ state: "detached" });
     });
     await check("select: native validation proxy cannot escape an unpositioned horizontal table scroller", async () => {
       await page.setViewportSize({ width: 320, height: 900 });

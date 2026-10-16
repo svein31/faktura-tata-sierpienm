@@ -147,6 +147,12 @@ export async function auditMobileExperience(base, storageState, fixture) {
       const {auditUiPrimitives}=await import('./audit/ui-primitives-regression.mjs');
       const primitiveProof=await auditUiPrimitives(browser,{outputPath:'artifacts/audit/primitives-'+engine.name+'.json'});
       for(const check of primitiveProof.checks)recordBrowserScenario({engine:engine.name},'shared-ui:'+check.name,{scope:primitiveProof.scope,evidence:'artifacts/audit/primitives-'+engine.name+'.json'});
+      const {auditInvoiceSearch}=await import('./audit/invoice-search-regression.mjs');
+      const searchProof=await auditInvoiceSearch(browser,{outputPath:'artifacts/audit/invoice-search-'+engine.name+'.json'});
+      for(const check of searchProof.checks)recordBrowserScenario({engine:engine.name},'invoice-search:'+check.name,{scope:searchProof.scope,evidence:'artifacts/audit/invoice-search-'+engine.name+'.json'});
+      const {auditConsent}=await import('./audit/consent-browser-regression.mjs');
+      const consentProof=await auditConsent(browser,{outputPath:'artifacts/audit/consent-'+engine.name+'.json'});
+      for(const check of consentProof.checks)recordBrowserScenario({engine:engine.name},'consent:'+check.name,{scope:consentProof.scope,evidence:'artifacts/audit/consent-'+engine.name+'.json'});
       if(fixture.financialAudit){
         const financialProof=await fixture.financialAudit(browser,engine.name);
         for(const check of financialProof.checks)recordBrowserScenario({engine:engine.name},'financial:'+check,{evidence:'artifacts/audit/financial-'+engine.name+'.json'});

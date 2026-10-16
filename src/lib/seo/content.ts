@@ -18,6 +18,24 @@ export type Topic = {
   related: string[];
 };
 
+/** Keep visible, social, sitemap and structured dates tied to the same source. */
+export function topicDates(topic: Pick<Topic, "publishedAt" | "modifiedAt">) {
+  const publishedAt = topic.publishedAt || REVIEW_DATE;
+  return { publishedAt, modifiedAt: topic.modifiedAt || publishedAt };
+}
+
+export const topicCategories: Record<string, { path: string; name: string }> = {
+  faktury: { path: "/faktury", name: "Faktury" },
+  "poradnik-ksef": { path: "/poradnik-ksef", name: "KSeF" },
+  vat: { path: "/vat", name: "VAT" },
+  "program-do-faktur": { path: "/program-do-faktur", name: "Program" },
+  porownania: { path: "/porownania", name: "Porównania" },
+};
+
+export function topicCategory(path: string) {
+  return topicCategories[path.split("/")[1]];
+}
+
 const ksefScope = "https://ksef.podatki.gov.pl/informacje-ogolne-ksef-20/zakres-obowiazkowego-ksef/";
 const threshold = "https://ksef.podatki.gov.pl/ponizej-10-000-zl/";
 const vatRates = "https://www.podatki.gov.pl/podatki-firmowe/vat/stawki-i-limity";

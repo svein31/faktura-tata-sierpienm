@@ -74,10 +74,26 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
       await page.getByLabel('Numer faktury', { exact: true }).fill(number);
     };
     const chooseBuyer = async () => { await page.locator('#invoice-contractorId').click(); await page.getByRole('option', { name: /Finansowy nabywca Żółć/ }).click(); };
-    const submit = async (button, path) => {
-      const responsePromise = page.waitForResponse(response => new URL(response.url()).pathname === path && response.request().method() === 'POST');
-      await button.click(); const response = await responsePromise; const data = await response.json();
-      assert.ok(response.ok(), `${path}: ${JSON.stringify(data)}`); return data;
+    const submit = async (button, path, scenarioKey) => {
+      let postObserved = false;
+      const observePost = request => { if (new URL(request.url()).pathname === path && request.method() === 'POST') postObserved = true; };
+      if (scenarioKey) page.on('request', observePost);
+      try {
+        const [response] = await Promise.all([
+          page.waitForResponse(response => new URL(response.url()).pathname === path && response.request().method() === 'POST'),
+          button.click(),
+        ]);
+        const data = await response.json();
+        assert.ok(response.ok(), `${path}: ${JSON.stringify(data)}`); return data;
+      } catch (error) {
+        if (scenarioKey && !postObserved) {
+          // Only visible validation messages from this isolated synthetic account;
+          // never dump input values, the document, cookies or request payloads.
+          const alerts = await page.locator('[role="alert"]:visible').allTextContents();
+          console.error('[financial-browser] Missing POST ' + JSON.stringify({ scenario: scenarioKey, path, alerts: alerts.map(text => text.replace(/\s+/g, ' ').trim()) }));
+        }
+        throw error;
+      } finally { if (scenarioKey) page.off('request', observePost); }
     };
     await navigate('/invoices/new');
     const cookieReject = page.getByRole('button', { name: 'Odrzuć opcjonalne', exact: true }); if (await cookieReject.count()) await cookieReject.click();
@@ -156,10 +172,13 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
       await expect(page).toHaveURL(new RegExp(`correctionFrom=${sourceId}`));
       await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('0');
       await expect(page.getByText(`Numer KSeF oryginału: ${sourceKsefNumber}`, { exact: false })).toBeVisible();
+      await expect(page.getByRole('status').filter({ hasText: 'Wczytywanie faktury do sklonowania…' })).toHaveCount(0);
       await chooseManual(`QA/${marker}/${scenario.key}/CORRECTION`);
       await page.getByLabel('Przyczyna korekty (pole wymagane w schemacie FA(3)) *', { exact: true }).fill(`Zwrot połowy ${scenario.key} Żółć <&>`);
       await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('-0.5');
-      const acceptedPreflight = await submit(page.getByRole('button', { name: 'Zapisz korektę', exact: true }).first(), '/api/invoices/preflight');
+      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('-0.5');
+      await expect(page.locator('.invoice-paper')).toContainText('-61,50');
+      const acceptedPreflight = await submit(page.getByRole('button', { name: 'Zapisz korektę', exact: true }).first(), '/api/invoices/preflight', scenario.key);
       assert.equal(acceptedPreflight.canProceed, true, `${scenario.key} preflight`);
       assert.equal(acceptedPreflight.totals.gross, -61.5);
       const saved = await submit(page.getByRole('dialog').getByRole('button', { name: 'Zatwierdzam i kontynuuję', exact: true }), '/api/invoices');

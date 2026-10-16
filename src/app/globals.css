@@ -430,6 +430,10 @@ video {
 
 
 @layer base {
+  html[data-saved-cookie-consent="true"] [data-cookie-consent-banner] {
+    display: none;
+  }
+
   :root {
     --background: 220 33% 98%;
     --foreground: 224 47% 10%;

@@ -1,4 +1,5 @@
 import { WorkspacePreview } from "@/components/landing/workspace-preview";
+import { ProductAnswers } from "@/components/landing/product-answers";
 import { SUBSCRIPTION_PLANS } from "@/lib/subscription-plans";
 import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
@@ -86,7 +87,7 @@ export default function LandingPage() {
             <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:mt-6 sm:text-5xl lg:text-6xl leading-[1.12]">Faktury VAT online z KSeF</h1>
 
             <p className="mt-4 text-base sm:mt-5 sm:text-lg leading-relaxed text-muted-foreground max-w-2xl mx-auto">
-              Program dla JDG i małych firm. Wystawiaj faktury, pobieraj dane po NIP i współpracuj z księgową.
+              Program do faktur dla JDG i małych firm. Wystawiaj faktury online, pobieraj dane po NIP i współpracuj z księgową.
             </p>
 
             {/* CTA Buttons */}
@@ -385,6 +386,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <ProductAnswers />
       </main>
       {/* ── STOPKA ── */}
       <footer className="border-t border-border/60 py-10 bg-background">

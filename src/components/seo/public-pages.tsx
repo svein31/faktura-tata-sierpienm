@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { pageCopy } from "@/lib/seo/metadata";
 import { Logo } from "@/components/logo";
-import { PUBLIC_ORIGIN, REVIEW_DATE, topicMap, topicsFor, type Topic } from "@/lib/seo/content";
-import { publisherSchema, websiteSchema } from "@/lib/seo/schema";
+import { topicCategory, topicDates, topicMap, topicsFor, type Topic } from "@/lib/seo/content";
+import { collectionSchema, publisherSchema, topicSchema, websiteSchema } from "@/lib/seo/schema";
 
 export function JsonLd({ value }: { value: Record<string, unknown> }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(value).replace(/</g, "\\u003c") }} />;
@@ -54,9 +54,8 @@ export function PillarPage({ title, description, prefix }: { title: string; desc
   const group = topicsFor(prefix);
   const copy = pageCopy(prefix);
   const heading = copy?.h1 || title;
-  const url = PUBLIC_ORIGIN + prefix;
   return <PublicShell>
-    <JsonLd value={{ "@context": "https://schema.org", "@type": "CollectionPage", "@id": `${url}#page`, url, name: title, description, isPartOf: { "@id": `${PUBLIC_ORIGIN}/#website` }, inLanguage: "pl-PL" }} />
+    <JsonLd value={collectionSchema(prefix, heading, description, group)} />
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
       <p className="text-xs font-semibold uppercase tracking-widest text-primary">Praktyczne odpowiedzi</p>
       <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">{heading}</h1>
@@ -78,8 +77,8 @@ export function PillarPage({ title, description, prefix }: { title: string; desc
 }
 
 export function TopicPage({ topic }: { topic: Topic }) {
-  const canonical = PUBLIC_ORIGIN + topic.path;
-  const category = topic.path.split("/")[1];
+  const category = topicCategory(topic.path);
+  const dates = topicDates(topic);
   const related = topic.related.flatMap(path => {
     const linkedTopic = topicMap.get(path);
     if (linkedTopic) return [linkedTopic];
@@ -87,20 +86,19 @@ export function TopicPage({ topic }: { topic: Topic }) {
     return copy ? [{ path, title: copy.h1 || copy.title, description: copy.description }] : [];
   });
   return <PublicShell>
-    <JsonLd value={{ "@context": "https://schema.org", "@graph": [
-      { "@type": "WebPage", "@id": `${canonical}#page`, url: canonical, name: topic.title, description: topic.description, isPartOf: { "@id": `${PUBLIC_ORIGIN}/#website` }, inLanguage: "pl-PL" },
-      { "@type": "Article", "@id": `${canonical}#article`, headline: topic.title, description: topic.description, mainEntityOfPage: { "@id": `${canonical}#page` }, author: { "@type": "Organization", "@id": `${PUBLIC_ORIGIN}/#editorial`, name: "Redakcja FakturaProsto", url: `${PUBLIC_ORIGIN}/pomoc` }, publisher: { "@id": `${PUBLIC_ORIGIN}/#organization` }, datePublished: topic.publishedAt || REVIEW_DATE, dateModified: topic.modifiedAt || REVIEW_DATE, inLanguage: "pl-PL", citation: topic.sources.map(source => source.url), image: `${PUBLIC_ORIGIN}/opengraph-image` },
-      { "@type": "BreadcrumbList", "@id": `${canonical}#breadcrumbs`, itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Start", item: PUBLIC_ORIGIN },
-        { "@type": "ListItem", position: 2, name: category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury", item: `${PUBLIC_ORIGIN}/${category}` },
-        { "@type": "ListItem", position: 3, name: topic.title, item: canonical },
-      ] },
-      ...(topic.path === "/faktury/jak-wystawic" ? [{ "@type": "HowTo", "@id": `${canonical}#howto`, name: topic.title, description: topic.answer, step: topic.sections.map((section, index) => ({ "@type": "HowToStep", position: index + 1, name: section.title, text: section.body, url: `${canonical}#sekcja-${index + 1}` })) }] : []),
-    ] }} />
+    <JsonLd value={topicSchema(topic)} />
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
-      <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground"><Link prefetch={false} href="/" className="hover:text-primary">Start</Link> / <Link prefetch={false} href={`/${category}`} className="hover:text-primary">{category === "poradnik-ksef" ? "KSeF" : category === "vat" ? "VAT" : category === "program-do-faktur" ? "Program" : category === "porownania" ? "Porównania" : "Faktury"}</Link> / Poradnik</nav>
+      <nav aria-label="Ścieżka strony" className="text-xs text-muted-foreground">
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <li><Link prefetch={false} href="/" className="hover:text-primary">Start</Link></li>
+          <li aria-hidden="true">/</li>
+          <li><Link prefetch={false} href={category.path} className="hover:text-primary">{category.name}</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{topic.title}</li>
+        </ol>
+      </nav>
       <article aria-labelledby="poradnik-title">
-      <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Redakcja FakturaProsto · Aktualizacja <time dateTime={topic.modifiedAt || REVIEW_DATE}>{topic.modifiedAt || REVIEW_DATE}</time></p>
+      <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Redakcja FakturaProsto · Aktualizacja <time dateTime={dates.modifiedAt}>{dates.modifiedAt}</time></p>
       <h1 id="poradnik-title" className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{topic.title}</h1>
       <div className="mt-7 rounded-2xl border border-primary/30 bg-primary/5 p-5 sm:p-6">
         <h2 className="text-sm font-bold text-primary">Krótka odpowiedź</h2>
@@ -149,7 +147,7 @@ export function TopicPage({ topic }: { topic: Topic }) {
           </nav>
         </aside>
       </div>
-      <div className="mt-12 border-t border-border/70 pt-8"><h2 className="text-xl font-semibold">Więcej odpowiedzi</h2><div className="mt-4"><TopicCards items={related.length ? related.slice(0, 4) : topicsFor(`/${category}`).filter(item => item.path !== topic.path).slice(0, 2)} /></div></div>
+      <div className="mt-12 border-t border-border/70 pt-8"><h2 className="text-xl font-semibold">Więcej odpowiedzi</h2><div className="mt-4"><TopicCards items={related.length ? related.slice(0, 4) : topicsFor(category.path).filter(item => item.path !== topic.path).slice(0, 2)} /></div></div>
       </article>
     </main>
   </PublicShell>;

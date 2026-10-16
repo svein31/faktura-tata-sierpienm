@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 require("./register-ts.cjs");
-const { topics } = require("../src/lib/seo/content.ts");
+const { topics, topicCategory, topicDates, topicsFor } = require("../src/lib/seo/content.ts");
 const { INDEXABLE_PATHS, contentModifiedAt } = require("../src/lib/seo/discovery.ts");
 const fs = require("node:fs"), pathModule = require("node:path");
 const copy = require("../src/lib/seo/onpage.json");
@@ -12,7 +12,7 @@ export async function auditSeoContracts(base) {
   const legalPaths = new Set(["/regulamin", "/polityka-prywatnosci", "/polityka-cookies", "/powierzenie-danych", "/podwykonawcy"]);
   const canonicalOrigin="https://fakturaprosto.pl";
   const titles=new Set();
-  const descriptions=new Set(), links=new Map();
+  const descriptions=new Set(), links=new Map(), appPaths=[];
   for(const path of paths) {
     const res=await fetch(base+path,{redirect:"manual",signal:AbortSignal.timeout(15000)}),html=await res.text();
     assert.equal(res.status,200,path);
@@ -44,14 +44,33 @@ export async function auditSeoContracts(base) {
     const topic=topics.find(t=>t.path===path);
     if(topic) {
       assert.ok(html.includes(topic.answer.split(" ").slice(0,6).join(" ")),path+" direct answer");
-      assert.ok(graphs.some(g=>g["@graph"]?.some(n=>n["@type"]==="Article" && n.dateModified===(topic.modifiedAt||"2026-09-24"))),path+" actual article dates");
+      const article=nodes.find(n=>n["@type"]==="Article"), page=nodes.find(n=>n["@type"]==="WebPage");
+      const dates=topicDates(topic), category=topicCategory(path);
+      assert.equal(article?.dateModified,dates.modifiedAt,path+" actual article modification date");
+      assert.equal(article?.datePublished,dates.publishedAt,path+" actual publication date");
+      assert.equal(page?.mainEntity?.["@id"],article?.["@id"],path+" article identified as primary content");
+      assert.equal(article?.abstract,topic.answer,path+" structured direct answer matches content");
+      const breadcrumb=nodes.find(n=>n["@type"]==="BreadcrumbList");
+      assert.equal(breadcrumb?.itemListElement[1].name,category.name,path+" breadcrumb category");
+      assert.equal(page?.breadcrumb?.["@id"],breadcrumb?.["@id"],path+" page links breadcrumb entity");
+      assert.ok(html.includes('property="article:published_time" content="'+dates.publishedAt+'"'),path+" social publication date");
+      assert.ok(html.includes('property="article:modified_time" content="'+dates.modifiedAt+'"'),path+" social modification date");
+      for(const part of article.hasPart) assert.ok(html.includes('id="'+new URL(part.url).hash.slice(1)+'"'),path+" structured section exists");
+      for(const citation of article.citation) assert.ok(hrefs.includes(citation),path+" structured citation visible");
       assert.ok(nodes.some(n=>n["@type"]==="Organization" && n["@id"]===canonicalOrigin+"/#organization"),path+" publisher definition");
       assert.ok(nodes.find(n=>n["@type"]==="Article")?.image,path+" article image");
       assert.ok(html.includes('<article aria-labelledby="poradnik-title"'),path+" semantic article");
-      assert.ok(html.includes('dateTime="'+(topic.modifiedAt||"2026-09-24")+'"'),path+" visible machine-readable date");
+      assert.ok(html.includes('dateTime="'+topicDates(topic).modifiedAt+'"'),path+" visible machine-readable date");
       const relatedHtml=html.match(/<nav aria-label="Powiązane tematy"[^>]*>([\s\S]*?)<\/nav>/)?.[1] || "";
       for(const related of topic.related) assert.ok(relatedHtml.includes('href="'+related+'"'),path+" related topic "+related);
       for(const section of topic.sections.filter(s=>s.source)) assert.ok(hrefs.includes(section.source.url),path+" inline citation "+section.source.url);
+    }
+    if(["/faktury","/poradnik-ksef","/vat","/porownania"].includes(path)) {
+      const collection=nodes.find(n=>n["@type"]==="CollectionPage");
+      const list=nodes.find(n=>n["@type"]==="ItemList");
+      assert.equal(collection?.mainEntity?.["@id"],list?.["@id"],path+" collection identifies its visible list");
+      assert.equal(list?.numberOfItems,topicsFor(path).length,path+" collection count");
+      assert.deepEqual(list?.itemListElement.map(item=>item.url),topicsFor(path).map(item=>canonicalOrigin+item.path),path+" collection matches visible articles");
     }
   }
   for(const path of ["/nieistniejaca-strona-audyt", "/login-typo", "/narzedzia/brak-narzedzia"]) {
@@ -66,6 +85,7 @@ export async function auditSeoContracts(base) {
       if(entry.isDirectory()) await checkAppPages(pathModule.join(directory,entry.name),[...segments,entry.name]);
       else if(entry.name==="page.tsx") {
         const path="/"+segments.map(s=>s.startsWith("[")?"audit-missing-id":s).join("/");
+        appPaths.push(path);
         const res=await fetch(base+path,{redirect:"manual"});
         assert.equal(res.status,307,path+" anonymous app login gate");
         assert.equal(new URL(res.headers.get("location"),base).pathname,"/login",path+" app redirect destination");
@@ -98,7 +118,11 @@ export async function auditSeoContracts(base) {
   const robots=await (await fetch(base+"/robots.txt")).text();
   assert.ok(robots.includes("Sitemap: "+canonicalOrigin+"/sitemap.xml"),"robots advertises sitemap");
   const blocked=[...robots.matchAll(/^Disallow:\s*(\S+)/gm)].map(m=>m[1]);
-  for(const path of [...paths,"/_next/static/test.js"]) assert.ok(!blocked.some(prefix=>path.startsWith(prefix)),path+" crawlable");
+  const blockedPath=path=>blocked.some(rule=>rule.endsWith("$") ? path===rule.slice(0,-1) : path.startsWith(rule));
+  assert.equal((robots.match(/^User-Agent:/gmi)||[]).length,1,"one robots group shares exclusions with all crawlers");
+  assert.match(robots,/^User-Agent: \*$/mi,"default group includes search and AI crawlers");
+  for(const path of [...paths,"/_next/static/test.js","/_next/image?url=test","/opengraph-image","/llms.txt"]) assert.ok(!blockedPath(path),path+" crawlable");
+  for(const path of [...appPaths,"/api/health","/portal/example","/invite/example"]) assert.ok(blockedPath(path),path+" private crawling excluded");
   const llms=await fetch(base+"/llms.txt");assert.equal(llms.status,200);assert.match(llms.headers.get("content-type"),/^text\/plain/);const text=await llms.text();assert.ok(text.includes("7 zł")&&text.includes("brutto"),"LLMS price gross");
   for (const topic of topics) assert.ok(text.includes(`[${topic.title}](${canonicalOrigin}${topic.path})`), topic.path+" LLMS human-readable source entry");
   const image=await fetch(base+"/opengraph-image");assert.equal(image.status,200);assert.match(image.headers.get("content-type"),/^image\//);

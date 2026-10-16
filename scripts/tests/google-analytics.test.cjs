@@ -12,7 +12,7 @@ function browserFixture({ url = 'https://fakturaprosto.pl/', cookie = '', referr
     const separator = pair.indexOf('=');
     return [pair.slice(0, separator).trim(), pair.slice(separator + 1)];
   }));
-  const scripts = [], events = new Map(), documentEvents = new Map(), historyCalls = [];
+  const scripts = [], events = new Map(), documentEvents = new Map(), historyCalls = [], cookieWrites = [];
   const document = {
     referrer,
     addEventListener(name, callback, capture = false) {
@@ -24,6 +24,7 @@ function browserFixture({ url = 'https://fakturaprosto.pl/', cookie = '', referr
     createElement() { return { remove() { const index = scripts.indexOf(this); if (index >= 0) scripts.splice(index, 1); } }; },
     get cookie() { return [...cookies].map(([key, value]) => `${key}=${value}`).join('; '); },
     set cookie(value) {
+      cookieWrites.push(value);
       const [pair] = value.split(';'), separator = pair.indexOf('='), name = pair.slice(0, separator);
       if (value.includes('Max-Age=0')) cookies.delete(name);
       else cookies.set(name, pair.slice(separator + 1));
@@ -48,7 +49,7 @@ function browserFixture({ url = 'https://fakturaprosto.pl/', cookie = '', referr
   delete require.cache[file];
   const analytics = require(file);
   return {
-    window, document, scripts, analytics, historyCalls,
+    window, document, scripts, analytics, historyCalls, cookieWrites,
     commands: () => (window.dataLayer || []).map(value => [...value]),
     views: () => (window.dataLayer || []).map(value => [...value]).filter(args => args[0] === 'event' && args[1] === 'page_view'),
     ctas: () => (window.dataLayer || []).map(value => [...value]).filter(args => args[0] === 'event' && ['registration_click', 'demo_click'].includes(args[1])),
@@ -208,6 +209,67 @@ test('withdrawal immediately disables Google, clears queued events and deletes o
     assert.equal(fixture.scripts.length, 1);
     assert.equal(fixture.views().length, 1);
   } finally { fixture.restore(); }
+});
+
+test('analytics cookie cleanup on IPs and local hosts never writes invalid Domain attributes', () => {
+  for (const hostname of ['127.0.0.1', '0.0.0.0', '192.168.1.42', '2130706433', '[::1]', '[2001:db8::1]', 'localhost', 'app.localhost', 'intranet']) {
+    const fixture = browserFixture({
+      url: `http://${hostname}/`,
+      cookie: consentCookie(true) + '; _ga=visitor; _ga_4P218PFSBX=session; essential=keep',
+    });
+    try {
+      fixture.analytics.installGoogleAnalytics();
+      fixture.document.cookie = consentCookie(false);
+      fixture.cookieWrites.length = 0;
+      fixture.dispatch('fakturo-consent-updated');
+      assert.deepEqual(fixture.cookieWrites, [
+        '_ga=; Max-Age=0; Path=/; SameSite=Lax',
+        '_ga_4P218PFSBX=; Max-Age=0; Path=/; SameSite=Lax',
+      ], hostname);
+      assert.doesNotMatch(fixture.document.cookie, /_ga/);
+      assert.match(fixture.document.cookie, /essential=keep/);
+    } finally { fixture.restore(); }
+  }
+});
+
+test('analytics cookie cleanup preserves host-only and parent-domain deletion on production subdomains', () => {
+  const fixture = browserFixture({
+    url: 'https://account.app.fakturaprosto.pl/',
+    cookie: consentCookie(true) + '; _ga=visitor; essential=keep',
+  });
+  try {
+    fixture.analytics.installGoogleAnalytics();
+    fixture.document.cookie = consentCookie(false);
+    fixture.cookieWrites.length = 0;
+    fixture.dispatch('fakturo-consent-updated');
+    assert.deepEqual(fixture.cookieWrites, [
+      '_ga=; Max-Age=0; Path=/; SameSite=Lax',
+      '_ga=; Max-Age=0; Path=/; SameSite=Lax; Domain=account.app.fakturaprosto.pl',
+      '_ga=; Max-Age=0; Path=/; SameSite=Lax; Domain=app.fakturaprosto.pl',
+      '_ga=; Max-Age=0; Path=/; SameSite=Lax; Domain=fakturaprosto.pl',
+    ]);
+    assert.match(fixture.document.cookie, /essential=keep/);
+  } finally { fixture.restore(); }
+});
+
+test('analytics cookie cleanup never guesses parent domains on preview or other DNS hosts', () => {
+  for (const hostname of ['deploy-preview-41--prostafv.netlify.app', 'app.example.co.uk', 'fakturaprosto.pl.example.com', 'unrelated-fakturaprosto.pl']) {
+    const fixture = browserFixture({
+      url: `https://${hostname}/`,
+      cookie: consentCookie(true) + '; _ga=visitor; essential=keep',
+    });
+    try {
+      fixture.analytics.installGoogleAnalytics();
+      fixture.document.cookie = consentCookie(false);
+      fixture.cookieWrites.length = 0;
+      fixture.dispatch('fakturo-consent-updated');
+      assert.deepEqual(fixture.cookieWrites, [
+        '_ga=; Max-Age=0; Path=/; SameSite=Lax',
+        `_ga=; Max-Age=0; Path=/; SameSite=Lax; Domain=${hostname}`,
+      ], hostname);
+      assert.match(fixture.document.cookie, /essential=keep/);
+    } finally { fixture.restore(); }
+  }
 });
 
 test('withdrawal before a script finishes removes its queued views and later consent can retry', () => {

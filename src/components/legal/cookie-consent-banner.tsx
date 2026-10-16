@@ -42,7 +42,8 @@ function setCookie(name: string, value: string, days = 365) {
 }
 
 export function CookieConsentBanner() {
-  const [isVisible, setIsVisible] = React.useState(false);
+  // First-time visitors can see the choices in HTML, before hydration.
+  const [isVisible, setIsVisible] = React.useState(true);
   const [showPreferencesModal, setShowPreferencesModal] = React.useState(false);
   const preferencesTrigger = React.useRef<HTMLButtonElement>(null);
   const restoreBannerFocus = React.useRef(false);
@@ -61,7 +62,7 @@ export function CookieConsentBanner() {
   const [marketingConsent, setMarketingConsent] = React.useState(false);
 
   // Sprawdź czy zgoda już istnieje przy montowaniu
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const existing = getCookie(CONSENT_COOKIE_NAME);
     if (!existing) {
       setIsVisible(true);
@@ -71,6 +72,7 @@ export function CookieConsentBanner() {
         if (parsed.version !== CONSENT_VERSION) {
           setIsVisible(true);
         } else {
+          setIsVisible(false);
           setFunctionalConsent(!!parsed.functional);
           setAnalyticsConsent(!!parsed.analytics);
           setMarketingConsent(!!parsed.marketing);
@@ -79,6 +81,9 @@ export function CookieConsentBanner() {
         setIsVisible(true);
       }
     }
+
+    // Layout updates commit before paint, so returning visitors see no flash.
+    document.documentElement.removeAttribute("data-saved-cookie-consent");
 
     // Obsługa zdarzenia otwierania preferencji z linków w stopce lub panelu
     const handleOpenModal = () => {
@@ -160,7 +165,8 @@ export function CookieConsentBanner() {
         <div
           role="region"
           aria-label="Powiadomienie o plikach cookies i prywatności"
-          className="no-print fixed bottom-0 inset-x-0 z-40 p-2 sm:p-4 md:p-6 pointer-events-none animate-in slide-in-from-bottom-5 duration-300"
+          data-cookie-consent-banner=""
+          className="no-print fixed bottom-0 inset-x-0 z-40 p-2 sm:p-4 md:p-6 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-6 shadow-lg pointer-events-auto ring-1 ring-black/5">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-6">
