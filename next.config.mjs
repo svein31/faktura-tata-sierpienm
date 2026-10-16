@@ -24,8 +24,8 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   httpAgentOptions: { keepAlive: true },
-  // Next 15: eliminate the stylesheet round trip on statically rendered pages.
-  experimental: { inlineCss: true },
+  // A shared stylesheet can be cached without repeating its text in HTML/RSC.
+  experimental: { inlineCss: false },
   images: { formats: ["image/avif", "image/webp"], minimumCacheTTL: 86400 },
   env: { APP_BUILD_REVISION: buildRevision },
   outputFileTracingIncludes: {"/*": ["./public/fonts/*.ttf"]},

@@ -6,7 +6,7 @@ import * as React from "react";
 import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowDownUp,
   ChevronDown,
@@ -783,7 +783,7 @@ export default function InvoicesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
-              <AnimatePresence initial={false}>
+              {/* Avoid measuring animated rows in the desktop table hidden on mobile. */}
                 {filtered.map((inv) => {
                   const ctr = getContractor(contractors, inv.contractorId);
                   const s = effectiveStatus(inv);
@@ -793,12 +793,8 @@ export default function InvoicesPage() {
                   const isApproved = inv.approvalStatus === "approved";
 
                   return (
-                    <motion.tr
+                    <tr
                       key={inv.id}
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
                       className={`transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
                     >
                       <td className="py-3.5 px-3 text-center">
@@ -976,10 +972,9 @@ export default function InvoicesPage() {
                           </details>}
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   );
                 })}
-              </AnimatePresence>
             </tbody>
           </table>
 

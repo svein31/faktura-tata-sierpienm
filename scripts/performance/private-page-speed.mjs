@@ -56,6 +56,7 @@ report.conditions["fcp"] = "Navigation Paint Timing first-contentful-paint, meas
 report.conditions["host"] = "Browser, application server and MongoDB are co-located. Run without concurrent builds/browser benchmarks. Host limits are recorded separately when available. A laboratory relative comparison, not a real-user loading SLO.";
 report.conditions.providerGuard='Next uses loopback-only.cjs; Chromium uses a non-listening external proxy plus resolver isolation, and CDP Network.setBlockedURLs blocks KSeF/PDF/export-pack requests before navigation. No Playwright routing is installed, so normal HTTP caching remains enabled. Baseline had zero requests matching these additional CDP guards.';
 report.conditions["navigationTiming"] = "Navigation Timing belongs only to cold-entry document navigation. Warm-client records retain the original document navigation entry; use their route ready/skeleton measurements and API Resource Timing separately.";
+report.nodeVersion = process.version;
 report.workerChecks=[];
 report.hostLimits = {};
 for (const [key, path] of [['cpuQuota', '/sys/fs/cgroup/cpu.max'], ['memoryLimitBytes', '/sys/fs/cgroup/memory.max']]) {
@@ -115,6 +116,7 @@ try {
         throw new Error('Next did not become ready');
     }
     browser = await chromium.launch({ ...(chromiumPath ? { executablePath: chromiumPath } : {}), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--proxy-server=http://127.0.0.1:9', '--proxy-bypass-list=127.0.0.1', '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'] });
+    report.browserVersion = browser.version();
     for (const route of ['/dashboard', '/invoices'])
         for (let iteration = 1; iteration <= repetitionsCount; iteration++) {
             const base = await startServer();
@@ -164,7 +166,7 @@ try {
             async function collect(kind, target, navigate) {
                 await navigate();
                 await page.waitForFunction(() => window.__speed && window.__speed.readyMs !== null, {}, { timeout: 45000 });
-                const record = await page.evaluate(() => { const m = window.__speed; return { ...m, ...(window.__speedLongTasks ? { longTasks: window.__speedLongTasks, allResources: performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, initiator: r.initiatorType, startMs: r.startTime, requestStartMs: r.requestStart, responseStartMs: r.responseStart, responseEndMs: r.responseEnd, bytes: r.encodedBodySize })) } : {}), navigation: performance.getEntriesByType('navigation').map(n => ({ ttfbMs: n.responseStart - n.requestStart, responseMs: n.responseEnd - n.requestStart, dclMs: n.domContentLoadedEventEnd, fcpMs: performance.getEntriesByName('first-contentful-paint')[0]?.startTime })), resources: performance.getEntriesByType('resource').filter(r => r.startTime >= m.start && new URL(r.name).pathname.startsWith('/api/')).map(r => ({ path: new URL(r.name).pathname, startMs: r.startTime - m.start, requestStartMs: r.requestStart - m.start, responseStartMs: r.responseStart - m.start, ttfbMs: r.responseStart - r.requestStart, endMs: r.responseEnd - m.start, bytes: r.encodedBodySize })) }; });
+                const record = await page.evaluate(() => { const m = window.__speed; return { ...m, ...(window.__speedLongTasks ? { longTasks: window.__speedLongTasks, allResources: performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, initiator: r.initiatorType, startMs: r.startTime, requestStartMs: r.requestStart, responseStartMs: r.responseStart, responseEndMs: r.responseEnd, bytes: r.encodedBodySize })) } : {}), navigation: performance.getEntriesByType('navigation').map(n => ({ ttfbMs: n.responseStart - n.requestStart, responseMs: n.responseEnd - n.requestStart, documentRawBytes: n.decodedBodySize, documentWireBytes: n.encodedBodySize, documentTransferBytes: n.transferSize, dclMs: n.domContentLoadedEventEnd, fcpMs: performance.getEntriesByName('first-contentful-paint')[0]?.startTime })), resources: performance.getEntriesByType('resource').filter(r => r.startTime >= m.start && new URL(r.name).pathname.startsWith('/api/')).map(r => ({ path: new URL(r.name).pathname, startMs: r.startTime - m.start, requestStartMs: r.requestStart - m.start, responseStartMs: r.responseStart - m.start, ttfbMs: r.responseStart - r.requestStart, endMs: r.responseEnd - m.start, bytes: r.encodedBodySize })) }; });
                 for (const key of ['skeletonMs', 'shellMs', 'headingMs', 'readyMs'])
                     if (record[key] !== null)
                         record[key] = round(record[key]);
