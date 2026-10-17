@@ -175,9 +175,13 @@ export async function auditPrivatePrefetchBrowser(browser, { base, engine, stora
         await action();
         await expect(page).toHaveURL(url => normalizedPath(url.pathname) === expectedPath);
         await expect(page.locator('main h1').first()).toBeVisible();
+        // SSR headings can appear before React starts the page's effects.
+        // Wait for the existing hydration signal before measuring settled
+        // traffic or leaving this document during the next history step.
+        await page.waitForFunction(() => document.documentElement.dataset.uiReady === 'true');
         await page.waitForLoadState('networkidle');
         assertNoErrors();
-        historySteps.push({ iteration, name, path: expectedPath, headingVisible: true, pageErrors: pageErrors.length });
+        historySteps.push({ iteration, name, path: expectedPath, headingVisible: true, hydrationReady: true, pageErrors: pageErrors.length });
       }
     }
     addScenario({ name: 'private-refresh-back-forward-without-browser-errors', route: '/dashboard', steps: historySteps, pageErrors: pageErrors.length });
