@@ -227,7 +227,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       const holdBootstrap=async route=>{await bootstrapGate;await route.continue();};
       await context.route('**/api/data**',holdBootstrap);
       try {
-        page=await navigate(page,'/dashboard',{waitUntil:'domcontentloaded'}); activeTarget=page;
+        page=await navigate(page,'/settings/companies',{waitUntil:'domcontentloaded'}); activeTarget=page;
         await expect(page.locator('main [aria-busy="true"]')).toBeVisible();
         await audit(page,'data loading on slow connection');
       } finally {releaseBootstrap();}

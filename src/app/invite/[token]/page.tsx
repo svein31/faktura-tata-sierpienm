@@ -19,7 +19,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useSession } from "@/lib/session-context";
-import { useAppStore } from "@/lib/store";
+import { browserAppStore } from "@/lib/store";
 
 interface InviteData {
   valid: true;
@@ -147,13 +147,20 @@ export default function InviteAcceptPage() {
         `Pomyślnie dołączono do firmy ${data.companyName}.`
       );
 
-      // Odśwież sesję i dane aplikacji
+      // The invitation can create/sign in a new actor. Bind the cache to the
+      // confirmed session, rather than the user captured before acceptance.
       await refresh();
-      await useAppStore.getState().bootstrap();
+      const actorResponse = await fetch("/api/auth/me", { cache: "no-store" });
+      const actorData = await actorResponse.json();
+      if (!actorResponse.ok || typeof actorData.user?.id !== "string" || !actorData.user.id) {
+        throw new Error("Nie udało się potwierdzić sesji. Zaloguj się ponownie, aby otworzyć firmę.");
+      }
+      const actorStore = browserAppStore(actorData.user.id, null);
+      await actorStore.getState().bootstrap();
 
       // Ustaw aktywną firmę na tę nowo dodaną
       if (typeof result.companyId === "string") {
-        useAppStore.getState().setSelectedCompanyId(result.companyId);
+        actorStore.getState().setSelectedCompanyId(result.companyId);
       }
 
       router.push("/dashboard");

@@ -51,7 +51,9 @@ const buildRevision=buildConfig.config?.env?.APP_BUILD_REVISION;
 assert.match(buildRevision,/^[a-f\d]{40}$/i,'Production build must record APP_BUILD_REVISION');
 const report = { nodeVersion: process.version, schemaVersion: 1, diagnostic, coldOnly, at: new Date().toISOString(), revision: buildRevision, buildRevision, checkoutRevision: revision.trim(), buildId: (await readFile(resolve(repo, '.next/BUILD_ID'), 'utf8')).trim(), conditions: { application: 'real production Next build; synthetic isolated Mongo replica set; one tenant/300 invoices; no production credentials', viewport: '390x844, Chromium mobile/touch', cpuSlowdown: cpuRate, network: { latencyMs: 80, downloadMbps: 10, uploadMbps: 5 }, cold: 'new Next process (health-only readiness probe) plus new browser context/cache, each route independently; process startup excluded', warm: 'same browser/store/process: client link to other route then return, with assets cached', skeleton: 'first rAF-visible skeleton DOM; not a guaranteed paint timestamp', ready: 'first rendered action section (dashboard) or nonloading 30-row result table with detail link (invoices)', ttfb: 'Navigation/Resource Timing requestStart to responseStart; separate unthrottled direct API serial samples', limits: 'Small controlled laboratory sample, no production geography/concurrency/real-user percentile claim; app warm-up, CPU contention and browser emulation affect results. PDF and KSeF endpoints/provider actions excluded.' }, samples, backend };
 report.conditions["skeleton"] = "First requestAnimationFrame callback where a main aria-busy skeleton or route status skeleton has a visible DOM layout. This is not a guaranteed paint timestamp: rAF precedes paint and a later long task may delay paint. Use FCP separately.";
-report.conditions["ready"] = "First rAF callback where the data-derived dashboard action section, or all 30 visible-layout invoice detail links without loading status, exist in DOM. Not a guaranteed paint timestamp or completion of optional charts.";
+report.conditions["ready"] = "First rAF callback where the data-derived dashboard action section, or all 30 visible-layout invoice detail links without loading status, exist in DOM. Not a guaranteed paint timestamp or completion of optional charts. Server-rendered data may become ready before hydration; controls readiness is measured separately.";
+report.conditions.controlsReady = 'First rAF-visible dashboard refresh button with its natural React onClick prop, or invoice search input with its natural React onChange prop. A hydration signal, not an executed action or a guaranteed paint timestamp. Data-and-controls readiness is the maximum of readyMs and controlsReadyMs.';
+report.conditions.warmHydrationGuard = 'Each collection waits for both data and control hydration before continuing. Before warm navigation, the visible Next link must also have its natural React onClick prop. Every warm navigation must preserve a unique document identity; full reloads fail the benchmark. Earlier reports without this guard measured warm navigation after client-rendered data readiness.';
 report.conditions["fcp"] = "Navigation Paint Timing first-contentful-paint, measured separately from DOM skeleton and data readiness; navigation values only apply to cold document entries.";
 report.conditions["host"] = "Browser, application server and MongoDB are co-located. Run without concurrent builds/browser benchmarks. Host limits are recorded separately when available. A laboratory relative comparison, not a real-user loading SLO.";
 report.conditions.providerGuard='Next uses loopback-only.cjs; Chromium uses a non-listening external proxy plus resolver isolation, and CDP Network.setBlockedURLs blocks KSeF/PDF/export-pack requests before navigation. No Playwright routing is installed, so normal HTTP caching remains enabled. Baseline had zero requests matching these additional CDP guards.';
@@ -132,8 +134,13 @@ try {
                     new PerformanceObserver(list => window.__speedLongTasks.push(...list.getEntries().map(e => ({ startMs: e.startTime, durationMs: e.duration, name: e.name })))).observe({ type: 'longtask', buffered: true });
                 }
                 localStorage.setItem('fakturo_onboarding_completed_v2', 'true');
-                window.__speed = { route: location.pathname, start: 0, skeletonMs: null, shellMs: null, headingMs: null, readyMs: null };
-                window.__speedReset = route => window.__speed = { route, start: performance.now(), skeletonMs: null, shellMs: null, headingMs: null, readyMs: null };
+                window.__speedDocumentId = `${performance.timeOrigin}:${Math.random()}`;
+                window.__speed = { route: location.pathname, start: 0, skeletonMs: null, shellMs: null, headingMs: null, readyMs: null, controlsReadyMs: null };
+                window.__speedReset = route => window.__speed = { route, start: performance.now(), skeletonMs: null, shellMs: null, headingMs: null, readyMs: null, controlsReadyMs: null };
+                // Read React's naturally attached DOM props; never install handlers or dispatch actions to mark hydration.
+                window.__speedHasReactHandler = function hasReactHandler(node, handler) {
+                    return !!node && Object.getOwnPropertyNames(node).some(key => key.startsWith('__reactProps$') && typeof node[key]?.[handler] === 'function');
+                };
                 const visible = node => !!node && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden' && Number(getComputedStyle(node).opacity) > 0;
                 const tick = () => {
                     const m = window.__speed, t = performance.now() - m.start;
@@ -151,6 +158,13 @@ try {
                         const loading = [...document.querySelectorAll('main [role="status"]')].some(n => n.textContent.includes('Ładowanie…'));
                         if (m.readyMs === null && visible(ready) && !loading)
                             m.readyMs = t;
+                        if (m.controlsReadyMs === null) {
+                            const control = m.route === '/dashboard'
+                                ? document.querySelector('main button[aria-label="Odśwież przegląd"]')
+                                : document.querySelector('main input[placeholder="Szukaj: numer, kontrahent, NIP, numer KSeF…"]');
+                            if (visible(control) && window.__speedHasReactHandler(control, m.route === '/dashboard' ? 'onClick' : 'onChange'))
+                                m.controlsReadyMs = t;
+                        }
                     }
                     requestAnimationFrame(tick);
                 };
@@ -163,11 +177,20 @@ try {
             await cdp.send('Network.enable');
   await cdp.send('Network.setBlockedURLs',{urls:['*/api/ksef*','*/pdf*','*/api/invoices/export*','*/api/accountant/export-pack*']});
             await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 80, downloadThroughput: 10 * 1000000 / 8, uploadThroughput: 5 * 1000000 / 8 });
+            let documentIdentity;
             async function collect(kind, target, navigate) {
                 await navigate();
-                await page.waitForFunction(() => window.__speed && window.__speed.readyMs !== null, {}, { timeout: 45000 });
+                await page.waitForFunction(() => window.__speed && window.__speed.readyMs !== null && window.__speed.controlsReadyMs !== null, {}, { timeout: 45000 });
+                const currentDocumentIdentity = await page.evaluate(() => window.__speedDocumentId);
+                assert.equal(typeof currentDocumentIdentity, 'string', 'Document identity marker must exist');
+                if (kind === 'cold-entry')
+                    documentIdentity = currentDocumentIdentity;
+                else
+                    assert.equal(currentDocumentIdentity, documentIdentity, 'Warm client navigation must not reload the document');
                 const record = await page.evaluate(() => { const m = window.__speed; return { ...m, ...(window.__speedLongTasks ? { longTasks: window.__speedLongTasks, allResources: performance.getEntriesByType('resource').map(r => ({ path: new URL(r.name).pathname, initiator: r.initiatorType, startMs: r.startTime, requestStartMs: r.requestStart, responseStartMs: r.responseStart, responseEndMs: r.responseEnd, bytes: r.encodedBodySize })) } : {}), navigation: performance.getEntriesByType('navigation').map(n => ({ ttfbMs: n.responseStart - n.requestStart, responseMs: n.responseEnd - n.requestStart, documentRawBytes: n.decodedBodySize, documentWireBytes: n.encodedBodySize, documentTransferBytes: n.transferSize, dclMs: n.domContentLoadedEventEnd, fcpMs: performance.getEntriesByName('first-contentful-paint')[0]?.startTime })), resources: performance.getEntriesByType('resource').filter(r => r.startTime >= m.start && new URL(r.name).pathname.startsWith('/api/')).map(r => ({ path: new URL(r.name).pathname, startMs: r.startTime - m.start, requestStartMs: r.requestStart - m.start, responseStartMs: r.responseStart - m.start, ttfbMs: r.responseStart - r.requestStart, endMs: r.responseEnd - m.start, bytes: r.encodedBodySize })) }; });
-                for (const key of ['skeletonMs', 'shellMs', 'headingMs', 'readyMs'])
+                assert.equal(record.route, target, 'Readiness must belong to the requested route');
+                record.dataAndControlsReadyMs = Math.max(record.readyMs, record.controlsReadyMs);
+                for (const key of ['skeletonMs', 'shellMs', 'headingMs', 'readyMs', 'controlsReadyMs', 'dataAndControlsReadyMs'])
                     if (record[key] !== null)
                         record[key] = round(record[key]);
                 delete record.start;
@@ -178,14 +201,17 @@ try {
                 record.jsErrors = errors.slice();
                 record.blockedRequests = blocked.slice();
                 record.domNavigation = kind === 'cold-entry';
+                record.documentIdentity = currentDocumentIdentity;
                 samples.push(record);
-                console.log(JSON.stringify({ kind, route: target, iteration, skeletonMs: record.skeletonMs, readyMs: record.readyMs, api: record.resources.map(r => ({ path: r.path, ttfbMs: round(r.ttfbMs) })), jsErrors: errors.length, blocked: blocked.length }));
+                console.log(JSON.stringify({ kind, route: target, iteration, skeletonMs: record.skeletonMs, readyMs: record.readyMs, controlsReadyMs: record.controlsReadyMs, dataAndControlsReadyMs: record.dataAndControlsReadyMs, api: record.resources.map(r => ({ path: r.path, ttfbMs: round(r.ttfbMs) })), jsErrors: errors.length, blocked: blocked.length }));
                 return record;
             }
             await collect('cold-entry', route, () => page.goto(route, { waitUntil: 'domcontentloaded', timeout: 45000 }));
             const other = route === '/dashboard' ? '/invoices' : '/dashboard';
             for (const target of coldOnly ? [] : [other, route])
-                await collect('warm-client', target, async () => { await page.evaluate(target => { window.__speedReset(target); const links = [...document.querySelectorAll(`a[href="${target}"]`)]; const anchor = links.find(a => a.getClientRects().length > 0); if (!anchor)
+                await collect('warm-client', target, async () => {
+                    await page.waitForFunction(target => [...document.querySelectorAll(`a[href="${target}"]`)].some(anchor => anchor.getClientRects().length > 0 && window.__speedHasReactHandler(anchor, 'onClick')), target);
+                    await page.evaluate(target => { window.__speedReset(target); const links = [...document.querySelectorAll(`a[href="${target}"]`)]; const anchor = links.find(a => a.getClientRects().length > 0); if (!anchor)
                     throw new Error('No visible app link for ' + target); anchor.click(); }, target); });
             for (const path of ['/api/data?invoiceMode=list', `/api/overview?companyId=${company.id}&months=6`, `/api/invoices/search?companyId=${company.id}&type=all`]) {
                 const start = performance.now();
@@ -207,7 +233,7 @@ try {
     for (const route of ['/dashboard', '/invoices'])
         for (const kind of coldOnly ? ['cold-entry'] : ['cold-entry', 'warm-client']) {
             const group = samples.filter(s => s.route === route && s.kind === kind);
-            report.summary[route + ' ' + kind] = { skeletonMs: stats(group.map(s => s.skeletonMs)), readyMs: stats(group.map(s => s.readyMs)), allReadyUnder2500: group.every(s => s.readyMs < 2500) };
+            report.summary[route + ' ' + kind] = { skeletonMs: stats(group.map(s => s.skeletonMs)), readyMs: stats(group.map(s => s.readyMs)), controlsReadyMs: stats(group.map(s => s.controlsReadyMs)), dataAndControlsReadyMs: stats(group.map(s => s.dataAndControlsReadyMs)), allReadyUnder2500: group.every(s => s.readyMs < 2500), allDataAndControlsReadyUnder4000: group.every(s => s.dataAndControlsReadyMs < 4000) };
         }
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, JSON.stringify(report, null, 2) + '\n');

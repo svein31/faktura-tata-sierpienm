@@ -2,6 +2,7 @@ import { round2 as roundMoney } from "./tax/money";
 import type { Currency, Invoice, InvoiceLine, VatRate } from "./types";
 
 const fmtCache = new Map<string, Intl.NumberFormat>();
+const dateFormatter = new Intl.DateTimeFormat("pl-PL", { year: "numeric", month: "2-digit", day: "2-digit" });
 
 function getFmt(currency: Currency) {
   const key = currency;
@@ -34,7 +35,7 @@ export function formatDate(iso: string): string {
   if (!iso) return "—";
   const d = new Date(iso + "T00:00:00");
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("pl-PL", { year: "numeric", month: "2-digit", day: "2-digit" });
+  return dateFormatter.format(d);
 }
 
 export function formatDateTime(iso: string): string {

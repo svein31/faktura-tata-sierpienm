@@ -109,14 +109,14 @@ export async function auditNegativeAndRecovery(page, publicPage, engine) {
   };
   await recoveryPage.route('**/api/data**',handler);
   try {
-    await recoveryPage.goto('/dashboard');
+    await recoveryPage.goto('/settings/companies');
     await expect(recoveryPage.getByRole('heading',{name:'Nie udało się wczytać danych',exact:true})).toBeVisible({timeout:15000});
     await recoveryPage.getByRole('button',{name:'Spróbuj ponownie',exact:true}).click();
     await expect(recoveryPage.locator('main h1').first()).toBeVisible();
     await expect(recoveryPage.getByRole('heading',{name:'Nie udało się wczytać danych',exact:true})).toHaveCount(0);
     assert.ok(failures>=3,'User retry must follow both failed automatic attempts');
     assert.deepEqual(pageErrors,[],'Controlled bootstrap failures must not cause unhandled page errors');
-    recordBrowserScenario(metadata,'bootstrap-503-error-and-retry',{route:'/dashboard',expectedApiStatus:503,requests:failures});
+    recordBrowserScenario(metadata,'bootstrap-503-error-and-retry',{route:'/settings/companies',expectedApiStatus:503,requests:failures});
   } finally {await recoveryPage.close();}
 }
 
