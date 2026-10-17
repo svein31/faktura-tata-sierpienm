@@ -135,7 +135,8 @@ export async function browserChecks(base, db) {
     assert.equal((await get(`/api/invoices/${currentInvoice.id}/payments`)).payments[0].amount, 369);
     assert.equal((await context.request.post('/api/invoices/bulk/pay', { data: { companyId: company.id, invoices: [paymentBatch.invoices[0]] } })).status(), 409);
     await page.goto('/invoices');
-    await expect(page.getByRole('heading', { name: 'Faktury', exact: true })).toBeVisible();
+    // Wait for the actual invoice page, rather than the matching topbar title.
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Faktury', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Odrzuć opcjonalne' }).click();
     const dismiss = page.getByRole('button', { name: /Pomiń|Rozumiem|Zakończ/ });
     if (await dismiss.count()) await dismiss.first().click();
