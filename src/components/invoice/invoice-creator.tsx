@@ -516,7 +516,7 @@ export function InvoiceCreator() {
     }
   };
 
-  const editing = !!draftInvoice && !draftInvoiceIsNew && !cloneId;
+  const editing = !!draftInvoice && !draftInvoiceIsNew;
   const numberDate = form.issueDate || todayISO();
   const numberPrefix = invoicePrefix(form.type, form.isCorrection, form.isProforma);
   const numberKey = `${effectiveSellerCompany.id}:${effectiveSellerCompany.invoiceNumberPattern}:${numberDate}:${numberPrefix}`;
@@ -544,7 +544,7 @@ export function InvoiceCreator() {
   const lastNumber = numberLoading ? null : numberPreview.lastNumber;
   const invoiceNumber = numberMode === "manual" ? form.number : form.number || suggestedNumber;
   const isPurchase = form.type === "purchase";
-  const isKsefRegistered = !cloneId && Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
+  const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
   const selectedContractor = form.useNewContractor
     ? undefined
