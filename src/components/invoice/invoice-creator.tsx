@@ -41,6 +41,7 @@ import { addDaysISO, todayISO } from "@/lib/utils";
 import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
 import { roundHalfUp } from "@/lib/tax/money";
 import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
+import { correctionDifferenceLines } from "@/lib/invoice-correction-lines";
 import { convertToPln, isIsoCalendarDate } from "@/lib/nbp";
 import { currencyNames } from "@/lib/i18n";
 import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
@@ -119,6 +120,8 @@ interface FormState {
   // Faktura korygująca
   isCorrection?: boolean;
   correctionReason?: string;
+  correctionInput?: "after";
+  correctionOriginalLines?: Invoice["lines"];
   originalInvoiceId?: string;
   originalInvoiceNumber?: string;
   originalIssueDate?: string;
@@ -294,6 +297,8 @@ export function InvoiceCreator() {
         const src: Invoice = data.invoice;
         if (correctionId && (!isCorrectableInvoiceSource(src) || src.sellerCompanyId !== defaultCompany.id)) throw new Error("Otwórz wystawioną zwykłą fakturę sprzedaży w jej firmie, aby przygotować korektę.");
         clonedFrom.current = cloneKey;
+        const useAfterValues = Boolean(correctionId && !src.isCorrection);
+        const originalLines = src.lines.map((line, index) => ({ ...line, id: `source-${index}` }));
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
           sellerCompanyId: defaultCompany.id,
@@ -305,9 +310,9 @@ export function InvoiceCreator() {
           originalInvoiceNumber: correctionId ? src.number : "",
           originalIssueDate: correctionId ? src.issueDate : "",
           originalKsefNumber: correctionId ? correctionOriginalKsefNumber(src) || "" : "",
-          // A correction contains differences. Zero placeholders require a deliberate
-          // user input and cannot accidentally copy another full sale or refund.
-          lines: src.lines.map(line => ({ ...line, quantity: correctionId ? 0 : line.quantity })),
+          correctionInput: useAfterValues ? "after" : undefined,
+          correctionOriginalLines: useAfterValues ? originalLines : undefined,
+          lines: useAfterValues ? originalLines.map(line => ({ ...line })) : src.lines.map(line => ({ ...line, quantity: correctionId ? 0 : line.quantity })),
           isProforma: correctionId ? false : src.isProforma,
           isRecurring: correctionId ? false : src.isRecurring,
           recurringAutoSend: correctionId ? false : src.recurringAutoSend,
@@ -317,7 +322,7 @@ export function InvoiceCreator() {
           dueDate: addDaysISO(todayISO(), src.paymentTermDays || 14),
           dueTouched: false,
         });
-        toast("info", correctionId ? "Przygotowano korektę" : "Sklonowano dane faktury", correctionId ? `Wpisz różnice do faktury ${src.number}. Oryginał pozostaje bez zmian.` : `Utworzono nowy dokument na wzór ${src.number}`);
+        toast("info", correctionId ? "Przygotowano korektę" : "Sklonowano dane faktury", correctionId ? `Popraw pozycje faktury ${src.number}. Różnicę obliczymy automatycznie; oryginał pozostaje bez zmian.` : `Utworzono nowy dokument na wzór ${src.number}`);
       } catch (failure) {
         if (!controller.signal.aborted) setCloneError(failure instanceof Error ? failure.message : "Nie udało się sklonować faktury.");
       } finally { if (!controller.signal.aborted) setCloneLoading(false); }
@@ -511,7 +516,7 @@ export function InvoiceCreator() {
     }
   };
 
-  const editing = !!draftInvoice && !draftInvoiceIsNew;
+  const editing = !!draftInvoice && !draftInvoiceIsNew && !cloneId;
   const numberDate = form.issueDate || todayISO();
   const numberPrefix = invoicePrefix(form.type, form.isCorrection, form.isProforma);
   const numberKey = `${effectiveSellerCompany.id}:${effectiveSellerCompany.invoiceNumberPattern}:${numberDate}:${numberPrefix}`;
@@ -539,7 +544,7 @@ export function InvoiceCreator() {
   const lastNumber = numberLoading ? null : numberPreview.lastNumber;
   const invoiceNumber = numberMode === "manual" ? form.number : form.number || suggestedNumber;
   const isPurchase = form.type === "purchase";
-  const isKsefRegistered = Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
+  const isKsefRegistered = !cloneId && Boolean(draftInvoice?.ksefNumber || draftInvoice?.ksef?.number);
 
   const selectedContractor = form.useNewContractor
     ? undefined
@@ -563,6 +568,11 @@ export function InvoiceCreator() {
       }
     : selectedContractor;
 
+  const correctionAfterValues = Boolean(form.isCorrection && form.correctionInput === "after" && form.correctionOriginalLines);
+  const documentLines = correctionAfterValues
+    ? correctionDifferenceLines(form.correctionOriginalLines!, form.lines)
+    : form.lines.filter(line => line.name.trim() && (form.isCorrection ? line.quantity !== 0 : line.quantity > 0)).map(normalizeInvoiceLineAmounts);
+
   const previewInvoice: Invoice = {
     id: draftInvoice?.id ?? "preview",
     number: invoiceNumber,
@@ -584,7 +594,7 @@ export function InvoiceCreator() {
     notes: form.notes,
     isSplitPayment: form.isSplitPayment,
     exemptionBasis: form.exemptionBasis,
-    lines: form.lines.map(normalizeInvoiceLineAmounts),
+    lines: documentLines,
     exchangeRate: form.currency === "PLN" ? null : isManualRate ? Number(manualRateInput.trim().replace(",", ".")) || null : activeNbpRate?.rate || null,
     exchangeRateRule: form.currency === "PLN" ? null : isManualRate ? "manual" : form.issueDate < form.saleDate ? "art_31a_issue_date" : "art_31a_sale_date",
     exchangeRateDate: form.currency === "PLN" ? null : isManualRate ? form.issueDate : activeNbpRate?.effectiveDate || null,
@@ -646,10 +656,12 @@ export function InvoiceCreator() {
       errs.push("Dodaj profil firmy Sprzedawcy (w 'Moje Firmy'), aby Twoje dane pojawiły się na fakturze.");
     }
     const validLines = form.lines.filter((l) => l.name.trim() && (form.isCorrection ? l.quantity !== 0 : l.quantity > 0));
-    if (validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
+    if (!correctionAfterValues && validLines.length === 0) errs.push("Dodaj co najmniej jedną pozycję z nazwą i ilością.");
+    if (correctionAfterValues && form.lines.some(line => line.quantity < 0)) errs.push("Wpisz prawidłową ilość po korekcie (co najmniej zero). Różnicę obliczamy automatycznie.");
+    if (correctionAfterValues && form.lines.some(line => !line.name.trim() && line.quantity !== 0 && line.netPrice !== 0)) errs.push("Uzupełnij nazwę pozycji po korekcie albo usuń jej wiersz.");
     if (form.lines.some((l) => (!form.isCorrection && l.quantity < 0) || l.netPrice < 0)) errs.push("Cena nie może być ujemna. Ujemna ilość jest dostępna tylko dla korekt.");
     if (form.lines.some((l) => !Number.isFinite(l.quantity) || Math.abs(l.quantity) > 1e9 || !Number.isFinite(l.netPrice) || l.netPrice > 1e9)) errs.push("Sprawdź zakres ilości i cen pozycji.");
-    if (validLines.length > 200) errs.push("Faktura może zawierać najwyżej 200 pozycji.");
+    if (validLines.length > 200 || documentLines.length > 200) errs.push(form.isCorrection ? "Dokument korekty może zawierać najwyżej 200 pozycji różnicowych. Zmniejsz liczbę zmienianych pozycji." : "Faktura może zawierać najwyżej 200 pozycji.");
     if (validLines.some(l => roundHalfUp(l.quantity, 6) === 0)) errs.push("Ilość wymaga najwyżej sześciu miejsc po przecinku.");
 
     // Walidacja kursu walutowego dla walut obcych (art. 31a ustawy o VAT)
@@ -702,7 +714,7 @@ export function InvoiceCreator() {
       ? (isManualRate ? Number(manualRateInput.trim().replace(",", ".")) || null : activeNbpRate?.rate || null)
       : null;
 
-    const totalsCalc = invoiceTotals({ lines: form.lines.map(normalizeInvoiceLineAmounts) });
+    const totalsCalc = invoiceTotals({ lines: documentLines });
     const netPln = effectiveRate ? round2(totalsCalc.net * effectiveRate) : null;
     const vatPln = effectiveRate ? round2(totalsCalc.vat * effectiveRate) : null;
     const grossPln = effectiveRate ? round2(totalsCalc.gross * effectiveRate) : null;
@@ -712,7 +724,7 @@ export function InvoiceCreator() {
       type: form.type,
       status,
       sellerCompanyId: effectiveSellerCompany.id || undefined,
-      autoNumber: numberMode === "auto" && (!draftInvoice || draftInvoiceIsNew),
+      autoNumber: numberMode === "auto" && !editing,
       contractorId,
       issueDate: form.issueDate || todayISO(),
       saleDate: form.saleDate || form.issueDate || todayISO(),
@@ -729,9 +741,7 @@ export function InvoiceCreator() {
       isOffline: Boolean(form.isOffline),
       offlineReason: form.isOffline ? form.offlineReason : undefined,
       offlineDeadline: form.isOffline && form.offlineDeadline ? new Date(form.offlineDeadline).toISOString() : undefined,
-      lines: form.lines
-        .filter((l) => l.name.trim() && (form.isCorrection ? l.quantity !== 0 : l.quantity > 0))
-        .map(normalizeInvoiceLineAmounts),
+      lines: documentLines,
       isCorrection: form.isCorrection,
       correctionReason: form.correctionReason?.trim() || undefined,
       originalInvoiceId: form.originalInvoiceId || undefined,
@@ -764,7 +774,7 @@ export function InvoiceCreator() {
 
   /** Zapisywanie przez backend — zwraca fakturę z id nadanym przez serwer. */
   const persist = async (inv: InvoicePayload): Promise<Invoice> => {
-    if (draftInvoice && !draftInvoiceIsNew) {
+    if (editing && draftInvoice) {
       return store.updateInvoice(draftInvoice.id, inv);
     }
     return store.addInvoice(inv);
@@ -781,7 +791,7 @@ export function InvoiceCreator() {
     if (errors.length) { toast("error", "Popraw dane faktury", errors[0]); return; }
     assistantBusy.current = true; setCheckingInvoice(true);
     try {
-      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, lines: form.lines.filter(line => line.name.trim() && (form.isCorrection ? line.quantity !== 0 : line.quantity > 0)).map(normalizeInvoiceLineAmounts), companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: draftInvoiceIsNew ? undefined : draftInvoice?.id, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
+      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, correctionInput: undefined, correctionOriginalLines: undefined, lines: documentLines, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: editing ? draftInvoice?.id : undefined, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Nie udało się sprawdzić faktury.");
       setAssistant({ ...result, action, snapshot: invoiceSnapshot });
@@ -1073,7 +1083,7 @@ export function InvoiceCreator() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm">Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</p>
+              <p className="text-sm">{correctionAfterValues ? "Wpisz prawidłowe wartości po korekcie. System sam obliczy różnicę i zapisze osobną fakturę korygującą z numerem KSeF oryginału (jeśli został nadany). Oryginalna faktura pozostaje bez zmian." : <>Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</>}</p>
               <div className="space-y-1.5">
                 <Label htmlFor="invoice-correctionReason" className="text-rose-900 dark:text-rose-300 font-semibold">
                   Przyczyna korekty (pole wymagane w schemacie FA(3)) *
@@ -1461,7 +1471,7 @@ export function InvoiceCreator() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-[15px]">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mr-2">2</span>
-              Pozycje faktury
+              {correctionAfterValues ? "Pozycje po korekcie" : "Pozycje faktury"}
             </CardTitle>
             <CardDescription>Towary i usługi — stawki VAT (23%, 8%, 5%, 0%, zw, np, oo), przeliczenia kwot na żywo</CardDescription>
           </CardHeader>
@@ -1470,9 +1480,17 @@ export function InvoiceCreator() {
               lines={form.lines}
               onChange={(lines) => set({ lines })}
               currency={form.currency}
-              correction={Boolean(form.isCorrection)}
+              correction={Boolean(form.isCorrection && !correctionAfterValues)}
               products={products}
             />
+            {correctionAfterValues && <div className="mt-4 space-y-3 border-t border-border pt-4">
+              <p className="text-sm text-muted-foreground">Ustaw ilość na 0 lub usuń wiersz, aby skorygować całą pozycję. Możesz zmienić cenę, ilość, VAT lub dodać pozycję.</p>
+              <dl className="grid gap-3 sm:grid-cols-3" aria-label="Podsumowanie korekty">
+                <div className="rounded-xl border border-border p-3"><dt className="text-xs text-muted-foreground">Przed korektą brutto</dt><dd className="mt-1 font-semibold tabular-nums">{formatMoney(invoiceTotals({ lines: form.correctionOriginalLines! }).gross, form.currency)}</dd></div>
+                <div className="rounded-xl border border-border p-3"><dt className="text-xs text-muted-foreground">Po korekcie brutto</dt><dd className="mt-1 font-semibold tabular-nums">{formatMoney(invoiceTotals({ lines: form.lines.map(normalizeInvoiceLineAmounts) }).gross, form.currency)}</dd></div>
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-3"><dt className="text-xs text-muted-foreground">Kwota korekty brutto</dt><dd className="mt-1 font-semibold tabular-nums" data-testid="correction-difference">{formatMoney(totals.gross, form.currency)}</dd></div>
+              </dl>
+            </div>}
           </CardContent>
         </Card>
 
