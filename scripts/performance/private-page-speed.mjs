@@ -53,6 +53,8 @@ const report = { nodeVersion: process.version, schemaVersion: 1, diagnostic, col
 report.conditions["skeleton"] = "First requestAnimationFrame callback where a main aria-busy skeleton or route status skeleton has a visible DOM layout. This is not a guaranteed paint timestamp: rAF precedes paint and a later long task may delay paint. Use FCP separately.";
 report.conditions["ready"] = "First rAF callback where the data-derived dashboard action section, or all 30 visible-layout invoice detail links without loading status, exist in DOM. Not a guaranteed paint timestamp or completion of optional charts. Server-rendered data may become ready before hydration; controls readiness is measured separately.";
 report.conditions.controlsReady = 'First rAF-visible dashboard refresh button with its natural React onClick prop, or invoice search input with its natural React onChange prop. A hydration signal, not an executed action or a guaranteed paint timestamp. Data-and-controls readiness is the maximum of readyMs and controlsReadyMs.';
+report.measurementVersion = 2;
+report.conditions.observerWork = 'Read-only rAF probes scan only pending metrics: data rows stop being inspected after first data-ready, all layout probes stop after data and controls are ready, and a warm route reset starts them again. The first-ready criteria are unchanged. Earlier version-1 runs kept scanning settled rows during hydration; timings across these versions are not directly paired.';
 report.conditions.warmHydrationGuard = 'Each collection waits for both data and control hydration before continuing. Before warm navigation, the visible Next link must also have its natural React onClick prop. Every warm navigation must preserve a unique document identity; full reloads fail the benchmark. Earlier reports without this guard measured warm navigation after client-rendered data readiness.';
 report.conditions["fcp"] = "Navigation Paint Timing first-contentful-paint, measured separately from DOM skeleton and data readiness; navigation values only apply to cold document entries.";
 report.conditions["host"] = "Browser, application server and MongoDB are co-located. Run without concurrent builds/browser benchmarks. Host limits are recorded separately when available. A laboratory relative comparison, not a real-user loading SLO.";
@@ -141,10 +143,17 @@ try {
                 window.__speedHasReactHandler = function hasReactHandler(node, handler) {
                     return !!node && Object.getOwnPropertyNames(node).some(key => key.startsWith('__reactProps$') && typeof node[key]?.[handler] === 'function');
                 };
-                const visible = node => !!node && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden' && Number(getComputedStyle(node).opacity) > 0;
+                const visible = node => {
+                    if (!node || node.getClientRects().length === 0) return false;
+                    const style = getComputedStyle(node);
+                    return style.visibility !== 'hidden' && Number(style.opacity) > 0;
+                };
                 const tick = () => {
                     const m = window.__speed, t = performance.now() - m.start;
-                    if (location.pathname === m.route) {
+                    // Stop probing settled measurements. Re-reading every row's
+                    // layout while waiting for hydration perturbs the thing we
+                    // measure; a route reset starts the same criteria again.
+                    if (location.pathname === m.route && (m.readyMs === null || m.controlsReadyMs === null)) {
                         const main = document.querySelector('main');
                         if (m.shellMs === null && visible(main))
                             m.shellMs = t;
@@ -153,11 +162,14 @@ try {
                             m.skeletonMs = t;
                         if (m.headingMs === null && visible(document.querySelector('main h1')))
                             m.headingMs = t;
-                        const invoiceLinks = [...document.querySelectorAll('main a')].filter(a => a.textContent.trim() === 'Szczegóły dokumentu' && visible(a));
-                        const ready = m.route === '/dashboard' ? document.querySelector('[aria-label="Sprawy wymagające działania"]') : invoiceLinks.length === 30 ? invoiceLinks[0] : null;
-                        const loading = [...document.querySelectorAll('main [role="status"]')].some(n => n.textContent.includes('Ładowanie…'));
-                        if (m.readyMs === null && visible(ready) && !loading)
-                            m.readyMs = t;
+                        if (m.readyMs === null) {
+                            const invoiceLinks = m.route === '/invoices'
+                                ? [...document.querySelectorAll('main a')].filter(a => a.textContent.trim() === 'Szczegóły dokumentu' && visible(a))
+                                : [];
+                            const ready = m.route === '/dashboard' ? document.querySelector('[aria-label="Sprawy wymagające działania"]') : invoiceLinks.length === 30 ? invoiceLinks[0] : null;
+                            const loading = [...document.querySelectorAll('main [role="status"]')].some(n => n.textContent.includes('Ładowanie…'));
+                            if (visible(ready) && !loading) m.readyMs = t;
+                        }
                         if (m.controlsReadyMs === null) {
                             const control = m.route === '/dashboard'
                                 ? document.querySelector('main button[aria-label="Odśwież przegląd"]')

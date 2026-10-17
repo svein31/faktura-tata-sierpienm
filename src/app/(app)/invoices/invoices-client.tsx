@@ -761,7 +761,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge className={status.color}>{status.label}</Badge>
-                {canCreateCorrections && isCorrectableInvoiceSource(inv) && <Button variant="outline" size="sm" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine className="mr-1.5 size-4" />Koryguj</Button>}
+                {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
                 <Link prefetch={false} href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
               </div>
             </article>;
@@ -973,7 +973,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                             <Mail className="h-3.5 w-3.5" />
                           </Button>
 
-                          {canCreateCorrections && isCorrectableInvoiceSource(inv) && <Button variant="outline" size="sm" className="h-8 gap-1 rounded-lg px-2 text-xs" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine className="size-3.5" />Koryguj</Button>}
+                          {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
 
                           {(ksefNum || inv.type !== "purchase") && <details className="text-left">
                             <summary className="flex h-8 cursor-pointer list-none items-center rounded-lg border px-2 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" aria-label={`Więcej działań dla faktury ${inv.number}`} title="Więcej działań">Więcej <ChevronDown className="ml-1 h-3 w-3" /></summary>
