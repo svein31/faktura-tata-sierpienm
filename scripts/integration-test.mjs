@@ -254,6 +254,35 @@ try {
   }, a.cookie);
   assert.equal(invoice.res.status, 201, JSON.stringify(invoice.data));
   const invoiceId = invoice.data.invoice.id;
+  // Check the real production-rendered HTML, not merely a serialized RSC seed
+  // or a client store fixture. Alternating actors also exercises request reuse.
+  const ssrPasswordHashes = (await db.user.findMany({
+    where: { id: { in: [a.data.user.id, b.data.user.id] } }, select: { password: true },
+  })).map(user => user.password);
+  for (const [path, account, ownsInvoice] of [
+    ['/invoices', a, true], ['/invoices', b, false],
+    ['/dashboard', a, true], ['/dashboard', b, false], ['/invoices', a, true],
+  ]) {
+    const response = await fetch(base + path, {
+      headers: { Origin: base, Cookie: account.cookie }, redirect: 'manual', signal: AbortSignal.timeout(15000),
+    });
+    assert.equal(response.status, 200, `${path} must render for the live account`);
+    assert.match(response.headers.get('cache-control') || '', /\bno-store\b/i, `${path} HTML must not enter the browser/shared cache`);
+    assert.match(response.headers.get('netlify-cdn-cache-control') || '', /\bno-store\b/i, `${path} must disable Netlify CDN caching`);
+    for (const header of ['cache-control', 'netlify-cdn-cache-control', 'cdn-cache-control']) {
+      assert.doesNotMatch(response.headers.get(header) || '', /\bpublic\b|\b(?:s-maxage|max-age)\s*=\s*[1-9]\d*/i, `${path} cannot advertise public caching or a positive cache TTL`);
+    }
+    const html = await response.text();
+    const markup = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+    assert.ok(markup.includes(path === '/invoices' ? '>Faktury<' : '>Przegląd<'), `${path} heading must be in server-rendered markup`);
+    assert.equal(markup.includes(`>${invoice.data.invoice.number}<`), ownsInvoice, `${path} must render invoice rows/recent documents only for their account`);
+    if (path === '/invoices') {
+      assert.equal(markup.includes(`>${contractor.data.contractor.name}<`), ownsInvoice, 'SSR contractor names must follow the same account scope');
+    }
+    if (!ownsInvoice) assert.equal(html.includes(invoiceId), false, 'Another actor must not receive the private invoice in HTML or the RSC payload');
+    for (const hash of ssrPasswordHashes) assert.equal(html.includes(hash), false, 'Server-only password hashes must not cross the HTML/RSC boundary');
+  }
+  console.log('[integration] PASS authenticated SSR rows/dashboard, alternating tenant isolation, private cache headers and server-only field boundary');
   const manualBody = { invoiceId, recipientEmail: 'manual-recipient@example.test', subject: 'Isolated manual fixture', attachPdf: false, attachXml: false, idempotencyKey: 'integration-manual-first' };
   const beforeManual = deliveredEmails.length;
   const manualAttempts = await Promise.all(Array.from({ length: 8 }, () => api('POST', '/api/invoices/send-email', manualBody, a.cookie)));

@@ -44,6 +44,10 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
     // payload, so the seed must never replace the authenticated API request.
     const revalidateInitialSeed = seedValid.current && initialSnapshot.current.search?.url === url && revision === 0 && initialSnapshot.current.mutations === mutations;
     if (!revalidateInitialSeed) seedValid.current = false;
+    // Discard data after leaving its exact query, including a server seed.
+    // A rapid A -> B -> A must not revive A before either response settles.
+    // Same-query reloads and transient failures retain their current snapshot.
+    setState(current => current.url === url ? current : { url, data: EMPTY });
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const cancel = () => { clearTimeout(timer); controller.abort(); };
