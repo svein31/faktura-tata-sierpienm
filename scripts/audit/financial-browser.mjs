@@ -124,7 +124,7 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
     await page.getByRole('button', { name: 'Wystaw korektę', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`correctionFrom=${original.id}`));
     await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('1');
-    await expect(page.getByText('Pozycje po korekcie', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '2 Pozycje po korekcie', exact: true })).toBeVisible();
     await chooseManual(`QA/${marker}/CORRECTION`);
     await page.getByLabel('Przyczyna korekty (pole wymagane w schemacie FA(3)) *', { exact: true }).fill('Zwrot połowy usługi <&>');
     await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('0.5');
