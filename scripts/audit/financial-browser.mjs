@@ -123,10 +123,12 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
     await expect(page).toHaveURL(/invoices\/new$/); await page.goBack();
     await page.getByRole('button', { name: 'Wystaw korektę', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`correctionFrom=${original.id}`));
-    await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('0');
+    await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('1');
+    await expect(page.getByRole('heading', { name: '2 Pozycje po korekcie', exact: true })).toBeVisible();
     await chooseManual(`QA/${marker}/CORRECTION`);
     await page.getByLabel('Przyczyna korekty (pole wymagane w schemacie FA(3)) *', { exact: true }).fill('Zwrot połowy usługi <&>');
-    await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('-0.5');
+    await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('0.5');
+    await expect(page.getByTestId('correction-difference')).toContainText('-61,50');
     const preflight = await submit(page.getByRole('button', { name: 'Zapisz korektę', exact: true }).first(), '/api/invoices/preflight');
     assert.equal(preflight.canProceed, true); assert.equal(preflight.totals.gross, -61.5);
     const correction = await submit(page.getByRole('dialog').getByRole('button', { name: 'Zatwierdzam i kontynuuję', exact: true }), '/api/invoices');
@@ -165,18 +167,18 @@ export async function auditFinancialBrowser(browser, { base, db, outputPath } = 
         ksefXml: `<SyntheticQAOriginal><Number>${sourceData.invoice.number}</Number></SyntheticQAOriginal>`,
       } });
       const beforeAcceptedCorrection = await db.invoice.findUniqueOrThrow({ where: { id: sourceId } });
-      await navigate(`/invoices/${sourceId}`);
-      const createCorrection = page.getByRole('button', { name: 'Wystaw korektę', exact: true });
+      await navigate(index === 0 ? '/invoices' : `/invoices/${sourceId}`);
+      const createCorrection = page.getByRole('button', { name: index === 0 ? `Koryguj fakturę ${beforeAcceptedCorrection.number}` : 'Wystaw korektę', exact: true });
       await expect(createCorrection).toBeVisible();
       await createCorrection.click();
       await expect(page).toHaveURL(new RegExp(`correctionFrom=${sourceId}`));
-      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('0');
+      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('1');
       await expect(page.getByText(`Numer KSeF oryginału: ${sourceKsefNumber}`, { exact: false })).toBeVisible();
       await expect(page.getByRole('status').filter({ hasText: 'Wczytywanie faktury do sklonowania…' })).toHaveCount(0);
       await chooseManual(`QA/${marker}/${scenario.key}/CORRECTION`);
       await page.getByLabel('Przyczyna korekty (pole wymagane w schemacie FA(3)) *', { exact: true }).fill(`Zwrot połowy ${scenario.key} Żółć <&>`);
-      await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('-0.5');
-      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('-0.5');
+      await page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true }).fill('0.5');
+      await expect(page.getByRole('spinbutton', { name: 'Ilość pozycji 1', exact: true })).toHaveValue('0.5');
       await expect(page.locator('.invoice-paper')).toContainText('-61,50');
       const acceptedPreflight = await submit(page.getByRole('button', { name: 'Zapisz korektę', exact: true }).first(), '/api/invoices/preflight', scenario.key);
       assert.equal(acceptedPreflight.canProceed, true, `${scenario.key} preflight`);
