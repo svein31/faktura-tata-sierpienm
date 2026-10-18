@@ -56,7 +56,12 @@ export async function auditInvoiceSearch(browser, { outputPath } = {}) {
   page.on("pageerror", error => errors.push(error.message));
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   const snapshot = () => page.evaluate(() => window.invoiceSearchTest.snapshot());
-  const act = (action, value) => page.evaluate(([action, value]) => window.invoiceSearchTest.act(action, value), [action, value]);
+  const act = async (action, value) => {
+    await page.evaluate(([action, value]) => window.invoiceSearchTest.act(action, value), [action, value]);
+    // The outer flushSync need not commit updates queued by passive effects.
+    // Drain React's task queue without advancing the frozen debounce clock.
+    await drainTasks();
+  };
   const respond = (id, row, cursor = null) => page.evaluate(([id, row, cursor]) => window.invoiceSearchTest.respond(id, row, cursor), [id, row, cursor]);
   const http = (driver, id, status, message, invalidJson = false) => page.evaluate(([driver, id, status, message, invalidJson]) => window[driver].http(id, status, message, invalidJson), [driver, id, status, message, invalidJson]);
   const overviewSnapshot = () => page.evaluate(() => window.overviewSeedTest.snapshot());
