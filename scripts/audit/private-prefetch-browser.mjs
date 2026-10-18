@@ -3,6 +3,8 @@ import { writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { expect } from '@playwright/test';
 import { recordBrowserScenario } from './browser-control-inventory.mjs';
+import { isRouteRequest } from './private-prefetch-request.cjs';
+export { isRouteRequest } from './private-prefetch-request.cjs';
 
 const selectedHeaderNames = ['rsc', 'next-router-prefetch', 'purpose', 'sec-purpose', 'accept'];
 const normalizedPath = pathname => pathname.replace(/\/+$/, '') || '/';
@@ -26,14 +28,6 @@ function requestEvidence(request, origin, phase) {
     selectedHeaders,
     hints,
   };
-}
-
-function isRouteRequest(request) {
-  // WebKit classifies the document's PWA manifest as "other". It is required
-  // metadata, not an unrelated application route or navigation warmup.
-  return request.path !== '/manifest.webmanifest'
-    && !request.path.startsWith('/_next/') && !/^\/api(?:\/|$)/.test(request.path)
-    && ['document', 'fetch', 'xhr', 'other'].includes(request.resourceType);
 }
 
 /** Actual local authenticated traffic; cold dashboard, navigation/history and intent-only warmup. */
