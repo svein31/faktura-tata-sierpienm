@@ -3,6 +3,8 @@ import { writeFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { expect } from '@playwright/test';
 import { recordBrowserScenario } from './browser-control-inventory.mjs';
+import { isRouteRequest } from './private-prefetch-request.cjs';
+export { isRouteRequest } from './private-prefetch-request.cjs';
 
 const selectedHeaderNames = ['rsc', 'next-router-prefetch', 'purpose', 'sec-purpose', 'accept'];
 const normalizedPath = pathname => pathname.replace(/\/+$/, '') || '/';
@@ -26,14 +28,6 @@ function requestEvidence(request, origin, phase) {
     selectedHeaders,
     hints,
   };
-}
-
-function isRouteRequest(request) {
-  // WebKit classifies the document's PWA manifest as "other". It is required
-  // metadata, not an unrelated application route or navigation warmup.
-  return request.path !== '/manifest.webmanifest'
-    && !request.path.startsWith('/_next/') && !/^\/api(?:\/|$)/.test(request.path)
-    && ['document', 'fetch', 'xhr', 'other'].includes(request.resourceType);
 }
 
 /** Actual local authenticated traffic; cold dashboard, navigation/history and intent-only warmup. */
@@ -175,9 +169,13 @@ export async function auditPrivatePrefetchBrowser(browser, { base, engine, stora
         await action();
         await expect(page).toHaveURL(url => normalizedPath(url.pathname) === expectedPath);
         await expect(page.locator('main h1').first()).toBeVisible();
+        // SSR headings can appear before React starts the page's effects.
+        // Wait for the existing hydration signal before measuring settled
+        // traffic or leaving this document during the next history step.
+        await page.waitForFunction(() => document.documentElement.dataset.uiReady === 'true');
         await page.waitForLoadState('networkidle');
         assertNoErrors();
-        historySteps.push({ iteration, name, path: expectedPath, headingVisible: true, pageErrors: pageErrors.length });
+        historySteps.push({ iteration, name, path: expectedPath, headingVisible: true, hydrationReady: true, pageErrors: pageErrors.length });
       }
     }
     addScenario({ name: 'private-refresh-back-forward-without-browser-errors', route: '/dashboard', steps: historySteps, pageErrors: pageErrors.length });

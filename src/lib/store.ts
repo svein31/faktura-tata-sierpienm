@@ -1,6 +1,8 @@
 "use client";
 
-import { create } from "zustand";
+import { useContext } from "react";
+import { createStore, useStore, type StateCreator, type StoreApi, type UseBoundStore } from "zustand";
+import { AppStoreContext } from "./app-store-context";
 import { EMPTY_COMPANY } from "./types";
 import type {
   AppNotification,
@@ -97,8 +99,34 @@ export async function apiError(res: Response, fallback: string): Promise<Error> 
 
 const EMPTY_PREFS: NotificationPrefs = { browserEnabled: false, soundEnabled: true };
 
-let dataRequestVersion = 0;
-export const useAppStore = create<AppState>((set, get) => ({
+export type AppBootstrapData = {
+  company: CompanyProfile | null;
+  companies?: CompanyProfile[];
+  ksef: KsefSettings | null;
+  contractors: Contractor[];
+  products: Product[];
+  invoices: Invoice[];
+  notifications: AppNotification[];
+  notificationPrefs: NotificationPrefs;
+};
+
+/** Identical selection rules for an HTTP bootstrap and a request-local SSR seed. */
+function bootstrapState(data: AppBootstrapData, selectedId: string | null) {
+  const companies = data.companies ?? (data.company ? [data.company] : []);
+  const company = resolveSelectedCompany(companies, selectedId, data.company);
+  return {
+    company, companies, selectedCompanyId: company?.id ?? null,
+    ksef: companyKsefSettings(company, data.ksef),
+    contractors: data.contractors, products: data.products, invoices: data.invoices,
+    notifications: data.notifications, notificationPrefs: data.notificationPrefs ?? EMPTY_PREFS,
+    hydrated: true, authError: false,
+  };
+}
+
+const appStateCreator: StateCreator<AppState> = (set, get) => {
+  // Each store owns its request fence, including isolated server renders.
+  let dataRequestVersion = 0;
+  return ({
   hydrated: false,
   dataMode: "full",
   authError: false,
@@ -760,7 +788,45 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ notificationPrefs: data.notificationPrefs });
     return data.notificationPrefs;
   },
-}));
+  });
+};
+
+/** Never share this instance between server requests. */
+export function createAppStore(initialBootstrap: AppBootstrapData | null = null): StoreApi<AppState> {
+  return createStore<AppState>((set, get, api) => ({
+    ...appStateCreator(set, get, api),
+    ...(initialBootstrap ? { ...bootstrapState(initialBootstrap, null), dataMode: "list" as const } : {}),
+  }));
+}
+
+let browserStore = createAppStore();
+let browserOwner: string | null = null;
+
+/** A warm app navigation keeps its company; a new account gets a fresh store. */
+export function browserAppStore(ownerId: string, initialBootstrap: AppBootstrapData | null) {
+  if (typeof window === "undefined") throw new Error("Browser store cannot be selected on the server.");
+  if (browserOwner !== ownerId || !browserStore.getState().hydrated) {
+    browserStore = createAppStore(initialBootstrap);
+    browserOwner = ownerId;
+  }
+  return browserStore;
+}
+
+const identity = (state: AppState) => state;
+function useScopedAppStore<T = AppState>(selector: (state: AppState) => T = identity as (state: AppState) => T, equalityFn?: (a: T, b: T) => boolean) {
+  const scoped = useContext(AppStoreContext);
+  return useStore(scoped ?? browserStore, selector, equalityFn);
+}
+
+// Keep the existing imperative API for action handlers and isolated fixtures.
+// SSR selectors always read the provider's request-local instance instead.
+export const useAppStore: UseBoundStore<StoreApi<AppState>> = Object.assign(useScopedAppStore, {
+  getState: () => browserStore.getState(),
+  getInitialState: () => browserStore.getInitialState(),
+  setState: (...args: Parameters<StoreApi<AppState>["setState"]>) => browserStore.setState(...args),
+  subscribe: (...args: Parameters<StoreApi<AppState>["subscribe"]>) => browserStore.subscribe(...args),
+  destroy: () => browserStore.destroy(),
+});
 
 /* ── Helpers (czysto funkcyjne, bez stanu) ─────────────────────────────── */
 

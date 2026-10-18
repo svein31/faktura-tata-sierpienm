@@ -547,6 +547,63 @@ video {
 }
 
 @layer components {
+  /* Repeated invoice actions share CSS instead of duplicating utility strings. */
+  .invoice-correction-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    max-width: 100%;
+    padding: 6px 12px;
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 8px;
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 150ms, border-color 150ms, box-shadow 150ms, transform 150ms;
+  }
+
+  .invoice-correction-action > svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .invoice-correction-action:hover:not(:disabled) {
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--muted) / 0.4);
+  }
+
+  .invoice-correction-action:active:not(:disabled) { transform: scale(0.98); }
+
+  .invoice-correction-action:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px hsl(var(--primary) / 0.4);
+  }
+
+  .invoice-correction-action:disabled {
+    pointer-events: none;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  @media (min-width: 768px) {
+    .invoice-correction-action {
+      gap: 4px;
+      min-height: 32px;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+    .invoice-correction-action > svg { width: 14px; height: 14px; }
+  }
+
   /* Shared surfaces: decoration never clips menus, content or focus outlines. */
   .surface-card,
   .surface-card-hover {

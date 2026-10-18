@@ -10,17 +10,20 @@ import { WorkspaceNavigation } from "./workspace-navigation";
 import { BottomNav } from "./bottom-nav";
 import { DeferredOverlays } from "./deferred-overlays";
 import { EmailVerificationNotice } from "@/components/email-verification-notice";
+import { AppStoreProvider } from "./app-store-provider";
+import type { AppBootstrapData } from "@/lib/store";
 
 /**
  * Powłoka aplikacji (tylko dla zalogowanych — strona (app) przechodzi
  * serwerową weryfikację sesji w (app)/layout.tsx).
  */
-export function AppShell({ user, needsTermsAcceptance, children }: { user: SessionUser; needsTermsAcceptance: boolean; children: React.ReactNode }) {
+export function AppShell({ user, needsTermsAcceptance, initialBootstrap = null, children }: { user: SessionUser; needsTermsAcceptance: boolean; initialBootstrap?: AppBootstrapData | null; children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const closeMobile = React.useCallback(() => setMobileOpen(false), []);
 
   return (
-    <SessionProvider user={user}>
+    <SessionProvider key={user.id} user={user}>
+      <AppStoreProvider ownerId={user.id} initialBootstrap={initialBootstrap}>
       <div className="app-shell min-h-dvh min-w-0 bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <DeferredOverlays needsTermsAcceptance={needsTermsAcceptance} />
         <div inert={needsTermsAcceptance || undefined} aria-hidden={needsTermsAcceptance || undefined}>
@@ -38,6 +41,7 @@ export function AppShell({ user, needsTermsAcceptance, children }: { user: Sessi
         </div>
         </div>
       </div>
+      </AppStoreProvider>
     </SessionProvider>
   );
 }
