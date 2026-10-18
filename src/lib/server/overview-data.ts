@@ -91,6 +91,7 @@ export async function readAuthorizedOverview(user: { id: string }, params: URLSe
     statusCounts: (data?.status || []).map(row => ({ name: row._id, value: row.value })),
     contractors: [...contractors].map(([currency, rows]) => ({ currency, rows })),
     recent: data?.recent || [],
+    onboardingDocument: data?.onboarding?.[0] ? { ...data.onboarding[0], companyId: company.id } : null,
     ksefQueue: queue.map(task => ({
       id: task.id, invoiceId: task.invoiceId, number: task.invoice.number,
       status: task.status, attempts: task.attempts, maxAttempts: task.maxAttempts,

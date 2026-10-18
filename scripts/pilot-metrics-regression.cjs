@@ -13,6 +13,7 @@ const client = new MongoClient(uri);
   await client.connect(); const db = client.db(), secret = process.env.PILOT_METRICS_SECRET;
   const cookie = issuePilotCookie(secret), identity = pilotIdentity(cookie, secret);
   const existingCookie = issuePilotCookie(secret), existingIdentity = pilotIdentity(existingCookie, secret);
+  const unorderedCookie = issuePilotCookie(secret), unorderedIdentity = pilotIdentity(unorderedCookie, secret);
   const request = new Request('https://example.test/api/pilot/events', { headers: { cookie: `${PILOT_COOKIE}=${cookie}` } });
   try {
     await Promise.all(Array.from({ length: 8 }, () => persistPilotEvent(cookie, 'visit')));
@@ -45,6 +46,24 @@ const client = new MongoClient(uri);
     assert.equal(report.fieldVitals.find(row => row.pageClass === 'public').gate, 'insufficient_samples');
     assert.equal(report.counts.first_invoice, 1); assert.equal(report.observedStageCounts.first_invoice, 2);
     assert.equal(report.activationRate, 1); assert.equal(report.paidConversionRate, 1, 'Existing accounts cannot inflate a registration conversion above 100%');
+    assert.equal(report.fieldVitals.length, 16, 'Every missing group remains visibly insufficient');
+    assert.equal(report.activationTime.samples, 1); assert.ok(report.activationTime.mean >= 0);
+    const now = Date.now();
+    await db.collection('PilotMetric').insertOne({ _id: unorderedIdentity.visitor, createdAt: new Date(now - 60000), expiresAt: unorderedIdentity.expiresAt,
+      stages: { visit: new Date(now - 60000), register: new Date(now - 30000), first_invoice: new Date(now - 40000), pro: new Date(now - 50000) } });
+    const unordered = JSON.parse((await promisify(execFile)(process.execPath, ['scripts/ops/pilot-report.mjs'], {
+      env: { ...process.env, PILOT_REPORT_DATABASE_URL: uri }, timeout: 10000,
+    })).stdout);
+    assert.equal(unordered.counts.register, 2); assert.equal(unordered.counts.first_invoice, 1);
+    assert.equal(unordered.observedStageCounts.first_invoice, 3);
+    assert.equal(unordered.counts.pro, 1); assert.equal(unordered.observedStageCounts.pro, 3);
+    assert.equal(unordered.activationRate, 0.5); assert.equal(unordered.paidConversionRate, 0.5);
+    assert.equal(unordered.steps.find(row => row.to === 'first_invoice').incomplete, 1);
+    // Deferred callbacks may persist out of order; retain their earliest server-captured occurrence.
+    const earlierRegistration = new Date(now - 50000), laterRegistration = new Date(now - 20000);
+    await persistPilotEvent(unorderedCookie, 'register', earlierRegistration);
+    await persistPilotEvent(unorderedCookie, 'register', laterRegistration);
+    assert.equal((await db.collection('PilotMetric').findOne({ _id: unorderedIdentity.visitor })).stages.register.getTime(), earlierRegistration.getTime());
     // Withdrawal races against queued callbacks; serialization must remove or reject every sample.
     await Promise.all([withdrawPilotMetrics(request), ...Array.from({ length: 8 }, (_, i) => persistPilotVital(cookie, { ...sample, metricId: `v5-race-${i}` }))]);
     await persistPilotVital(cookie, { ...sample, metricId: 'v5-late-event' });
@@ -58,6 +77,7 @@ const client = new MongoClient(uri);
     await db.collection('PilotVital').deleteMany({ visitor: identity.visitor });
     await db.collection('PilotMetric').deleteOne({ _id: identity.visitor });
     await db.collection('PilotMetric').deleteOne({ _id: existingIdentity.visitor });
+    await db.collection('PilotMetric').deleteOne({ _id: unorderedIdentity.visitor });
     await client.close(); if (globalThis.pilotMongo) await (await globalThis.pilotMongo).close();
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });

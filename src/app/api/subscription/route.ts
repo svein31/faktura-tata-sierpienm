@@ -45,7 +45,8 @@ export async function GET(req: Request) {
       isSubscriptionStatusActive(status) &&
       (!record?.currentPeriodEnd || record.currentPeriodEnd.getTime() > Date.now());
 
-    if (isPro && record?.stripeSubscriptionId && record.accessSource !== "complimentary") recordPilotEvent(req, "pro");
+    // A free trial or complimentary grant is access, not a paid conversion.
+    if (isPro && status === "active" && plan && record?.stripeSubscriptionId && record.accessSource !== "complimentary") recordPilotEvent(req, "pro");
 
     return json({
       plans: SUBSCRIPTION_PLANS,

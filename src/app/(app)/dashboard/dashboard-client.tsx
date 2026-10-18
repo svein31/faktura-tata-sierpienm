@@ -15,7 +15,6 @@ const money = (amount: number, currency: string) => formatMoney(amount, currency
 
 export default function DashboardClient({ initialOverview }: { initialOverview?: OverviewSeed }) {
   const { data, error, companyId, reload } = useOverview(6, initialOverview);
-  const company = useAppStore(s => s.company);
   const ksef = useAppStore(s => s.ksef);
   const [showUpgrade, setShowUpgrade] = React.useState(false);
   React.useEffect(() => {
@@ -67,7 +66,7 @@ export default function DashboardClient({ initialOverview }: { initialOverview?:
         <Button variant="outline" size="icon" onClick={reload} aria-label="Odśwież przegląd" className="min-h-10 min-w-10"><RefreshCw aria-hidden="true" className="size-4" /></Button>
         <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-[13px] font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"><Plus aria-hidden="true" className="size-4" /> Nowa faktura</Link>
     </>} />
-    {data && <OnboardingBanner hasCompany={Boolean(company?.nip)} hasKsef={Boolean(ksef?.tokenSet || ksef?.certName)} hasInvoices={Boolean(data.recent.length)} />}
+    {data && <OnboardingBanner savedDocument={data.onboardingDocument ?? null} />}
     {!companyId && <p className="rounded-xl border p-4 text-sm">Wybierz firmę, aby zobaczyć podsumowanie.</p>}
     {error && <div role="alert" className="rounded-xl border border-rose-500/30 p-4 text-sm">{error} <button onClick={reload} className="ml-2 text-primary underline">Spróbuj ponownie</button></div>}
     {companyId && !data && !error && <p role="status" className="rounded-xl border p-4 text-sm text-muted-foreground">Wczytywanie przeglądu…</p>}

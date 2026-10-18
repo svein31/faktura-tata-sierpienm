@@ -17,6 +17,7 @@ import { invoiceNumberScope } from "@/lib/invoice-number-scope";
 import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
 import { round2 } from "@/lib/format";
 import { warsawDate } from "@/lib/scheduling";
+import { recordPilotEvent } from "@/lib/pilot-metrics";
 
 export const runtime = "nodejs";
 
@@ -308,6 +309,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     return invoice;
     });
 
+    if (!existing.issuedAt && invoice.type === "sale" && !invoice.isProforma && invoice.issuedAt) recordPilotEvent(req, "first_invoice");
     return json({ invoice: invoiceToDto(invoice) });
   } catch (e) {
     if (["P2025", "P2034"].includes((e as { code?: string }).code || "")) return handleApiError(new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane."));
