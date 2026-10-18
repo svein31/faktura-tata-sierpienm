@@ -24,6 +24,19 @@ export const websiteSchema = {
   publisher: { "@id": publisherSchema["@id"] },
 };
 
+export const productVideoSchema = {
+  "@type": "VideoObject",
+  "@id": `${PUBLIC_ORIGIN}/#product-video`,
+  name: "FakturaProsto — od pierwszego szkicu do porządku w finansach",
+  description: "Film demonstracyjny: profil firmy, szkic faktury, podgląd PDF, korekta i terminarz. Rzeczywisty interfejs na danych demonstracyjnych, bez wysyłki do KSeF.",
+  thumbnailUrl: `${PUBLIC_ORIGIN}/media/fakturaprosto-demo.webp`,
+  contentUrl: `${PUBLIC_ORIGIN}/media/fakturaprosto-demo.mp4`,
+  uploadDate: "2026-10-18T00:00:00Z",
+  duration: "PT1M9.8S",
+  inLanguage: "pl-PL",
+  publisher: { "@id": publisherSchema["@id"] },
+};
+
 export const softwareSchema = {
   "@type": "SoftwareApplication",
   "@id": `${PUBLIC_ORIGIN}/#software`,

@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { hasCompletedOnboarding, OPEN_ONBOARDING_EVENT } from "@/components/onboarding/events";
+import { useSessionUser } from "@/lib/session-context";
+import { useAppStore } from "@/lib/store";
 
 const CommandPalette = dynamic(() => import("./command-palette").then(module => module.CommandPalette), { ssr: false });
 const OnboardingTour = dynamic(() => import("@/components/onboarding/onboarding-tour").then(module => module.OnboardingTour), { ssr: false });
@@ -13,6 +16,10 @@ const TermsUpdateModal = dynamic(() => import("@/components/legal/terms-update-m
 
 /** Capture the first open intent before downloading an overlay's implementation. */
 export function DeferredOverlays({ needsTermsAcceptance }: { needsTermsAcceptance: boolean }) {
+  const user = useSessionUser();
+  const pathname = usePathname();
+  const companyId = useAppStore(state => state.selectedCompanyId);
+  const hydrated = useAppStore(state => state.hydrated);
   const [commandOpen, setCommandOpen] = React.useState(false);
   const [tourOpen, setTourOpen] = React.useState(false);
   React.useEffect(() => {
@@ -27,14 +34,18 @@ export function DeferredOverlays({ needsTermsAcceptance }: { needsTermsAcceptanc
     window.addEventListener("keydown", onKey);
     window.addEventListener("open-command-palette", openCommand);
     window.addEventListener(OPEN_ONBOARDING_EVENT, openTour);
-    const timer = hasCompletedOnboarding() ? undefined : window.setTimeout(openTour, 800);
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("open-command-palette", openCommand);
       window.removeEventListener(OPEN_ONBOARDING_EVENT, openTour);
-      if (timer !== undefined) window.clearTimeout(timer);
     };
   }, [needsTermsAcceptance]);
+  React.useEffect(() => {
+    // Opening the invoice editor must never interrupt ongoing work with a tour.
+    if (needsTermsAcceptance || !hydrated || !user.id || pathname !== "/dashboard" || hasCompletedOnboarding(user.id, companyId)) return;
+    const timer = window.setTimeout(() => { setCommandOpen(false); setTourOpen(true); }, 800);
+    return () => window.clearTimeout(timer);
+  }, [needsTermsAcceptance, hydrated, user.id, companyId, pathname]);
   if (needsTermsAcceptance) return <TermsUpdateModal />;
   return <>
     {commandOpen && <CommandPalette open onOpenChange={setCommandOpen} />}

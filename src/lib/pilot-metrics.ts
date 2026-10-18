@@ -19,6 +19,7 @@ export function cookieValue(req: Request, name: string) {
 }
 
 export function hasPilotConsent(req: Request) {
+  if (req.headers.get("sec-gpc") === "1" || ["1", "yes"].includes(req.headers.get("dnt") || "")) return false;
   try {
     const consent = JSON.parse(cookieValue(req, COOKIE_CONSENT_NAME) || "null");
     return consent?.version === PILOT_CONSENT_VERSION && consent.analytics === true;
@@ -56,14 +57,14 @@ async function metricsClient() {
 }
 async function metricsCollection() { return (await metricsClient()).db().collection<Metric>("PilotMetric"); }
 
-export async function persistPilotEvent(value: string, event: PilotEvent) {
+export async function persistPilotEvent(value: string, event: PilotEvent, occurredAt = new Date()) {
   const identity = pilotIdentity(value, process.env.PILOT_METRICS_SECRET || "");
   if (!identity || !PILOT_EVENTS.includes(event)) return;
   const collection = await metricsCollection();
   try {
     await collection.updateOne({ _id: identity.visitor, revoked: { $ne: true } }, [{ $set: {
-      [`stages.${event}`]: { $ifNull: [`$stages.${event}`, new Date()] },
-      createdAt: { $ifNull: ["$createdAt", new Date()] }, expiresAt: { $ifNull: ["$expiresAt", identity.expiresAt] },
+      [`stages.${event}`]: { $min: [{ $ifNull: [`$stages.${event}`, occurredAt] }, occurredAt] },
+      createdAt: { $ifNull: ["$createdAt", occurredAt] }, expiresAt: { $ifNull: ["$expiresAt", identity.expiresAt] },
     } }], { upsert: true, maxTimeMS: 1000 });
   } catch (error) {
     // A revoked visitor already owns this _id. Never recreate stages after withdrawal.
@@ -76,9 +77,10 @@ export function recordPilotEvent(req: Request, event: Exclude<PilotEvent, "visit
   if (!pilotConfigured() || !hasPilotConsent(req)) return;
   const value = cookieValue(req, PILOT_COOKIE);
   if (!pilotIdentity(value, process.env.PILOT_METRICS_SECRET!)) return;
+  const occurredAt = new Date();
   try {
     after(async () => {
-      try { await persistPilotEvent(value!, event); }
+      try { await persistPilotEvent(value!, event, occurredAt); }
       catch { console.warn(JSON.stringify({ event: "pilot_metric_unavailable" })); }
     });
   } catch { /* A metrics failure never changes an invoice, signup or payment result. */ }

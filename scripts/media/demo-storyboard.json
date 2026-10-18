@@ -1,0 +1,74 @@
+{
+  "title": "FakturaProsto — od pierwszego szkicu do porządku w finansach",
+  "language": "pl-PL",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "transitionSeconds": 0.6,
+  "sound": "original synthesized ambient score; no narration; designed to work without sound",
+  "disclosure": "Rzeczywista aplikacja · Dane demonstracyjne · Bez wysyłki do KSeF",
+  "scenes": [
+    {
+      "id": "intro", "seconds": 7, "kind": "intro", "image": "08-calendar.png",
+      "eyebrow": "TWÓJ PROGRAM DO FAKTUR",
+      "title": "Faktury.\nPo prostu.",
+      "subtitle": "Od pierwszego szkicu do porządku w finansach.",
+      "caption": "Poznaj FakturaProsto. Przygotuj fakturę, sprawdź dokument i uporządkuj finanse firmy."
+    },
+    {
+      "id": "company", "seconds": 9, "kind": "app", "image": "02-company.png", "step": "01", "chapter": "TWOJA FIRMA",
+      "title": "Zacznij od swojej firmy.",
+      "subtitle": "Dane wystawcy i numeracja w jednym miejscu.",
+      "bullets": ["Nazwa i adres", "Dane wystawcy", "Własna numeracja"],
+      "note": "Dane możesz wpisać ręcznie lub pobrać z GUS po NIP.",
+      "caption": "Uzupełnij profil firmy. Wpisz dane ręcznie lub pobierz je z GUS po numerze NIP."
+    },
+    {
+      "id": "first-invoice", "seconds": 11, "kind": "app", "image": "03-first-invoice.png", "step": "02", "chapter": "PIERWSZY SZKIC",
+      "title": "Pierwsza faktura, krok po kroku.",
+      "subtitle": "Wybierz klienta. Dodaj usługę. Sprawdź kwoty.",
+      "bullets": ["Kontrahent", "Pozycje i VAT", "Podgląd na żywo"],
+      "note": "Szkic możesz przygotować przed konfiguracją KSeF.",
+      "caption": "Wybierz kontrahenta, dodaj towar lub usługę i cenę. Kwoty zobaczysz od razu w podglądzie. Szkic nie oznacza wysyłki do KSeF."
+    },
+    {
+      "id": "preview", "seconds": 9, "kind": "pdf", "image": "demo-invoice-page.png", "step": "03", "chapter": "PODGLĄD I PDF",
+      "title": "Dokument gotowy do sprawdzenia.",
+      "subtitle": "Czytelny podgląd. Pobranie PDF. Wszystko pod ręką.",
+      "bullets": ["Dane sprzedawcy", "Kwoty i termin", "Dokument PDF"],
+      "note": "Przed wystawieniem sprawdź dane i właściwą stawkę VAT.",
+      "caption": "Sprawdź dane sprzedawcy i nabywcy, pozycje oraz termin płatności. Zapisany dokument możesz pobrać jako PDF."
+    },
+    {
+      "id": "correction", "seconds": 11, "kind": "app", "image": "06-correction.png", "step": "04", "chapter": "FAKTURA KORYGUJĄCA",
+      "title": "Korekta jako osobny dokument.",
+      "subtitle": "Podaj poprawne wartości. System obliczy różnicę.",
+      "bullets": ["Przyczyna korekty", "Wartości po zmianie", "Powiązanie z oryginałem"],
+      "note": "Oryginalna faktura pozostaje zachowana.",
+      "caption": "Wybierz Wystaw korektę. Podaj przyczynę i poprawne wartości pozycji. System obliczy różnicę, a oryginał pozostanie zachowany."
+    },
+    {
+      "id": "invoices", "seconds": 10, "kind": "app", "image": "07-invoices.png", "step": "05", "chapter": "TWOJE DOKUMENTY",
+      "title": "Wszystkie faktury pod ręką.",
+      "subtitle": "Szukaj dokumentów. Sprawdzaj kwoty i statusy.",
+      "bullets": ["Wyszukiwanie", "Statusy dokumentów", "Szybkie działania"],
+      "note": "Wracaj do dokumentów wtedy, gdy ich potrzebujesz.",
+      "caption": "Na liście faktur wyszukasz dokumenty, sprawdzisz kwoty i statusy oraz przejdziesz do dostępnych działań."
+    },
+    {
+      "id": "calendar", "seconds": 10, "kind": "app", "image": "08-calendar.png", "step": "06", "chapter": "PORZĄDEK W FINANSACH",
+      "title": "Zobacz szerszy obraz.",
+      "subtitle": "Wpływy, wydatki i terminarz w jednym miejscu.",
+      "bullets": ["Planowane wpływy", "Wydatki i bilans", "Terminy płatności"],
+      "note": "Terminy podatkowe są ogólne — sprawdź obowiązki swojej firmy.",
+      "caption": "Zobacz planowane wpływy, wydatki i terminy płatności. Terminy podatkowe są ogólne i zależą od sposobu rozliczania firmy."
+    },
+    {
+      "id": "outro", "seconds": 7, "kind": "outro", "image": "08-calendar.png",
+      "eyebrow": "ZACZNIJ W SWOIM TEMPIE",
+      "title": "Mniej formalności.\nWięcej spokoju.",
+      "subtitle": "Wypróbuj demo bez logowania.",
+      "caption": "Wypróbuj demo bez logowania na fakturaprosto.pl. Nagranie przedstawia dane demonstracyjne i nie pokazuje wysyłki do KSeF."
+    }
+  ]
+}

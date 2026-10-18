@@ -18,6 +18,7 @@ export type Overview = {
   statusCounts: { name: string; value: number }[];
   contractors: { currency: string; rows: { id: string; count: number; gross: number }[] }[];
   recent: { id: string; number: string; currency: string; gross: number | null; issueDate: string }[];
+  onboardingDocument?: { id: string; number: string; companyId: string } | null;
   ksefQueue: { id: string; invoiceId: string; number: string; status: string; attempts: number; maxAttempts: number; environment: string; updatedAt: string; nextAttemptAt: string | null; guidance: string }[];
 };
 

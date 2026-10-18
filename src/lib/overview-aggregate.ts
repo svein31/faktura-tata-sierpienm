@@ -64,6 +64,11 @@ export function overviewPipeline(companyId: string, today: string, months: strin
         { $sort: { priority: 1, label: 1 } }, { $limit: 8 },
       ],
       recent: [{ $sort: { _id: -1 } }, { $limit: 5 }, { $project: { _id: 0, id: { $toString: "$_id" }, number: 1, currency: 1, gross: 1, issueDate: 1 } }],
+      onboarding: [
+        { $match: { type: "sale", isCorrection: { $ne: true }, isProforma: { $ne: true } } },
+        { $sort: { _id: -1 } }, { $limit: 1 },
+        { $project: { _id: 0, id: { $toString: "$_id" }, number: 1 } },
+      ],
       totals: [financeMatch, moneyGroup("$currency")],
       months: [financeMatch, { $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
       rates: [financeMatch, { $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
@@ -77,6 +82,7 @@ export type OverviewRaw = {
   counts: { rejected: number; uncertain: number; overdue: number; drafts: number; offline: number; missingUpo: number }[];
   actions: { id: string; kind: string; label: string; detail: string; href: string; priority: number }[];
   recent: { id: string; number: string; currency: string; gross: number | null; issueDate: string }[];
+  onboarding?: { id: string; number: string }[];
   totals: { _id: string; net: number; vat: number; gross: number; count: number }[];
   months: { _id: { month: string; currency: string }; net: number; vat: number; gross: number; count: number }[];
   rates: { _id: { currency: string; rate: string }; value: number }[];

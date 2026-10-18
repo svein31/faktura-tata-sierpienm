@@ -1,0 +1,20 @@
+FakturaProsto — od pierwszego szkicu do porządku w finansach
+
+Poznaj FakturaProsto. Przygotuj fakturę, sprawdź dokument i uporządkuj finanse firmy.
+
+Uzupełnij profil firmy. Wpisz dane ręcznie lub pobierz je z GUS po numerze NIP.
+
+Wybierz kontrahenta, dodaj towar lub usługę i cenę. Kwoty zobaczysz od razu w podglądzie. Szkic nie oznacza wysyłki do KSeF.
+
+Sprawdź dane sprzedawcy i nabywcy, pozycje oraz termin płatności. Zapisany dokument możesz pobrać jako PDF.
+
+Wybierz Wystaw korektę. Podaj przyczynę i poprawne wartości pozycji. System obliczy różnicę, a oryginał pozostanie zachowany.
+
+Na liście faktur wyszukasz dokumenty, sprawdzisz kwoty i statusy oraz przejdziesz do dostępnych działań.
+
+Zobacz planowane wpływy, wydatki i terminy płatności. Terminy podatkowe są ogólne i zależą od sposobu rozliczania firmy.
+
+Wypróbuj demo bez logowania na fakturaprosto.pl. Nagranie przedstawia dane demonstracyjne i nie pokazuje wysyłki do KSeF.
+
+Rzeczywista aplikacja · Dane demonstracyjne · Bez wysyłki do KSeF
+Muzyka: oryginalny, syntetyzowany podkład ambientowy. Film bez lektora.
