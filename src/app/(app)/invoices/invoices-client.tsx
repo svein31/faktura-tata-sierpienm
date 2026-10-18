@@ -61,6 +61,20 @@ const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> =
   { value: "draft", label: "Szkice" },
 ];
 
+/** Closed native menus keep their action controls out of the initial hydration. */
+function InvoiceRowActions({ number, children }: { number: string; children: React.ReactNode }) {
+  const details = React.useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = React.useState(false);
+  React.useEffect(() => {
+    // Preserve an opening gesture made on the server-rendered summary.
+    if (details.current?.open) setOpen(true);
+  }, []);
+  return <details ref={details} className="text-left" onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="flex h-8 cursor-pointer list-none items-center rounded-lg border px-2 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" aria-label={`Więcej działań dla faktury ${number}`} title="Więcej działań">Więcej <ChevronDown className="ml-1 h-3 w-3" /></summary>
+    {open && <div className="mt-1 min-w-36 rounded-xl border bg-card p-1">{children}</div>}
+  </details>;
+}
+
 export default function InvoicesClient({ initialSearch }: { initialSearch?: InitialInvoiceSearch }) {
   const router = useRouter();
   const toast = useToast();
@@ -975,17 +989,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
                           {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
 
-                          {(ksefNum || inv.type !== "purchase") && <details className="text-left">
-                            <summary className="flex h-8 cursor-pointer list-none items-center rounded-lg border px-2 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" aria-label={`Więcej działań dla faktury ${inv.number}`} title="Więcej działań">Więcej <ChevronDown className="ml-1 h-3 w-3" /></summary>
-                            <div className="mt-1 min-w-36 rounded-xl border bg-card p-1">
+                          {(ksefNum || inv.type !== "purchase") && <InvoiceRowActions number={inv.number}>
                               {ksefNum && <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => handleDownloadUpo(ksefNum)}><Download className="h-3.5 w-3.5" /> Pobierz UPO</button>}
                               {inv.type !== "purchase" && <>
                                 <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-3.5 w-3.5" /> Edytuj</button>
                                 <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-3.5 w-3.5" /> Duplikuj</button>
                                 <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-rose-700 hover:bg-muted" onClick={() => setToDelete(inv.id)}><Trash2 className="h-3.5 w-3.5" /> Usuń</button>
                               </>}
-                            </div>
-                          </details>}
+                          </InvoiceRowActions>}
                         </div>
                       </td>
                     </tr>

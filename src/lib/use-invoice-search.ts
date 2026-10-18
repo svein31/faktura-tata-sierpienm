@@ -66,7 +66,13 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
           setState({ url, data: EMPTY });
         }
         const data = await res.json(); if (!res.ok) throw new Error(data.error || "Nie udało się pobrać faktur.");
-        if (!controller.signal.aborted) setState({ url, data });
+        if (!controller.signal.aborted) setState(current => {
+          // Revalidating an unchanged SSR result must not reconcile both
+          // invoice layouts again. The complete authorized payload is compared;
+          // changed values and access failures still replace/remove the rows.
+          if (current.url === url && JSON.stringify(current.data) === JSON.stringify(data)) return current;
+          return { url, data };
+        });
       }).catch(e => { if (!controller.signal.aborted) setError(e.message); })
         .finally(() => { release(); if (!controller.signal.aborted) { seedValid.current = false; setLoading(false); } });
     };

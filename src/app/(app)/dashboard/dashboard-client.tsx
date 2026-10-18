@@ -2,16 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ArrowRight, CalendarDays, Crown, Landmark, Plus, RefreshCw, TrendingUp } from "lucide-react";
 import { useOverview, type OverviewSeed } from "@/lib/use-overview";
 import { useAppStore } from "@/lib/store";
-import { formatMoney, monthLabel } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
+import { DeferredRevenueChart } from "@/components/dashboard/deferred-revenue-chart";
 import { OnboardingBanner } from "@/components/ui/onboarding-banner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 
-const RevenueAreaChart = dynamic(() => import("@/components/charts").then(m => m.RevenueAreaChart), { ssr: false });
 const money = (amount: number, currency: string) => formatMoney(amount, currency as Parameters<typeof formatMoney>[1]);
 
 export default function DashboardClient({ initialOverview }: { initialOverview?: OverviewSeed }) {
@@ -36,10 +35,6 @@ export default function DashboardClient({ initialOverview }: { initialOverview?:
   const current = data?.currentMonth.find(v => v.currency === currency);
   const previous = data?.previousMonth.find(v => v.currency === currency);
   const comparison = previous?.gross ? ((current?.gross || 0) / previous.gross - 1) * 100 : null;
-  const chart = data?.months.map(m => {
-    const item = m.values.find(v => v.currency === currency);
-    return { label: monthLabel(m.key), netto: item?.net || 0, brutto: item?.gross || 0 };
-  }) || [];
   const checkGateway = async () => {
     if (!companyId) return;
     setGateway("loading");
@@ -85,7 +80,7 @@ export default function DashboardClient({ initialOverview }: { initialOverview?:
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <section aria-label="Przychody" data-tone="income" className="surface-card min-w-0 p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4"><div className="min-w-0"><div className="flex items-center gap-2 text-[13px] text-muted-foreground"><TrendingUp aria-hidden="true" className="size-4 text-finance-income" /><h2 className="font-medium">Przychód brutto · bieżący miesiąc</h2></div><p className="mt-3 break-words text-3xl font-semibold tracking-tight tabular-nums text-finance-income">{money(current?.gross || 0, currency)}</p>{comparison !== null && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{comparison >= 0 ? "+" : ""}{comparison.toFixed(1)}% względem poprzedniego miesiąca</p>}</div><div role="group" className="flex max-w-full flex-wrap gap-1 rounded-xl border border-border/60 bg-muted/30 p-1" aria-label="Waluta">{data.currencies.map(c => <button key={c} onClick={() => setSelectedCurrency(c)} aria-pressed={currency === c} className={`min-h-8 rounded-lg px-2.5 text-xs font-medium transition-colors ${currency === c ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>{c}</button>)}</div></div>
-          <div className="mt-5 h-[210px]"><RevenueAreaChart data={chart} height={210} /></div><Link prefetch={false} href="/analytics" className="mt-3 inline-flex min-h-9 items-center gap-2 text-[13px] font-medium text-primary transition-colors hover:text-foreground">Analityka <ArrowRight aria-hidden="true" className="size-3.5" /></Link>
+          <DeferredRevenueChart months={data.months} currency={currency} /><Link prefetch={false} href="/analytics" className="mt-3 inline-flex min-h-9 items-center gap-2 text-[13px] font-medium text-primary transition-colors hover:text-foreground">Analityka <ArrowRight aria-hidden="true" className="size-3.5" /></Link>
         </section>
         <section aria-label="Stan KSeF" data-tone="office" className="surface-card p-5 sm:p-6"><div className="flex items-center justify-between gap-3"><div><h2 className="text-base font-semibold">KSeF</h2><span className="mt-1 block text-xs text-muted-foreground">{ksef?.environment === "production" ? "Produkcja" : ksef?.environment === "test" ? "Test" : "Demo"}</span></div><span className="finance-icon"><Landmark aria-hidden="true" className="size-[18px]" /></span></div><p className="mt-5 text-3xl font-semibold tabular-nums text-finance-office">{data.ksefQueue.filter(t => t.status === "failed" || t.status === "verify_needed").length}</p><p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">zadań do sprawdzenia w ostatnich 20</p><div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-4"><span role="status" className={`text-xs ${gateway === "ok" ? "text-finance-income" : gateway === "error" ? "text-finance-expense" : "text-muted-foreground"}`}>{gateway === "ok" ? "Bramka dostępna" : gateway === "error" ? "Błąd bramki" : "Bramka nie sprawdzona"}</span><Button variant="subtle" size="sm" onClick={checkGateway} disabled={gateway === "loading"}>{gateway === "loading" ? "Sprawdzam…" : "Sprawdź"}</Button></div><Link prefetch={false} href="/ksef" className="mt-4 inline-flex min-h-9 items-center gap-2 text-[13px] font-medium text-primary transition-colors hover:text-foreground">Stan i komunikaty <ArrowRight aria-hidden="true" className="size-3.5" /></Link></section>
       </div>
