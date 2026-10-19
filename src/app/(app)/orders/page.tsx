@@ -331,7 +331,7 @@ export default function OrdersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Szukaj zlecenia, numeru, klienta…"
-            className="pl-9.5 h-10 rounded-xl text-xs"
+            className="pl-10 h-10 rounded-xl text-xs"
           />
         </div>
 

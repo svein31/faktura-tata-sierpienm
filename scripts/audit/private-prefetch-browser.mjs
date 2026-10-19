@@ -60,11 +60,8 @@ export async function auditPrivatePrefetchBrowser(browser, { base, engine, stora
     contexts.push(fresh);
     fresh.setDefaultTimeout(15000);
     fresh.setDefaultNavigationTimeout(30000);
-    await fresh.addInitScript(origin => {
-      // The initializer also runs in the fresh opaque about:blank document.
-      // Seed only the actual target origin; do not mask any page errors.
-      if (location.origin === origin) localStorage.setItem('fakturo_onboarding_completed_v2', 'true');
-    }, target.origin);
+    // The supplied synthetic storageState includes the guide dismissal recorded
+    // through the real UI for this user/company, without obsolete global flags.
     if (connectionHint) await fresh.addInitScript(hint => Object.defineProperty(navigator, 'connection', { configurable: true, value: hint }), connectionHint);
     fresh.on('page', page => page.on('pageerror', error => pageErrors.push({ phase, message: error.message })));
     fresh.on('request', request => requests.push(requestEvidence(request, target.origin, phase)));

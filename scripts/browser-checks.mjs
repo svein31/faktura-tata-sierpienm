@@ -16,7 +16,6 @@ export async function browserChecks(base, db) {
     assert.ok(response.ok(), `${path}: ${JSON.stringify(body)}`); return body;
   }
   try {
-    await context.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
     // Public pages must fit a phone viewport without horizontal page scrolling.
     const publicContext = await browser.newContext({
       baseURL: base, viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
@@ -36,8 +35,8 @@ export async function browserChecks(base, db) {
         );
       }
       await publicPage.goto('/');
-      await publicPage.getByRole('link', { name: /Zobacz funkcje/ }).click();
-      await expect(publicPage.locator('#funkcje')).toBeInViewport();
+      await publicPage.getByRole('link', { name: /Zobacz film/ }).click();
+      await expect(publicPage.locator('#film')).toBeInViewport();
       assert.deepEqual(publicErrors, [], 'Public mobile pages must not report JavaScript errors');
     } finally { await publicContext.close(); }
     const browserOwner = await post('/api/auth/register', { name: 'Browser owner', email: 'browser@example.com', password: 'BrowserTest123!', acceptTerms: true });
@@ -47,7 +46,6 @@ export async function browserChecks(base, db) {
     });
     loginContext.setDefaultTimeout(15000);
     loginContext.setDefaultNavigationTimeout(30000);
-    await loginContext.addInitScript(() => { localStorage.setItem('fakturo_onboarding_completed_v2', 'true'); });
     const loginPage = await loginContext.newPage(), loginErrors = [];
     loginPage.on('pageerror', error => loginErrors.push(error.message));
     try {
@@ -155,6 +153,8 @@ export async function browserChecks(base, db) {
     await page.getByRole('combobox', { name: 'Okres wykresu' }).click();
     await page.getByRole('option', { name: '12 miesięcy', exact: true }).click();
     await expect(page.getByRole('combobox', { name: 'Okres wykresu' })).toHaveText('12 miesięcy');
+    await expect(page.getByRole('combobox', { name: 'Okres wykresu' })).toBeFocused();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
     await page.goto('/ksef');
     await expect(page.getByRole('main').getByRole('heading', { name: 'Stan KSeF' })).toBeVisible();
     await page.goto('/invoices');
@@ -166,6 +166,47 @@ export async function browserChecks(base, db) {
     const invoiceSearch = page.getByPlaceholder(/Szukaj|numer|Numer/).first();
     await invoiceSearch.fill('BROWSER/001');
     await expect(page.getByText(/Strona 1 · 1 wynik/)).toBeVisible();
+    // Desktop actions float over the table and remain fully keyboard usable.
+    // Opening/cancelling confirmation must neither delete nor modify a fixture.
+    const invoiceRow = page.getByRole('row').filter({ hasText: 'BROWSER/001' });
+    const rowActions = invoiceRow.getByRole('button', { name: 'Więcej działań dla faktury BROWSER/001', exact: true });
+    const rowMenu = page.getByRole('menu', { name: 'Działania dla faktury BROWSER/001', exact: true });
+    await rowActions.scrollIntoViewIfNeeded();
+    await waitForRenderedLayout(page);
+    const closedRow = await invoiceRow.boundingBox();
+    await rowActions.click();
+    await expect(rowMenu).toBeVisible();
+    const openRow = await invoiceRow.boundingBox();
+    assert.ok(closedRow && openRow && Math.abs(openRow.height - closedRow.height) <= 1, 'Opening desktop invoice actions must not resize the table row');
+    assert.ok(await rowMenu.evaluate(element => {
+      const bounds = element.getBoundingClientRect();
+      return bounds.left >= 0 && bounds.top >= 0 && bounds.right <= innerWidth + 1 && bounds.bottom <= innerHeight + 1;
+    }), 'Desktop invoice actions must stay inside the viewport');
+    const editAction = rowMenu.getByRole('menuitem', { name: 'Edytuj', exact: true });
+    const duplicateAction = rowMenu.getByRole('menuitem', { name: 'Duplikuj', exact: true });
+    const deleteAction = rowMenu.getByRole('menuitem', { name: 'Usuń', exact: true });
+    await expect(editAction).toBeFocused();
+    await page.keyboard.press('ArrowDown'); await expect(duplicateAction).toBeFocused();
+    await page.keyboard.press('ArrowUp'); await expect(editAction).toBeFocused();
+    await page.keyboard.press('End'); await expect(deleteAction).toBeFocused();
+    await page.keyboard.press('Home'); await expect(editAction).toBeFocused();
+    await page.keyboard.press('d'); await expect(duplicateAction).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(rowMenu).toHaveCount(0);
+    await expect(rowActions).toBeFocused();
+    await rowActions.press('ArrowUp');
+    await expect(deleteAction).toBeFocused();
+    await page.keyboard.press('Enter');
+    const deleteConfirmation = page.getByRole('dialog', { name: 'Usunąć fakturę?', exact: true });
+    await expect(deleteConfirmation).toBeVisible();
+    await expect(rowMenu).toHaveCount(0);
+    await expect.poll(() => deleteConfirmation.evaluate(element => element.contains(document.activeElement))).toBe(true);
+    await page.keyboard.press('Tab');
+    assert.ok(await deleteConfirmation.evaluate(element => element.contains(document.activeElement)), 'Opening confirmation from a menu must retain keyboard focus in the dialog');
+    await deleteConfirmation.getByRole('button', { name: 'Anuluj', exact: true }).click();
+    await expect(deleteConfirmation).toHaveCount(0);
+    await expect(rowActions).toBeFocused();
+    await expect(invoiceRow).toBeVisible();
     // Route transition must load full data for legacy consumers and preserve functionality.
     await page.goto('/projects'); await page.locator('summary').filter({ hasText: 'Nowy projekt' }).click();
     await expect(page.getByRole('button', { name: 'Utwórz projekt' })).toBeVisible();
@@ -258,6 +299,16 @@ export async function browserChecks(base, db) {
     assert.deepEqual(errors, [], 'Browser must not report unhandled JavaScript errors');
     if (process.env.RUN_ALL_MOBILE_CHECKS === '1') {
       const alternate = (await post('/api/companies',{companyName:'Mobilna firma pomocnicza',nip:'1234563218'})).company;
+      // The guide preference now belongs to the signed-in user and company.
+      // Record it through the actual UI before exporting state for untouched
+      // dashboard/prefetch observations in fresh browser contexts.
+      await page.goto('/help');
+      await page.waitForFunction(() => document.documentElement.dataset.uiReady === 'true');
+      await page.getByRole('button', { name: 'Samouczek onboardingowy', exact: true }).click();
+      const setupGuide = page.getByRole('dialog', { name: 'Pierwsze kroki', exact: true });
+      await expect(setupGuide).toBeVisible();
+      await setupGuide.getByRole('button', { name: 'Wrócę później', exact: true }).click();
+      await expect(setupGuide).toHaveCount(0);
       // Capability URLs are real fixture rows, not invalid-token placeholders.
       // This runner always creates a loopback-only isolated database.
       const invoiceToken='qa_invoice_browser_capability_'.padEnd(48,'x');

@@ -303,7 +303,7 @@ export default function OffersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Szukaj: numer, tytuł, kontrahent…"
-            className="pl-9.5 h-10 rounded-xl text-xs"
+            className="pl-10 h-10 rounded-xl text-xs"
           />
         </div>
         <div className="flex items-center gap-1 overflow-x-auto text-xs">

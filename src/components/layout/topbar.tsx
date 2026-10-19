@@ -9,6 +9,7 @@ import { NotificationBell } from "@/components/notifications/notification-center
 import { useSessionUser } from "@/lib/session-context";
 import { useAppStore } from "@/lib/store";
 import { useToast } from "@/components/toast";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
 
 const TITLES: Array<{ re: RegExp; title: string }> = [
   { re: /^\/(dashboard)?$/, title: "Pulpit" },
@@ -66,38 +67,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const hydrated = useAppStore((s) => s.hydrated);
   const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
   const setSelectedCompanyId = useAppStore((s) => s.setSelectedCompanyId);
-  const [showCompanyMenu, setShowCompanyMenu] = React.useState(false);
-  const companyMenuRef = React.useRef<HTMLDivElement>(null);
-  const companyTriggerRef = React.useRef<HTMLButtonElement>(null);
-  const companyMenuId = React.useId();
 
   const activeCompany = companies.find((c) => c.id === selectedCompanyId) || company || companies[0] || null;
   const currentRole = activeCompany?.currentUserRole || "owner";
   const roleInfo = ROLE_DISPLAY[currentRole] || ROLE_DISPLAY.employee;
-
-  // Zamknij menu po kliknięciu poza nim
-  React.useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (companyMenuRef.current && !companyMenuRef.current.contains(e.target as Node)) {
-        setShowCompanyMenu(false);
-      }
-    }
-    if (showCompanyMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-      const handleEscape = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          setShowCompanyMenu(false);
-          companyTriggerRef.current?.focus();
-        }
-      };
-      document.addEventListener("keydown", handleEscape);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-        document.removeEventListener("keydown", handleEscape);
-      };
-    }
-  }, [showCompanyMenu]);
 
   const initials = user.name
     .split(/\s+/)
@@ -122,8 +95,27 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     window.dispatchEvent(new CustomEvent("open-command-palette"));
   };
 
+  const companyButton = activeCompany ? <button
+    type="button"
+    onClick={companies.length > 1 ? undefined : () => router.push("/settings/companies")}
+    className="flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-xl border border-input bg-card px-3 py-1.5 text-left shadow-2xs transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 sm:w-auto sm:max-w-[260px]"
+  >
+    <span className="sr-only">{companies.length > 1 ? "Wybierz firmę:" : "Ustawienia firmy:"} </span>
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <Building2 aria-hidden="true" className="size-4" />
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-[13px] font-semibold leading-5 text-foreground">{activeCompany.companyName || activeCompany.name || "Moja Firma"}</span>
+      <span className="flex items-center gap-1.5 leading-4">
+        <span className="truncate text-[11px] text-muted-foreground">NIP: {activeCompany.nip}</span>
+        <span className={`shrink-0 rounded border px-1 text-[10px] font-semibold ${roleInfo.badgeClass}`}>{roleInfo.label}</span>
+      </span>
+    </span>
+    {companies.length > 1 && <ChevronDown aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />}
+  </button> : null;
+
   return (
-    <header className="no-print sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-border/60 bg-background px-3 py-2 sm:flex sm:h-14 sm:gap-3 sm:bg-background/85 sm:px-6 sm:py-0 sm:backdrop-blur-xl">
+    <header className="no-print sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-border/60 bg-background px-3 py-2 sm:flex sm:h-16 sm:gap-3 sm:bg-background/95 sm:px-6 sm:py-0">
       <div className="order-1 flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onMenu}
@@ -133,10 +125,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <Menu className="h-5 w-5" />
         </button>
         <div className="min-w-0 leading-tight">
-          <h1 className="truncate text-[14px] font-semibold tracking-tight text-foreground sm:text-[15px]">
+          <h1 className="truncate text-[14px] font-semibold tracking-tight text-foreground sm:text-base">
             {title}
           </h1>
-          <p className="hidden text-[11px] text-muted-foreground sm:block">
+          <p className="hidden text-xs text-muted-foreground sm:block">
             {new Date().toLocaleDateString("pl-PL", {
               weekday: "long",
               day: "numeric",
@@ -148,92 +140,38 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
       </div>
 
-        {/* Company Switcher z widoczną rolą użytkownika */}
-          {/* Keep the mobile company row stable while bootstrap resolves. */}
-          <div className={`relative order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2 ${!activeCompany ? "sm:hidden" : ""}`} ref={companyMenuRef}>
-            {!activeCompany ? hydrated ? (
-              <Link prefetch={false} href="/settings/companies" className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-xs font-semibold transition-colors hover:bg-muted/40 hover:border-border">
-                <Building2 aria-hidden="true" className="size-4 text-primary" />
-                Dodaj firmę
-              </Link>
-            ) : <div aria-hidden="true" inert className="invisible min-h-11" /> : <>
-            <button
-              type="button"
-              ref={companyTriggerRef}
-              onClick={() => companies.length > 1 ? setShowCompanyMenu(!showCompanyMenu) : router.push("/settings/companies")}
-              aria-expanded={companies.length > 1 ? showCompanyMenu : undefined}
-              aria-controls={showCompanyMenu ? companyMenuId : undefined}
-              className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5 py-1 text-left transition-all hover:bg-muted/40 hover:border-border active:scale-95 shadow-2xs sm:w-auto"
-            >
-              <span className="sr-only">{companies.length > 1 ? "Wybierz firmę:" : "Ustawienia firmy:"} </span>
-              <div className="p-1 rounded-lg bg-primary/10 text-primary">
-                <Building2 aria-hidden="true" className="w-3.5 h-3.5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate sm:max-w-[140px] text-xs font-semibold text-foreground leading-tight">
-                  {activeCompany.companyName || activeCompany.name || "Moja Firma"}
-                </p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[10px] text-muted-foreground">NIP: {activeCompany.nip}</span>
-                  <span className={`text-[9.5px] font-semibold px-1 py-0.2 rounded border ${roleInfo.badgeClass}`}>
-                    {roleInfo.label}
-                  </span>
-                </div>
-              </div>
-              {companies.length > 1 && (
-                <ChevronDown aria-hidden="true" className="w-3 h-3 text-muted-foreground ml-0.5" />
-              )}
-            </button>
-
-            {/* Dropdown przełączania firm */}
-            {showCompanyMenu && companies.length > 1 && (
-              <div id={companyMenuId} role="group" aria-label="Twoje firmy i zespoły" className="absolute top-full left-0 mt-1.5 w-full max-w-[calc(100vw-24px)] sm:w-64 rounded-xl border border-border/80 bg-card p-1.5 shadow-xl z-50 animate-in fade-in-50 zoom-in-95">
-                <p className="px-2 py-1 text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Twoje firmy i zespoły
-                </p>
-                <div className="space-y-0.5 mt-1 max-h-56 overflow-y-auto">
-                  {companies.map((c) => {
-                    const isSelected = c.id === activeCompany.id;
-                    const r = ROLE_DISPLAY[c.currentUserRole || "owner"] || ROLE_DISPLAY.employee;
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCompanyId(c.id);
-                    if (/^\/invoices\/(?!new(?:\/|$))[^/]+$/.test(pathname)) router.push("/invoices");
-                          setShowCompanyMenu(false);
-                        }}
-                        className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg text-left text-xs transition-colors ${
-                          isSelected ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted text-foreground"
-                        }`}
-                      >
-                        <div className="truncate">
-                          <p className="truncate font-medium">{c.companyName || c.name}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            NIP: {c.nip} · <span className="font-semibold">{r.label}</span>
-                          </p>
-                        </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="border-t border-border/60 mt-1.5 pt-1">
-                  <Link
-                    href="/settings/team"
-                    prefetch={false}
-                    onClick={() => setShowCompanyMenu(false)}
-                    className="flex items-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-primary hover:bg-muted/50 rounded-lg transition-colors"
-                  >
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>Zarządzaj zespołem i rolami</span>
-                  </Link>
-                </div>
-              </div>
-            )}
-            </>}
-          </div>
+      <div className={`order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2 ${!activeCompany ? "sm:hidden" : ""}`}>
+        {!activeCompany ? hydrated ? (
+          <Link prefetch={false} href="/settings/companies" className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-input bg-card px-3 py-1.5 text-[13px] font-semibold transition-colors hover:border-primary/35 hover:bg-muted/30">
+            <Building2 aria-hidden="true" className="size-4 text-primary" />Dodaj firmę
+          </Link>
+        ) : <div aria-hidden="true" inert className="invisible min-h-11" /> : companyButton && (companies.length > 1 ? (
+          <DropdownMenu trigger={companyButton} align="start" label="Twoje firmy i zespoły" minWidth={280} className="max-w-[calc(100vw-24px)]">
+            <p className="px-3 pb-2 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Twoje firmy i zespoły</p>
+            {companies.map(c => {
+              const isSelected = c.id === activeCompany.id;
+              const role = ROLE_DISPLAY[c.currentUserRole || "owner"] || ROLE_DISPLAY.employee;
+              return <button key={c.id} type="button" aria-current={isSelected ? "true" : undefined}
+                onClick={() => {
+                  setSelectedCompanyId(c.id);
+                  if (/^\/invoices\/(?!new(?:\/|$))[^/]+$/.test(pathname)) router.push("/invoices");
+                }}
+                className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-[13px] ${isSelected ? "bg-primary/10 text-primary" : "text-foreground"}`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold leading-5">{c.companyName || c.name}</span>
+                  <span className="block truncate text-xs leading-5 text-muted-foreground">NIP: {c.nip} · {role.label}</span>
+                </span>
+                {isSelected && <Check aria-hidden="true" className="size-4 shrink-0 text-primary" />}
+              </button>;
+            })}
+            <div role="separator" className="my-1.5 border-t border-border/60" />
+            <Link href="/settings/team" prefetch={false} className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-primary">
+              <Shield aria-hidden="true" className="size-4" /><span>Zarządzaj zespołem i rolami</span>
+            </Link>
+          </DropdownMenu>
+        ) : companyButton)}
+      </div>
 
       <div className="order-2 flex shrink-0 items-center gap-1 sm:order-3 sm:ml-auto sm:gap-2">
         {/* Przycisk wyszukiwania / Command Palette */}
@@ -257,7 +195,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           href="/help"
           prefetch={false}
           title="Instrukcja obsługi"
-          className="hidden h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs sm:flex"
+          className="hidden h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs sm:flex"
         >
           <HelpCircle className="h-4 w-4" />
         </Link>
@@ -276,11 +214,11 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             </div>
             {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-foreground dark:text-muted-foreground md:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
             <div className="hidden leading-tight md:block text-left">
-              <p className="flex max-w-[155px] items-center gap-1 text-[12px] font-semibold text-foreground">
+              <p className="flex max-w-[155px] items-center gap-1 text-[13px] font-semibold text-foreground">
                 <span className="truncate">{user.name}</span>
                 {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-foreground dark:text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
               </p>
-              <p className="max-w-[120px] truncate text-[10.5px] text-muted-foreground">
+              <p className="max-w-[140px] truncate text-[11px] text-muted-foreground">
                 {user.email}
               </p>
             </div>

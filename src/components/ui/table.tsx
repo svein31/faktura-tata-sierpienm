@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 export function Table({ className, ...props }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className={cn("w-full caption-bottom text-[13px]", className)} {...props} />
+      <table className={cn("w-full caption-bottom text-sm leading-5", className)} {...props} />
     </div>
   );
 }
 
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("[&_tr]:border-b [&_tr]:border-border/80 bg-muted/30", className)} {...props} />;
+  return <thead className={cn("[&_tr]:border-b [&_tr]:border-border/80 bg-muted/35", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
@@ -21,7 +21,7 @@ export function TableRow({ className, ...props }: React.HTMLAttributes<HTMLTable
   return (
     <tr
       className={cn(
-        "border-b border-border/60 transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted/70",
+        "border-b border-border/60 transition-colors duration-150 hover:bg-muted/40 data-[state=selected]:bg-primary/5",
         className
       )}
       {...props}
@@ -33,7 +33,7 @@ export function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTa
   return (
     <th
       className={cn(
-        "h-10 px-4 text-left align-middle text-[11px] font-semibold uppercase tracking-wider text-muted-foreground select-none",
+        "h-11 px-4 text-left align-middle text-xs leading-4 font-semibold uppercase tracking-wide text-muted-foreground select-none",
         className
       )}
       {...props}

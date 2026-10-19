@@ -270,7 +270,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await audit(page,'onboarding short viewport');
       await tour.getByRole('button',{name:'Dalej',exact:true}).tap();
       await expect(tour.getByText('Krok 2 z 5',{exact:true})).toBeVisible();
-      await tour.getByRole('button',{name:'Pomiń',exact:true}).tap();
+      await tour.getByRole('button',{name:'Wrócę później',exact:true}).tap();
       await expect(tour).toHaveCount(0); await page.setViewportSize({width:320,height:740});
       const menuButton=page.getByRole('button',{name:'Otwórz menu',exact:true});
       await menuButton.tap(); const drawer=page.getByRole('dialog',{name:'Nawigacja',exact:true});
@@ -281,10 +281,16 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await menuButton.tap(); await page.keyboard.press('Escape'); await expect(drawer).toHaveCount(0);
       await expect(menuButton).toBeFocused();
       const switcher=page.getByRole('button',{name:/^Wybierz firmę:/});
-      await switcher.tap(); await audit(page,'company switcher');
-      await page.getByRole('button',{name:new RegExp(fixture.alternateName)}).tap();
+      const companyMenu=page.getByRole('menu',{name:'Twoje firmy i zespoły',exact:true});
+      await switcher.tap(); await expect(companyMenu).toBeVisible();
+      await audit(page,'company switcher');
+      // The control inventory deliberately focuses controls outside this menu.
+      // Restore the open state after its blur checks before testing selection.
+      if(!await companyMenu.isVisible())await switcher.tap();
+      await expect(companyMenu).toBeVisible();
+      await companyMenu.getByRole('menuitem',{name:new RegExp(fixture.alternateName)}).tap();
       await expect(page.getByRole('button',{name:/^Wybierz firmę:/})).toContainText(fixture.alternateName);
-      await switcher.tap(); await page.getByRole('button',{name:/Browser Company/}).tap();
+      await switcher.tap(); await companyMenu.getByRole('menuitem',{name:/Browser Company/}).tap();
       await expect(switcher).toContainText('Browser Company');
       await page.getByRole('button',{name:/^Szukaj/}).tap();
       const search=page.getByRole('dialog',{name:'Wyszukiwanie i polecenia'});
@@ -301,8 +307,13 @@ export async function auditMobileExperience(base, storageState, fixture) {
       await page.setViewportSize({width:320,height:400});
       await expect.poll(()=>importDialog.evaluate(element=>{const r=element.getBoundingClientRect();return r.top>=0 && r.bottom<=innerHeight+1;})).toBe(true);
       await audit(page,'bank import short viewport');
-      await importDialog.getByRole('combobox').tap(); await expect(page.getByRole('listbox')).toBeVisible();
-      await audit(page,'bank format dropdown'); await page.keyboard.press('Escape');
+      const bankFormat=importDialog.getByRole('combobox'),bankFormats=page.getByRole('listbox');
+      await bankFormat.tap(); await expect(bankFormats).toBeVisible();
+      await audit(page,'bank format dropdown');
+      // Restore the list after the inventory's programmatic blur checks.
+      if(!await bankFormats.isVisible())await bankFormat.tap();
+      await expect(bankFormats).toBeVisible(); await page.keyboard.press('Escape');
+      await expect(bankFormats).toHaveCount(0);
       await expect(importDialog).toBeVisible(); await page.keyboard.press('Escape'); await expect(importDialog).toHaveCount(0);
       await page.setViewportSize({width:320,height:740});
       page=await navigate(page,'/invoices/new'); activeTarget=page;

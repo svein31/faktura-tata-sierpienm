@@ -22,9 +22,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs gap-1.5 rounded-lg",
-  default: "h-9 px-4 text-[13px] gap-2 rounded-xl",
-  lg: "h-10 px-5 text-sm gap-2.5 rounded-xl font-medium",
+  sm: "h-8 px-3 text-[13px] leading-5 gap-1.5 rounded-lg",
+  default: "h-10 px-4 text-sm leading-5 gap-2 rounded-xl",
+  lg: "h-11 px-5 text-sm leading-5 gap-2.5 rounded-xl font-medium",
   icon: "h-9 w-9 rounded-xl",
 };
 
@@ -41,9 +41,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       className={cn(
         // Keep theme foreground/background pairs atomic to preserve text contrast.
-        "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-[transform,scale,box-shadow,background-color,border-color,color] duration-150 cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-        "disabled:pointer-events-none disabled:opacity-45 disabled:scale-100",
+        "inline-flex select-none items-center justify-center max-w-full whitespace-normal break-words text-center sm:whitespace-nowrap font-medium transition-[transform,scale,box-shadow,background-color,border-color,color] duration-150 ease-out cursor-pointer [&_svg]:shrink-0",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "disabled:pointer-events-none disabled:opacity-50 disabled:scale-100",
         variants[variant],
         sizes[size],
         size !== "icon" && "max-md:!h-auto max-md:py-2",

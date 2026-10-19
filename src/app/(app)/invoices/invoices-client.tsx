@@ -35,6 +35,7 @@ import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { Input, Select } from "@/components/ui/input";
 import { useToast } from "@/components/toast";
 import { PageHeader } from "@/components/page-header";
@@ -61,18 +62,13 @@ const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> =
   { value: "draft", label: "Szkice" },
 ];
 
-/** Closed native menus keep their action controls out of the initial hydration. */
+/** Mount actions on demand in a floating panel, outside the scrolling table. */
 function InvoiceRowActions({ number, children }: { number: string; children: React.ReactNode }) {
-  const details = React.useRef<HTMLDetailsElement>(null);
-  const [open, setOpen] = React.useState(false);
-  React.useEffect(() => {
-    // Preserve an opening gesture made on the server-rendered summary.
-    if (details.current?.open) setOpen(true);
-  }, []);
-  return <details ref={details} className="text-left" onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary className="flex h-8 cursor-pointer list-none items-center rounded-lg border px-2 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary" aria-label={`Więcej działań dla faktury ${number}`} title="Więcej działań">Więcej <ChevronDown className="ml-1 h-3 w-3" /></summary>
-    {open && <div className="mt-1 min-w-36 rounded-xl border bg-card p-1">{children}</div>}
-  </details>;
+  return <DropdownMenu label={`Działania dla faktury ${number}`} align="end" trigger={
+    <Button variant="outline" size="sm" className="h-9 gap-1.5 px-3" aria-label={`Więcej działań dla faktury ${number}`} title="Więcej działań">
+      Więcej <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+    </Button>
+  }>{children}</DropdownMenu>;
 }
 
 export default function InvoicesClient({ initialSearch }: { initialSearch?: InitialInvoiceSearch }) {
@@ -701,13 +697,13 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Szukaj: numer, kontrahent, NIP, numer KSeF…"
-              className="pl-9.5 h-10 rounded-xl text-xs"
+              className="pl-10 h-10 rounded-xl text-sm"
             />
           </div>
           <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | EffectiveStatus)}
-            className="w-auto min-w-[170px] h-10 rounded-xl text-xs"
+            className="w-auto min-w-[180px] h-10 rounded-xl text-sm"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -718,7 +714,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           <Select
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
-            className="w-auto h-10 rounded-xl text-xs"
+            className="w-auto h-10 rounded-xl text-sm"
           >
             <option value="all">Waluta (wszystkie)</option>
             <option value="PLN">PLN</option>
@@ -782,9 +778,9 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           })}
         </div>
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[980px] text-left text-xs">
+          <table className="w-full min-w-[980px] text-left text-[13px] leading-5">
             <thead>
-              <tr className="border-b border-border/70 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/20">
+              <tr className="border-b border-border/70 text-xs leading-4 font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30">
                 <th className="py-3 px-3 w-8 text-center">
                   <input
                     type="checkbox"
@@ -990,11 +986,11 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                           {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
 
                           {(ksefNum || inv.type !== "purchase") && <InvoiceRowActions number={inv.number}>
-                              {ksefNum && <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => handleDownloadUpo(ksefNum)}><Download className="h-3.5 w-3.5" /> Pobierz UPO</button>}
+                              {ksefNum && <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => handleDownloadUpo(ksefNum)}><Download className="h-4 w-4" /> Pobierz UPO</button>}
                               {inv.type !== "purchase" && <>
-                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-3.5 w-3.5" /> Edytuj</button>
-                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-3.5 w-3.5" /> Duplikuj</button>
-                                <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-rose-700 hover:bg-muted" onClick={() => setToDelete(inv.id)}><Trash2 className="h-3.5 w-3.5" /> Usuń</button>
+                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-4 w-4" /> Edytuj</button>
+                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-4 w-4" /> Duplikuj</button>
+                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-700 dark:text-rose-300 hover:bg-rose-500/10" onClick={() => setToDelete(inv.id)}><Trash2 className="h-4 w-4" /> Usuń</button>
                               </>}
                           </InvoiceRowActions>}
                         </div>
