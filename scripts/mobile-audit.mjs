@@ -262,6 +262,7 @@ export async function auditMobileExperience(base, storageState, fixture) {
       // Exercise actual touch-sized controls, not just static screenshots.
       await page.setViewportSize({width:320,height:740});
       page=await navigate(page,'/dashboard'); activeTarget=page; await expect(page.locator('main h1')).toBeVisible();
+      await waitForRenderedLayout(page);
       await page.evaluate(()=>window.dispatchEvent(new CustomEvent('fakturo:open-onboarding')));
       const tour=page.getByRole('dialog',{name:'Pierwsze kroki',exact:true});
       await expect(tour).toBeVisible(); await audit(page,'onboarding');
