@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { SaveButton } from "@/components/ui/save-button";
+import { useInvoiceCreatedFeedback } from "./invoice-created-feedback";
 import {
   AlertTriangle,
   AlertOctagon,
   Building2,
-  CheckCircle2,
   Eye,
   FileCode2,
   FileJson2,
@@ -421,7 +422,8 @@ export function InvoiceCreator() {
     } catch {}
     setHasRecoverableDraft(false);
   };
-  const [saving, setSaving] = React.useState<"save" | "ksef" | null>(null);
+  const [saving, setSaving] = React.useState<"save" | "draft" | "ksef" | null>(null);
+  const { markCreated } = useInvoiceCreatedFeedback();
   const [errors, setErrors] = React.useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string,string>>({});
   const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
@@ -777,7 +779,9 @@ export function InvoiceCreator() {
     if (editing && draftInvoice) {
       return store.updateInvoice(draftInvoice.id, inv);
     }
-    return store.addInvoice(inv);
+    const saved = await store.addInvoice(inv);
+    if (saved.sellerCompanyId) markCreated(saved.id, saved.sellerCompanyId);
+    return saved;
   };
 
   const [assistant, setAssistant] = React.useState<{ issues: PreflightIssue[]; canProceed: boolean; action: "save" | "ksef"; snapshot: string } | null>(null);
@@ -832,17 +836,19 @@ export function InvoiceCreator() {
       return;
     }
     mutationBusy.current = true;
+    setSaving("draft");
     try {
       const inv = await buildInvoice("draft");
       const saved = await persist(inv);
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
-      toast("info", "Szkic zapisany", saved.number);
+      toast("success", "Szkic zapisany", saved.number);
       store.setDraft(null, true);
       router.push("/invoices");
     } catch (e) {
       const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
       if (fields) showValidation(Object.values(fields), fields);
       toast("error", "Nie udało się zapisać szkicu", e instanceof Error ? e.message : undefined);
+      setSaving(null);
     } finally { mutationBusy.current = false; }
   };
 
@@ -1824,14 +1830,14 @@ export function InvoiceCreator() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleSaveDraft} variant="outline">
+              <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}>
                 <Save className="h-4 w-4" /> Szkic
-              </Button>
-              {!form.isOffline && <Button onClick={() => void checkBeforeAction("save")} loading={saving === "save"}>
-                <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
-              </Button>}
+              </SaveButton>
+              {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice}>
+                <Save className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
+              </SaveButton>}
               {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-                <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} variant="subtle">
+                <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle">
                   <Send className="h-4 w-4" /> Wyślij do KSeF
                 </Button>
               )}
@@ -1863,14 +1869,14 @@ export function InvoiceCreator() {
         <InvoicePreview invoice={previewInvoice} contractor={effectiveContractor} company={effectiveSellerCompany} />
 
         <div className="no-print mt-4 hidden flex-wrap items-center gap-2 xl:flex">
-          <Button onClick={handleSaveDraft} variant="outline">
+          <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}>
             <Save className="h-4 w-4" /> Szkic
-          </Button>
-          {!form.isOffline && <Button onClick={() => void checkBeforeAction("save")} loading={saving === "save"} className="flex-1">
-            <CheckCircle2 className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
-          </Button>}
+          </SaveButton>
+          {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice} className="flex-1">
+            <Save className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
+          </SaveButton>}
           {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-            <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
+            <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
               <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
             </Button>
           )}

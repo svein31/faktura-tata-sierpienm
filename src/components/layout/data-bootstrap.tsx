@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { AppLoadingSkeleton } from "./app-loading-skeleton";
+import { LoadingReveal } from "@/components/ui/loading-reveal";
 
 /**
  * Jednorazowy bootstrap danych zalogowanego użytkownika (GET /api/data).
@@ -69,7 +70,5 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
       <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setAttempt(n => n + 1)}>Spróbuj ponownie</button>
     </div>
   );
-  if (!hydrated || dataMode !== mode) return <AppLoadingSkeleton />;
-
-  return <>{children}</>;
+  return <LoadingReveal key={mode} loading={!hydrated || dataMode !== mode} fallback={<AppLoadingSkeleton />}>{children}</LoadingReveal>;
 }

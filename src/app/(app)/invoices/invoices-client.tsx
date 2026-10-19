@@ -33,6 +33,9 @@ import {
 } from "lucide-react";
 import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
 import { Card } from "@/components/ui/card";
+import { LoadingReveal } from "@/components/ui/loading-reveal";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useCreatedInvoiceHighlight } from "@/components/invoice/invoice-created-feedback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -71,6 +74,16 @@ function InvoiceRowActions({ number, children }: { number: string; children: Rea
   }>{children}</DropdownMenu>;
 }
 
+function InvoiceRowsSkeleton() {
+  return <div role="status" aria-label="Wczytywanie faktur" className="divide-y divide-border/50">
+    {[0, 1, 2, 3].map(row => <div key={row} className="flex min-h-32 items-center justify-between gap-4 p-4 md:min-h-20">
+      <div className="flex min-w-0 items-center gap-3"><Skeleton className="size-8 shrink-0 rounded-xl" /><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-24" /></div></div>
+      <Skeleton className="hidden h-4 w-36 lg:block" /><Skeleton className="h-5 w-20 rounded-md" /><Skeleton className="hidden h-9 w-24 rounded-xl md:block" />
+    </div>)}
+    <span className="sr-only">Wczytywanie faktur…</span>
+  </div>;
+}
+
 export default function InvoicesClient({ initialSearch }: { initialSearch?: InitialInvoiceSearch }) {
   const router = useRouter();
   const toast = useToast();
@@ -104,6 +117,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter }, true, initialSearch);
   const invoices = results.invoices, filtered = invoices;
+  const highlightedId = useCreatedInvoiceHighlight(showUnassigned ? null : selectedCompanyId, filtered.map(invoice => invoice.id));
   useKsefStatusPolling(invoices, results.reload);
   const permissions = company?.currentUserPermissions;
   const canSendKsef = !!selectedCompanyId && !showUnassigned && permissions?.canSendKsef === true;
@@ -752,11 +766,12 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           </span>
         </div>
 
+        <LoadingReveal key={results.key} loading={results.loading && filtered.length === 0 && !results.error} fallback={<InvoiceRowsSkeleton />}>
         <div className="divide-y divide-border/50 md:hidden">
           {filtered.map(inv => {
             const contractor = getContractor(contractors, inv.contractorId);
             const status = STATUS_META[effectiveStatus(inv)];
-            return <article key={inv.id} className="p-4 space-y-3">
+            return <article key={inv.id} data-invoice-id={inv.id} data-new-invoice={highlightedId === inv.id || undefined} className="ui-invoice-row p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={selectedIds.includes(inv.id)} onChange={e => setSelectedIds(ids => e.target.checked ? [...ids, inv.id] : ids.filter(id => id !== inv.id))} className="mt-2 h-5 w-5 accent-primary" />
                 <div className="min-w-0 flex-1">
@@ -819,7 +834,9 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                   return (
                     <tr
                       key={inv.id}
-                      className={`transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
+                      data-invoice-id={inv.id}
+                      data-new-invoice={highlightedId === inv.id || undefined}
+                      className={`ui-invoice-row transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
                     >
                       <td className="py-3.5 px-3 text-center">
                         <input
@@ -1017,6 +1034,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             </React.Suspense>
           )}
         </div>
+        </LoadingReveal>
       </div>
 
       {confirmBulkPayment && <React.Suspense fallback={<span role="status" className="sr-only">Ładowanie potwierdzenia…</span>}><ConfirmDialog

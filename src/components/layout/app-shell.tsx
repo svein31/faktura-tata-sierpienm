@@ -4,6 +4,7 @@ import * as React from "react";
 import type { SessionUser } from "@/lib/types";
 import { SessionProvider } from "@/lib/session-context";
 import { DataBootstrap } from "./data-bootstrap";
+import { InvoiceCreatedFeedback } from "@/components/invoice/invoice-created-feedback";
 import { Sidebar, MobileSidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { WorkspaceNavigation } from "./workspace-navigation";
@@ -24,6 +25,7 @@ export function AppShell({ user, needsTermsAcceptance, initialBootstrap = null, 
   return (
     <SessionProvider key={user.id} user={user}>
       <AppStoreProvider ownerId={user.id} initialBootstrap={initialBootstrap}>
+      <InvoiceCreatedFeedback key={user.id}>
       <div className="app-shell min-h-dvh min-w-0 bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
         <DeferredOverlays needsTermsAcceptance={needsTermsAcceptance} />
         <div inert={needsTermsAcceptance || undefined} aria-hidden={needsTermsAcceptance || undefined}>
@@ -41,6 +43,7 @@ export function AppShell({ user, needsTermsAcceptance, initialBootstrap = null, 
         </div>
         </div>
       </div>
+      </InvoiceCreatedFeedback>
       </AppStoreProvider>
     </SessionProvider>
   );

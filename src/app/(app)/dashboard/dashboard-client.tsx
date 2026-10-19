@@ -10,6 +10,8 @@ import { DeferredRevenueChart } from "@/components/dashboard/deferred-revenue-ch
 import { OnboardingBanner } from "@/components/ui/onboarding-banner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
+import { LoadingReveal } from "@/components/ui/loading-reveal";
+import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 
 const money = (amount: number, currency: string) => formatMoney(amount, currency as Parameters<typeof formatMoney>[1]);
 
@@ -69,7 +71,7 @@ export default function DashboardClient({ initialOverview }: { initialOverview?:
     {data && <OnboardingBanner savedDocument={data.onboardingDocument ?? null} />}
     {!companyId && <p className="rounded-xl border p-4 text-sm">Wybierz firmę, aby zobaczyć podsumowanie.</p>}
     {error && <div role="alert" className="rounded-xl border border-rose-500/30 p-4 text-sm">{error} <button onClick={reload} className="ml-2 text-primary underline">Spróbuj ponownie</button></div>}
-    {companyId && !data && !error && <p role="status" className="rounded-xl border p-4 text-sm text-muted-foreground">Wczytywanie przeglądu…</p>}
+    <LoadingReveal key={companyId || "none"} loading={Boolean(companyId && !data && !error)} fallback={<DashboardSkeleton />}>
     {data && <>
       <section aria-label="Sprawy wymagające działania" className="surface-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4 sm:px-6"><h2 className="flex items-center gap-2.5 text-base font-semibold">Do załatwienia <span className="rounded-full border border-primary/15 bg-primary/10 px-2.5 py-0.5 text-xs tabular-nums text-primary">{data.actionTotal}</span></h2><span className="text-xs text-muted-foreground">{data.actionTotal > 8 ? "8 najpilniejszych" : "Bieżące zadania"}</span></div>
@@ -85,5 +87,6 @@ export default function DashboardClient({ initialOverview }: { initialOverview?:
       </div>
       <details className="surface-card"><summary className="cursor-pointer rounded-2xl px-5 py-4 text-base font-semibold transition-colors hover:bg-muted/30 sm:px-6">Ostatnie dokumenty</summary><div className="divide-y divide-border/50 border-t border-border/60">{data.recent.map(inv => <Link prefetch={false} key={inv.id} href={`/invoices/${inv.id}`} className="flex flex-wrap justify-between gap-x-4 gap-y-1 px-5 py-3 text-sm transition-colors hover:bg-muted/40 sm:px-6"><span className="min-w-0 break-words font-medium">{inv.number}</span><span className="tabular-nums text-muted-foreground">{money(inv.gross || 0, inv.currency)}</span></Link>)}{data.recent.length === 0 && <p className="px-5 py-5 text-sm text-muted-foreground sm:px-6">Brak dokumentów.</p>}</div></details>
     </>}
+    </LoadingReveal>
   </div>;
 }

@@ -13,7 +13,7 @@ export function Skeleton({
     <div
       className={cn(
         "relative min-w-0 max-w-full overflow-hidden rounded-md bg-muted/40 dark:bg-slate-800/40",
-        "after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_2s_ease-in-out_infinite] after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.06] after:to-transparent",
+        "after:absolute after:inset-0 after:-translate-x-full motion-safe:after:animate-[shimmer_2s_ease-in-out_infinite] after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.06] after:to-transparent",
         className
       )}
       {...props}

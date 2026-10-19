@@ -22,7 +22,7 @@ export function useToast() {
 }
 
 const icons: Record<ToastKind, React.ReactNode> = {
-  success: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+  success: <CheckCircle2 className="ui-save-confirmed h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />,
   error: <XCircle className="h-4 w-4 text-rose-500" />,
   info: <Info className="h-4 w-4 text-sky-500" />,
   warning: <AlertTriangle className="h-4 w-4 text-amber-500" />,
