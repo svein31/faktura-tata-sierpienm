@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { InvoiceActionBar } from "./invoice-action-bar";
+import { focusInvoiceField } from "@/lib/invoice-form-feedback";
 import { SaveButton } from "@/components/ui/save-button";
 import { useInvoiceCreatedFeedback } from "./invoice-created-feedback";
 import {
@@ -425,6 +427,7 @@ export function InvoiceCreator() {
   const [saving, setSaving] = React.useState<"save" | "draft" | "ksef" | null>(null);
   const { markCreated } = useInvoiceCreatedFeedback();
   const [errors, setErrors] = React.useState<string[]>([]);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string,string>>({});
   const [companyModalOpen, setCompanyModalOpen] = React.useState(false);
   const [numberPatternInput, setNumberPatternInput] = React.useState("");
@@ -436,15 +439,55 @@ export function InvoiceCreator() {
 
   const set = (patch: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...patch }));
+    setErrors([]);
+    setSaveError(null);
     setFieldErrors(current => {
       const next = { ...current };
-      for (const key of Object.keys(patch)) delete next[key];
+      for (const key of Object.keys(patch)) {
+        delete next[key];
+        if (key === "number") delete next.numberMode;
+        if (key === "newContractor") for (const field of Object.keys(next)) {
+          const nested = field.slice("newContractor.".length) as keyof FormState["newContractor"];
+          if (field.startsWith("newContractor.") && patch.newContractor?.[nested] !== form.newContractor[nested]) delete next[field];
+        }
+        if (key === "lines") for (const field of Object.keys(next)) {
+          const match = /^lines\.(\d+)\.(name|quantity|netPrice)$/.exec(field);
+          if (!match) continue;
+          const index = Number(match[1]), column = match[2] as "name" | "quantity" | "netPrice";
+          if (patch.lines?.[index]?.id !== form.lines[index]?.id || patch.lines?.[index]?.[column] !== form.lines[index]?.[column]) delete next[field];
+        }
+      }
       return next;
     });
   };
 
   const showValidation = (messages: string[], fromServer?: Record<string,string>) => {
-    const fields: Record<string,string> = { ...fromServer };
+    const fields: Record<string,string> = Object.fromEntries(Object.entries(fromServer || {}).map(([key,value]) => [key.replace(/\[(\d+)\]/g,'.$1'),value]));
+    if (!editing && !numberMode) fields.numberMode = "Wybierz numerację automatyczną lub ręczną.";
+    if (!invoiceNumber.trim()) fields.number = "Wpisz numer faktury.";
+    if (numberMode === "auto" && numberingError) fields.number = numberingError;
+    if (form.isCorrection && !form.correctionReason?.trim()) fields.correctionReason = "Podaj przyczynę korekty, np. zwrot towaru lub udzielenie rabatu.";
+    if (form.useNewContractor) {
+      if (!form.newContractor.name.trim()) fields["newContractor.name"] = "Wpisz nazwę nabywcy.";
+      if (newContractorTaxIdType === "nip" && !isValidNipFormat(form.newContractor.nip)) fields["newContractor.nip"] = "NIP powinien mieć 10 cyfr i poprawną sumę kontrolną.";
+      if (["tin", "vat_eu"].includes(newContractorTaxIdType) && !form.newContractor.nip.trim()) fields["newContractor.nip"] = "Podaj identyfikator podatkowy nabywcy.";
+      for (const [key,label] of [["street","ulicę i numer"],["city","miasto"],["postal","kod pocztowy"]] as const) {
+        if (!form.newContractor[key].trim()) fields[`newContractor.${key}`] = `Uzupełnij ${label} w adresie nabywcy.`;
+      }
+    }
+    const noNamedLines = !form.lines.some(line => line.name.trim() && (form.isCorrection ? line.quantity !== 0 : line.quantity > 0));
+    for (const [index,line] of form.lines.entries()) {
+      if (!line.name.trim() && (noNamedLines && !correctionAfterValues || correctionAfterValues && (line.quantity !== 0 || line.netPrice !== 0))) fields[`lines.${index}.name`] = "Wpisz nazwę towaru lub usługi.";
+      if (!Number.isFinite(line.quantity) || Math.abs(line.quantity)>1e9 || (!form.isCorrection || correctionAfterValues) && line.quantity<0) fields[`lines.${index}.quantity`] = "Wpisz prawidłową ilość; wartość ujemna jest dostępna tylko jako różnica korekty.";
+      if (line.name.trim() && noNamedLines && !correctionAfterValues && line.quantity === 0) fields[`lines.${index}.quantity`] = form.isCorrection ? "Podaj różnicę ilości inną od zera." : "Ilość musi być większa od zera.";
+      if (line.name.trim() && line.quantity !== 0 && roundHalfUp(line.quantity, 6) === 0) fields[`lines.${index}.quantity`] = "Podaj ilość z najwyżej sześcioma miejscami po przecinku.";
+      if (!Number.isFinite(line.netPrice) || line.netPrice<0 || line.netPrice>1e9) fields[`lines.${index}.netPrice`] = "Cena netto musi być liczbą od 0 do 1 000 000 000.";
+    }
+    if (!form.lines.length && !correctionAfterValues) fields.lines = "Dodaj przynajmniej jedną pozycję faktury.";
+    if (form.currency !== "PLN" && isManualRate) {
+      if (!(Number(manualRateInput.trim().replace(",", ".")) > 0)) fields.manualRate = "Wpisz dodatni kurs waluty.";
+      if (!manualJustification.trim()) fields.manualJustification = "Uzasadnij zastosowanie własnego kursu.";
+    }
     for (const [key, label] of [["issueDate", "wystawienia"], ["saleDate", "sprzedaży"], ["dueDate", "płatności"]] as const) {
       if (!isIsoCalendarDate(form[key])) fields[key] = `Podaj poprawną datę ${label}.`;
     }
@@ -454,7 +497,7 @@ export function InvoiceCreator() {
     setErrors(messages);
     setFieldErrors(fields);
     const first = Object.keys(fields)[0];
-    if (first) requestAnimationFrame(() => document.getElementById(`invoice-${first}`)?.focus());
+    if (messages.length) requestAnimationFrame(() => focusInvoiceField(first || "validation-summary"));
   };
 
   // Synchronizacja firmy domyślnej po załadowaniu danych
@@ -797,7 +840,10 @@ export function InvoiceCreator() {
     try {
       const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, correctionInput: undefined, correctionOriginalLines: undefined, lines: documentLines, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: editing ? draftInvoice?.id : undefined, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Nie udało się sprawdzić faktury.");
+      if (!response.ok) {
+        if (result.fieldErrors && typeof result.fieldErrors === "object") showValidation(Object.values(result.fieldErrors), result.fieldErrors);
+        throw new Error(result.error || "Nie udało się sprawdzić faktury.");
+      }
       setAssistant({ ...result, action, snapshot: invoiceSnapshot });
     } catch (e) { toast("error", "Asystent przed wysyłką", e instanceof Error ? e.message : "Sprawdź połączenie."); }
     finally { assistantBusy.current = false; setCheckingInvoice(false); }
@@ -810,6 +856,7 @@ export function InvoiceCreator() {
       toast("error", "Nie można zapisać faktury", errs[0]);
       return;
     }
+    setSaveError(null);
     setSaving("save");
     mutationBusy.current = true;
     try {
@@ -822,7 +869,10 @@ export function InvoiceCreator() {
     } catch (e) {
       const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
       if (fields) showValidation(Object.values(fields), fields);
-      toast("error", "Nie udało się zapisać", e instanceof Error ? e.message : undefined);
+      const reason = e instanceof Error ? e.message : "Sprawdź połączenie i ponów próbę.";
+      setSaveError(reason);
+      if (!fields) requestAnimationFrame(() => focusInvoiceField("save-error"));
+      toast("error", "Nie udało się zapisać", reason);
       setSaving(null);
     } finally { mutationBusy.current = false; }
   };
@@ -836,6 +886,7 @@ export function InvoiceCreator() {
       return;
     }
     mutationBusy.current = true;
+    setSaveError(null);
     setSaving("draft");
     try {
       const inv = await buildInvoice("draft");
@@ -847,7 +898,10 @@ export function InvoiceCreator() {
     } catch (e) {
       const fields = (e as {fieldErrors?:Record<string,string>}).fieldErrors;
       if (fields) showValidation(Object.values(fields), fields);
-      toast("error", "Nie udało się zapisać szkicu", e instanceof Error ? e.message : undefined);
+      const reason = e instanceof Error ? e.message : "Sprawdź połączenie i ponów próbę.";
+      setSaveError(reason);
+      if (!fields) requestAnimationFrame(() => focusInvoiceField("save-error"));
+      toast("error", "Nie udało się zapisać szkicu", reason);
       setSaving(null);
     } finally { mutationBusy.current = false; }
   };
@@ -968,7 +1022,7 @@ export function InvoiceCreator() {
   </div>;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
+    <div data-invoice-editor className="invoice-editor grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
       {/* ── Formularz ── */}
       <div className="min-w-0 space-y-5">
         {cloneLoading && <p className="rounded-xl border border-border bg-muted/30 p-3 text-sm" role="status">Wczytywanie faktury do sklonowania…</p>}
@@ -977,22 +1031,28 @@ export function InvoiceCreator() {
           <button type="button" className="text-primary underline" onClick={() => setCloneAttempt(value => value + 1)}>Spróbuj ponownie</button>
           <button type="button" className="ml-4 text-primary underline" onClick={() => router.replace("/invoices/new")}>Zacznij pustą fakturę</button>
         </div>}
+        {saveError && <div id="invoice-save-error" tabIndex={-1} role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 p-4 text-sm">
+          <p className="font-semibold">Nie udało się zapisać dokumentu</p><p className="mt-1 break-words">{saveError}</p>
+          <p className="mt-2 text-xs text-muted-foreground">Wpisane dane pozostały w formularzu. Popraw wskazane pola lub ponów zapis, gdy połączenie będzie dostępne.</p>
+        </div>}
         {/* Inline walidacja błędów z wejściem fade+slide-down */}
         <AnimatePresence>
-          {errors.length > 0 && (
+          {(errors.length > 0 || Object.keys(fieldErrors).length > 0) && (
             <motion.div
               initial={{ opacity: 0, y: -8, height: 0 }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -8, height: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              role="alert"
+              role="alert" id="invoice-validation-summary" tabIndex={-1}
               className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300 space-y-1 shadow-xs overflow-hidden"
             >
               <div className="flex items-center gap-2 font-bold text-[13px]">
                 <AlertOctagon className="h-4 w-4 shrink-0 text-rose-500" />
                 <span>Uzupełnij wymagane pola przed zapisem:</span>
               </div>
-              <p className="text-[11.5px]">{errors[0]}{errors.length > 1 ? ` · jeszcze ${errors.length - 1} do poprawy` : ""}</p>
+              <p className="text-[12px]">Twoje dane pozostają w formularzu. Wybierz komunikat, aby przejść do pola.</p>
+              <ul className="space-y-1 pt-1">{Object.entries(fieldErrors).map(([key,message]) => <li key={key}><button type="button" onClick={() => focusInvoiceField(key)} className="min-h-8 text-left underline decoration-rose-400/40 underline-offset-4 hover:decoration-current">{message}</button></li>)}</ul>
+              {errors.filter(message => !Object.values(fieldErrors).includes(message)).slice(0,5).map(message => <p key={message} className="text-xs">{message}</p>)}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1095,12 +1155,13 @@ export function InvoiceCreator() {
                   Przyczyna korekty (pole wymagane w schemacie FA(3)) *
                 </Label>
                 <Input
-                  id="invoice-correctionReason"
+                  id="invoice-correctionReason" aria-invalid={Boolean(fieldErrors.correctionReason)} aria-describedby={fieldErrors.correctionReason ? "invoice-correctionReason-error" : undefined}
                   value={form.correctionReason || ""}
                   onChange={(e) => set({ correctionReason: e.target.value })}
                   placeholder="np. Udzielenie rabatu potransakcyjnego, zwrot towaru, korekta ilości"
                   className="bg-card"
                 />
+                {fieldErrors.correctionReason && <p id="invoice-correctionReason-error" className="text-xs text-destructive">{fieldErrors.correctionReason}</p>}
               </div>
             </CardContent>
           </Card>
@@ -1203,18 +1264,20 @@ export function InvoiceCreator() {
               {!editing && <div className="mb-3 rounded-xl border border-primary/25 bg-primary/5 p-3 space-y-2">
                 <p className="text-sm font-semibold">Jak ponumerować tę fakturę?</p>
                 <p className="text-xs text-muted-foreground">Zapamiętany wzór firmy: <span className="font-mono">{effectiveSellerCompany.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN}</span></p>
-                <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Sposób numeracji">
+                <div className="grid gap-2 sm:grid-cols-2" id="invoice-numberMode" tabIndex={-1} role="group" aria-label="Sposób numeracji">
                   <Button type="button" variant={numberMode === "auto" ? "primary" : "outline"} aria-pressed={numberMode === "auto"}
                     onClick={() => { setNumberMode("auto"); set({ number: "" }); }}>Kontynuuj automatycznie</Button>
                   <Button type="button" variant={numberMode === "manual" ? "primary" : "outline"} aria-pressed={numberMode === "manual"}
                     onClick={() => { setNumberMode("manual"); set({ number: "" }); requestAnimationFrame(() => document.getElementById("invoice-number")?.focus()); }}>Wpisz numer ręcznie</Button>
                 </div>
+                {fieldErrors.numberMode && <p className="text-xs text-destructive">{fieldErrors.numberMode}</p>}
                 {!numberMode && <p className="text-xs text-primary">Wybierz sposób numeracji przed zapisaniem dokumentu.</p>}
               </div>}
               <label htmlFor="invoice-number" className="block text-xs font-semibold">Numer faktury</label>
-              <Input id="invoice-number" value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
+              <Input id="invoice-number" aria-invalid={Boolean(fieldErrors.number)} aria-describedby={fieldErrors.number ? "invoice-number-error" : undefined} value={invoiceNumber} maxLength={50} className="w-full max-w-md font-mono"
                 disabled={isKsefRegistered || (Boolean(draftInvoice) && draftInvoice?.status !== "draft" && !draftInvoiceIsNew)}
                 onChange={(event) => { setNumberMode("manual"); set({ number: event.target.value }); }} />
+              {fieldErrors.number && <p id="invoice-number-error" className="text-xs text-destructive">{fieldErrors.number}</p>}
               <p className="text-xs text-muted-foreground" aria-live="polite">{numberLoading ? "Sprawdzanie numeracji firmy…" : numberingError || `Propozycja: ${suggestedNumber}. Numer możesz zmienić przed wystawieniem.`}</p>
               {numberingError && <button type="button" className="text-xs text-primary underline" onClick={() => { setNumberPreview(value => ({ ...value, key: "" })); setNumberAttempt(value => value + 1); }}>Sprawdź numerację ponownie</button>}
               {lastNumber && <p className="text-xs text-muted-foreground">Ostatnio zapisany numer tej firmy: <span className="font-mono">{lastNumber}</span></p>}
@@ -1333,11 +1396,12 @@ export function InvoiceCreator() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="invoice-new-name">Nazwa firmy *</Label>
-                    <Input id="invoice-new-name"
+                    <Input id="invoice-new-name" aria-invalid={Boolean(fieldErrors["newContractor.name"])} aria-describedby={fieldErrors["newContractor.name"] ? "invoice-new-name-error" : undefined}
                       value={form.newContractor.name}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, name: e.target.value } })}
                       placeholder="np. DemoIT Solutions Sp. z o.o."
                     />
+                    {fieldErrors["newContractor.name"] && <p id="invoice-new-name-error" className="text-xs text-destructive">{fieldErrors["newContractor.name"]}</p>}
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2 sm:col-span-2">
                     <div className="space-y-1.5">
@@ -1390,7 +1454,7 @@ export function InvoiceCreator() {
                             : "Numer TIN / Tax ID (np. Ghana TIN, US EIN) *"}
                       </Label>
                       {newContractorTaxIdType === "nip" ? (
-                        <NipLookup
+                        <NipLookup inputId="invoice-new-tax-id" error={fieldErrors["newContractor.nip"]}
                           nip={form.newContractor.nip}
                           onNipChange={(v) => set({ newContractor: { ...form.newContractor, nip: v } })}
                           onFound={(c) =>
@@ -1408,8 +1472,8 @@ export function InvoiceCreator() {
                             })
                           }
                         />
-                      ) : (
-                        <Input id="invoice-new-tax-id"
+                      ) : (<>
+                        <Input id="invoice-new-tax-id" aria-invalid={Boolean(fieldErrors["newContractor.nip"])} aria-describedby={fieldErrors["newContractor.nip"] ? "invoice-new-tax-id-error" : undefined}
                           value={form.newContractor.nip}
                           onChange={(e) => set({ newContractor: { ...form.newContractor, nip: e.target.value } })}
                           placeholder={
@@ -1419,35 +1483,39 @@ export function InvoiceCreator() {
                           }
                           className="font-mono text-xs"
                         />
-                      )}
+                    {fieldErrors["newContractor.nip"] && <p id="invoice-new-tax-id-error" className="text-xs text-destructive">{fieldErrors["newContractor.nip"]}</p>}
+                      </>)}
                       {newContractorTaxIdType === "vat_eu" && <ViesLookup vat={form.newContractor.nip} country={form.newContractor.country} />}
                     </div>
                   )}
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <Label htmlFor="invoice-new-postal">Kod pocztowy *</Label>
-                      <Input id="invoice-new-postal"
+                      <Input id="invoice-new-postal" aria-invalid={Boolean(fieldErrors["newContractor.postal"])} aria-describedby={fieldErrors["newContractor.postal"] ? "invoice-new-postal-error" : undefined}
                         value={form.newContractor.postal}
                         onChange={(e) => set({ newContractor: { ...form.newContractor, postal: e.target.value } })}
                         placeholder="00-001"
                       />
+                    {fieldErrors["newContractor.postal"] && <p id="invoice-new-postal-error" className="text-xs text-destructive">{fieldErrors["newContractor.postal"]}</p>}
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="invoice-new-city">Miasto *</Label>
-                      <Input id="invoice-new-city"
+                      <Input id="invoice-new-city" aria-invalid={Boolean(fieldErrors["newContractor.city"])} aria-describedby={fieldErrors["newContractor.city"] ? "invoice-new-city-error" : undefined}
                         value={form.newContractor.city}
                         onChange={(e) => set({ newContractor: { ...form.newContractor, city: e.target.value } })}
                         placeholder="Warszawa"
                       />
+                    {fieldErrors["newContractor.city"] && <p id="invoice-new-city-error" className="text-xs text-destructive">{fieldErrors["newContractor.city"]}</p>}
                     </div>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="invoice-new-street">Ulica i numer *</Label>
-                    <Input id="invoice-new-street"
+                    <Input id="invoice-new-street" aria-invalid={Boolean(fieldErrors["newContractor.street"])} aria-describedby={fieldErrors["newContractor.street"] ? "invoice-new-street-error" : undefined}
                       value={form.newContractor.street}
                       onChange={(e) => set({ newContractor: { ...form.newContractor, street: e.target.value } })}
                       placeholder="ul. Przykładowa 1"
                     />
+                    {fieldErrors["newContractor.street"] && <p id="invoice-new-street-error" className="text-xs text-destructive">{fieldErrors["newContractor.street"]}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="invoice-new-country">Kraj</Label>
@@ -1482,7 +1550,9 @@ export function InvoiceCreator() {
             <CardDescription>Towary i usługi — stawki VAT (23%, 8%, 5%, 0%, zw, np, oo), przeliczenia kwot na żywo</CardDescription>
           </CardHeader>
           <CardContent>
-            <LineItemsEditor
+            <div id="invoice-lines" tabIndex={-1} />
+            {fieldErrors.lines && <p className="mb-3 text-xs text-destructive">{fieldErrors.lines}</p>}
+            <LineItemsEditor errors={fieldErrors}
               lines={form.lines}
               onChange={(lines) => set({ lines })}
               currency={form.currency}
@@ -1704,25 +1774,27 @@ export function InvoiceCreator() {
                     <div className="grid gap-3 sm:grid-cols-2 p-3 bg-card rounded-lg border border-border/80">
                       <div className="space-y-1">
                         <Label htmlFor="invoice-manualRate" className="text-[11.5px]">Zastosowany kurs (PLN) *</Label>
-                        <Input id="invoice-manualRate"
+                        <Input id="invoice-manualRate" aria-invalid={Boolean(fieldErrors["manualRate"])} aria-describedby={fieldErrors["manualRate"] ? "invoice-manualRate-error" : undefined}
                           type="text"
                           value={manualRateInput}
-                          onChange={(e) => setManualRateInput(e.target.value)}
+                          onChange={(e) => { setManualRateInput(e.target.value); setFieldErrors(previous => { const next = {...previous}; delete next.manualRate; return next; }); }}
                           placeholder="np. 4.2500"
                           className="h-8 text-xs font-mono"
                         />
+                    {fieldErrors["manualRate"] && <p id="invoice-manualRate-error" className="text-xs text-destructive">{fieldErrors["manualRate"]}</p>}
                       </div>
                       <div className="space-y-1 sm:col-span-2">
                         <Label htmlFor="invoice-manualJustification" className="text-[11.5px]">
                           Uzasadnienie zastosowania własnego kursu * (wymóg art. 31a ustawy o VAT)
                         </Label>
-                        <Input id="invoice-manualJustification"
+                        <Input id="invoice-manualJustification" aria-invalid={Boolean(fieldErrors["manualJustification"])} aria-describedby={fieldErrors["manualJustification"] ? "invoice-manualJustification-error" : undefined}
                           type="text"
                           value={manualJustification}
-                          onChange={(e) => setManualJustification(e.target.value)}
+                          onChange={(e) => { setManualJustification(e.target.value); setFieldErrors(previous => { const next = {...previous}; delete next.manualJustification; return next; }); }}
                           placeholder="np. Zgodnie z umową handlową kurs z dnia zlecenia bankowego"
                           className="h-8 text-xs"
                         />
+                    {fieldErrors["manualJustification"] && <p id="invoice-manualJustification-error" className="text-xs text-destructive">{fieldErrors["manualJustification"]}</p>}
                       </div>
                     </div>
                   )}
@@ -1829,19 +1901,7 @@ export function InvoiceCreator() {
                 <p className="text-[14px] font-bold tabular-nums text-primary">{formatMoney(totals.gross, form.currency)}</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}>
-                <Save className="h-4 w-4" /> Szkic
-              </SaveButton>
-              {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice}>
-                <Save className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? "Zapisz fakturę zakupową (FZ)" : (form.isCorrection ? "Zapisz korektę" : "Zapisz fakturę")}
-              </SaveButton>}
-              {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-                <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle">
-                  <Send className="h-4 w-4" /> Wyślij do KSeF
-                </Button>
-              )}
-            </div>
+
           </CardContent>
         </Card>
       </div>
@@ -1868,21 +1928,15 @@ export function InvoiceCreator() {
 
         <InvoicePreview invoice={previewInvoice} contractor={effectiveContractor} company={effectiveSellerCompany} />
 
-        <div className="no-print mt-4 hidden flex-wrap items-center gap-2 xl:flex">
-          <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}>
-            <Save className="h-4 w-4" /> Szkic
-          </SaveButton>
-          {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice} className="flex-1">
-            <Save className="h-4 w-4" /> {form.isProforma ? `Zapisz proformę ${invoiceNumber}` : isPurchase ? `Zapisz fakturę zakupową ${invoiceNumber}` : `Zapisz fakturę ${invoiceNumber}`}
-          </SaveButton>}
-          {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && (
-            <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle" className="flex-1" title="Po kliknięciu faktura zostanie zaszyfrowana i przekazana do serwerów Ministerstwa Finansów">
-              <Send className="h-4 w-4" /> Wystaw i Wyślij do KSeF
-            </Button>
-          )}
-        </div>
+
 
       </div>
+
+      <InvoiceActionBar summary={<><span className="text-xs text-muted-foreground">{form.isCorrection ? "Kwota korekty brutto" : "Razem brutto"}</span><strong className="mt-0.5 block text-lg font-semibold tabular-nums">{formatMoney(totals.gross, form.currency)}</strong></>}>
+        <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}><Save className="size-4" />Zapisz szkic</SaveButton>
+        {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice}><Save className="size-4" />{form.isCorrection ? "Zapisz korektę" : form.isProforma ? "Zapisz proformę" : "Zapisz fakturę"}</SaveButton>}
+        {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle"><Send className="size-4" />Wystaw i wyślij do KSeF</Button>}
+      </InvoiceActionBar>
 
       {/* Szybkie dodanie nowej firmy / NIP */}
       <Dialog open={Boolean(assistant)} onClose={() => setAssistant(null)} title="Asystent przed wysyłką faktury" description="Sprawdź wskazówki i zatwierdź dokument. Asystent nie zmienia danych automatycznie." footer={<div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setAssistant(null)}>Wróć do edycji</Button><Button disabled={!assistant?.canProceed || assistant?.snapshot !== invoiceSnapshot || Boolean(saving)} onClick={() => { const action = assistant?.action; setAssistant(null); if (action === "ksef") void handleSendKsef(); else void handleSave(); }}>Zatwierdzam i kontynuuję</Button></div>}>

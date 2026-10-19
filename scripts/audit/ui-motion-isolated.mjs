@@ -40,13 +40,40 @@ try {
   const token = randomBytes(32).toString('base64url');
   await db.session.create({ data: { userId: user.id, sessionToken: 'sha256:' + createHash('sha256').update(token).digest('hex'), authenticatedAt: new Date(), expiresAt: new Date(Date.now() + 86400000) } });
   const today = new Date().toISOString().slice(0, 10), day = new Date();
-  const docs = Array.from({ length: 14 }, (_, i) => {
+  const docs = Array.from({ length: process.env.UI_AUDIT_SUITE === "invoice-ux" ? 70 : 14 }, (_, i) => {
     const cost = i % 4 === 0, net = cost ? 450 + i * 25 : 1200 + i * 160, vat = net * .23;
     const d = new Date(day); d.setUTCDate(Math.max(1, day.getUTCDate() - i * 2));
     const due = new Date(d); due.setUTCDate(d.getUTCDate() + 14);
     return { _id: new ObjectId(), userId: new ObjectId(user.id), sellerCompanyId: new ObjectId(company.id), contractorId: buyer.id, number: `${cost ? 'FZ' : 'FV'}/${String(i + 1).padStart(2, '0')}/${today.slice(5, 7)}/${today.slice(0, 4)}`, type: cost ? 'purchase' : 'sale', status: 'issued', documentStatus: 'issued', ksefStatus: 'none', paymentStatus: i % 3 === 0 ? 'paid' : 'unpaid', version: 1, currency: 'PLN', language: 'PL', paymentMethod: 'transfer', paymentTermDays: 14, issueDate: d.toISOString().slice(0, 10), saleDate: d.toISOString().slice(0, 10), dueDate: due.toISOString().slice(0, 10), lines: [{ id: `line-${i}`, name: cost ? 'Materiały do projektu · DEMO' : 'Projekt identyfikacji wizualnej · DEMO', quantity: 1, unit: 'usł.', netPrice: net, vatRate: '23', discount: 0 }], totalNet: net, totalVat: vat, totalGross: net + vat, totalNetPln: net, totalVatPln: vat, totalGrossPln: net + vat, paidAmount: i % 3 === 0 ? net + vat : 0, nip: '', isCorrection: false, isOffline: false, isRecurring: false, isProforma: false, gtuCodes: [], jpkProcedures: [], createdAt: new Date(day.getTime() - i * 3600000), updatedAt: new Date() };
   });
   await native.db().collection('Invoice').insertMany(docs);
+  let uxFixture;
+  if (process.env.UI_AUDIT_SUITE === 'invoice-ux') {
+    const other = await db.companyProfile.create({data:{userId:user.id,nip:'5250001003',companyName:'Firma B · DEMO',street:'Testowa',buildingNumber:'2',city:'Kraków',postalCode:'30-001',isDefault:false}});
+    const examples = [
+      {name:'queued',ksefStatus:'queued'},
+      {name:'queue-error',ksefStatus:'rejected'},
+      {name:'sent',ksefStatus:'sending',referenceNumber:'synthetic-submission'},
+      {name:'verify',ksefStatus:'verify_needed',referenceNumber:'synthetic-pending'},
+      {name:'legacy-verify',ksefStatus:'accepted',ksef:{status:'ACTIVE',environment:'production'}},
+      {name:'rejected',ksefStatus:'rejected',ksef:{status:'REJECTED',environment:'production',processingDescription:'Brak uprawnienia do wystawienia dokumentu · TEST'}},
+      {name:'accepted',status:'paid',ksefStatus:'accepted',paymentStatus:'paid',paidAmount:1672.8,ksefNumber:'5260301706-20261019-000000000001-AA',ksef:{number:'5260301706-20261019-000000000001-AA',status:'ACTIVE',environment:'production'}},
+      {name:'upo',ksefStatus:'accepted',ksefNumber:'5260301706-20261019-000000000002-BB',upoXml:'<UPO/>',ksef:{number:'5260301706-20261019-000000000002-BB',status:'ACTIVE',environment:'production'}},
+      {name:'demo',ksefStatus:'accepted',ksefNumber:'DEMO-ONLY',upoXml:'<Demo/>',ksef:{number:'DEMO-ONLY',status:'ACTIVE',environment:'demo'}},
+      {name:'proforma',isProforma:true},
+    ];
+    const states={};
+    for (const example of examples) {
+      const {_id,...baseInvoice}=docs[1];
+      const {name,...patch}=example;
+      const row={...baseInvoice,_id:new ObjectId(),number:'UX/'+name.toUpperCase(),ksefStatus:'none',referenceNumber:null,ksefNumber:null,ksef:null,upoXml:null,...patch};
+      await native.db().collection('Invoice').insertOne(row);
+      states[name]=row._id.toHexString();
+    }
+    await db.ksefQueueTask.create({data:{userId:user.id,invoiceId:states['queue-error'],environment:'production',status:'failed',errorDetails:'Błąd uprawnień z ostatniego zadania · TEST',idempotencyKey:'isolated-ux-failed'}});
+    uxFixture={companyId:company.id,otherCompanyId:other.id,states,userId:user.id};
+  }
+
   
   const socket = createServer(); socket.listen(0, '127.0.0.1'); await once(socket, 'listening'); const port = socket.address().port; await new Promise(r => socket.close(r));
   const base = `http://127.0.0.1:${port}`;
@@ -73,9 +100,14 @@ try {
   await context.route('**/*', async route => { const u = new URL(route.request().url()); if (u.origin !== base || (/^\/api\/ksef\//.test(u.pathname) && route.request().method() !== 'GET')) { blocked.push({ origin: u.origin === base ? 'local' : 'external', path: u.pathname }); return route.abort(); } return route.continue(); });
   await context.addInitScript(() => { window.print = () => {}; window.close = () => {}; });
   const page = await context.newPage();
-  page.on('pageerror', e => errors.push(e.message));
-  const { auditUiMotion } = await import(pathToFileURL(appRoot + '/scripts/audit/ui-motion-browser.mjs'));
-  await auditUiMotion({page,context,base,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+  page.on('pageerror', e => {errors.push(e.message); console.log('[audit-page-error]',page.url(),e.message);});
+  if (uxFixture) {
+    const { auditInvoiceUx } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-ux-browser.mjs'));
+    await auditInvoiceUx({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+  } else {
+    const { auditUiMotion } = await import(pathToFileURL(appRoot + '/scripts/audit/ui-motion-browser.mjs'));
+    await auditUiMotion({page,context,base,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+  }
   assert.deepEqual(errors, []);
   assert.equal(blocked.length, 0);
   console.log('[ui-motion] PASS no page errors or external provider calls');

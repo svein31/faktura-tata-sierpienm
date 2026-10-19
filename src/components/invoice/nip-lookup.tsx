@@ -16,10 +16,14 @@ interface LookupState {
 
 export function NipLookup({
   nip,
+  inputId,
+  error,
   onNipChange,
   onFound,
 }: {
   nip: string;
+  inputId?: string;
+  error?: string;
   onNipChange: (v: string) => void;
   onFound: (r: NonNullable<NipLookupResult["company"]>) => void;
 }) {
@@ -60,9 +64,10 @@ export function NipLookup({
 
   return (
     <div className="space-y-2 w-full">
+      {error && <p id={inputId ? `${inputId}-error` : undefined} className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2 items-center w-full">
         <div className="relative flex-1 min-w-0">
-          <Input
+          <Input id={inputId} aria-invalid={Boolean(error)} aria-describedby={error && inputId ? `${inputId}-error` : undefined}
             value={nip}
             onChange={(e) => onNipChange(e.target.value)}
             placeholder="np. 527-000-00-24"

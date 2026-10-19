@@ -41,6 +41,7 @@ export function LineItemsEditor({
   products,
   disabled,
   correction = false,
+  errors = {},
 }: {
   lines: InvoiceLine[];
   onChange: (lines: InvoiceLine[]) => void;
@@ -48,6 +49,7 @@ export function LineItemsEditor({
   products: Product[];
   disabled?: boolean;
   correction?: boolean;
+  errors?: Record<string,string>;
 }) {
   const [pasteModalOpen, setPasteModalOpen] = React.useState(false);
   const [pastedText, setPastedText] = React.useState("");
@@ -98,13 +100,13 @@ export function LineItemsEditor({
               <Button type="button" size="icon" variant="ghost" aria-label={"Usuń pozycję " + (index + 1)} disabled={disabled} onClick={() => onChange(lines.filter(other => other.id !== item.id))}><Trash2 className="h-4 w-4" /></Button>
             </div>
             <label className="block space-y-1 text-xs font-medium">Nazwa towaru / usługi
-              <Textarea aria-label={"Nazwa pozycji " + (index + 1)} value={item.name} disabled={disabled} onChange={event => update(item.id, {name:event.target.value})} rows={2} />
+              <Textarea aria-label={"Nazwa pozycji " + (index + 1)} data-invoice-field={`lines.${index}.name`} aria-invalid={Boolean(errors[`lines.${index}.name`])} aria-describedby={errors[`lines.${index}.name`] ? `invoice-line-mobile-${index}-name-error` : undefined} value={item.name} disabled={disabled} onChange={event => update(item.id, {name:event.target.value})} rows={2} />{errors[`lines.${index}.name`] && <span id={`invoice-line-mobile-${index}-name-error`} className="block text-xs text-destructive">{errors[`lines.${index}.name`]}</span>}
             </label>
             {products.length > 0 && <Select aria-label={"Produkt z katalogu dla pozycji " + (index + 1)} value="" disabled={disabled} onChange={event => event.target.value && applyProduct(item.id, event.target.value)}><option value="">Wstaw z katalogu…</option>{products.map(product => <option key={product.id} value={product.id}>{product.name}</option>)}</Select>}
             <div className="grid grid-cols-2 gap-3">
-              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} type="number" inputMode="decimal" min={correction ? undefined : 0} step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} data-invoice-field={`lines.${index}.quantity`} aria-invalid={Boolean(errors[`lines.${index}.quantity`])} aria-describedby={errors[`lines.${index}.quantity`] ? `invoice-line-mobile-${index}-quantity-error` : undefined} type="number" inputMode="decimal" min={correction ? undefined : 0} step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} />{errors[`lines.${index}.quantity`] && <span id={`invoice-line-mobile-${index}-quantity-error`} className="block text-xs text-destructive">{errors[`lines.${index}.quantity`]}</span>}</label>
               <label className="min-w-0 space-y-1 text-xs font-medium">Jednostka<Input aria-label={"Jednostka pozycji " + (index + 1)} value={item.unit} disabled={disabled} onChange={event => update(item.id, {unit:event.target.value})} /></label>
-              <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} type="number" inputMode="decimal" min="0" step="0.01" value={item.netPrice} disabled={disabled} onChange={event => update(item.id, {netPrice:Number(event.target.value) || 0})} /></label>
+              <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} data-invoice-field={`lines.${index}.netPrice`} aria-invalid={Boolean(errors[`lines.${index}.netPrice`])} aria-describedby={errors[`lines.${index}.netPrice`] ? `invoice-line-mobile-${index}-netPrice-error` : undefined} type="number" inputMode="decimal" min="0" step="0.01" value={item.netPrice} disabled={disabled} onChange={event => update(item.id, {netPrice:Number(event.target.value) || 0})} />{errors[`lines.${index}.netPrice`] && <span id={`invoice-line-mobile-${index}-netPrice-error`} className="block text-xs text-destructive">{errors[`lines.${index}.netPrice`]}</span>}</label>
               <label className="min-w-0 space-y-1 text-xs font-medium">Stawka VAT<Select aria-label={"VAT pozycji " + (index + 1)} value={item.vatRate} disabled={disabled} onChange={event => update(item.id, {vatRate:event.target.value as VatRate})}>{VAT_RATES.map(rate => <option key={rate} value={rate}>{vatRateLabel(rate)}</option>)}</Select></label>
             </div>
             <dl className="grid grid-cols-1 gap-1 break-words border-t pt-3 text-xs">
@@ -181,13 +183,13 @@ export function LineItemsEditor({
                     {/* Nazwa */}
                     <td className="px-2 py-1.5">
                       <div className="flex flex-col gap-1">
-                        <Input
+                        <Input data-invoice-field={`lines.${i}.name`} aria-invalid={Boolean(errors[`lines.${i}.name`])} aria-describedby={errors[`lines.${i}.name`] ? `invoice-line-table-${i}-name-error` : undefined}
                           value={line.name}
                           onChange={(e) => update(line.id, { name: e.target.value })}
                           placeholder="Nazwa towaru / usługi"
                           disabled={disabled}
                           className="h-8 text-[12.5px]"
-                        />
+                        />{errors[`lines.${i}.name`] && <span id={`invoice-line-table-${i}-name-error`} className="block text-xs text-destructive">{errors[`lines.${i}.name`]}</span>}
                         {products.length > 0 && (
                           <div className="relative">
                             <Select
@@ -211,7 +213,7 @@ export function LineItemsEditor({
 
                     {/* Ilość */}
                     <td className="px-2 py-1.5">
-                      <Input
+                      <Input data-invoice-field={`lines.${i}.quantity`} aria-invalid={Boolean(errors[`lines.${i}.quantity`])} aria-describedby={errors[`lines.${i}.quantity`] ? `invoice-line-table-${i}-quantity-error` : undefined}
                         aria-label="Ilość pozycji"
                         type="number"
                         min={correction ? undefined : 0}
@@ -220,7 +222,7 @@ export function LineItemsEditor({
                         onChange={(e) => update(line.id, { quantity: Number(e.target.value) || 0 })}
                         disabled={disabled}
                         className="h-8 w-full text-right text-[13px] tabular-nums"
-                      />
+                      />{errors[`lines.${i}.quantity`] && <span id={`invoice-line-table-${i}-quantity-error`} className="block text-xs text-destructive">{errors[`lines.${i}.quantity`]}</span>}
                     </td>
 
                     {/* J.m. */}
@@ -235,7 +237,7 @@ export function LineItemsEditor({
 
                     {/* Cena netto */}
                     <td className="px-2 py-1.5">
-                      <Input
+                      <Input data-invoice-field={`lines.${i}.netPrice`} aria-invalid={Boolean(errors[`lines.${i}.netPrice`])} aria-describedby={errors[`lines.${i}.netPrice`] ? `invoice-line-table-${i}-netPrice-error` : undefined}
                         type="number"
                         min={0}
                         step="0.01"
@@ -243,7 +245,7 @@ export function LineItemsEditor({
                         onChange={(e) => update(line.id, { netPrice: Number(e.target.value) || 0 })}
                         disabled={disabled}
                         className="h-8 text-right text-[12.5px]"
-                      />
+                      />{errors[`lines.${i}.netPrice`] && <span id={`invoice-line-table-${i}-netPrice-error`} className="block text-xs text-destructive">{errors[`lines.${i}.netPrice`]}</span>}
                     </td>
 
                     {/* Stawka VAT */}

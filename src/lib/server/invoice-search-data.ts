@@ -22,7 +22,8 @@ export async function readAuthorizedInvoiceSearch(user: { id: string }, params: 
   if (filters.cursor) {
     const anchor = await prisma.invoice.findFirst({ where: { id: filters.cursor, ...(unassigned ? { userId: user.id, OR: [{ sellerCompanyId: null }, { sellerCompanyId: { isSet: false } }] } : { sellerCompanyId: companyId! }) }, select: { id: true, issueDate: true } });
     if (!anchor) throw new ApiError(409, "Lista zmieniła się. Wróć do pierwszej strony.");
-    after = [{ $match: { $or: [{ issueDate: { $lt: anchor.issueDate } }, { issueDate: anchor.issueDate, _id: { $lt: { $oid: anchor.id } } }] } }];
+    const comparison = filters.sort === "date_asc" ? "$gt" : "$lt";
+    after = [{ $match: { $or: [{ issueDate: { [comparison]: anchor.issueDate } }, { issueDate: anchor.issueDate, _id: { [comparison]: { $oid: anchor.id } } }] } }];
   }
   return readInvoiceSearchPage(prisma, scope, filters, after);
 }

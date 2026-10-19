@@ -67,7 +67,20 @@ export async function GET(_req: Request, { params }: Ctx) {
       return json({ error: "Nie znaleziono faktury.", code: "NOT_FOUND" }, { status: 404 });
     }
 
-    return json({ invoice: invoiceToDto(result.invoice) });
+    const invoice = invoiceToDto(result.invoice);
+    // Older failures only persisted their explanation in the queue. Read one
+    // selected error after invoice access has been checked, never a queue payload.
+    if ((invoice.ksefStatus === "rejected" || String(invoice.status) === "ksef_rejected" || invoice.ksef?.status === "REJECTED") && !invoice.ksef?.processingDescription) {
+      const last = await prisma.ksefQueueTask.findFirst({
+        where: { invoiceId: invoice.id }, orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: { status: true, errorDetails: true, environment: true },
+      });
+      if (last && ["demo", "test", "production"].includes(last.environment)) invoice.ksefProcessing = {
+        error: last.status === "failed" ? last.errorDetails?.slice(0, 1500) || null : null,
+        environment: last.environment as "demo" | "test" | "production",
+      };
+    }
+    return json({ invoice });
   } catch (e) {
     return handleApiError(e);
   }

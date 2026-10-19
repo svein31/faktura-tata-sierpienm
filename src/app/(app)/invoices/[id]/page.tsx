@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
-  BadgeCheck,
   CheckCircle2,
   Clock,
   Copy,
@@ -20,7 +19,6 @@ import {
   Printer,
   RefreshCw,
   Send,
-  ShieldCheck,
   Trash2,
   History,
 } from "lucide-react";
@@ -35,7 +33,7 @@ import { useToast } from "@/components/toast";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PrintVersions } from "@/components/invoice/print-versions";
 import { useKsefStatusPolling } from "@/lib/use-ksef-status-polling";
-import { ksefProgress } from "@/lib/ksef/progress";
+import { isKsefUiPending } from "@/lib/ksef/presentation";
 import { isCorrectableInvoiceSource } from "@/lib/invoice-correction-eligibility";
 import { useInvoiceExports } from "@/lib/invoice-actions";
 import { formatDateTime, invoiceTotals, formatMoney, round2 } from "@/lib/format";
@@ -296,7 +294,6 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
   };
 
   const ksefNum = invoice.ksef?.number || invoice.ksefNumber;
-  const progress = ksefProgress(invoice);
 
   return (
     <div className="space-y-6">
@@ -390,7 +387,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             )
           )}
 
-          {!ksefNum && !invoice.isProforma && !ksefProgress(invoice).polling && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
+          {!ksefNum && !invoice.isProforma && !isKsefUiPending(invoice) && invoice.type === "sale" && (!invoice.isOffline || Boolean(invoice.qrCodeII)) && (
             <Button
               variant="subtle"
               size="sm"
@@ -520,97 +517,6 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           </Card>
         </motion.div>
       )}
-
-      {/* Dedykowana Karta Transmisji KSeF */}
-      {ksefNum ? (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
-          <Card className="rounded-3xl border-emerald-500/30 bg-emerald-500/5 shadow-xs overflow-hidden">
-            <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start sm:items-center gap-3.5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/30">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-bold text-foreground">
-                      Dokument zarejestrowany w KSeF
-                    </p>
-                    <Badge tone="success" className="text-[10px]">
-                      {progress.hasUpo ? "Przyjęta · UPO dostępne" : "Przyjęta · UPO w przygotowaniu"}
-                    </Badge>
-                    <Badge tone="outline" className="text-[10px] uppercase font-mono">
-                      {invoice.ksef?.environment || "Środowisko nie zapisane"}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400 break-all">
-                    Numer KSeF: {ksefNum}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Data przyjęcia: {formatDateTime(invoice.ksef?.sentAt || invoice.sentAt || invoice.createdAt)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCheckKsefStatus}
-                  loading={checkingStatus}
-                  className="rounded-xl gap-1.5 text-xs"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${checkingStatus ? "animate-spin" : ""}`} />
-                  Odśwież status
-                </Button>
-                <Button
-                  variant="subtle"
-                  size="sm"
-                  onClick={() => handleDownloadUpo(ksefNum)}
-                  className="rounded-xl gap-1.5 text-xs font-semibold"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Pobierz UPO (XML)
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownloadXml(ksefNum)}
-                  className="rounded-xl gap-1.5 text-xs"
-                >
-                  <FileCode2 className="h-3.5 w-3.5" />
-                  Pobierz XML
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ) : invoice.type === "sale" && !invoice.isProforma ? (
-        <Card className="no-print rounded-3xl border-border/70 bg-card/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Send className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-foreground">
-                {progress.polling ? "Faktura przekazana do KSeF · oczekuje na wynik" : "Faktura nie została jeszcze przekazana do KSeF"}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                {progress.polling ? "Status sprawdzamy automatycznie. Nie ponawiaj wysyłki przed potwierdzeniem wyniku poprzedniej transmisji." : `Możesz przesłać dokument w formacie FA(3) do Ministerstwa Finansów (${ksefEnv}).`}
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={() => setPendingAction("ksef")}
-            disabled={progress.polling || Boolean(invoice.isOffline && !invoice.qrCodeII)}
-            loading={sending}
-            size="sm"
-            className="rounded-xl gap-1.5 text-xs font-semibold shrink-0"
-          >
-            <Send className="h-3.5 w-3.5" />
-            {progress.polling ? "Oczekiwanie na wynik KSeF" : `Wyślij do KSeF (${ksefEnv})`}
-          </Button>
-        </Card>
-      ) : null}
 
       {/* Wizualny podgląd arkusza faktury */}
       <PrintVersions key={invoice.id} invoiceId={invoice.id} />

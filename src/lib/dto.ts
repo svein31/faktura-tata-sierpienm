@@ -195,12 +195,13 @@ export function productToDto(p: DbProduct & { stockQuantity?: number }): Product
 export function ksefInfoFrom(v: unknown): KsefInfo | undefined {
   if (!v || typeof v !== "object") return undefined;
   const k = v as Partial<KsefInfo>;
-  if (!k.number && !k.referenceNumber) return undefined;
+  if (!k.number && !k.referenceNumber && !["QUEUED", "SENT", "REJECTED", "ACTIVE"].includes(k.status || "")) return undefined;
   return {
     number: k.number ?? "",
     status: k.status ?? "SENT",
-    sentAt: k.sentAt ?? new Date().toISOString(),
+    sentAt: k.sentAt ?? "",
     environment: k.environment ?? "demo",
+    environmentRecorded: ["demo", "test", "production"].includes(k.environment || ""),
     sessionReferenceNumber: k.sessionReferenceNumber,
     referenceNumber: k.referenceNumber,
     processingCode: k.processingCode,

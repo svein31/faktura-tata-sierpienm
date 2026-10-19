@@ -287,6 +287,8 @@ export interface InvoiceLine {
 }
 
 export interface KsefInfo {
+  /** False when a legacy DTO uses a compatibility default instead of recorded metadata. */
+  environmentRecorded?: boolean;
   number: string;
   referenceNumber?: string;
   sessionReferenceNumber?: string;
@@ -324,6 +326,8 @@ export interface Invoice {
   totalVat?: number;
   totalGross?: number;
   ksef?: KsefInfo;
+  /** Authorized detail-only error context, without queue payload or credentials. */
+  ksefProcessing?: { error: string | null; environment: KsefEnv } | null;
   ksefNumber?: string | null;
   /** Data nadania numeru KSeF z UPO, utrwalona na wersji wydruku. */
   ksefAcceptedAt?: string | null;

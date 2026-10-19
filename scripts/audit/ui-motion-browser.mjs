@@ -82,7 +82,7 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     await confirmSave();
     assert.equal(await page.locator('.ui-save-confirmed').count(),0,'No success indicator before response');
     writeGate.release();
-    await expect(page.getByText('Kontrolowany błąd testowy zapisu',{exact:true})).toBeVisible();
+    await expect(page.getByText('Kontrolowany błąd testowy zapisu',{exact:true}).first()).toBeVisible();
     await expect(save).toBeEnabled();
     stable(saveBefore,await geometry(save),'Save button after failure');
     assert.equal(await page.locator('.ui-save-confirmed').count(),0,'No success indicator after failure');
@@ -127,6 +127,8 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     assert.ok(await page.locator('[data-motion-qa="results"]').evaluate(n=>n.getBoundingClientRect().height)>=placeholderHeight-1);
     await context.unroute('**/api/invoices/search?**',searchRoute);
     record('filter skeleton reveals empty results without collapsing or retaining unrelated rows');
+    await page.getByPlaceholder('Szukaj: numer, kontrahent, NIP, numer KSeF…').fill('');
+    await expect(page.locator('tbody tr').first()).toBeVisible();
 
     await page.emulateMedia({reducedMotion:'reduce'});
     await ready('/dashboard');
@@ -161,7 +163,7 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     await page.getByRole('option',{name:/Pracownia Forma/}).click();
     await page.getByRole('textbox',{name:'Nazwa pozycji 1',exact:true}).fill('Mobile motion QA');
     await page.getByRole('spinbutton',{name:'Cena netto pozycji 1',exact:true}).fill('150');
-    const draft=page.getByRole('button',{name:'Szkic',exact:true});
+    const draft=page.getByRole('button',{name:'Zapisz szkic',exact:true});
     await draft.scrollIntoViewIfNeeded();
     const draftBefore=await geometry(draft);
     writeGate=gate();releaseRequest=writeGate.release;

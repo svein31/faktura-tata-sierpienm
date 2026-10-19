@@ -1,4 +1,7 @@
 "use client";
+import { useInvoiceView } from "@/lib/use-invoice-view";
+import { isKsefUiPending } from "@/lib/ksef/presentation";
+import { KsefStatusBadge } from "@/components/invoice/ksef-status-badge";
 import { csvCell } from "@/lib/accountant-summary";
 import { useInvoiceSearch } from "@/lib/use-invoice-search";
 import type { InitialInvoiceSearch } from "@/lib/use-invoice-search";
@@ -22,7 +25,6 @@ import {
   Search,
   Send,
   Shield,
-  ShieldCheck,
   Trash2,
   X,
   Check,
@@ -58,7 +60,9 @@ const SendInvoiceEmailModal = React.lazy(() => import("@/components/invoice/send
 const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> = [
   { value: "all", label: "Wszystkie dokumenty" },
   { value: "ksef_active", label: "KSeF Zarejestrowane" },
-  { value: "ksef_sent", label: "KSeF w kolejce" },
+  { value: "ksef_queued", label: "KSeF · w kolejce" },
+  { value: "ksef_sent", label: "KSeF · wysłane / weryfikowane" },
+  { value: "ksef_rejected", label: "KSeF · odrzucone" },
   { value: "issued", label: "Wystawione" },
   { value: "paid", label: "Opłacone" },
   { value: "overdue", label: "Przeterminowane" },
@@ -96,11 +100,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   const [showUnassigned, setShowUnassigned] = React.useState(false);
   const [savedViewsOpened, setSavedViewsOpened] = React.useState(false);
 
-  const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<"all" | EffectiveStatus>("all");
-  const [typeFilter, setTypeFilter] = React.useState<"all" | "sale" | "purchase" | "proforma">("all");
-  const [approvalFilter, setApprovalFilter] = React.useState<"all" | "pending" | "approved">("all");
-  const [currencyFilter, setCurrencyFilter] = React.useState<"all" | "PLN" | "EUR" | "USD">("all");
+  const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
+  const { value: view, update: updateView } = useInvoiceView(showUnassigned ? null : selectedCompanyId);
+  const { search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density } = view;
+  const setSearch = (search: string) => updateView({ search });
+  const setStatusFilter = (statusFilter: typeof view.statusFilter) => updateView({ statusFilter });
+  const setTypeFilter = (typeFilter: typeof view.typeFilter) => updateView({ typeFilter });
+  const setApprovalFilter = (approvalFilter: typeof view.approvalFilter) => updateView({ approvalFilter });
+  const setCurrencyFilter = (currencyFilter: typeof view.currencyFilter) => updateView({ currencyFilter });
   const [toDelete, setToDelete] = React.useState<string | null>(null);
   const [confirmKsef, setConfirmKsef] = React.useState<string | null>(null);
   const [sendingKsef, setSendingKsef] = React.useState(false);
@@ -110,12 +117,11 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   const [confirmBulkPayment, setConfirmBulkPayment] = React.useState(false);
   const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
 
-  const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
   React.useEffect(() => {
     setShowUnassigned(false); setSelectedIds([]); setToDelete(null); setConfirmKsef(null); setSelectedForEmail(null);
   }, [selectedCompanyId]);
 
-  const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter }, true, initialSearch);
+  const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter, ...(sortOrder === "date_asc" ? { sort: sortOrder } : {}) }, true, initialSearch);
   const invoices = results.invoices, filtered = invoices;
   const highlightedId = useCreatedInvoiceHighlight(showUnassigned ? null : selectedCompanyId, filtered.map(invoice => invoice.id));
   useKsefStatusPolling(invoices, results.reload);
@@ -167,7 +173,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const handleBulkSendKsef = async () => {
     const eligible = invoices.filter(
-      (i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !["verify_needed", "queued", "processing", "sending"].includes(i.ksefStatus || "")
+      (i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !isKsefUiPending(i)
     );
     if (eligible.length === 0) {
       toast("info", "Brak faktur do wysłania", "Zaznaczone faktury są już zarejestrowane w KSeF, są proformami lub fakturami zakupowymi.");
@@ -431,12 +437,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
       </div>
       {results.error && <div role="alert" className="text-destructive">{results.error} <Button onClick={results.reload}>Spróbuj ponownie</Button></div>}
-      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter }} apply={f => {
+      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={showUnassigned ? null : selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density }} apply={f => {
         setSearch(typeof f.search === "string" ? f.search : "");
         if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
         if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
         if (["all", "PLN", "EUR", "USD"].includes(f.currencyFilter)) setCurrencyFilter(f.currencyFilter as typeof currencyFilter);
         if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
+        if (["date_desc", "date_asc"].includes(f.sortOrder)) updateView({sortOrder: f.sortOrder as typeof sortOrder});
+        if (["comfortable", "compact"].includes(f.density)) updateView({density: f.density as typeof density});
         setSelectedIds([]);
       }} /></React.Suspense>}</details>
       <PageHeader
@@ -630,7 +638,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Wyślij do KSeF dla sprzedaży */}
-            {canSendKsef && invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !["verify_needed", "queued", "processing", "sending"].includes(i.ksefStatus || "")) && (
+            {canSendKsef && invoices.some((i) => selectedIds.includes(i.id) && i.type === "sale" && i.status !== "draft" && !i.isProforma && !i.ksefNumber && !i.ksef?.number && !isKsefUiPending(i)) && (
               <Button
                 size="sm"
                 onClick={handleBulkSendKsef}
@@ -735,6 +743,12 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
           </Select>
+          <Select aria-label="Kolejność faktur" value={sortOrder} onChange={event => updateView({sortOrder: event.target.value as typeof sortOrder})} className="w-auto">
+            <option value="date_desc">Najnowsze najpierw</option><option value="date_asc">Najstarsze najpierw</option>
+          </Select>
+          <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-auto">
+            <option value="comfortable">Widok wygodny</option><option value="compact">Widok kompaktowy</option>
+          </Select>
           {hasFilters && (
             <Button
               variant="ghost"
@@ -755,14 +769,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       </div>
 
       {/* Główna tabela dokumentów */}
-      <div className="rounded-3xl border border-border/70 bg-card/70 backdrop-blur-xl shadow-sm overflow-hidden">
+      <div data-invoice-density={density} className="rounded-3xl border border-border/70 bg-card/70 backdrop-blur-xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-2">
             <Filter className="h-3.5 w-3.5 text-primary" />
             Wyniki: <b className="text-foreground">{results.total}</b> · na stronie {filtered.length}
           </span>
           <span className="hidden items-center gap-1.5 sm:flex font-mono text-[11px]">
-            <ArrowDownUp className="h-3 w-3" /> Data wystawienia (malejąco)
+            <ArrowDownUp className="h-3 w-3" /> {sortOrder === "date_asc" ? "Najstarsze najpierw" : "Najnowsze najpierw"}
           </span>
         </div>
 
@@ -785,6 +799,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                 <strong className="text-sm text-foreground">{formatMoney(inv.totalGross ?? invoiceTotals(inv).gross, inv.currency)}</strong>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
+                <KsefStatusBadge invoice={inv} />
                 <Badge className={status.color}>{status.label}</Badge>
                 {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
                 <Link prefetch={false} href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
@@ -827,7 +842,6 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                   const ctr = getContractor(contractors, inv.contractorId);
                   const s = effectiveStatus(inv);
                   const ksefNum = inv.ksef?.number || inv.ksefNumber;
-                  const isKsefActive = inv.ksef?.status === "ACTIVE" || inv.status === "ksef_active";
                   const isSelected = selectedIds.includes(inv.id);
                   const isApproved = inv.approvalStatus === "approved";
 
@@ -897,21 +911,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                       </td>
 
                       <td className="py-3.5 px-3">
-                        {ksefNum ? (
-                          <div className="flex items-center gap-1.5">
-                            <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-                            <div className="min-w-0">
-                              <span className="block font-mono text-[10.5px] font-bold text-emerald-700 dark:text-emerald-400 truncate max-w-[120px]" title={ksefNum}>
-                                {ksefNum}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground uppercase">
-                                {isKsefActive ? "Zarejestrowana" : "Wysłana"}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground text-[11px]">— nie wysłano —</span>
-                        )}
+                        <KsefStatusBadge invoice={inv} />
                       </td>
 
                       {/* Status akceptacji księgowej (na wzór wFirma — Screen 4) */}
@@ -978,7 +978,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                             </Button>
                           )}
 
-                          {!ksefNum && inv.type === "sale" && !inv.isProforma && (
+                          {!ksefNum && inv.type === "sale" && !inv.isProforma && !isKsefUiPending(inv) && (
                             <Button
                               variant="ghost"
                               size="icon"
