@@ -78,7 +78,7 @@ export interface AppState {
 
   setDraft: (invoice: Invoice | null, isNew: boolean, preserveSession?: boolean) => void;
 
-  fetchNotifications: () => Promise<{ unread: number }>;
+  fetchNotifications: (signal?: AbortSignal) => Promise<{ unread: number }>;
   markNotificationRead: (id: string, read: boolean) => Promise<void>;
   updateNotificationPrefs: (patch: Partial<NotificationPrefs>) => Promise<NotificationPrefs>;
 }
@@ -752,14 +752,16 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
 
   /* ── Powiadomienia ──────────────────────────────────────────────────── */
 
-  fetchNotifications: async () => {
-    const res = await fetch("/api/notifications?limit=50", { cache: "no-store" });
+  fetchNotifications: async (signal) => {
+    const res = await fetch("/api/notifications?limit=50", { cache: "no-store", signal });
+    if (signal?.aborted) return { unread: get().notifications.filter(n=>!n.read).length };
     if (res.status === 401) {
       set({ hydrated: true, authError: true });
       return { unread: 0 };
     }
     if (!res.ok) throw await apiError(res, "Nie udało się pobrać powiadomień.");
     const data = (await res.json()) as { notifications: AppNotification[]; unread: number };
+    if (signal?.aborted) return { unread: get().notifications.filter(n=>!n.read).length };
     set({ notifications: data.notifications });
     return { unread: data.unread };
   },

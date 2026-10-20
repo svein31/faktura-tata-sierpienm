@@ -100,23 +100,38 @@ export function NotificationBell() {
 
     const first = useAppStore.getState().notifications;
     for (const n of first) seenRef.current.add(n.id);
+    let controller = new AbortController();
+    let running = false;
+    const pause = () => controller.abort();
+    const resume = () => { if (controller.signal.aborted) controller = new AbortController(); };
 
     const poll = async () => {
+      if (running || controller.signal.aborted) return;
+      running = true;
+      const signal = controller.signal;
       try {
         const state = useAppStore.getState();
         const before = new Set(state.notifications.map((n) => n.id));
-        await state.fetchNotifications();
+        await state.fetchNotifications(signal);
+        if (signal.aborted) return;
         const after = useAppStore.getState().notifications;
         for (const n of after) {
           if (!before.has(n.id) && !n.read) handleNew(n);
         }
       } catch {
         /* sieć chwilowo niedostępna — następna iteracja */
+      } finally {
+        running = false;
       }
     };
 
     const interval = window.setInterval(() => void poll(), POLL_INTERVAL_MS);
-    return () => window.clearInterval(interval);
+    window.addEventListener("pagehide", pause);
+    window.addEventListener("pageshow", resume);
+    return () => {
+      window.clearInterval(interval);controller.abort();
+      window.removeEventListener("pagehide", pause);window.removeEventListener("pageshow", resume);
+    };
   }, [hydrated, handleNew]);
 
   /* ── UI ────────────────────────────────────────────────────────────── */

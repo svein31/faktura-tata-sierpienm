@@ -1,5 +1,11 @@
 "use client";
 import { useInvoiceView } from "@/lib/use-invoice-view";
+import { useInvoiceColumns } from "@/lib/use-invoice-columns";
+import { useInvoicePreview } from "@/lib/use-invoice-preview";
+import { INVOICE_COLUMNS, type InvoiceColumnId } from "@/lib/invoice-columns";
+import { invoiceSelectionTotals } from "@/lib/invoice-selection-totals";
+import { InvoiceColumnsMenu } from "@/components/invoice/invoice-columns-menu";
+import { InvoiceSelectionSummary } from "@/components/invoice/invoice-selection-summary";
 import { isKsefUiPending, ksefPresentation } from "@/lib/ksef/presentation";
 import { KsefStatusBadge } from "@/components/invoice/ksef-status-badge";
 import { invoicePaymentPresentation } from "@/lib/invoice-payment-presentation";
@@ -105,6 +111,8 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const selectedCompanyId = useAppStore((s) => s.selectedCompanyId);
   const { value: view, update: updateView } = useInvoiceView(showUnassigned ? null : selectedCompanyId);
+  const columnSettings = useInvoiceColumns(showUnassigned ? null : selectedCompanyId);
+  const activeColumns = INVOICE_COLUMNS.filter(column=>columnSettings.columns.includes(column.id));
   const { search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density } = view;
   const setSearch = (search: string) => updateView({ search });
   const setStatusFilter = (statusFilter: typeof view.statusFilter) => updateView({ statusFilter });
@@ -119,7 +127,6 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   const [markingPaid, setMarkingPaid] = React.useState(false);
   const [confirmBulkPayment, setConfirmBulkPayment] = React.useState(false);
   const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
-  const [previewSelection, setPreviewSelection] = React.useState<{ id: string; key: string } | null>(null);
 
   React.useEffect(() => {
     setShowUnassigned(false); setSelectedIds([]); setToDelete(null); setConfirmKsef(null); setSelectedForEmail(null);
@@ -127,16 +134,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter, ...(sortOrder === "date_asc" ? { sort: sortOrder } : {}) }, true, initialSearch);
   const invoices = results.invoices, filtered = invoices;
-  const previewInvoice = previewSelection?.key === results.key ? invoices.find(invoice => invoice.id === previewSelection.id) : undefined;
-  React.useEffect(() => {
-    // Revoked/deleted documents must not reappear if a later refresh restores rows.
-    if (previewSelection && !previewInvoice) setPreviewSelection(null);
-  }, [previewSelection, previewInvoice]);
+  const preview = useInvoicePreview(results,()=>toast("error","Dostęp do dokumentów wygasł","Odśwież listę, aby sprawdzić aktualne uprawnienia."));
+  const previewInvoice = preview.invoice;
+  const selectionTotals = React.useMemo(()=>invoiceSelectionTotals(invoices,selectedIds),[invoices,selectedIds]);
   const openPreview = (event: React.MouseEvent, invoice: Invoice) => {
     // Keep native link behavior for new tabs/windows and ordinary text selection.
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || window.getSelection()?.toString()) return;
     event.preventDefault();
-    setPreviewSelection({id: invoice.id, key: results.key});
+    preview.open(invoice);
   };
   const highlightedId = useCreatedInvoiceHighlight(showUnassigned ? null : selectedCompanyId, filtered.map(invoice => invoice.id));
   useKsefStatusPolling(invoices, results.reload);
@@ -151,7 +156,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   };
   const canExport = !!selectedCompanyId && !showUnassigned && permissions?.canExport === true;
   const payableSelected = invoices.filter(i => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && i.status !== "draft" && i.documentStatus !== "draft" && i.status !== "paid" && i.paymentStatus !== "paid");
-  React.useEffect(() => { setSelectedIds([]); setPreviewSelection(null); }, [results.key]);
+  React.useEffect(() => { setSelectedIds([]); }, [results.key]);
 
   const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || approvalFilter !== "all" || currencyFilter !== "all";
   const clearFilters = () => updateView({search: "", statusFilter: "all", typeFilter: "all", approvalFilter: "all", currencyFilter: "all"});
@@ -476,7 +481,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         }
       />
 
-      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={showUnassigned ? null : selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density }} apply={f => {
+      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={showUnassigned ? null : selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density, columns: columnSettings.columns.join(",") }} apply={f => {
         setSearch(typeof f.search === "string" ? f.search : "");
         if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
         if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
@@ -484,6 +489,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
         if (["date_desc", "date_asc"].includes(f.sortOrder)) updateView({sortOrder: f.sortOrder as typeof sortOrder});
         if (["comfortable", "compact"].includes(f.density)) updateView({density: f.density as typeof density});
+        if (typeof f.columns === "string") columnSettings.update(f.columns ? f.columns.split(",") : []);
         setSelectedIds([]);
       }} /></React.Suspense>}</details>
 
@@ -643,7 +649,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       </div>
 
       {/* Pasek masowych operacji */}
-      {selectedIds.length > 0 && (
+      {selectionTotals.length > 0 && (
         <div
           className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 px-4 shadow-sm motion-safe:animate-slide-in-up"
         >
@@ -725,6 +731,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               Odznacz
             </Button>
           </div>
+          <InvoiceSelectionSummary totals={selectionTotals} />
         </div>
       )}
 
@@ -770,6 +777,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-full sm:w-[180px]">
             <option value="comfortable">Widok wygodny</option><option value="compact">Widok kompaktowy</option>
           </Select>
+          <InvoiceColumnsMenu columns={columnSettings.columns} toggle={columnSettings.toggle} reset={columnSettings.reset} />
           {hasFilters && (
             <Button
               variant="ghost"
@@ -823,138 +831,43 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           })}
         </div>
         <div className="ui-invoice-scroll hidden md:block" role="region" aria-label="Tabela faktur — przewijana lista" tabIndex={0}>
-          <table className="ui-invoice-table w-full min-w-[880px] text-left text-[13px] leading-5">
-            <caption className="sr-only">Lista faktur. Kliknij numer dokumentu, aby otworzyć szybki podgląd. Akcje są dostępne w menu każdego wiersza.</caption>
-            <thead>
-              <tr className="border-b border-border/70 text-xs leading-4 font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30">
-                <th scope="col" className="py-3 px-3 w-8 text-center">
-                  <input
-                    type="checkbox"
-                    aria-label="Zaznacz wszystkie widoczne faktury"
-                    checked={filtered.length > 0 && selectedIds.length === filtered.length}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedIds(filtered.map((i) => i.id));
-                      } else {
-                        setSelectedIds([]);
-                      }
-                    }}
-                    className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
-                  />
-                </th>
-                <th scope="col" className="py-3 px-3">Dokument</th>
-                <th scope="col" className="py-3 px-3">Kontrahent</th>
-                <th scope="col" className="py-3 px-3">Daty</th>
-                <th scope="col" className="py-3 px-3 text-right">Brutto</th>
-                <th scope="col" className="py-3 px-3">Płatność</th>
-                <th scope="col" className="py-3 px-3">KSeF</th>
-                <th scope="col" className="hidden py-3 px-3 2xl:table-cell">Księgowość</th>
-                <th scope="col" className="py-3 px-4 text-right">Akcje</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {/* Avoid measuring animated rows in the desktop table hidden on mobile. */}
-                {filtered.map((inv) => {
-                  const ctr = getContractor(contractors, inv.contractorId);
-                  const payment = invoicePaymentPresentation(inv);
-                  const ksefNum = inv.ksef?.number || inv.ksefNumber;
-                  const isSelected = selectedIds.includes(inv.id);
-                  const isApproved = inv.approvalStatus === "approved";
-
-                  return (
-                    <tr
-                      key={inv.id}
-                      data-invoice-id={inv.id}
-                      data-preview-active={previewInvoice?.id === inv.id || undefined}
-                      data-selected={isSelected || undefined}
-                      data-new-invoice={highlightedId === inv.id || undefined}
-                      onClick={event => { if (event.currentTarget.contains(event.target as Node) && !(event.target as HTMLElement).closest('a,button,input,label,[role="menuitem"]')) openPreview(event, inv); }}
-                      className="ui-invoice-row cursor-pointer transition-colors hover:bg-muted/30"
-                    >
-                      <td className="py-3.5 px-3 text-center">
-                        <input
-                          type="checkbox"
-                          aria-label={`Zaznacz fakturę ${inv.number}`}
-                          checked={isSelected}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedIds((prev) => [...prev, inv.id]);
-                            } else {
-                              setSelectedIds((prev) => prev.filter((id) => id !== inv.id));
-                            }
-                          }}
-                          className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
-                        />
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <Link prefetch={false} href={`/invoices/${inv.id}`} onClick={event => openPreview(event, inv)} aria-haspopup="dialog" className="group flex items-center gap-2.5 rounded-lg">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                            <FileText className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-[13px] text-foreground group-hover:text-primary transition-colors">
-                              {inv.number}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {inv.isProforma ? "PRO Proforma" : inv.type === "sale" ? "FV Sprzedaż" : "FZ Zakup"} · {inv.currency}
-                            </p>
-                          </div>
-                        </Link>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <p className="font-medium text-foreground max-w-[170px] truncate" title={ctr?.name || "Klient detaliczny"}>{ctr?.name || "Klient detaliczny"}</p>
-                        <p className="text-xs tabular-nums text-muted-foreground">{ctr?.nip || ""}</p>
-                      </td>
-
-                      <td className="py-3.5 px-3 tabular-nums whitespace-nowrap text-muted-foreground">
-                        <p>{formatDate(inv.issueDate)}</p>
-                        <p className="text-xs">do {formatDate(inv.dueDate)}</p>
-                      </td>
-
-                      <td className="py-3.5 px-3 text-right font-semibold tabular-nums whitespace-nowrap text-foreground text-sm">
-                        {formatMoney(
-                          inv.totalGross ?? invoiceTotals(inv).gross,
-                          inv.currency
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <Badge className={`${payment.color} rounded-lg px-2.5 py-1 text-xs whitespace-nowrap`}>
-                          <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full mr-1.5 ${payment.dot}`} />
-                          {payment.label}
-                        </Badge>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <KsefStatusBadge invoice={inv} />
-                      </td>
-
-                      {/* Status akceptacji księgowej (na wzór wFirma — Screen 4) */}
-                      <td className="hidden py-3.5 px-3 2xl:table-cell">
-                        {inv.type === "purchase" ? (
-                          isApproved ? (
-                            <span
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25"
-                              title="Faktura zatwierdzona do księgowości"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Zaakceptowana
-                            </span>
-                          ) : (
-                            <span
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25"
-                              title="Wersja robocza — oczekuje na ręczne zatwierdzenie"
-                            >
-                              <Clock className="h-3.5 w-3.5 text-amber-500" /> Do akceptacji
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-muted-foreground text-[11px]">—</span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
+          <table className="ui-invoice-table w-full text-left text-[13px] leading-5" style={{minWidth:456+activeColumns.reduce((width,column)=>width+column.width,0)}}>
+            <caption className="sr-only">Lista faktur. Numer dokumentu i akcje pozostają widoczne podczas przewijania. Kliknij numer, aby otworzyć szybki podgląd.</caption>
+            <colgroup><col style={{width:244}} />{activeColumns.map(column=><col key={column.id} style={{width:column.width}} />)}<col style={{width:212}} /></colgroup>
+            <thead><tr>
+              <th scope="col" data-invoice-column="document" className="px-3 py-3"><div className="flex items-center gap-3">
+                <input type="checkbox" aria-label="Zaznacz wszystkie widoczne faktury" ref={element=>{if(element)element.indeterminate=filtered.some(invoice=>selectedIds.includes(invoice.id))&&!filtered.every(invoice=>selectedIds.includes(invoice.id));}}
+                  checked={filtered.length>0&&filtered.every(invoice=>selectedIds.includes(invoice.id))} onChange={event=>setSelectedIds(event.target.checked?filtered.map(invoice=>invoice.id):[])} className="size-4 shrink-0 accent-primary" />
+                <span>Dokument</span>
+              </div></th>
+              {activeColumns.map(column=><th key={column.id} scope="col" data-invoice-column={column.id} className={`px-3 py-3 ${column.id==='gross'?'text-right':''}`}>{column.label}</th>)}
+              <th scope="col" data-invoice-column="actions" className="px-3 py-3 text-right">Akcje</th>
+            </tr></thead>
+            <tbody>
+              {filtered.map(inv=>{
+                const ctr=getContractor(contractors,inv.contractorId), payment=invoicePaymentPresentation(inv);
+                const ksefNum=inv.ksef?.number||inv.ksefNumber, isSelected=selectedIds.includes(inv.id), isApproved=inv.approvalStatus==='approved';
+                const cells:Record<InvoiceColumnId,React.ReactNode>={
+                  contractor:<><p className="max-w-[176px] truncate font-medium text-foreground" title={ctr?.name||'Klient detaliczny'}>{ctr?.name||'Klient detaliczny'}</p><p className="text-xs tabular-nums text-muted-foreground">{ctr?.nip||''}</p></>,
+                  issueDate:<time dateTime={inv.issueDate} className="tabular-nums text-muted-foreground">{formatDate(inv.issueDate)}</time>,
+                  dueDate:<time dateTime={inv.dueDate} className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</time>,
+                  gross:<span className="whitespace-nowrap text-sm font-semibold tabular-nums">{formatMoney(inv.totalGross??invoiceTotals(inv).gross,inv.currency)}</span>,
+                  payment:<Badge className={`${payment.color} rounded-lg px-2.5 py-1 text-xs`}><span aria-hidden="true" className={`mr-1.5 size-1.5 shrink-0 rounded-full ${payment.dot}`} />{payment.label}</Badge>,
+                  ksef:<KsefStatusBadge invoice={inv} />,
+                  currency:<span className="text-xs font-medium">{inv.currency}</span>,
+                  approval:inv.type==='purchase'?<Badge className={isApproved?'border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300':'border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300'}>{isApproved?<CheckCircle2 className="mr-1 size-3.5" aria-hidden="true" />:<Clock className="mr-1 size-3.5" aria-hidden="true" />}{isApproved?'Zaakceptowana':'Do akceptacji'}</Badge>:<span className="text-muted-foreground">—</span>,
+                };
+                return <tr key={inv.id} data-invoice-id={inv.id} data-preview-active={previewInvoice?.id===inv.id||undefined} data-selected={isSelected||undefined} data-new-invoice={highlightedId===inv.id||undefined}
+                  onClick={event=>{if(event.currentTarget.contains(event.target as Node)&&!(event.target as HTMLElement).closest('a,button,input,label,[role="menuitem"],[role="menuitemcheckbox"]'))openPreview(event,inv);}} className="ui-invoice-row cursor-pointer transition-colors">
+                  <td data-invoice-column="document" className="px-3 py-3.5"><div className="flex items-center gap-3">
+                    <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={isSelected} onChange={event=>setSelectedIds(ids=>event.target.checked?[...ids,inv.id]:ids.filter(id=>id!==inv.id))} className="size-4 shrink-0 accent-primary" />
+                    <Link prefetch={false} href={`/invoices/${inv.id}`} onClick={event=>openPreview(event,inv)} aria-haspopup="dialog" className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileText className="size-3.5" aria-hidden="true" /></span>
+                      <span className="min-w-0 flex-1"><span className="block max-w-36 truncate font-semibold text-foreground group-hover:text-primary" title={inv.number}>{inv.number}</span><span className="block text-xs text-muted-foreground">{inv.isProforma?'PRO Proforma':inv.type==='sale'?'FV Sprzedaż':'FZ Zakup'} · {inv.currency}</span></span>
+                    </Link>
+                  </div></td>
+                  {activeColumns.map(column=><td key={column.id} data-invoice-column={column.id} className={`px-3 py-3.5 ${column.id==='gross'?'text-right':''}`}>{cells[column.id]}</td>)}
+                      <td data-invoice-column="actions" className="py-3.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button variant="ghost" size="icon" onClick={event => openPreview(event, inv)} aria-label={`Podgląd faktury ${inv.number}`} title="Szybki podgląd" className="h-9 w-9"><Eye className="size-4" aria-hidden="true" /></Button>
                           {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
@@ -974,9 +887,8 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                           </InvoiceRowActions>
                         </div>
                       </td>
-                    </tr>
-                  );
-                })}
+                </tr>;
+              })}
             </tbody>
           </table>
 
@@ -998,7 +910,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
       </div>
 
-      {previewInvoice && <React.Suspense fallback={<span role="status" className="sr-only">Otwieranie podglądu faktury…</span>}><InvoiceQuickPreview key={previewInvoice.id} invoice={previewInvoice} contractor={getContractor(contractors, previewInvoice.contractorId)} onClose={() => setPreviewSelection(null)} /></React.Suspense>}
+      {previewInvoice && <React.Suspense fallback={<span role="status" className="sr-only">Otwieranie podglądu faktury…</span>}><InvoiceQuickPreview invoice={previewInvoice} contractor={getContractor(contractors, previewInvoice.contractorId)} onClose={preview.close} navigation={{...preview,move:direction=>void preview.move(direction),retry:()=>void preview.retry()}} /></React.Suspense>}
 
       {confirmBulkPayment && <React.Suspense fallback={<span role="status" className="sr-only">Ładowanie potwierdzenia…</span>}><ConfirmDialog
         open

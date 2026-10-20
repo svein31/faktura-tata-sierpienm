@@ -3,7 +3,8 @@ import * as React from "react";
 import { useAppStore } from "@/lib/store";
 import type { Invoice } from "@/lib/types";
 import { createInvoiceSearchLifecycle } from "@/lib/invoice-search-lifecycle";
-type Result = { invoices: Invoice[]; total: number; counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }; nextCursor: string | null };
+export type InvoiceSearchResult = { invoices: Invoice[]; total: number; counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }; nextCursor: string | null };
+type Result = InvoiceSearchResult;
 export type InitialInvoiceSearch = { url: string; data: Result };
 const EMPTY: Result = { invoices: [], total: 0, counts: { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: null };
 export function useInvoiceSearch(filters: Record<string, string>, enabled = true, initialSearch?: InitialInvoiceSearch) {
@@ -84,7 +85,7 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
   }, [url, revision, mutations, enabled, filters.search]);
   React.useEffect(() => { const visible = () => { if (document.visibilityState === "visible" && !lifecycle.current?.departing) refresh(); }; document.addEventListener("visibilitychange", visible); return () => document.removeEventListener("visibilitychange", visible); }, []);
   const data = enabled && state.url === url ? state.data : EMPTY;
-  return { ...data, loading, error, reload, page: cursors.length, key: url,
+  return { ...data, loading, error, reload, page: cursors.length, cursors, key: url,
     first: () => setPaging({ key: filterKey, cursors: [""] }),
     previous: () => setPaging({ key: filterKey, cursors: cursors.slice(0, -1) }),
     next: () => { if (data.nextCursor) setPaging({ key: filterKey, cursors: [...cursors, data.nextCursor] }); },

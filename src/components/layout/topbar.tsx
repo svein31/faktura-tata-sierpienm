@@ -98,7 +98,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   const companyButton = activeCompany ? <button
     type="button"
     onClick={companies.length > 1 ? undefined : () => router.push("/settings/companies")}
-    className="flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-xl border border-input bg-card px-3 py-1.5 text-left shadow-2xs transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 sm:w-auto sm:max-w-[260px]"
+    className="flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-xl border border-input bg-card px-3 py-1.5 text-left shadow-2xs transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 xl:w-auto xl:max-w-[260px]"
   >
     <span className="sr-only">{companies.length > 1 ? "Wybierz firmę:" : "Ustawienia firmy:"} </span>
     <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -115,7 +115,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
   </button> : null;
 
   return (
-    <header className="no-print sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-border/60 bg-background px-3 py-2 sm:flex sm:h-16 sm:gap-3 sm:bg-background/95 sm:px-6 sm:py-0">
+    <header className="no-print sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-border/60 bg-background px-3 py-2 xl:flex xl:h-16 xl:gap-3 xl:bg-background/95 xl:px-6 xl:py-0">
       <div className="order-1 flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onMenu}
@@ -140,7 +140,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
       </div>
 
-      <div className={`order-3 col-span-2 min-w-0 sm:order-2 sm:ml-2 ${!activeCompany ? "sm:hidden" : ""}`}>
+      <div className={`order-3 col-span-2 min-w-0 xl:order-2 xl:ml-2 ${!activeCompany ? "xl:hidden" : ""}`}>
         {!activeCompany ? hydrated ? (
           <Link prefetch={false} href="/settings/companies" className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-input bg-card px-3 py-1.5 text-[13px] font-semibold transition-colors hover:border-primary/35 hover:bg-muted/30">
             <Building2 aria-hidden="true" className="size-4 text-primary" />Dodaj firmę
@@ -173,7 +173,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         ) : companyButton)}
       </div>
 
-      <div className="order-2 flex shrink-0 items-center gap-1 sm:order-3 sm:ml-auto sm:gap-2">
+      <div className="order-2 flex shrink-0 items-center gap-1 xl:order-3 xl:ml-auto sm:gap-2">
         {/* Przycisk wyszukiwania / Command Palette */}
         <button
           type="button"
@@ -182,9 +182,9 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           className="flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs sm:min-w-0"
         >
           <Search aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="sr-only md:hidden">Szukaj </span>
-          <span className="hidden md:inline">Szukaj...</span>
-          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-foreground dark:text-muted-foreground sm:inline">
+          <span className="sr-only xl:hidden">Szukaj </span>
+          <span className="hidden xl:inline">Szukaj...</span>
+          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-foreground dark:text-muted-foreground xl:inline">
             ⌘K
           </kbd>
           <span className="sr-only"> faktur, kontrahentów i poleceń</span>
@@ -212,8 +212,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-emerald-700 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
               {initials || "?"}
             </div>
-            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-foreground dark:text-muted-foreground md:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
-            <div className="hidden leading-tight md:block text-left">
+            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-foreground dark:text-muted-foreground 2xl:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
+            <div className="hidden leading-tight 2xl:block text-left">
               <p className="flex max-w-[155px] items-center gap-1 text-[13px] font-semibold text-foreground">
                 <span className="truncate">{user.name}</span>
                 {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-foreground dark:text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}

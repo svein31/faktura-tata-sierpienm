@@ -22,7 +22,7 @@ const { chromium, webkit, expect } = require('@playwright/test');
 const { migrateData } = await import(pathToFileURL(appRoot + '/scripts/migrate-data.mjs'));
 const inherit = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'no_proxy', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME'].filter(k => process.env[k] !== undefined).map(k => [k, process.env[k]]));
 const errors = [], blocked = [];
-const workflowSuite = ['invoice-ux', 'invoice-frontend', 'invoice-frontend-only'].includes(process.env.UI_AUDIT_SUITE);
+const workflowSuite = ['invoice-ux', 'invoice-frontend', 'invoice-frontend-only', 'invoice-power', 'invoice-power-only'].includes(process.env.UI_AUDIT_SUITE);
 let mongo, db, native, browser, server, logs = '';
 await mkdir(out, { recursive: true });
 try {
@@ -73,6 +73,21 @@ try {
     }
     await db.ksefQueueTask.create({data:{userId:user.id,invoiceId:states['queue-error'],environment:'production',status:'failed',errorDetails:'Błąd uprawnień z ostatniego zadania · TEST',idempotencyKey:'isolated-ux-failed'}});
     uxFixture={companyId:company.id,otherCompanyId:other.id,states,userId:user.id};
+    if (process.env.UI_AUDIT_SUITE?.startsWith('invoice-power')) {
+      const examples=[
+        {name:'PLN',currency:'PLN',totalNet:100,totalVat:23,totalGross:123},
+        {name:'CORRECTION',currency:'PLN',totalNet:-20,totalVat:-4.6,totalGross:-24.6,isCorrection:true,originalInvoiceNumber:'FV/POWER/SOURCE'},
+        {name:'EUR',currency:'EUR',totalNet:20,totalVat:0,totalGross:20},
+        {name:'USD-DRAFT',currency:'USD',totalNet:10,totalVat:0,totalGross:10,status:'draft',documentStatus:'draft',isProforma:true},
+      ];
+      const power={};
+      for(const example of examples) {
+        const {_id,...baseInvoice}=docs[1];const {name,...patch}=example;
+        const row={...baseInvoice,_id:new ObjectId(),number:'POWER/'+name,ksefStatus:'none',paidAmount:0,...patch};
+        await native.db().collection('Invoice').insertOne(row);power[name]=row._id.toHexString();
+      }
+      uxFixture.power=power;
+    }
   }
 
   
@@ -104,13 +119,17 @@ try {
   const page = await context.newPage();
   page.on('pageerror', e => {errors.push(e.message); console.log('[audit-page-error]',page.url(),e.message);});
   if (uxFixture) {
-    if (process.env.UI_AUDIT_SUITE !== 'invoice-frontend-only') {
+    if (!['invoice-frontend-only','invoice-power-only'].includes(process.env.UI_AUDIT_SUITE)) {
       const { auditInvoiceUx } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-ux-browser.mjs'));
       await auditInvoiceUx({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
     }
-    if (['invoice-frontend', 'invoice-frontend-only'].includes(process.env.UI_AUDIT_SUITE)) {
+    if (['invoice-frontend', 'invoice-frontend-only','invoice-power'].includes(process.env.UI_AUDIT_SUITE)) {
       const { auditInvoiceFrontend } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-frontend-browser.mjs'));
       await auditInvoiceFrontend({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+    }
+    if (process.env.UI_AUDIT_SUITE?.startsWith('invoice-power')) {
+      const { auditInvoicePower } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-power-browser.mjs'));
+      await auditInvoicePower({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
     }
   } else {
     const { auditUiMotion } = await import(pathToFileURL(appRoot + '/scripts/audit/ui-motion-browser.mjs'));

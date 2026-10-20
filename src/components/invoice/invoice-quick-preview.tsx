@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, FileText } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, LoaderCircle } from "lucide-react";
 import { SidePanel } from "@/components/ui/side-panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,10 @@ import type { Contractor, Invoice } from "@/lib/types";
 
 const PAYMENT_LABELS: Record<string, string> = { transfer: "Przelew", cash: "Gotówka", card: "Karta", blik: "BLIK", compensation: "Kompensata" };
 
-export function InvoiceQuickPreview({ invoice, contractor, onClose }: { invoice: Invoice; contractor?: Contractor | null; onClose: () => void }) {
+export function InvoiceQuickPreview({ invoice, contractor, onClose, navigation }: { invoice: Invoice; contractor?: Contractor | null; onClose: () => void; navigation: {
+  position:number;count:number;page:number;hasPrevious:boolean;hasNext:boolean;busy:boolean;error:string;
+  move:(direction:-1|1)=>void;retry:()=>void;
+} }) {
   const calculated = invoiceTotals(invoice);
   const total = { net: invoice.totalNet ?? calculated.net, vat: invoice.totalVat ?? calculated.vat, gross: invoice.totalGross ?? calculated.gross };
   const status = invoicePaymentPresentation(invoice);
@@ -21,7 +24,21 @@ export function InvoiceQuickPreview({ invoice, contractor, onClose }: { invoice:
   const paid = invoice.paidAmount ?? 0;
   const remaining = Math.max(0, round2(total.gross - paid));
   const kind = invoice.isCorrection ? "Faktura korygująca" : invoice.isProforma ? "Proforma" : invoice.type === "purchase" ? "Faktura zakupowa" : "Faktura sprzedaży";
-  return <SidePanel title={invoice.number || "Dokument bez numeru"} description={`${kind} · szybki podgląd`} onClose={onClose} footer={<>
+  const previous = () => {if(navigation.hasPrevious && !navigation.busy) navigation.move(-1);};
+  const next = () => {if(navigation.hasNext && !navigation.busy) navigation.move(1);};
+  return <SidePanel contentKey={invoice.id} title={invoice.number || "Dokument bez numeru"} description={`${kind} · szybki podgląd`} onClose={onClose} onKeyDown={event=>{
+    if(event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || window.getSelection()?.toString()) return;
+    if((event.target as HTMLElement).closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="combobox"],[role="listbox"],[role="menu"]')) return;
+    if(event.key==='ArrowLeft') {event.preventDefault();previous();}
+    if(event.key==='ArrowRight') {event.preventDefault();next();}
+  }} toolbar={<div className="shrink-0 border-b border-border/60 px-5 py-3 sm:px-6">
+    <nav aria-label="Przeglądanie faktur" className="flex items-center justify-between gap-3">
+      <Button variant="outline" size="icon" aria-label="Poprzednia faktura" aria-keyshortcuts="ArrowLeft" aria-disabled={!navigation.hasPrevious || navigation.busy} onClick={previous} className="aria-disabled:opacity-40"><ChevronLeft className="size-4" aria-hidden="true" /></Button>
+      <div role="status" aria-live="polite" aria-atomic="true" className="min-w-0 text-center text-xs leading-5 text-muted-foreground"><span className="sr-only">{invoice.number}. </span>{navigation.busy?<span className="inline-flex items-center gap-2"><LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />Ładowanie dokumentów…</span>:<>Dokument <strong className="font-medium tabular-nums text-foreground">{navigation.position} z {navigation.count}</strong><span className="block">Strona {navigation.page} wyników</span></>}</div>
+      <Button variant="outline" size="icon" aria-label="Następna faktura" aria-keyshortcuts="ArrowRight" aria-disabled={!navigation.hasNext || navigation.busy} onClick={next} className="aria-disabled:opacity-40"><ChevronRight className="size-4" aria-hidden="true" /></Button>
+    </nav>
+    {navigation.error&&<div role="alert" className="mt-3 text-xs leading-5 text-destructive">{navigation.error}<button type="button" onClick={navigation.retry} className="mt-1 block rounded font-medium underline underline-offset-4">Spróbuj ponownie</button></div>}
+  </div>} footer={<>
     <Button variant="ghost" onClick={onClose}>Wróć do listy</Button>
     <Link prefetch={false} href={`/invoices/${encodeURIComponent(invoice.id)}`} className="ui-detail-link">Otwórz szczegóły <ArrowUpRight className="size-4" aria-hidden="true" /></Link>
   </>}>

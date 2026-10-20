@@ -1050,7 +1050,7 @@ iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
     scrollbar-gutter: stable;
     scroll-padding-top: 52px;
   }
-  .ui-invoice-table { border-collapse: separate; border-spacing: 0; }
+  .ui-invoice-table { border-collapse: separate; border-spacing: 0; table-layout: fixed; }
   .ui-invoice-table th {
     position: sticky;
     top: 0;
@@ -1067,6 +1067,25 @@ iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
   .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"]) { background: hsl(var(--primary) / 0.055); }
   .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"]) > td:first-child { box-shadow: inset 3px 0 hsl(var(--primary)); }
   .ui-invoice-row:focus-within { background: hsl(var(--primary) / 0.035); }
+  .ui-invoice-table .ui-invoice-row { --invoice-row-tint: 0; }
+  .ui-invoice-table .ui-invoice-row:hover,
+  .ui-invoice-table .ui-invoice-row:focus-within { --invoice-row-tint: 0.035; background: hsl(var(--primary) / 0.035); }
+  .ui-invoice-table .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"], [data-new-invoice="true"]) { --invoice-row-tint: 0.065; }
+  .ui-invoice-table :is(th,td):is([data-invoice-column="document"],[data-invoice-column="actions"]) {
+    position: sticky; background: hsl(var(--card));
+  }
+  .ui-invoice-table [data-invoice-column="document"] { left: 0; }
+  .ui-invoice-table [data-invoice-column="actions"] { right: 0; }
+  .ui-invoice-table td:is([data-invoice-column="document"],[data-invoice-column="actions"]) { z-index: 1; isolation: isolate; }
+  /* Keep pinned cells opaque even while a new-row highlight animates beneath. */
+  .ui-invoice-table td:is([data-invoice-column="document"],[data-invoice-column="actions"])::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(hsl(var(--primary) / var(--invoice-row-tint)),hsl(var(--primary) / var(--invoice-row-tint))),hsl(var(--card));
+  }
+  .ui-invoice-table th:is([data-invoice-column="document"],[data-invoice-column="actions"]) { z-index: 4; }
+  .ui-invoice-table [data-invoice-column="document"] { box-shadow: 8px 0 14px -12px hsl(224 45% 4% / 0.35); }
+  .ui-invoice-table [data-invoice-column="actions"] { box-shadow: -8px 0 14px -12px hsl(224 45% 4% / 0.35); }
+  .ui-invoice-table .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"]) > td:first-child { box-shadow: inset 3px 0 hsl(var(--primary)),8px 0 14px -12px hsl(224 45% 4% / 0.35); }
 
   .ui-side-overlay { position: fixed; z-index: 70; display: flex; justify-content: flex-end; }
   .ui-side-backdrop {
