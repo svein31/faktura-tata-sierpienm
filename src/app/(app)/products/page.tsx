@@ -123,7 +123,7 @@ export default function ProductsPage() {
         />
       </div>
 
-      <div className="rounded-2xl border border-border/60 bg-card/70 backdrop-blur-md shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-border/60 bg-card  shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-[13px]">
             <thead>
@@ -149,7 +149,7 @@ export default function ProductsPage() {
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 ring-1 ring-inset ring-emerald-500/20">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success ring-1 ring-inset ring-success/20">
                           <Package className="h-4 w-4" />
                         </div>
                         <div>
@@ -184,7 +184,7 @@ export default function ProductsPage() {
                           size="icon"
                           onClick={() => setToDelete(p.id)}
                           title="Usuń"
-                          className="text-muted-foreground hover:text-red-500"
+                          className="text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -197,7 +197,7 @@ export default function ProductsPage() {
           </table>
           {filtered.length === 0 && (
             <div className="py-16 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Package className="h-6 w-6" />
               </div>
               <p className="mt-4 text-[15px] font-semibold text-foreground">

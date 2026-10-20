@@ -168,13 +168,13 @@ export function CookieConsentBanner() {
           data-cookie-consent-banner=""
           className="no-print fixed bottom-0 inset-x-0 z-40 p-2 sm:p-4 md:p-6 pointer-events-none"
         >
-          <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-6 shadow-lg pointer-events-auto ring-1 ring-black/5">
+          <div className="max-w-4xl mx-auto bg-card border border-border rounded-xl p-3 sm:p-6 shadow-[var(--shadow-popup)] pointer-events-auto">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-6">
               
               {/* Opis tekstowy */}
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400">
+                  <div className="p-1 rounded-md bg-muted text-muted-foreground">
                     <Cookie className="w-4 h-4" />
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
@@ -185,9 +185,9 @@ export function CookieConsentBanner() {
                   Cookies niezbędne zapewniają działanie serwisu. Za Twoją zgodą zapisujemy preferencje, mierzymy etapy korzystania z aplikacji i korzystamy z Google Analytics na stronach publicznych.
                 </p>
                 <div className="flex items-center gap-3 text-[11px] pt-0.5">
-                  <Link prefetch={false} href="/polityka-cookies" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Polityka cookies</Link>
+                  <Link prefetch={false} href="/polityka-cookies" className="text-primary dark:text-primary hover:underline font-medium">Polityka cookies</Link>
                   <span className="text-slate-300 dark:text-slate-700">•</span>
-                  <Link prefetch={false} href="/polityka-prywatnosci" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Polityka prywatności</Link>
+                  <Link prefetch={false} href="/polityka-prywatnosci" className="text-primary dark:text-primary hover:underline font-medium">Polityka prywatności</Link>
                 </div>
               </div>
 
@@ -197,7 +197,7 @@ export function CookieConsentBanner() {
                   type="button"
                   ref={preferencesTrigger}
                   onClick={() => { restoreBannerFocus.current = true; setShowPreferencesModal(true); }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 min-h-11 text-xs font-semibold px-2 py-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 order-3 md:order-1"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-11 text-xs font-semibold px-2 py-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 order-3 md:order-1"
                 >
                   <Sliders className="w-3.5 h-3.5 shrink-0 text-slate-500" />
                   Ustawienia
@@ -206,7 +206,7 @@ export function CookieConsentBanner() {
                 <button
                   type="button"
                   onClick={handleRejectOptional}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 min-h-11 text-xs font-semibold px-2 py-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 order-2"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-11 text-xs font-semibold px-2 py-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 order-2"
                 >
                   Odrzuć opcjonalne
                 </button>
@@ -214,7 +214,7 @@ export function CookieConsentBanner() {
                 <button
                   type="button"
                   onClick={handleAcceptAll}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 min-h-11 text-xs font-semibold px-2 py-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm order-1 md:order-3"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-11 text-xs font-medium px-2 py-2 bg-card hover:bg-muted text-foreground transition-colors duration-150 order-1 md:order-3"
                 >
                   Akceptuj wszystkie
                 </button>

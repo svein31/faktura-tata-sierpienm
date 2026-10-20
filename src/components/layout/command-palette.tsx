@@ -410,7 +410,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-x-0 z-[9999] flex items-start justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-x-0 z-[9999] flex items-start justify-center p-3 sm:p-4 bg-black/60 "
           style={{top:visualBounds.top,height:visualBounds.height || "100dvh"}}
           onClick={() => setOpen(false)}
         >
@@ -424,7 +424,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
             tabIndex={-1}
             aria-modal="true"
             aria-label="Wyszukiwanie i polecenia"
-            className="w-full min-w-0 max-w-2xl max-h-full rounded-2xl border border-border/70 bg-card/95 backdrop-blur-2xl shadow-apple-lg overflow-hidden flex flex-col"
+            className="w-full min-w-0 max-w-2xl max-h-full rounded-xl border border-border bg-card shadow-[var(--shadow-dialog)] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Pasek Wyszukiwania */}
@@ -450,14 +450,14 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
-              <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
                 ESC
               </kbd>
             </div>
 
             {/* Zakładki / Filtry kategorii */}
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/50 bg-card/40 text-xs overflow-x-auto">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 mr-1 hidden sm:inline">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/50 bg-card text-xs overflow-x-auto">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mr-1 hidden sm:inline">
                 Filtr:
               </span>
               {[
@@ -491,7 +491,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               {filtered.length === 0 ? (
                 <div className="py-12 text-center text-xs text-muted-foreground">
                   Nie znaleziono wyników dla &bdquo;<strong className="text-foreground">{query}</strong>&rdquo;.
-                  <p className="mt-1 text-[11px] text-muted-foreground/80">
+                  <p className="mt-1 text-xs text-muted-foreground/80">
                     Sprawdź numer faktury, fragment NIP lub nazwę kontrahenta.
                   </p>
                 </div>
@@ -529,26 +529,26 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                             </span>
                             {item.badge && (
                               <span
-                                className={`text-[10px] font-semibold px-1.5 py-0.2 rounded border ${
+                                className={`text-xs font-semibold px-1.5 py-0.2 rounded border ${
                                   item.badgeTone === "success"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25"
+                                    ? "bg-success/10 text-success dark:text-success border-success/25"
                                     : item.badgeTone === "danger"
-                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25"
+                                    ? "bg-destructive/10 text-destructive dark:text-destructive border-destructive/25"
                                     : item.badgeTone === "info"
-                                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25"
+                                    ? "bg-info/10 text-info dark:text-info border-info/25"
                                     : "bg-muted text-muted-foreground border-border/70"
                                 }`}
                               >
                                 {item.badge}
                               </span>
                             )}
-                            <span className="text-[10px] uppercase font-semibold text-muted-foreground/60 tracking-wider">
+                            <span className="text-xs uppercase font-semibold text-muted-foreground/60 tracking-wider">
                               {item.category}
                             </span>
                           </div>
 
                           {item.subtitle && (
-                            <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
                               {item.subtitle}
                             </p>
                           )}
@@ -572,7 +572,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                             className="pointer-events-auto p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             {copiedId === item.id ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                              <Check className="h-3.5 w-3.5 text-success" />
                             ) : (
                               <Copy className="h-3.5 w-3.5" />
                             )}
@@ -588,14 +588,14 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
             </div>
 
             {/* Stopka z podpowiedziami klawiatury */}
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-t border-border/60 bg-muted/20 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-t border-border/60 bg-muted/20 text-xs text-muted-foreground">
               <div className="flex flex-wrap items-center gap-3">
-                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↑↓</kbd> Nawiguj</span>
-                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">↵</kbd> Otwórz</span>
-                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-[10px]">Tab</kbd> Następny element</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-xs">↑↓</kbd> Nawiguj</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-xs">↵</kbd> Otwórz</span>
+                <span><kbd className="px-1 py-0.5 rounded bg-muted border text-xs">Tab</kbd> Następny element</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 <span>FakturaProsto Global Search</span>
               </div>
             </div>

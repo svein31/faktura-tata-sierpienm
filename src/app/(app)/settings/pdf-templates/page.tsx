@@ -35,7 +35,7 @@ function Editor({ companyId }: { companyId: string }) {
     finally { if (alive.current) setBusy(false); }
   };
   return <div className="space-y-4 max-w-4xl">
-    {error && <p role="alert" className="border border-rose-500 rounded-lg p-3">{error}<Button variant="ghost" onClick={() => { void load().catch(e => setError(e.message)); }}>Odśwież</Button></p>}
+    {error && <p role="alert" className="border border-destructive rounded-lg p-3">{error}<Button variant="ghost" onClick={() => { void load().catch(e => setError(e.message)); }}>Odśwież</Button></p>}
     {message && <p role="status">{message}</p>}
     <fieldset disabled={busy || !data?.canManage} className="border rounded-xl p-4 grid gap-3 sm:grid-cols-2">
       <legend>Nowa wersja szablonu</legend>

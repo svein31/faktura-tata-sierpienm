@@ -699,7 +699,7 @@ export default function HelpPage() {
             placeholder="Szukaj instrukcji... np. mail, ksef, logo, gus, koszt, paczka"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 text-xs sm:text-sm bg-card/60"
+            className="pl-9 text-xs sm:text-sm bg-card"
           />
           {search && (
             <button
@@ -719,8 +719,8 @@ export default function HelpPage() {
               onClick={() => setActiveCategory(cat.id)}
               className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
                 activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground shadow-xs scale-105"
-                  : "bg-card/70 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40"
               }`}
             >
               {cat.label}
@@ -735,32 +735,30 @@ export default function HelpPage() {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="rounded-3xl border-2 border-blue-500/40 bg-gradient-to-br from-blue-500/[0.08] via-card to-indigo-500/[0.08] p-5 sm:p-7 shadow-lg shadow-blue-500/5 relative overflow-hidden"
+            transition={{ duration: 0.16 }}
+            className="surface-card p-5 sm:p-6"
           >
-            {/* Ozdobny gradient w tle */}
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-500/15 blur-3xl" />
 
             <div className="relative z-10 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md ">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-primary dark:text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                         Kluczowa Funkcja • Instrukcja Priorytetowa
                       </span>
                     </div>
-                    <h2 className="text-lg sm:text-xl font-black tracking-tight text-foreground mt-0.5">
+                    <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground mt-0.5">
                       JAK WYSŁAĆ FAKTURĘ E-MAILEM Z SYSTEMU
                     </h2>
                   </div>
                 </div>
 
                 <Link prefetch={false} href="/invoices">
-                  <Button size="sm" className="gap-1.5 font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                  <Button size="sm" className="gap-1.5 font-bold bg-primary hover:bg-primary text-primary-foreground shadow-sm">
                     <Send className="h-3.5 w-3.5" />
                     <span>Otwórz listę faktur i wyślij</span>
                   </Button>
@@ -769,9 +767,9 @@ export default function HelpPage() {
 
               {/* TEKST INSTRUKCJI W CAŁOŚCI POGRUBIONĄ CZCIONKĄ (WYMÓG UŻYTKOWNIKA) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">1</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">1</span>
                     Wejdź w listę faktur lub szczegóły dokumentu
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -779,9 +777,9 @@ export default function HelpPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">2</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">2</span>
                     Adres klienta uzupełnia się samoczynnie
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -789,9 +787,9 @@ export default function HelpPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">3</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">3</span>
                     Gotowa, profesjonalna treść z kwotą i kontem
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -799,9 +797,9 @@ export default function HelpPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">4</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">4</span>
                     Załącznik PDF jest dołączony domyślnie
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -809,9 +807,9 @@ export default function HelpPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">5</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">5</span>
                     Wysyłka w 0.2 sekundy i pełna historia doręczeń
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -819,9 +817,9 @@ export default function HelpPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-blue-500/30 bg-card/80 p-4 shadow-2xs space-y-2">
-                  <p className="font-extrabold text-[13px] text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-[11px] font-black">6</span>
+                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
+                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">6</span>
                     Automat po akceptacji przez KSeF
                   </p>
                   <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
@@ -831,15 +829,15 @@ export default function HelpPage() {
               </div>
 
               {/* Informacja o zmiennych na Netlify */}
-              <div className="rounded-2xl bg-blue-500/10 border border-blue-500/20 p-3.5 text-xs text-blue-950 dark:text-blue-200">
-                <p className="font-black text-[12px] uppercase tracking-wide">
+              <div className="rounded-xl bg-primary/10 border border-primary/20 p-3.5 text-xs text-primary dark:text-primary">
+                <p className="font-semibold text-[12px] uppercase tracking-wide">
                   Wskazówka: Jak aktywować wysyłkę na Netlify (ta-fax.netlify.app):
                 </p>
                 <p className="font-bold mt-1 text-[11.5px] leading-relaxed">
                   W panelu Netlify (Site configuration → Environment variables) dodaj zmienne:{" "}
-                  <code className="bg-blue-500/20 px-1 py-0.5 rounded font-black">RESEND_API_KEY</code> oraz{" "}
-                  <code className="bg-blue-500/20 px-1 py-0.5 rounded font-black">EMAIL_FROM</code>, a następnie kliknij{" "}
-                  <span className="underline font-black">Deploys → Trigger deploy → Deploy site</span>.
+                  <code className="bg-muted px-1 py-0.5 rounded text-foreground font-medium">RESEND_API_KEY</code> oraz{" "}
+                  <code className="bg-muted px-1 py-0.5 rounded text-foreground font-medium">EMAIL_FROM</code>, a następnie kliknij{" "}
+                  <span className="underline font-semibold">Deploys → Trigger deploy → Deploy site</span>.
                 </p>
               </div>
             </div>
@@ -858,7 +856,7 @@ export default function HelpPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
-                className="flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-5 shadow-xs hover:border-border transition-all"
+                className="flex flex-col justify-between rounded-xl border border-border/60 bg-card p-5 shadow-xs hover:border-border transition-all"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
@@ -907,7 +905,7 @@ export default function HelpPage() {
       </div>
 
       {filteredSections.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border p-12 text-center">
+        <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <HelpCircle className="mx-auto h-8 w-8 text-muted-foreground/60" />
           <p className="mt-3 text-sm font-semibold text-foreground">Nie znaleziono instrukcji dla „{search}”</p>
           <p className="mt-1 text-xs text-muted-foreground">

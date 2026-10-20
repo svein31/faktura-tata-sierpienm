@@ -102,7 +102,7 @@ export function NipLookup({
             className="overflow-hidden"
           >
             {state.result.error ? (
-              <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/5 p-2.5 text-[12.5px] text-red-600 dark:text-red-400">
+              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2.5 text-[12.5px] text-destructive dark:text-destructive">
                 {state.result.error === "INVALID_NIP" ? (
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 ) : (
@@ -112,8 +112,8 @@ export function NipLookup({
               </div>
             ) : (
               state.result.company && (
-                <div className="flex items-start gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2.5 text-[12.5px]">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                <div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/5 p-2.5 text-[12.5px]">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                   <div>
                     <p className="font-semibold">{state.result.company.name}</p>
                     <p className="text-muted-foreground">
@@ -135,7 +135,7 @@ export function NipLookup({
       </AnimatePresence>
 
       {valid && !state.result && (
-        <p className="text-[11.5px] text-emerald-600 dark:text-emerald-400">
+        <p className="text-[11.5px] text-success dark:text-success">
           Poprawna suma kontrolna NIP. Kliknij „Sprawdź w GUS”.
         </p>
       )}

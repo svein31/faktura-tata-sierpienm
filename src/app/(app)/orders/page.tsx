@@ -300,7 +300,7 @@ export default function OrdersPage() {
 
       {/* Karty podsumowujące */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-4 bg-card/60 backdrop-blur-md border-border/70">
+        <Card className="p-4 bg-card  border-border/70">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Wszystkie zlecenia</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{orders.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Aktywne i archiwalne projekty</p>
@@ -312,19 +312,19 @@ export default function OrdersPage() {
           </p>
           <p className="text-xs text-muted-foreground mt-1">Zalogowany czas pracy w projektach</p>
         </Card>
-        <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+        <Card className="p-4 bg-card border-border/70">
+          <p className="text-xs font-medium text-muted-foreground">
             Wartość zleceń w toku
           </p>
-          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+          <p className="mt-1 ui-stat-value text-2xl font-semibold">
             {formatMoney(totalValueActive, summaryCurrency)}
           </p>
-          <p className="text-xs text-emerald-700 dark:text-emerald-300/80 mt-1">Projekty do rozliczenia</p>
+          <p className="text-xs text-muted-foreground mt-1">Projekty do rozliczenia</p>
         </Card>
       </div>
 
       {/* Pasek filtrowania i widoku */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/70 p-3.5 backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-3.5 ">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -371,7 +371,7 @@ export default function OrdersPage() {
             return (
               <div
                 key={statusObj.id}
-                className="min-w-0 rounded-2xl border border-border/70 bg-card/50 backdrop-blur-md p-3.5 space-y-3"
+                className="min-w-0 rounded-xl border border-border/70 bg-card  p-3.5 space-y-3"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-border/40">
                   <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ export default function OrdersPage() {
                   {statusOrders.map((order) => (
                     <Card
                       key={order.id}
-                      className="p-3.5 hover:shadow-md transition-shadow bg-card/90 border-border/80 space-y-2.5"
+                      className="p-3.5 hover:shadow-md transition-shadow bg-card border-border/80 space-y-2.5"
                     >
                       <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0 flex-1 break-words">
@@ -428,13 +428,13 @@ export default function OrdersPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleConvertToInvoice(order.id)}
-                              className="h-7 text-[10.5px] px-2 rounded-lg font-medium text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                              className="h-7 text-[10.5px] px-2 rounded-lg font-medium text-success dark:text-success border-success/30"
                               title="Wystaw fakturę ze zlecenia"
                             >
                               Faktura
                             </Button>
                           ) : (
-                            <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-0.5">
+                            <span className="text-[10px] text-success font-semibold flex items-center gap-0.5">
                               <CheckCircle2 className="h-3 w-3" /> Rozliczone
                             </span>
                           )}
@@ -466,7 +466,7 @@ export default function OrdersPage() {
         </div>
       ) : (
         /* Widok tabeli */
-        <Card className="overflow-hidden border-border/70 bg-card/70 backdrop-blur-md">
+        <Card className="overflow-hidden border-border/70 bg-card ">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
@@ -519,7 +519,7 @@ export default function OrdersPage() {
                             size="icon"
                             disabled={Boolean(order.billedInvoiceId)}
                           onClick={() => setToDelete(order.id)}
-                            className="h-8 w-8 text-muted-foreground hover:text-rose-500"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>

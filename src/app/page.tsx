@@ -73,14 +73,11 @@ export default function LandingPage() {
       <main id="main-content">
       {/* ── HERO SECTION ── */}
       <section className="relative overflow-hidden pt-6 pb-12 sm:pt-20 sm:pb-28">
-        {/* Delikatne tło gradientowe Apple/Stripe */}
-        <div className="pointer-events-none absolute -top-40 left-1/2 hidden h-[600px] w-[900px] sm:block -translate-x-1/2 rounded-full bg-primary/8 blur-3xl" />
-        <div className="pointer-events-none absolute top-1/3 -right-40 hidden h-[450px] w-[450px] sm:block rounded-full bg-emerald-500/6 blur-3xl" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge zgodności */}
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-[12px] font-medium text-emerald-800 dark:text-emerald-400">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3.5 py-1 text-[12px] font-medium text-success dark:text-success">
               <ShieldCheck className="h-4 w-4" />
               <span>Faktury FA(3) i integracja z KSeF 2.0</span>
             </div>
@@ -97,7 +94,7 @@ export default function LandingPage() {
               <Link
                 prefetch={false}
                 href="/demo"
-                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/80 px-6 text-[14px] font-medium text-foreground hover:bg-muted/70 active:scale-95 transition-all shadow-sm"
+                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card px-6 text-[14px] font-medium text-foreground hover:bg-muted/70 active:opacity-90 transition-all shadow-sm"
               >
                 <Play className="h-4 w-4 text-primary fill-primary" />
                 <span>Wypróbuj Demo bez rejestracji</span>
@@ -109,20 +106,20 @@ export default function LandingPage() {
             <a href="#film" className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 transition-colors hover:text-foreground hover:underline"><Play aria-hidden="true" className="size-3.5" /> Zobacz film · 1:10</a>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Brak wymogu karty
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" /> Brak wymogu karty
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Środowisko Demo i Testowe
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" /> Środowisko Demo i Testowe
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Izolacja danych firmy
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" /> Izolacja danych firmy
               </span>
             </div>
           </div>
 
           <WorkspacePreview />
           {/* ── WIZUALIZACJA INTERFEJSU (PRAWDZIWY PODGLĄD FAKTURO) ── */}
-          <div className="mt-14 rounded-2xl border border-border/80 bg-card/90 p-4 sm:p-7 shadow-2xl sm:backdrop-blur-xl">
+          <div className="mt-14 rounded-xl border border-border/80 bg-card p-4 sm:p-7 shadow-lg ">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-4 mb-6">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -131,7 +128,7 @@ export default function LandingPage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base font-bold text-foreground">FV/2026/09/0001</span>
-                    <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="rounded-full bg-success/15 border border-success/30 px-2 py-0.5 text-[10.5px] font-semibold text-success dark:text-success">
                       KSeF: Przyjęta (200 OK)
                     </span>
                   </div>
@@ -164,7 +161,7 @@ export default function LandingPage() {
                 <p className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Nabywca (Kontrahent)</p>
                 <p className="mt-1 font-bold text-foreground text-sm">Przykładowy Kontrahent S.A.</p>
                 <p className="text-muted-foreground">NIP: 5270000024 · ul. Biznesowa 25, 00-950 Warszawa</p>
-                <p className="text-emerald-700 dark:text-emerald-400 mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
+                <p className="text-success dark:text-success mt-0.5 font-medium">Przykładowy status podatnika VAT</p>
               </div>
             </div>
 
@@ -226,8 +223,8 @@ export default function LandingPage() {
 
       <ProductDemoVideo />
 
-      <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card/40 py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-2xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Wspólne moduły aplikacji i więcej wystawionych dokumentów.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link prefetch={false} className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link prefetch={false} className="underline" href="/regulamin">regulaminie</Link>.</p></div>
+      <section id="cennik" aria-labelledby="pricing-title" className="scroll-mt-24 border-y bg-card py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6"><h2 id="pricing-title" className="text-center text-3xl font-bold tracking-tight">Zacznij bez opłat. Rozwijaj firmę z Pro.</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">Przejrzyste plany i jeden panel dla dokumentów, kosztów oraz współpracy z księgowością.</p><div className="mt-8 grid gap-5 md:grid-cols-3"><article className="flex flex-col rounded-xl border bg-card p-6"><h3 className="font-semibold">Free</h3><p className="my-4 text-4xl font-bold">0 zł</p><p className="text-sm text-muted-foreground">Do 5 faktur miesięcznie. Poznaj aplikację we własnym tempie.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold">Załóż darmowe konto</Link></article>{SUBSCRIPTION_PLANS.map(plan => <article key={plan.id} className="flex flex-col rounded-xl border border-primary/30 bg-card p-6"><h3 className="font-semibold">Pro · {plan.period === "rok" ? "roczny" : "miesięczny"}</h3><p className="my-4 text-4xl font-bold">{plan.amountPln} zł<span className="ml-1 text-sm font-normal text-muted-foreground">/{plan.period}</span></p><p className="text-sm text-muted-foreground">Faktury bez limitu planu Free. Wspólne moduły aplikacji i więcej wystawionych dokumentów.</p><Link prefetch={false} href="/register" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Rozpocznij z Pro</Link></article>)}</div><p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">Pro jest subskrypcją z automatycznym odnowieniem. Anulowanie w ustawieniach konta. Integracje wymagają konfiguracji. Wszystkie ceny są brutto. <Link prefetch={false} className="underline" href="/cennik">Porównaj plany i okresy rozliczeń</Link>. Szczegóły w <Link prefetch={false} className="underline" href="/regulamin">regulaminie</Link>.</p></div>
       </section>
       {/* ── KLUCZOWE FUNKCJE ── */}
       <section id="funkcje" className="scroll-mt-24 border-t border-border/60 py-20 bg-muted/10">
@@ -243,7 +240,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div id="ksef" className="scroll-mt-28 rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+            <div id="ksef" className="scroll-mt-28 rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4">
                 <ShieldCheck className="h-5 w-5" />
               </div>
@@ -255,8 +252,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-4">
+            <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground mb-4">
                 <Search className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold text-foreground">Integracja z bazą GUS BIR 1.1</h3>
@@ -267,8 +264,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-4">
+            <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground mb-4">
                 <RefreshCw className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold text-foreground">Korekty (KOR) i historia zmian</h3>
@@ -279,8 +276,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 mb-4">
+            <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground mb-4">
                 <QrCode className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold text-foreground">Tryby offline i kody QR (KOD I/II)</h3>
@@ -291,8 +288,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 5 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-4">
+            <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground mb-4">
                 <Users className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold text-foreground">Dostęp dla Księgowej i Eksporty</h3>
@@ -303,8 +300,8 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 6 */}
-            <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 mb-4">
+            <div className="rounded-xl border border-border/80 bg-card p-6 shadow-sm hover:border-border transition-colors">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground mb-4">
                 <Lock className="h-5 w-5" />
               </div>
               <h3 className="text-base font-semibold text-foreground">Trwała kolejka serwerowa</h3>
@@ -330,7 +327,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
+            <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
               <span className="text-3xl font-extrabold text-primary/80 font-mono">01</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Podaj NIP swojej firmy</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -339,7 +336,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
+            <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
               <span className="text-3xl font-extrabold text-primary/80 font-mono">02</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wybierz środowisko KSeF</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -348,7 +345,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="relative rounded-2xl border border-border/80 bg-card p-7 shadow-sm">
+            <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
               <span className="text-3xl font-extrabold text-primary/80 font-mono">03</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wystawiaj i kontroluj stan</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -362,7 +359,7 @@ export default function LandingPage() {
             <Link
                 prefetch={false}
               href="/register"
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-[13.5px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95 transition-all"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-7 text-[13.5px] font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 active:opacity-90 transition-all"
             >
               <span>Zarejestruj się teraz</span>
               <ArrowRight className="h-4 w-4" />

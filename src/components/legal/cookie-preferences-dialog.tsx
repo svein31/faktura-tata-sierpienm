@@ -33,7 +33,7 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                 variant="ghost"
                 size="sm"
                 onClick={handleRejectOptional}
-                className="w-full sm:w-auto text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                className="w-full sm:w-auto text-xs text-muted-foreground dark:text-muted-foreground hover:text-foreground"
               >
                 Odrzuć wszystkie opcjonalne
               </Button>
@@ -50,7 +50,7 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                   variant="primary"
                   size="sm"
                   onClick={handleAcceptAll}
-                  className="w-full sm:w-auto text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full sm:w-auto text-xs bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Zaakceptuj wszystkie
                 </Button>
@@ -58,19 +58,19 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
             </div>
       }>
             {/* Treść modalu */}
-            <div className="min-w-0 space-y-5 break-words text-xs text-slate-600 dark:text-slate-300">
+            <div className="min-w-0 space-y-5 break-words text-xs text-muted-foreground dark:text-muted-foreground">
               <p className="leading-relaxed">
                 Szanujemy Twoją prywatność. Serwis FakturaProsto stosuje technologie niezbędne do jego poprawnego działania (sesja, bezpieczeństwo, ochrona przed CSRF) oraz — za Twoją dobrowolną zgodą — opcjonalne preferencje, własny pomiar korzystania i Google Analytics 4 do statystyk publicznych stron.
               </p>
 
               {/* Kategoria 1: Niezbędne (Zawsze aktywne) */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
+              <div className="p-4 rounded-xl border border-border dark:border-border bg-background/50 dark:bg-background/40 space-y-2">
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                    <span className="font-bold text-sm text-foreground dark:text-white">
                       1. Niezbędne i techniczne
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground flex items-center gap-1">
                       <Lock className="w-3 h-3" /> Zawsze aktywne
                     </span>
                   </div>
@@ -78,26 +78,26 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                     type="checkbox"
                     checked={true}
                     disabled={true}
-                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 opacity-60 cursor-not-allowed"
+                    className="w-4 h-4 rounded text-primary focus:ring-primary opacity-60 cursor-not-allowed"
                     aria-label="Ciasteczka niezbędne - zawsze aktywne"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Konieczne do korzystania z serwisu (utrzymanie sesji po zalogowaniu, ochrona przed atakami CSRF, balansowanie obciążenia). Zgodnie z art. 399 ust. 3 PKE nie wymagają one Twojej uprzedniej zgody.
                 </p>
-                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono pt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground font-mono pt-1">
                   Używane: {essentialCookies.map((c) => c.name).join(", ")}
                 </div>
               </div>
 
               {/* Kategoria 2: Funkcjonalne (Opt-in) */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
+              <div className="p-4 rounded-xl border border-border dark:border-border bg-background/50 dark:bg-background/40 space-y-2">
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                    <span className="font-bold text-sm text-foreground dark:text-white">
                       2. Funkcjonalne i preferencje
                     </span>
-                    <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground">
                       Opcjonalne
                     </span>
                   </div>
@@ -109,25 +109,25 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                       onChange={(e) => setFunctionalConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-input rounded-full peer dark:bg-input peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Umożliwiają zapamiętanie Twoich wyborów (np. ciemny/jasny motyw interfejsu, preferencje widoku tabel faktur). Bez tej zgody aplikacja działa w domyślnym trybie.
                 </p>
-                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono pt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground font-mono pt-1">
                   Używane: {functionalCookies.map((c) => c.name).join(", ")}
                 </div>
               </div>
 
               {/* Kategoria 3: Pomiar etapów — dobrowolna zgoda */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2 opacity-80">
+              <div className="p-4 rounded-xl border border-border dark:border-border bg-background/50 dark:bg-background/40 space-y-2">
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                    <span className="font-bold text-sm text-foreground dark:text-white">
                       3. Analityczne i statystyczne
                     </span>
-                    <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-muted dark:bg-muted text-muted-foreground">
                       Opcjonalne
                     </span>
                   </div>
@@ -139,28 +139,28 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                       onChange={(e) => setAnalyticsConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-input rounded-full peer dark:bg-input peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Za Twoją zgodą uruchamiamy własny pomiar etapów korzystania i wydajności oraz Google Analytics 4 do odsłon publicznych stron, źródeł odwiedzin i kliknięć prowadzących do rejestracji lub demo. Kliknięcie oznacza zainteresowanie, a nie utworzenie konta ani zakup. Google nie otrzymuje odsłon panelu, logowania, ekranu rejestracji, konta ani danych formularzy, faktur, kontrahentów, e-maili, NIP-ów i kwot. Publiczne adresy wysyłamy bez parametrów i fragmentów, a źródło odesłania ograniczamy do protokołu i domeny. Google Signals i funkcje reklamowe są wyłączone.
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Własny pomiar przechowujemy do 30 dni. Cookies GA4 mają czas życia do 30 dni bez automatycznego odnawiania; retencja danych w Google zależy od osobnego ustawienia usługi. Wycofanie zgody zatrzymuje kolejne zdarzenia i usuwa cookies GA4 z przeglądarki, ale nie usuwa historii już przesłanej do Google. Szczegóły znajdziesz w polityce prywatności.
                 </p>
-                <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono pt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground font-mono pt-1">
                   Używane: {analyticsCookies.map((c) => c.name).join(", ")}
                 </div>
               </div>
 
               {/* Kategoria 4: Reklamowe — nieaktywna */}
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2 opacity-80">
+              <div className="p-4 rounded-xl border border-border dark:border-border bg-background/50 dark:bg-background/40 space-y-2">
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <div>
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                    <span className="font-bold text-sm text-foreground dark:text-white">
                       4. Reklamowe i profilujące
                     </span>
-                    <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-muted dark:bg-muted text-muted-foreground">
                       Aktualnie nieaktywne
                     </span>
                   </div>
@@ -172,19 +172,19 @@ export function CookiePreferencesDialog({ functionalConsent, analyticsConsent, m
                       onChange={(e) => setMarketingConsent(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="relative w-9 h-5 bg-input rounded-full peer dark:bg-input peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-card peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-input after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed">
                   Serwis nie wyświetla zewnętrznych reklam ani nie przekazuje danych profilujących do sieci reklamowych.
                 </p>
               </div>
 
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground pt-2 border-t border-border dark:border-border">
                 Więcej informacji:{" "}
-                <Link prefetch={false} href="/polityka-cookies" target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Polityka cookies</Link>{" "}
+                <Link prefetch={false} href="/polityka-cookies" target="_blank" className="text-primary dark:text-primary hover:underline font-semibold">Polityka cookies</Link>{" "}
                 oraz{" "}
-                <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Polityka prywatności</Link>.
+                <Link prefetch={false} href="/polityka-prywatnosci" target="_blank" className="text-primary dark:text-primary hover:underline font-semibold">Polityka prywatności</Link>.
                 {" "}Możesz zmienić te ustawienia w dowolnej chwili za pomocą linku w stopce serwisu lub w ustawieniach konta.
               </div>
             </div>

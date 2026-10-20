@@ -336,7 +336,7 @@ export function SendInvoiceEmailModal({
                 size="sm"
                 onClick={handleSend}
                 loading={submitting}
-                className="gap-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                className="gap-2 font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Send className="h-4 w-4" />
                 {lastSentAt ? "Wyślij ponownie" : "Wyślij fakturę"}
@@ -360,7 +360,7 @@ export function SendInvoiceEmailModal({
             onClick={() => setActiveTab("compose")}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "compose"
-                ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/30"
+                ? "bg-primary/15 text-primary dark:text-primary ring-1 ring-primary/30"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
@@ -372,7 +372,7 @@ export function SendInvoiceEmailModal({
             onClick={() => setActiveTab("history")}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
               activeTab === "history"
-                ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/30"
+                ? "bg-primary/15 text-primary dark:text-primary ring-1 ring-primary/30"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
@@ -388,10 +388,10 @@ export function SendInvoiceEmailModal({
 
         {/* Baner: Informacja o wcześniejszej wysyłce (świadome ponowienie) */}
         {lastSentAt && activeTab === "compose" && (
-          <div className="flex items-start gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/5 p-3 text-xs">
-            <CheckCircle2 className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-xs">
+            <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-blue-900 dark:text-blue-300">
+              <p className="font-semibold text-primary dark:text-primary">
                 Faktura była już wysyłana e-mailem
               </p>
               <p className="text-muted-foreground mt-0.5">
@@ -404,10 +404,10 @@ export function SendInvoiceEmailModal({
 
         {/* Baner ostrzegawczy o braku konfiguracji poczty */}
         {configStatus && !configStatus.configured && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-300 space-y-2.5">
+          <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 text-xs text-warning dark:text-warning space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 font-semibold">
-                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                <AlertCircle className="h-4 w-4 text-warning shrink-0" />
                 Poczta nie jest jeszcze skonfigurowana
               </span>
               <button
@@ -418,14 +418,14 @@ export function SendInvoiceEmailModal({
                 {showConfigHelp ? "Zwiń instrukcję" : "Instrukcja dla Netlify (2 minuty)"}
               </button>
             </div>
-            <p className="text-[11.5px] leading-relaxed text-amber-800/90 dark:text-amber-200/90">
+            <p className="text-[11.5px] leading-relaxed text-warning/90 dark:text-warning/90">
               Aplikacja na <b>Netlify</b> działa w środowisku Serverless. Aby wysyłać prawdziwe e-maile, dodaj zmienne w panelu:{" "}
               <b>Site configuration → Environment variables</b>, a następnie kliknij <b>Trigger deploy</b>.
             </p>
             {showConfigHelp && (
               <div className="mt-2 rounded-xl bg-card p-3.5 border border-border text-foreground space-y-3">
-                <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-2.5 text-[11.5px] text-blue-900 dark:text-blue-300">
-                  <b>💡 Rekomendacja na Netlify (Resend - najszybsze i bezproblemowe):</b>
+                <div className="rounded-lg bg-primary/10 border border-primary/20 p-2.5 text-[11.5px] text-primary dark:text-primary">
+                  <b>Konfiguracja poczty w Netlify przez Resend:</b>
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Działa przez HTTPS REST API (brak blokad portów i limitów czasu w AWS Lambda/Netlify). Do 3000 darmowych maili/miesięcznie.
                   </p>
@@ -451,7 +451,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                 </div>
 
                 <p className="text-[11px] text-muted-foreground">
-                  👉 Po dodaniu zmiennych w Netlify przejdź do zakładki <b>Deploys → Trigger deploy → Deploy site</b>, aby funkcje załadowały nowe zmienne.
+                  Po dodaniu zmiennych w Netlify przejdź do zakładki <b>Deploys → Trigger deploy → Deploy site</b>, aby funkcje załadowały nowe zmienne.
                 </p>
               </div>
             )}
@@ -461,12 +461,12 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
         {/* ── ZAKŁADKA 1: FORMULARZ WYSYŁKI ── */}
         {activeTab === "compose" && (
           <form onSubmit={handleSend} className="space-y-4">
-            <section className="rounded-xl border p-3 text-sm space-y-2"><h3 className="font-semibold">Asystent przed wysyłką e-maila</h3><p>Dokument: {invoice.number} · pozostało do zapłaty {formattedGross}.</p><p>KSeF: {invoice.ksefNumber || invoice.ksef?.number || "brak numeru"} · UPO: {hasUpo ? "dostępne" : "brak potwierdzenia do załączenia"}.</p>{lastSentAt && <p className="text-amber-700 dark:text-amber-300">Wiadomość była już wysłana. Sprawdź historię przed ponowną wysyłką.</p>}<label className="flex items-start gap-2"><input type="checkbox" checked={reviewed} onChange={e=>setReviewed(e.target.checked)} className="mt-1" />Potwierdzam odbiorcę, treść i wybrane załączniki.</label></section>
+            <section className="rounded-xl border p-3 text-sm space-y-2"><h3 className="font-semibold">Asystent przed wysyłką e-maila</h3><p>Dokument: {invoice.number} · pozostało do zapłaty {formattedGross}.</p><p>KSeF: {invoice.ksefNumber || invoice.ksef?.number || "brak numeru"} · UPO: {hasUpo ? "dostępne" : "brak potwierdzenia do załączenia"}.</p>{lastSentAt && <p className="text-warning dark:text-warning">Wiadomość była już wysłana. Sprawdź historię przed ponowną wysyłką.</p>}<label className="flex items-start gap-2"><input type="checkbox" checked={reviewed} onChange={e=>setReviewed(e.target.checked)} className="mt-1" />Potwierdzam odbiorcę, treść i wybrane załączniki.</label></section>
             {/* Odbiorca (To) */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="recipientEmail" className="text-xs font-semibold">
-                  Odbiorca (Do) <span className="text-rose-500">*</span>
+                  Odbiorca (Do) <span className="text-destructive">*</span>
                 </Label>
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   {!showCc && (
@@ -513,7 +513,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                       setShowCc(false);
                       setCc("");
                     }}
-                    className="text-[11px] text-rose-500 hover:underline"
+                    className="text-[11px] text-destructive hover:underline"
                   >
                     Usuń DW
                   </button>
@@ -541,7 +541,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                       setShowBcc(false);
                       setBcc("");
                     }}
-                    className="text-[11px] text-rose-500 hover:underline"
+                    className="text-[11px] text-destructive hover:underline"
                   >
                     Usuń UDW
                   </button>
@@ -559,7 +559,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
             {/* Temat wiadomości */}
             <div className="space-y-1.5">
               <Label htmlFor="emailSubject" className="text-xs font-semibold">
-                Temat wiadomości <span className="text-rose-500">*</span>
+                Temat wiadomości <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="emailSubject"
@@ -585,7 +585,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
             </div>
 
             {/* Lista Załączników */}
-            <div className="space-y-2 rounded-2xl border border-border/70 bg-card/60 p-3">
+            <div className="space-y-2 rounded-xl border border-border/70 bg-card p-3">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Załączniki do wiadomości:
               </p>
@@ -595,11 +595,11 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                     type="checkbox"
                     checked={attachPdf}
                     onChange={(e) => setAttachPdf(e.target.checked)}
-                    className="rounded border-border text-blue-600 focus:ring-blue-500 mt-0.5"
+                    className="rounded border-border text-primary focus:ring-primary mt-0.5"
                   />
                   <div className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                      <FileText className="h-3.5 w-3.5 text-rose-500" /> Faktura PDF
+                      <FileText className="h-3.5 w-3.5 text-destructive" /> Faktura PDF
                     </span>
                     <p className="text-[10.5px] text-muted-foreground">
                       Zawiera aktualne dane, kody QR weryfikacji i status KSeF.
@@ -612,11 +612,11 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                     type="checkbox"
                     checked={attachXml}
                     onChange={(e) => setAttachXml(e.target.checked)}
-                    className="rounded border-border text-blue-600 focus:ring-blue-500 mt-0.5"
+                    className="rounded border-border text-primary focus:ring-primary mt-0.5"
                   />
                   <div className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                      <FileCode2 className="h-3.5 w-3.5 text-blue-500" /> Plik XML FA(3)
+                      <FileCode2 className="h-3.5 w-3.5 text-primary" /> Plik XML FA(3)
                     </span>
                     <p className="text-[10.5px] text-muted-foreground">
                       Struktura logiczna e-faktury KSeF 2.0.
@@ -625,16 +625,16 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                 </label>
 
                 {hasUpo && (
-                  <label className="flex items-start gap-2.5 p-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 cursor-pointer hover:bg-emerald-500/10 transition-colors">
+                  <label className="flex items-start gap-2.5 p-2 rounded-xl border border-success/30 bg-success/5 cursor-pointer hover:bg-success/10 transition-colors">
                     <input
                       type="checkbox"
                       checked={attachUpo}
                       onChange={(e) => setAttachUpo(e.target.checked)}
-                      className="rounded border-border text-emerald-600 focus:ring-emerald-500 mt-0.5"
+                      className="rounded border-border text-success focus:ring-success mt-0.5"
                     />
                     <div className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> {isDemoKsef ? "Potwierdzenie demo (XML)" : "Urzędowe UPO (XML)"}
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-success dark:text-success">
+                        <ShieldCheck className="h-3.5 w-3.5 text-success" /> {isDemoKsef ? "Potwierdzenie demo (XML)" : "Urzędowe UPO (XML)"}
                       </span>
                       <p className="text-[10.5px] text-muted-foreground">
                         {isDemoKsef ? "Symulacja lokalna; nie jest poświadczeniem Ministerstwa Finansów." : "Oficjalne poświadczenie odbioru nadane przez Ministerstwo Finansów."}
@@ -647,12 +647,12 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
 
             {/* Opcja automatycznej wysyłki po akceptacji przez KSeF */}
             {invoice.type === "sale" && !invoice.ksefNumber && (
-              <label className="flex items-center gap-2.5 p-3 rounded-2xl border border-border/70 bg-muted/20 cursor-pointer">
+              <label className="flex items-center gap-2.5 p-3 rounded-xl border border-border/70 bg-muted/20 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={autoSendOnKsef}
                   onChange={(e) => setAutoSendOnKsef(e.target.checked)}
-                  className="rounded border-border text-blue-600 focus:ring-blue-500"
+                  className="rounded border-border text-primary focus:ring-primary"
                 />
                 <div className="text-xs">
                   <span className="font-semibold text-foreground">
@@ -679,7 +679,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
 
             {/* Podgląd wiadomości e-mail (rozwijany) */}
             {showPreview && (
-              <div className="space-y-2 rounded-2xl border border-border/80 bg-slate-50 dark:bg-slate-900/50 p-4">
+              <div className="space-y-2 rounded-xl border border-border/80 bg-slate-50 dark:bg-slate-900/50 p-4">
                 <div className="flex items-center justify-between text-xs font-semibold border-b border-border/60 pb-2">
                   <span>Podgląd formatu HTML</span>
                   <Badge tone="outline" className="text-[10px]">
@@ -719,14 +719,14 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                 {emailLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="rounded-2xl border border-border/70 bg-card p-3.5 text-xs shadow-xs space-y-2"
+                    className="rounded-xl border border-border/70 bg-card p-3.5 text-xs shadow-xs space-y-2"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         {log.status === "failed" || log.status === "verify_needed" ? (
-                          <XCircle className="h-4 w-4 text-rose-500 shrink-0" />
+                          <XCircle className="h-4 w-4 text-destructive shrink-0" />
                         ) : (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                         )}
                         <span className="font-bold text-foreground font-mono">{log.to}</span>
                         {log.cc && (
@@ -764,12 +764,12 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
                     </div>
 
                     {log.error && (
-                      <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 text-[11px]">
+                      <div className="p-2 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-[11px]">
                         Błąd: {log.error}
                       </div>
                     )}
 
-                    {log.status === "verify_needed" && log.manualDelivery && log.userId === sessionUser.id && <div className="space-y-3 rounded-xl border border-amber-400/50 bg-amber-50 p-3 text-slate-900">
+                    {log.status === "verify_needed" && log.manualDelivery && log.userId === sessionUser.id && <div className="space-y-3 rounded-lg border border-warning/30 bg-warning/5 p-3 text-foreground">
                       <p>Sprawdź historię w panelu dostawcy poczty lub skontaktuj się z pomocą. Sam brak wiadomości w skrzynce odbiorcy nie potwierdza braku wysyłki.</p>
                       <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={Boolean(providerChecked[log.id])} onChange={event => setProviderChecked(previous => ({ ...previous, [log.id]: event.target.checked }))} />Sprawdziłem wynik tej próby u dostawcy poczty.</label>
                       <div className="flex flex-wrap gap-2">

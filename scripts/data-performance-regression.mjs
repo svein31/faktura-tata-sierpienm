@@ -16,6 +16,7 @@ const { nextFormattedInvoiceNumber } = require('../src/lib/invoice-numbering.ts'
 const { invoiceTotals } = require('../src/lib/format.ts');
 const { contractorHistory } = require('../src/lib/crm.ts');
 const { ksefProgress } = require('../src/lib/ksef/progress.ts');
+const { ksefPresentation } = require('../src/lib/ksef/presentation.ts');
 
 /** Isolated real-Mongo regression: no external services or production records. */
 export async function checkDataPerformance(db) {
@@ -129,7 +130,16 @@ export async function checkDataPerformance(db) {
       if (filters.type === 'proforma' ? !row.isProforma : filters.type !== 'all' && (row.type !== filters.type || filters.type === 'sale' && row.isProforma)) return false;
       if (filters.currency !== 'all' && row.currency !== filters.currency) return false;
       if (filters.approval !== 'all' && row.type === 'purchase' && (filters.approval === 'approved' ? row.approvalStatus !== 'approved' : row.approvalStatus === 'approved')) return false;
-      if (filters.status !== 'all' && effectiveStatus(row) !== filters.status) return false;
+      if (filters.status !== 'all') {
+        // KSeF filtering has been independent of payment status since the
+        // document timeline rollout. Compare to its public UI read model,
+        // retaining the legacy combined helper only for payment/date filters.
+        const state = ksefPresentation(row);
+        const actual = filters.status.startsWith('ksef_')
+          ? state.accepted ? 'ksef_active' : state.rejected ? 'ksef_rejected' : state.verify || state.sent ? 'ksef_sent' : state.queued ? 'ksef_queued' : 'none'
+          : effectiveStatus(row);
+        if (actual !== filters.status) return false;
+      }
       const buyer = row.contractorId === searchable.id ? [searchable.name, searchable.nip] : [];
       return !filters.search || [row.number, row.notes, row.contractorId, row.ksef?.number, row.ksefNumber, ...buyer]
         .some(value => String(value || '').toLowerCase().includes(filters.search.toLowerCase()));
@@ -145,6 +155,10 @@ export async function checkDataPerformance(db) {
       assert.deepEqual(page.counts, expectedCounts, 'Filter and cursor must not alter company-wide counts');
       assert.deepEqual(page.invoices.map(omitHeavy), matching.slice(0, 30).map(expectedSummary).map(omitHeavy), `DTO/filter/order mismatch: ${JSON.stringify(query)}`);
       assert.equal(page.nextCursor, matching.length > 30 ? matching[29].id : null);
+      if (query.status === 'ksef_active') {
+        assert.ok(matching.some(row => row.status === 'paid'), 'Accepted documents remain searchable after payment');
+        assert.ok(matching.some(row => row.ksef?.status === 'QUEUED'), 'A confirmed number takes precedence over a contradictory legacy queue flag');
+      }
     }
     const filters = invoiceSearchParams(new URLSearchParams()), collected = [], cursorPages = [];
     let after = [];
@@ -170,6 +184,27 @@ export async function checkDataPerformance(db) {
     const empty = await readInvoiceSearchPage(measuredPage, { sellerCompanyId: { $oid: new ObjectId().toHexString() } }, filters);
     pageCases++;
     assert.deepEqual(empty, { invoices: [], total: 0, counts: { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: null });
+
+    // Positive transmission states have their own company so the original
+    // 72-document archive/cursor fixture and its contradictory legacy flags
+    // remain unchanged. Expected IDs are independent of the query expression.
+    const transmissionCompany = await db.companyProfile.create({ data: { userId: owner.id, nip: '0000000000', companyName: 'KSeF filter parity' } });
+    companies.push(transmissionCompany);
+    const transmissionScope = { sellerCompanyId: { $oid: transmissionCompany.id } };
+    for (const [index, state] of ['queued', 'rejected', 'processing', 'accepted'].entries()) {
+      const accepted = state === 'accepted';
+      const row = await db.invoice.create({ data: {
+        ...createData(80 + index, transmissionCompany.id), type: 'sale', status: accepted ? 'paid' : 'issued', isProforma: false,
+        ksefStatus: state, ksefNumber: accepted ? 'CONFIRMED-FILTER-NUMBER' : null, upoXml: null,
+        referenceNumber: state === 'processing' ? 'synthetic-submission-reference' : null,
+        ksef: accepted ? { number: 'CONFIRMED-FILTER-NUMBER', status: 'QUEUED', environment: 'test' } : null,
+      } });
+      const status = { queued: 'ksef_queued', rejected: 'ksef_rejected', processing: 'ksef_sent', accepted: 'ksef_active' }[state];
+      const checked = await readInvoiceSearchPage(measuredPage, transmissionScope, invoiceSearchParams(new URLSearchParams({ status })));
+      assert.equal(checked.total, 1, `Positive ${status} fixture must be found`);
+      assert.deepEqual(checked.invoices.map(invoice => invoice.id), [row.id]);
+      pageCases++;
+    }
 
     // Historical retained JSON can be individually valid BSON but exceed the
     // 16 MiB limit if a complete page is collected into one facet document.

@@ -153,7 +153,7 @@ export default function CompaniesSettingsPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary dark:text-primary">
                 <Building2 className="h-5 w-5" />
               </div>
               <div>
@@ -165,7 +165,7 @@ export default function CompaniesSettingsPage() {
 
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10 text-success dark:text-success">
                 <Star className="h-5 w-5" />
               </div>
               <div>
@@ -179,7 +179,7 @@ export default function CompaniesSettingsPage() {
 
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10 text-info dark:text-info">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
@@ -203,8 +203,8 @@ export default function CompaniesSettingsPage() {
         )}
 
         {companies.length === 0 ? (
-          <Card className="border-border/60 bg-card/60 backdrop-blur-md p-10 sm:p-14 text-center rounded-2xl shadow-xs">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <Card className="border-border/60 bg-card  p-10 sm:p-14 text-center rounded-xl shadow-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Building2 className="h-6 w-6" />
             </div>
             <h3 className="mt-4 text-base font-semibold text-foreground">Nie dodano jeszcze żadnej firmy</h3>
@@ -318,7 +318,7 @@ export default function CompaniesSettingsPage() {
                               <Star className="h-3.5 w-3.5 mr-1" /> Ustaw jako domyślną
                             </Button>
                           ) : (
-                            <span className="text-[11.5px] font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                            <span className="text-[11.5px] font-medium text-success dark:text-success flex items-center gap-1">
                               <CheckCircle2 className="h-3.5 w-3.5" /> Aktywna jako domyślna
                             </span>
                           )}

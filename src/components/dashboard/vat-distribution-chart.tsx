@@ -22,39 +22,39 @@ interface VatRateBreakdown {
 
 const RATE_COLORS: Record<string, { color: string; bgColor: string; borderColor: string }> = {
   "23": {
-    color: "text-indigo-400",
-    bgColor: "bg-indigo-500",
-    borderColor: "border-indigo-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-1))]",
+    borderColor: "border-border",
   },
   "8": {
-    color: "text-sky-400",
-    bgColor: "bg-sky-500",
-    borderColor: "border-sky-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-2))]",
+    borderColor: "border-border",
   },
   "5": {
-    color: "text-emerald-400",
-    bgColor: "bg-emerald-500",
-    borderColor: "border-emerald-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-3))]",
+    borderColor: "border-border",
   },
   "0": {
-    color: "text-amber-400",
-    bgColor: "bg-amber-500",
-    borderColor: "border-amber-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-4))]",
+    borderColor: "border-border",
   },
   "zw": {
-    color: "text-purple-400",
-    bgColor: "bg-purple-500",
-    borderColor: "border-purple-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-5))]",
+    borderColor: "border-border",
   },
   "np": {
-    color: "text-slate-400",
-    bgColor: "bg-slate-500",
-    borderColor: "border-slate-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-6))]",
+    borderColor: "border-border",
   },
   "oo": {
-    color: "text-teal-400",
-    bgColor: "bg-teal-500",
-    borderColor: "border-teal-500/40",
+    color: "text-foreground",
+    bgColor: "bg-[hsl(var(--chart-7))]",
+    borderColor: "border-border",
   },
 };
 
@@ -138,7 +138,7 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
   const totalVatCalculated = breakdown.list.reduce((acc, i) => acc + i.vat, 0);
 
   return (
-    <Card className="h-full rounded-2xl border border-border/80 bg-card/90 p-5 shadow-xs flex flex-col justify-between">
+    <Card className="h-full rounded-xl border border-border/80 bg-card p-5 shadow-xs flex flex-col justify-between">
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground">Rozkład stawek VAT</h3>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {period === "month" ? "Bieżący miesiąc rozliczeniowy" : "Wszystkie wystawione faktury"}
               </p>
             </div>
@@ -185,13 +185,13 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
                     key={item.rate}
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.max(item.percentage, 3)}%` }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.16, ease: "easeOut" }}
                     className={`h-full first:rounded-l-full last:rounded-r-full ${item.bgColor}`}
                     title={`${item.label}: ${item.percentage.toFixed(1)}% (${formatMoney(item.gross, "PLN")})`}
                   />
                 ))}
               </div>
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
                 <span>Podatek VAT należny: <strong className="text-foreground">{formatMoney(totalVatCalculated, "PLN")}</strong></span>
                 <span>Obrót brutto: <strong className="text-foreground">{formatMoney(breakdown.totalGrossAll, "PLN")}</strong></span>
               </div>
@@ -212,11 +212,11 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
                     <div>
                       <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                         <span>{item.label}</span>
-                        <span className="text-[10px] text-muted-foreground font-normal">
+                        <span className="text-xs text-muted-foreground font-normal">
                           ({item.percentage.toFixed(1)}%)
                         </span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         Netto: {formatMoney(item.net, "PLN")}
                       </div>
                     </div>
@@ -225,7 +225,7 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
                     <div className="text-xs font-bold text-foreground tabular-nums">
                       {formatMoney(item.vat, "PLN")}
                     </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       VAT
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export function VatDistributionChart({ invoices }: { invoices: Invoice[] }) {
         )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
         <span>Zgodne ze strukturą deklaracji JPK_V7M/K</span>
         <span className="text-primary font-medium">Auto-aktualizacja</span>
       </div>

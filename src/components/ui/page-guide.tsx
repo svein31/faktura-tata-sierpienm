@@ -5,7 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles,
+  BookOpen,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -59,11 +59,11 @@ export function PageGuide({
   };
 
   return (
-    <div className={cn("rounded-2xl border border-border/60 bg-card/40 backdrop-blur p-4 text-xs shadow-sm", className)}>
+    <div className={cn("rounded-xl border border-border/60 bg-card  p-4 text-xs shadow-sm", className)}>
       <button type="button" className="flex w-full items-center justify-between text-left cursor-pointer select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" onClick={toggle} aria-expanded={open} aria-controls={open && steps.length ? panelId : undefined}>
         <span className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Sparkles className="h-3.5 w-3.5" />
+            <BookOpen aria-hidden="true" className="h-3.5 w-3.5" />
           </span>
           <span>
             <span className="flex items-center gap-2">

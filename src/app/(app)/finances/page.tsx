@@ -196,38 +196,38 @@ export default function FinancesPage() {
 
       {/* Podsumowanie finansowe (Bieżący miesiąc) */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
+        <Card className="p-4 bg-card border-border/70">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-muted-foreground">
               Przychody ({now.toLocaleDateString("pl-PL", { month: "long" })})
             </p>
-            <ArrowUpRight className="h-4 w-4 text-emerald-500" />
+            <ArrowUpRight className="h-4 w-4 text-success" />
           </div>
-          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+          <p className="mt-1 ui-stat-value text-2xl font-semibold">
             {formatMoney(monthlyRevenue, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Faktury sprzedaży wystawione w tym miesiącu</p>
         </Card>
 
-        <Card className="p-4 bg-rose-500/5 border-rose-500/20">
+        <Card className="p-4 bg-card border-border/70">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
+            <p className="text-xs font-medium text-muted-foreground">
               Koszty ({now.toLocaleDateString("pl-PL", { month: "long" })})
             </p>
-            <ArrowDownLeft className="h-4 w-4 text-rose-500" />
+            <ArrowDownLeft className="h-4 w-4 text-destructive" />
           </div>
-          <p className="mt-1 text-2xl font-bold text-rose-700 dark:text-rose-400">
+          <p className="mt-1 ui-stat-value text-2xl font-semibold">
             {formatMoney(monthlyCosts, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Faktury zakupowe i wydatki firmowe</p>
         </Card>
 
-        <Card className="p-4 bg-card/60 backdrop-blur-md border-border/70">
+        <Card className="p-4 bg-card  border-border/70">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Różnica brutto</p>
             <DollarSign className="h-4 w-4 text-primary" />
           </div>
-          <p className={`mt-1 text-2xl font-bold ${monthlyBalance >= 0 ? "text-foreground" : "text-rose-700"}`}>
+          <p className={`mt-1 text-2xl font-bold ${monthlyBalance >= 0 ? "text-foreground" : "text-destructive"}`}>
             {formatMoney(monthlyBalance, "PLN")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Różnica brutto między sprzedażą a zakupami</p>
@@ -242,33 +242,33 @@ export default function FinancesPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-4">
-          <Card className="p-3.5 bg-emerald-500/5 border-emerald-500/25">
-            <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">Przed terminem (bieżące)</p>
-            <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">
+          <Card className="p-3.5 bg-card border-border/70">
+            <p className="text-[11px] font-semibold text-success dark:text-success">Przed terminem (bieżące)</p>
+            <p className="text-lg font-bold text-success dark:text-success mt-0.5">
               {formatMoney(aging.current.sum, "PLN")}
             </p>
             <p className="text-[10.5px] text-muted-foreground">{aging.current.count} faktur z nieprzekroczonym terminem</p>
           </Card>
 
-          <Card className="p-3.5 bg-amber-500/5 border-amber-500/25">
-            <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">1 – 30 dni po terminie</p>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-300 mt-0.5">
+          <Card className="p-3.5 bg-card border-border/70">
+            <p className="text-[11px] font-semibold text-warning dark:text-warning">1 – 30 dni po terminie</p>
+            <p className="text-lg font-bold text-warning dark:text-warning mt-0.5">
               {formatMoney(aging.days1to30.sum, "PLN")}
             </p>
             <p className="text-[10.5px] text-muted-foreground">{aging.days1to30.count} faktur wymagających upomnienia</p>
           </Card>
 
-          <Card className="p-3.5 bg-orange-500/5 border-orange-500/25">
-            <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">31 – 60 dni po terminie</p>
-            <p className="text-lg font-bold text-orange-700 dark:text-orange-300 mt-0.5">
+          <Card className="p-3.5 bg-card border-border/70">
+            <p className="text-[11px] font-semibold text-warning dark:text-warning">31 – 60 dni po terminie</p>
+            <p className="text-lg font-bold text-warning dark:text-warning mt-0.5">
               {formatMoney(aging.days31to60.sum, "PLN")}
             </p>
             <p className="text-[10.5px] text-muted-foreground">{aging.days31to60.count} faktur – wezwanie do zapłaty</p>
           </Card>
 
-          <Card className="p-3.5 bg-rose-500/5 border-rose-500/25">
-            <p className="text-[11px] font-semibold text-rose-700 dark:text-rose-300">&gt; 60 dni po terminie</p>
-            <p className="text-lg font-bold text-rose-700 dark:text-rose-300 mt-0.5">
+          <Card className="p-3.5 bg-card border-border/70">
+            <p className="text-[11px] font-semibold text-destructive dark:text-destructive">&gt; 60 dni po terminie</p>
+            <p className="text-lg font-bold text-destructive dark:text-destructive mt-0.5">
               {formatMoney(aging.daysOver60.sum, "PLN")}
             </p>
             <p className="text-[10.5px] text-muted-foreground">{aging.daysOver60.count} faktur krytycznych</p>
@@ -277,7 +277,7 @@ export default function FinancesPage() {
       </div>
 
       {/* Lista nieopłaconych faktur sprzedaży */}
-      <Card className="p-4 border-border/70 bg-card/70 backdrop-blur-md space-y-3">
+      <Card className="p-4 border-border/70 bg-card  space-y-3">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="font-bold text-xs text-foreground">Oczekujące należności od klientów</h4>
@@ -319,7 +319,7 @@ export default function FinancesPage() {
                       </td>
                       <td className="py-2.5 px-3">{ctr?.name || "Klient"}</td>
                       <td className="py-2.5 px-3 text-muted-foreground">
-                        <span className={isOverdue ? "text-rose-700 font-semibold" : ""}>
+                        <span className={isOverdue ? "text-destructive font-semibold" : ""}>
                           {formatDate(inv.dueDate)} {isOverdue ? "(po terminie)" : ""}
                         </span>
                       </td>
@@ -416,7 +416,7 @@ export default function FinancesPage() {
             <div className="flex items-center justify-between bg-primary/10 rounded-xl p-3 text-foreground">
               <span>
                 Wykryto operacje: <b>{matchedTransactions.length}</b>. Dopasowano do faktur:{" "}
-                <b className="text-emerald-700 dark:text-emerald-400">
+                <b className="text-success dark:text-success">
                   {matchedTransactions.filter((t) => t.matchedInvoiceId || t.matchedExpenseId).length}
                 </b>
               </span>
@@ -424,7 +424,7 @@ export default function FinancesPage() {
 
             <div className="max-h-[340px] overflow-auto rounded-xl border border-border/60">
               <table className="w-full min-w-[620px] text-left text-[11.5px]">
-                <thead className="sticky top-0 bg-muted/90 backdrop-blur-md">
+                <thead className="sticky top-0 bg-muted/90 ">
                   <tr className="border-b border-border/60 text-muted-foreground uppercase text-[10px]">
                     <th className="p-2.5">Data</th>
                     <th className="p-2.5">Nadawca & Tytuł</th>
@@ -440,12 +440,12 @@ export default function FinancesPage() {
                         <p className="font-semibold text-foreground truncate max-w-[200px]">{tx.senderName || "—"}</p>
                         <p className="text-[10px] text-muted-foreground truncate max-w-[240px]">{tx.title}</p>
                       </td>
-                      <td className="p-2.5 text-right font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                      <td className="p-2.5 text-right font-bold text-success dark:text-success tabular-nums">
                         {formatMoney(tx.amount, tx.currency || "PLN")}
                       </td>
                       <td className="p-2.5 text-right">
                         {tx.matchedInvoiceNumber ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success dark:text-success bg-success/10 px-2 py-0.5 rounded-full">
                             <Check className="h-3 w-3" /> {tx.matchedInvoiceNumber}
                           </span>
                         ) : (

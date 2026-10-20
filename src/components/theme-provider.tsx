@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { MotionConfig } from "framer-motion";
 import {applyCustomColors,DEFAULT_COLORS,sanitizeColors,type CustomColors,type ThemeMode} from "@/lib/theme-colors";
 type Theme="light"|"dark"|"system";
 const STORAGE_KEY="fakturaprosto-theme",COLORS_KEY="fakturaprosto-colors";
@@ -14,6 +15,6 @@ export function ThemeProvider({children}:{children:React.ReactNode}){
  const setTheme=React.useCallback((t:Theme)=>{try{localStorage.setItem(STORAGE_KEY,t);localStorage.removeItem("fakturo-theme");}catch{}themeRef.current=t;setThemeState(t);setResolved(applyTheme(t,colorsRef.current));},[]);
  const setColors=React.useCallback((c:CustomColors)=>{const next=sanitizeColors(c);try{localStorage.setItem(COLORS_KEY,JSON.stringify(next));}catch{}colorsRef.current=next;setColorsState(next);setResolved(applyTheme(themeRef.current,next));},[]);
  const toggle=React.useCallback(()=>setTheme(resolved==="dark"?"light":"dark"),[resolved,setTheme]);
- return <ThemeContext.Provider value={{theme,resolved,colors,setTheme,setColors,toggle}}>{children}</ThemeContext.Provider>;
+ return <ThemeContext.Provider value={{theme,resolved,colors,setTheme,setColors,toggle}}><MotionConfig reducedMotion="user" transition={{type:"tween",duration:0.16,ease:"easeOut"}}>{children}</MotionConfig></ThemeContext.Provider>;
 }
 export function useTheme(){const context=React.useContext(ThemeContext);if(!context)throw new Error("useTheme must be used within ThemeProvider");return context;}

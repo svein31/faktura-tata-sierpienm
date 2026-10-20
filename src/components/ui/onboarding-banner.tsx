@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Building2, CheckCircle2, Eye, FilePenLine, Play, ShieldCheck, Sparkles, X } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, Eye, FilePenLine, ListChecks, Play, ShieldCheck, X } from "lucide-react";
 import { openOnboardingTour } from "@/components/onboarding/events";
 import { onboardingPreferenceKey, onboardingReadiness, type OnboardingDocument } from "@/components/onboarding/progress";
 import { useSessionUser } from "@/lib/session-context";
@@ -60,10 +60,9 @@ export function OnboardingBanner({ savedDocument = null }: { savedDocument?: Onb
 
   return (
     <Card className="relative overflow-hidden p-4 sm:p-5" aria-labelledby="first-steps-heading">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-primary/8 blur-3xl" />
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"><Sparkles aria-hidden="true" className="size-5" /></span>
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground"><ListChecks aria-hidden="true" className="size-5" /></span>
           <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Dobry początek</p>
             <h2 id="first-steps-heading" className="mt-1 text-base font-semibold tracking-tight">Twój pierwszy dokument, krok po kroku</h2>
@@ -75,14 +74,14 @@ export function OnboardingBanner({ savedDocument = null }: { savedDocument?: Onb
 
       <ol className="relative mt-5 grid min-w-0 gap-3 md:grid-cols-3">
         {steps.map((step, index) => (
-          <li key={step.title} className={cn("flex min-w-0 flex-col rounded-xl border bg-card/60 p-3.5", step.done ? "border-emerald-500/20" : "border-border/60")}>
+          <li key={step.title} className={cn("flex min-w-0 flex-col rounded-xl border bg-card p-3.5", step.done ? "border-success/20" : "border-border/60")}>
             <div className="flex items-center gap-2.5">
-              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg border", step.done ? "border-emerald-500/20 bg-emerald-500/8 text-emerald-600 dark:text-emerald-300" : "border-primary/15 bg-primary/8 text-primary")}><step.icon aria-hidden="true" className="size-4" /></span>
+              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg border", step.done ? "border-success/20 bg-success/8 text-success dark:text-success" : "border-primary/15 bg-primary/8 text-primary")}><step.icon aria-hidden="true" className="size-4" /></span>
               <span className="text-[11px] font-medium tabular-nums text-muted-foreground">Krok {index + 1}</span>
-              {step.done && <CheckCircle2 aria-label={step.status} className="ml-auto size-4 shrink-0 text-emerald-600 dark:text-emerald-300" />}
+              {step.done && <CheckCircle2 aria-label={step.status} className="ml-auto size-4 shrink-0 text-success dark:text-success" />}
             </div>
             <h3 className="mt-3 text-sm font-semibold">{step.title}</h3>
-            <p className={cn("mt-1 text-[11px] font-medium", step.done ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground")}>{step.status}</p>
+            <p className={cn("mt-1 text-[11px] font-medium", step.done ? "text-success dark:text-success" : "text-muted-foreground")}>{step.status}</p>
             <p className="mt-2 flex-1 break-words text-xs leading-relaxed text-muted-foreground">{step.description}</p>
             {step.disabled ? <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Poproś właściciela firmy o uprawnienie do wystawiania faktur.</p> : <Link prefetch={false} href={step.href} className="mt-3 inline-flex min-h-11 items-center justify-between gap-2 rounded-lg px-1 text-xs font-semibold text-primary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span>{step.action}</span><ArrowRight aria-hidden="true" className="size-3.5 shrink-0" /></Link>}
           </li>

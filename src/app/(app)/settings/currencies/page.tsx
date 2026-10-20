@@ -135,7 +135,7 @@ export default function CurrenciesPage() {
       />
 
       {/* Tabela średnich kursów NBP */}
-      <Card className="border border-border/70 bg-card/75 backdrop-blur-md rounded-2xl shadow-apple-sm overflow-hidden">
+      <Card className="border border-border/70 bg-card  rounded-xl shadow-2xs overflow-hidden">
         <div className="p-4 border-b border-border/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -206,7 +206,7 @@ export default function CurrenciesPage() {
       {/* Siatka: Kalkulator Walutowy + Rachunki Walutowe Firmy */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Kalkulator Walutowy */}
-        <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:shadow-apple-md space-y-4">
+        <Card className="border border-border/70 bg-card p-5  rounded-xl shadow-2xs transition-all duration-200 hover:shadow-sm space-y-4">
           <div className="flex items-center gap-2 border-b border-border/60 pb-3">
             <Calculator className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">Kalkulator przeliczeń walutowych</h3>
@@ -276,10 +276,10 @@ export default function CurrenciesPage() {
         </Card>
 
         {/* Rachunki walutowe firmy */}
-        <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm transition-all duration-200 hover:shadow-apple-md space-y-4">
+        <Card className="border border-border/70 bg-card p-5  rounded-xl shadow-2xs transition-all duration-200 hover:shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-border/50 pb-3">
             <div className="flex items-center gap-2">
-              <Landmark className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+              <Landmark className="h-4 w-4 text-success dark:text-success" />
               <h3 className="text-sm font-semibold text-foreground">Rachunki walutowe firmy</h3>
             </div>
             <Link prefetch={false}
@@ -333,8 +333,8 @@ export default function CurrenciesPage() {
       </div>
 
       {/* Podstawa prawna: Art. 31a ustawy o VAT */}
-      <Card className="border border-border/70 bg-card/75 p-5 backdrop-blur-md rounded-2xl shadow-apple-sm space-y-3">
-        <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
+      <Card className="border border-border/70 bg-card p-5  rounded-xl shadow-2xs space-y-3">
+        <div className="flex items-center gap-2 text-primary dark:text-primary">
           <Info className="h-4 w-4" />
           <h4 className="text-xs font-semibold uppercase tracking-wider">
             Zasady prawne przeliczania walut obcych (Art. 31a ustawy o VAT)

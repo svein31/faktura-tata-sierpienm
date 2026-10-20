@@ -26,16 +26,16 @@ export function InvoiceStatusTimeline({ invoice, onRefreshStatus, onDownloadUpo,
         {!isRefreshing && <RefreshCw className="size-3.5" aria-hidden="true" />}Sprawdź status
       </Button>}
     </div>
-    <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-3.5 ${status.rejected ? "border-rose-500/25 bg-rose-500/5" : "border-border/60 bg-muted/20"}`}>
+    <div role="status" aria-live="polite" className={`mt-4 rounded-xl border p-3.5 ${status.rejected ? "border-destructive/25 bg-destructive/5" : "border-border/60 bg-muted/20"}`}>
       <p className="flex items-center gap-2 text-sm font-semibold">{status.rejected && <AlertCircle className="size-4 text-finance-expense" aria-hidden="true" />}{status.label}</p>
       <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{status.detail}</p>
-      {status.rejectionMessage && <div className="mt-3 border-t border-rose-500/15 pt-3 text-xs leading-relaxed"><p className="font-medium">Komunikat KSeF:</p><p className="mt-1 whitespace-pre-wrap break-words">{status.rejectionMessage}</p></div>}
+      {status.rejectionMessage && <div className="mt-3 border-t border-destructive/15 pt-3 text-xs leading-relaxed"><p className="font-medium">Komunikat KSeF:</p><p className="mt-1 whitespace-pre-wrap break-words">{status.rejectionMessage}</p></div>}
       {status.number && <p className="mt-3 break-all font-mono text-xs text-muted-foreground">Numer KSeF: {status.number}</p>}
     </div>
     <ol className="mt-4 grid gap-2 md:grid-cols-5" aria-label="Etapy obsługi KSeF">
       {status.steps.map((step,index) => <li key={step.id} aria-current={step.state === "current" ? "step" : undefined}
-        data-step={step.id} data-state={step.state} className={`min-w-0 rounded-xl border p-3 ${step.state === "error" ? "border-rose-500/30 bg-rose-500/5" : step.state === "current" ? "border-primary/30 bg-primary/5" : "border-border/60"}`}>
-        <div className="flex items-center gap-2"><span aria-hidden="true" className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${step.state === "completed" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}>
+        data-step={step.id} data-state={step.state} className={`min-w-0 rounded-xl border p-3 ${step.state === "error" ? "border-destructive/30 bg-destructive/5" : step.state === "current" ? "border-primary/30 bg-primary/5" : "border-border/60"}`}>
+        <div className="flex items-center gap-2"><span aria-hidden="true" className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${step.state === "completed" ? "bg-success/10 text-success dark:text-success" : "bg-muted text-muted-foreground"}`}>
           {step.state === "completed" ? <Check className="size-3.5" /> : step.state === "current" ? <Clock className="size-3.5" /> : index+1}
         </span><span className="text-xs font-semibold">{step.label}</span></div>
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{step.description}</p>

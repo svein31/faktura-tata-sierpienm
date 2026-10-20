@@ -360,7 +360,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                 maxLength={13}
               />
               {isValidNipFormat(normalizeNip(form.nip)) && (
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400">
+                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-success dark:text-success">
                   <Check className="h-4 w-4" />
                 </span>
               )}
@@ -613,7 +613,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteBankAccount(acc.id)}
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-500 shrink-0"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive shrink-0"
                       title="Usuń rachunek"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -665,7 +665,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                 />
               </div>
               <div className="flex-1 space-y-1">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <p className="text-xs font-semibold text-success dark:text-success flex items-center gap-1">
                   <Check className="h-3.5 w-3.5" /> Logo wgrane
                 </p>
                 <p className="text-[11px] text-muted-foreground">
@@ -677,7 +677,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
                 variant="outline"
                 size="sm"
                 onClick={() => setField("logoUrl", "")}
-                className="h-8 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 border-rose-500/30"
+                className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
               >
                 <X className="h-3.5 w-3.5 mr-1" /> Usuń
               </Button>

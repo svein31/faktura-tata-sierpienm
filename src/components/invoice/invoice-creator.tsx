@@ -1026,12 +1026,12 @@ export function InvoiceCreator() {
       {/* ── Formularz ── */}
       <div className="min-w-0 space-y-5">
         {cloneLoading && <p className="rounded-xl border border-border bg-muted/30 p-3 text-sm" role="status">Wczytywanie faktury do sklonowania…</p>}
-        {cloneError && <div className="rounded-xl border border-rose-500/30 p-3 text-sm space-y-2" role="alert">
+        {cloneError && <div className="rounded-xl border border-destructive/30 p-3 text-sm space-y-2" role="alert">
           <p>{cloneError}</p>
           <button type="button" className="text-primary underline" onClick={() => setCloneAttempt(value => value + 1)}>Spróbuj ponownie</button>
           <button type="button" className="ml-4 text-primary underline" onClick={() => router.replace("/invoices/new")}>Zacznij pustą fakturę</button>
         </div>}
-        {saveError && <div id="invoice-save-error" tabIndex={-1} role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 p-4 text-sm">
+        {saveError && <div id="invoice-save-error" tabIndex={-1} role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm">
           <p className="font-semibold">Nie udało się zapisać dokumentu</p><p className="mt-1 break-words">{saveError}</p>
           <p className="mt-2 text-xs text-muted-foreground">Wpisane dane pozostały w formularzu. Popraw wskazane pola lub ponów zapis, gdy połączenie będzie dostępne.</p>
         </div>}
@@ -1044,10 +1044,10 @@ export function InvoiceCreator() {
               exit={{ opacity: 0, y: -8, height: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               role="alert" id="invoice-validation-summary" tabIndex={-1}
-              className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300 space-y-1 shadow-xs overflow-hidden"
+              className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive dark:text-destructive space-y-1 shadow-xs overflow-hidden"
             >
               <div className="flex items-center gap-2 font-bold text-[13px]">
-                <AlertOctagon className="h-4 w-4 shrink-0 text-rose-500" />
+                <AlertOctagon className="h-4 w-4 shrink-0 text-destructive" />
                 <span>Uzupełnij wymagane pola przed zapisem:</span>
               </div>
               <p className="text-[12px]">Twoje dane pozostają w formularzu. Wybierz komunikat, aby przejść do pola.</p>
@@ -1062,13 +1062,13 @@ export function InvoiceCreator() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">Status wersji roboczej:</span>
             {autosaveStatus === "saving" ? (
-              <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
-                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1 text-warning dark:text-warning">
+                <span className="h-2 w-2 rounded-full bg-warning animate-pulse" />
                 Zapisywanie w tle…
               </span>
             ) : autosaveStatus === "saved" ? (
-              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-1 text-success dark:text-success">
+                <span className="h-2 w-2 rounded-full bg-success" />
                 Zapisano lokalnie
               </span>
             ) : (
@@ -1079,7 +1079,7 @@ export function InvoiceCreator() {
             <button
               type="button"
               onClick={() => setShortcutsModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card/60 px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
               title="Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)"
             >
               <Keyboard className="h-3 w-3 text-primary" />
@@ -1096,8 +1096,8 @@ export function InvoiceCreator() {
 
         {/* Ostrzeżenie o równoczesnej edycji w innej karcie */}
         {tabConflict && (
-          <div className="flex items-center gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-warning/30 bg-warning/10 p-3.5 text-xs text-warning dark:text-warning">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-warning dark:text-warning" />
             <span>
               <b>Wykryto edycję w innej karcie:</b> Ta faktura jest jednocześnie otwarta w innej karcie przeglądarki. Aby uniknąć nadpisania danych, zalecamy edycję tylko w jednej karcie.
             </span>
@@ -1106,7 +1106,7 @@ export function InvoiceCreator() {
 
         {/* Baner przywracania niezapisanej wersji roboczej */}
         {hasRecoverableDraft && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3.5 text-xs text-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3.5 text-xs text-foreground">
             <div className="flex items-center gap-2.5">
               <Save className="h-4 w-4 text-primary shrink-0" />
               <span>
@@ -1125,8 +1125,8 @@ export function InvoiceCreator() {
         )}
 
         {isKsefRegistered && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-[12.5px] text-emerald-800 dark:text-emerald-300">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-success/30 bg-success/10 p-3.5 text-[12.5px] text-success dark:text-success">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success dark:text-success" />
             <div>
               <p className="font-semibold">Faktura zarejestrowana w KSeF (numer: {draftInvoice?.ksefNumber || draftInvoice?.ksef?.number})</p>
               <p className="text-[11.5px] opacity-90 mt-0.5">
@@ -1138,9 +1138,9 @@ export function InvoiceCreator() {
 
         {/* Sekcja faktury korygującej */}
         {form.isCorrection && (
-          <Card className="border-rose-500/40 bg-rose-500/5">
+          <Card className="border-destructive/40 bg-destructive/5">
             <CardHeader className="pb-3">
-              <CardTitle className="text-rose-700 dark:text-rose-400 text-[15px] flex items-center gap-2">
+              <CardTitle className="text-destructive dark:text-destructive text-[15px] flex items-center gap-2">
                 Faktura korygująca (KOR)
               </CardTitle>
               <CardDescription>
@@ -1151,7 +1151,7 @@ export function InvoiceCreator() {
             <CardContent className="space-y-3">
               <p className="text-sm">{correctionAfterValues ? "Wpisz prawidłowe wartości po korekcie. System sam obliczy różnicę i zapisze osobną fakturę korygującą z numerem KSeF oryginału (jeśli został nadany). Oryginalna faktura pozostaje bez zmian." : <>Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</>}</p>
               <div className="space-y-1.5">
-                <Label htmlFor="invoice-correctionReason" className="text-rose-900 dark:text-rose-300 font-semibold">
+                <Label htmlFor="invoice-correctionReason" className="text-destructive dark:text-destructive font-semibold">
                   Przyczyna korekty (pole wymagane w schemacie FA(3)) *
                 </Label>
                 <Input
@@ -1168,8 +1168,8 @@ export function InvoiceCreator() {
         )}
 
         {form.isProforma && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 text-[12px] text-indigo-900 dark:text-indigo-200">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-primary/30 bg-primary/10 p-3 text-[12px] text-primary dark:text-primary">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary dark:text-primary" />
             <div>
               <p className="font-semibold">Tryb: Faktura Proforma (dokument handlowy)</p>
               <p className="text-[11.5px] opacity-90 mt-0.5">
@@ -1180,8 +1180,8 @@ export function InvoiceCreator() {
         )}
 
         {isPurchase && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-blue-500/25 bg-blue-500/5 p-3 text-[12px] text-blue-700 dark:text-blue-300">
-            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-primary/25 bg-primary/5 p-3 text-[12px] text-primary dark:text-primary">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <span>
               <b>Faktura zakupowa (FZ):</b> Dokument kosztowy od zewnętrznego sprzedawcy. Trafia do ewidencji wydatków i zatwierdzenia dla księgowości (nie podlega wysyłce do KSeF).
             </span>
@@ -1189,7 +1189,7 @@ export function InvoiceCreator() {
         )}
 
         {companies.length === 0 && !effectiveSellerCompany?.companyName && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12.5px] text-amber-700 dark:text-amber-400">
+          <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 p-3 text-[12.5px] text-warning dark:text-warning">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>
               Nie dodałeś jeszcze profilu firmy sprzedawcy.{" "}
@@ -1259,7 +1259,7 @@ export function InvoiceCreator() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm font-medium">{effectiveSellerCompany.companyName || "Dodaj firmę"} · NIP: {formatNip(effectiveSellerCompany.nip)}</p>
-            {editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-red-600">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
+            {editing && draftInvoice?.sellerCompanyId && draftInvoice.sellerCompanyId !== effectiveSellerCompany.id && <p className="text-sm text-destructive">Ten dokument należy do innej firmy. Otwórz go w kontekście właściwej firmy.</p>}
             <div className="space-y-1">
               {!editing && <div className="mb-3 rounded-xl border border-primary/25 bg-primary/5 p-3 space-y-2">
                 <p className="text-sm font-semibold">Jak ponumerować tę fakturę?</p>
@@ -1375,7 +1375,7 @@ export function InvoiceCreator() {
                     {c.name} · {formatNip(c.nip)}
                   </option>
                 ))}
-                <option value="__new__">➕ Dodaj nowego kontrahenta…</option>
+                <option value="__new__">Dodaj nowego kontrahenta…</option>
               </Select>
               {fieldErrors.contractorId && <p id="invoice-contractorId-error" className="text-xs text-destructive">{fieldErrors.contractorId}</p>}
               {selectedContractor && (
@@ -1687,7 +1687,7 @@ export function InvoiceCreator() {
                     <Link prefetch={false} className="inline-block text-primary underline" href="/settings/currencies">Zarządzaj rachunkami i nazwą banku</Link>
                   </div>
                   {form.currency !== "PLN" && !companyAccounts.some((b) => b.currency === form.currency || b.currency === "MULTI") && (
-                    <p className="text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-1 mt-1">
+                    <p className="text-[11px] text-warning dark:text-warning flex items-center gap-1 mt-1">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                       Uwaga: firma nie posiada dedykowanego konta w walucie {form.currency}. Środki wpłyną na konto PLN z możliwym przewalutowaniem banku.
                     </p>

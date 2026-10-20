@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { HelpCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ export function Tooltip({
   side = "top",
   className,
 }: TooltipProps) {
+  const reducedMotion = useReducedMotion();
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLSpanElement>(null);
   const tooltipId = React.useId();
@@ -70,7 +71,7 @@ export function Tooltip({
         }}
         aria-label="Informacja"
         aria-describedby={open ? tooltipId : undefined}
-        className="inline-flex cursor-help items-center justify-center rounded p-0.5 text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="inline-flex cursor-help items-center justify-center rounded p-0.5 text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {children || <Info className="h-3.5 w-3.5 stroke-[2]" />}
       </button>
@@ -78,12 +79,12 @@ export function Tooltip({
       <AnimatePresence>
         {open && (
           <motion.span
-            initial={{ opacity: 0, scale: 0.94, y: side === "top" ? 3 : -3 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: side === "top" ? 2 : -2 }}
-            transition={{ type: "spring", stiffness: 450, damping: 25 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.12 }}
             className={cn(
-              "pointer-events-none absolute z-50 w-max max-w-[260px] rounded-xl border border-white/10 bg-slate-900/90 px-3 py-1.5 text-left text-[11.5px] font-normal leading-snug text-white shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-slate-800/95 dark:text-slate-100",
+              "pointer-events-none absolute z-50 w-max max-w-[260px] rounded-md border border-border bg-popover px-3 py-2 text-left text-xs font-normal leading-relaxed text-popover-foreground shadow-[var(--shadow-popup)]",
               sideClasses[side],
               className
             )}
@@ -113,9 +114,9 @@ export function InfoTooltip({
   return (
     <Tooltip content={text} side={side}>
       {icon === "help" ? (
-        <HelpCircle className="h-3.5 w-3.5 stroke-[2] text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300" />
+        <HelpCircle aria-hidden="true" className="h-3.5 w-3.5 stroke-[2]" />
       ) : (
-        <Info className="h-3.5 w-3.5 stroke-[2] text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300" />
+        <Info aria-hidden="true" className="h-3.5 w-3.5 stroke-[2]" />
       )}
     </Tooltip>
   );

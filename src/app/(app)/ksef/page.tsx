@@ -60,7 +60,6 @@ const ENV_CONFIG: Record<
     gateway: string;
     desc: string;
     badgeTone: "success" | "warning" | "info";
-    glowClass: string;
     borderClass: string;
   }
 > = {
@@ -69,24 +68,21 @@ const ENV_CONFIG: Record<
     gateway: "https://api.ksef.mf.gov.pl/v2",
     desc: "Oficjalny, prawnie wiążący system Krajowego Systemu e-Faktur Ministerstwa Finansów.",
     badgeTone: "success",
-    glowClass: "shadow-emerald-500/15 ring-emerald-500/30",
-    borderClass: "border-emerald-500/40 bg-emerald-500/5",
+    borderClass: "border-primary/40 bg-primary/5",
   },
   test: {
     label: "Środowisko Testowe (MF)",
     gateway: "https://api-test.ksef.mf.gov.pl/v2",
     desc: "Środowisko integracyjne Ministerstwa Finansów do testowania wysyłki i odbioru faktur.",
     badgeTone: "warning",
-    glowClass: "shadow-amber-500/15 ring-amber-500/30",
-    borderClass: "border-amber-500/40 bg-amber-500/5",
+    borderClass: "border-primary/40 bg-primary/5",
   },
   demo: {
     label: "Tryb Demonstracyjny",
     gateway: "Lokalny symulator e-Faktur FA(3)",
     desc: "Lokalna symulacja FA(3). Potwierdzenie demo nie jest urzędowym UPO i nie pochodzi z MF.",
     badgeTone: "info",
-    glowClass: "shadow-sky-500/15 ring-sky-500/30",
-    borderClass: "border-sky-500/40 bg-sky-500/5",
+    borderClass: "border-primary/40 bg-primary/5",
   },
 };
 
@@ -433,10 +429,7 @@ function KsefPageInner() {
 
   return (
     <div className="space-y-6">
-      {/* ── World-Class Live Header ── */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-card via-card/90 to-card/50 p-6 sm:p-8 backdrop-blur-xl shadow-lg">
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="absolute right-32 -bottom-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+      <div className="surface-card p-5 sm:p-6">
 
         <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -464,7 +457,7 @@ function KsefPageInner() {
               loading={testingConnection}
               className="gap-2 rounded-xl shadow-xs hover:border-primary/40"
             >
-              {!testingConnection && <Activity className="h-4 w-4 text-emerald-500" />}
+              {!testingConnection && <Activity className="h-4 w-4 text-success" />}
               {testingConnection ? "Testowanie bramki..." : "Testuj połączenie z KSeF"}
             </Button>
             <Button
@@ -484,16 +477,16 @@ function KsefPageInner() {
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`mt-6 rounded-2xl border p-4 text-xs ${
-              connectionResult.ok ? "border-emerald-500/30 bg-emerald-500/5" : "border-rose-500/30 bg-rose-500/5"
+            className={`mt-6 rounded-xl border p-4 text-xs ${
+              connectionResult.ok ? "border-success/30 bg-success/5" : "border-destructive/30 bg-destructive/5"
             }`}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 {connectionResult.ok ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                 ) : (
-                  <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
+                  <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
                 )}
                 <span className="font-semibold text-foreground">
                   {connectionResult.message}
@@ -513,11 +506,11 @@ function KsefPageInner() {
                 </span>
                 {connectionResult.certificates?.tokenKeyId && (
                   <span>
-                    Certyfikat Tokena: <code className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">{connectionResult.certificates.tokenKeyId.slice(0, 16)}...</code>
+                    Certyfikat Tokena: <code className="font-mono text-success dark:text-success font-semibold">{connectionResult.certificates.tokenKeyId.slice(0, 16)}...</code>
                   </span>
                 )}
                 {connectionResult.authTested && (
-                  <span className={`font-semibold ${connectionResult.authSuccess ? "text-emerald-500" : "text-amber-500"}`}>
+                  <span className={`font-semibold ${connectionResult.authSuccess ? "text-success" : "text-warning"}`}>
                     {connectionResult.authMessage}
                   </span>
                 )}
@@ -556,7 +549,7 @@ function KsefPageInner() {
         >
           {/* Kolumna lewa: Konfiguracja KSeF */}
           <div className="min-w-0 space-y-6 xl:col-span-7">
-            <Card className="rounded-3xl border-border/70 shadow-sm">
+            <Card className="rounded-xl border-border/70 shadow-sm">
               <CardHeader>
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -585,9 +578,9 @@ function KsefPageInner() {
                         <div
                           key={env}
                           onClick={() => setEnvDraft(env)}
-                          className={`cursor-pointer rounded-2xl border p-3.5 transition-all ${
+                          className={`cursor-pointer rounded-xl border p-3.5 transition-all ${
                             isSelected
-                              ? `${cfg.borderClass} ${cfg.glowClass} ring-2 ring-primary/40`
+                              ? `${cfg.borderClass} ring-1 ring-primary/30`
                               : "border-border/60 hover:bg-muted/40"
                           }`}
                         >
@@ -690,7 +683,7 @@ function KsefPageInner() {
           {/* Kolumna prawa: Status integracji i profil */}
           <div className="min-w-0 space-y-6 xl:col-span-5">
             {/* Dane podmiotu wystawcy */}
-            <Card className="rounded-3xl border-border/70 shadow-sm">
+            <Card className="rounded-xl border-border/70 shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -703,7 +696,7 @@ function KsefPageInner() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 text-[12.5px]">
-                <div className="rounded-2xl bg-muted/40 p-4 space-y-2 border border-border/50">
+                <div className="rounded-xl bg-muted/40 p-4 space-y-2 border border-border/50">
                   <div className="grid min-w-0 gap-1 sm:grid-cols-[max-content_minmax(0,1fr)] sm:gap-3">
                     <span className="text-muted-foreground">Firma:</span>
                     <span className="min-w-0 break-words font-semibold text-foreground sm:text-right">{companySafe.companyName || companySafe.name || "Nie podano"}</span>
@@ -729,37 +722,37 @@ function KsefPageInner() {
             </Card>
 
             {/* Karta architektury kryptograficznej */}
-            <Card className="rounded-3xl border-border/70 shadow-sm bg-gradient-to-b from-card to-muted/20">
+            <Card className="border-border bg-card">
               <CardHeader>
                 <CardTitle className="text-[16px] flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                  <ShieldCheck className="h-4 w-4 text-success" />
                   Standard Bezpieczeństwa MF
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2.5 text-xs text-muted-foreground">
                 <div className="flex items-start gap-2.5">
-                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <BadgeCheck className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <div>
                     <b className="text-foreground">Szyfrowanie Sesji KSeF:</b> Klucz symetryczny AES-256 jest generowany
                     dla każdej sesji i szyfrowany asymetrycznie RSA-OAEP SHA-256 certyfikatem MF.
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <BadgeCheck className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <div>
                     <b className="text-foreground">Szyfrowanie e-Faktur:</b> Treść XML FA(3) jest szyfrowana algorytmem
                     AES-256-CBC z dopełnieniem PKCS#7 przed wysłaniem przez sieć publiczną.
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <BadgeCheck className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <div>
                     <b className="text-foreground">Integralność Skrótów:</b> Wyliczane hashe SHA-256 dla czystego pliku
                     oraz zaszyfrowanej paczki gwarantują niezmienność dokumentu.
                   </div>
                 </div>
                 <div className="flex items-start gap-2.5">
-                  <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <BadgeCheck className="h-4 w-4 text-success shrink-0 mt-0.5" />
                   <div>
                     <b className="text-foreground">Potwierdzenia:</b> W środowiskach MF UPO pobierane jest z bramki MF.
                     W trybie demo powstaje wyłącznie lokalny plik symulacyjny, bez mocy urzędowej.
@@ -781,7 +774,7 @@ function KsefPageInner() {
         >
           {/* Edytor / Podgląd XML */}
           <div className="space-y-4 xl:col-span-8">
-            <Card className="rounded-3xl border-border/70 shadow-sm">
+            <Card className="rounded-xl border-border/70 shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -849,7 +842,7 @@ function KsefPageInner() {
                 </div>
 
                 {/* Pole edytora XML z fontem mono */}
-                <div className="relative rounded-2xl border border-border/80 bg-muted/30 dark:bg-black/40 overflow-hidden">
+                <div className="relative rounded-xl border border-border/80 bg-muted/30 dark:bg-black/40 overflow-hidden">
                   <Textarea
                     value={xml}
                     onChange={(e) => {
@@ -893,13 +886,13 @@ function KsefPageInner() {
           <div className="space-y-6 xl:col-span-4">
             {/* Wynik walidacji XML */}
             {isValidXml !== null && validationIssues && (
-              <Card className={`rounded-3xl border ${isValidXml ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+              <Card className={`rounded-xl border ${isValidXml ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5"}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-[15px] flex items-center gap-2">
                     {isValidXml ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-rose-500" />
+                      <XCircle className="h-4 w-4 text-destructive" />
                     )}
                     Walidator FA(3)
                   </CardTitle>
@@ -915,8 +908,8 @@ function KsefPageInner() {
                       key={idx}
                       className={`p-2.5 rounded-xl text-xs border ${
                         issue.severity === "error"
-                          ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
-                          : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                          ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-destructive"
+                          : "border-warning/30 bg-warning/10 text-warning dark:text-warning"
                       }`}
                     >
                       <code className="block font-mono text-[10.5px] opacity-80 mb-0.5">{issue.path}</code>
@@ -929,13 +922,13 @@ function KsefPageInner() {
 
             {/* Wynik transmisji KSeF */}
             {sendResult && (
-              <Card className={`rounded-3xl border ${sendResult.success ? "border-emerald-500/40 bg-emerald-500/5" : "border-rose-500/40 bg-rose-500/5"}`}>
+              <Card className={`rounded-xl border ${sendResult.success ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5"}`}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-[15px] flex items-center gap-2">
                     {sendResult.success ? (
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                      <ShieldCheck className="h-4 w-4 text-success" />
                     ) : (
-                      <ShieldAlert className="h-4 w-4 text-rose-500" />
+                      <ShieldAlert className="h-4 w-4 text-destructive" />
                     )}
                     Potwierdzenie z KSeF
                   </CardTitle>
@@ -943,11 +936,11 @@ function KsefPageInner() {
                 <CardContent className="space-y-3 text-xs">
                   {sendResult.success ? (
                     <>
-                      <div className="rounded-xl bg-card/60 p-3 space-y-1.5 border border-border/50">
+                      <div className="rounded-xl bg-card p-3 space-y-1.5 border border-border/50">
                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                           Numer KSeF / Identyfikator:
                         </span>
-                        <code className="block font-mono text-emerald-600 dark:text-emerald-400 font-bold text-[12px] break-all">
+                        <code className="block font-mono text-success dark:text-success font-bold text-[12px] break-all">
                           {sendResult.ksefNumber}
                         </code>
                         <div className="flex justify-between items-center text-[11.5px] text-muted-foreground pt-1">
@@ -971,7 +964,7 @@ function KsefPageInner() {
                       </Button>
                     </>
                   ) : (
-                    <p className="text-rose-600 dark:text-rose-400 font-medium">
+                    <p className="text-destructive dark:text-destructive font-medium">
                       {sendResult.message}
                     </p>
                   )}
@@ -980,7 +973,7 @@ function KsefPageInner() {
             )}
 
             {/* Karta informacji o środowisku docelowym */}
-            <Card className="rounded-3xl border-border/70 shadow-sm p-4 space-y-3">
+            <Card className="rounded-xl border-border/70 shadow-sm p-4 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Środowisko:</span>
                 <Badge tone={currentEnv.badgeTone}>{currentEnv.label}</Badge>
@@ -1006,7 +999,7 @@ function KsefPageInner() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <Card className="rounded-3xl border-border/70 shadow-sm">
+          <Card className="rounded-xl border-border/70 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-[17px]">Zarejestrowane e-Faktury w KSeF</CardTitle>
@@ -1019,7 +1012,7 @@ function KsefPageInner() {
             <CardContent>
               {ksefInvoices.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                     <FileText className="h-6 w-6" />
                   </div>
                   <p className="text-sm font-semibold text-foreground">{nextCursor ? "Brak wysłanych dokumentów na wczytanej stronie" : "Brak wysłanych dokumentów do KSeF"}</p>
@@ -1064,7 +1057,7 @@ function KsefPageInner() {
                               {formatMoney(invoiceTotals(inv).gross, inv.currency)}
                             </td>
                             <td className="py-3.5 px-3">
-                              <code className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold break-all">
+                              <code className="font-mono text-[11px] text-success dark:text-success font-semibold break-all">
                                 {ksefNum}
                               </code>
                             </td>
@@ -1122,7 +1115,7 @@ function KsefPageInner() {
           className="space-y-6"
         >
           {/* Karta harmonogramu automatycznego pobierania */}
-          <Card className="rounded-3xl border-border/70 shadow-sm bg-gradient-to-br from-card via-card/90 to-card/50">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
@@ -1211,7 +1204,7 @@ function KsefPageInner() {
           </Card>
 
           {/* Wykaz faktur zakupowych */}
-          <Card className="rounded-3xl border-border/70 shadow-sm">
+          <Card className="rounded-xl border-border/70 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <CardTitle className="text-[17px]">Faktury Zakupowe (FZ) z KSeF</CardTitle>
@@ -1232,7 +1225,7 @@ function KsefPageInner() {
             <CardContent>
               {purchaseInvoices.length === 0 ? (
                 <div className="text-center py-16 space-y-3">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                     <CloudDownload className="h-6 w-6" />
                   </div>
                   <p className="text-sm font-semibold text-foreground">{nextCursor ? "Brak zakupów na wczytanej stronie" : "Brak pobranych faktur zakupowych"}</p>
@@ -1276,18 +1269,18 @@ function KsefPageInner() {
                               {formatMoney(invoiceTotals(inv).gross, inv.currency)}
                             </td>
                             <td className="py-3 px-3">
-                              <code className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
+                              <code className="font-mono text-[11px] text-success dark:text-success">
                                 {ksefNum}
                               </code>
                             </td>
                             <td className="py-3 px-3">
                               {isApproved ? (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] border border-emerald-500/20">
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-success/10 text-success dark:text-success font-semibold text-[11px] border border-success/20">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-success dark:text-success" />
                                   Zatwierdzona
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-[11px] border border-amber-500/20">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-warning/10 text-warning dark:text-warning font-medium text-[11px] border border-warning/20">
                                   <Clock className="h-3.5 w-3.5" />
                                   Do akceptacji
                                 </span>
@@ -1310,7 +1303,7 @@ function KsefPageInner() {
                                     size="sm"
                                     onClick={() => handleToggleApproval(inv.id, "approved")}
                                     loading={approvingId === inv.id}
-                                    className="h-7 px-2.5 text-[11px] rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium gap-1"
+                                    className="h-7 px-2.5 text-xs rounded-md bg-success hover:bg-success/90 text-success-foreground font-medium gap-1"
                                   >
                                     <CheckCircle2 className="h-3 w-3" />
                                     Akceptuj

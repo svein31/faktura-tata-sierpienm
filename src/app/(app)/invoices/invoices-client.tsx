@@ -460,7 +460,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             {<Button variant="subtle" onClick={() => setShowUnassigned((v) => !v)}>{showUnassigned ? "Faktury wybranej firmy" : "Faktury bez przypisanej firmy"}</Button>}
             <Link prefetch={false} href="/invoices/recurring">
               <Button variant="outline" size="sm" className="rounded-xl gap-1.5 text-xs border-border/70">
-                <Repeat className="h-3.5 w-3.5 text-purple-400" />
+                <Repeat className="h-3.5 w-3.5 text-primary" />
                 <span>Cykliczne (MRR)</span>
               </Button>
             </Link>
@@ -497,7 +497,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       <div className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-border/70 pb-3.5">
           {/* Główne zakładki typów faktur */}
-          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-muted/40 border border-border/70 shadow-xs">
+          <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl bg-muted/40 border border-border/70 shadow-xs">
             <button
               type="button"
               aria-pressed={typeFilter === "all"}
@@ -548,21 +548,21 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               onClick={() => setTypeFilter("purchase")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                 typeFilter === "purchase"
-                  ? "bg-background text-emerald-700 dark:text-emerald-400 shadow-xs ring-1 ring-border/80"
+                  ? "bg-background text-success dark:text-success shadow-xs ring-1 ring-border/80"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <CloudDownload className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+              <CloudDownload className="h-3.5 w-3.5 text-success dark:text-success" />
               <span>Wydatki / Zakupy (FZ)</span>
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                typeFilter === "purchase" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+                typeFilter === "purchase" ? "bg-muted text-foreground" : "bg-muted text-muted-foreground"
               }`}>
                 {results.counts.purchase}
               </span>
               {(results.counts.purchase > results.counts.approved) && (
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
                 </span>
               )}
             </button>
@@ -577,14 +577,14 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                 typeFilter === "proforma"
-                  ? "bg-background text-amber-500 shadow-xs ring-1 ring-border/80"
+                  ? "bg-background text-warning shadow-xs ring-1 ring-border/80"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <FileText className="h-3.5 w-3.5 text-amber-500" />
+              <FileText className="h-3.5 w-3.5 text-warning" />
               <span>Proformy</span>
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                typeFilter === "proforma" ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+                typeFilter === "proforma" ? "bg-muted text-foreground" : "bg-muted text-muted-foreground"
               }`}>
                 {results.counts.proforma}
               </span>
@@ -594,7 +594,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           {/* Pod-zakładki akceptacji księgowej dla FZ */}
           {typeFilter === "purchase" && (
             <div
-              className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-muted/30 border border-border/60 shadow-2xs motion-safe:animate-fade-in"
+              className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-xl bg-muted/30 border border-border/60 shadow-2xs motion-safe:animate-fade-in"
             >
               <span className="text-[11px] font-semibold text-muted-foreground px-2 uppercase tracking-wider">
                 Status księgowy:
@@ -617,13 +617,13 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                 onClick={() => setApprovalFilter("pending")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   approvalFilter === "pending"
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 shadow-xs ring-1 ring-amber-500/40"
+                    ? "bg-warning/15 text-warning dark:text-warning shadow-xs ring-1 ring-warning/40"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 }`}
               >
-                <Clock className="h-3.5 w-3.5 text-amber-500" />
+                <Clock className="h-3.5 w-3.5 text-warning" />
                 <span>Do akceptacji</span>
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-warning/20 text-warning dark:text-warning">
                   {(results.counts.purchase - results.counts.approved)}
                 </span>
               </button>
@@ -633,13 +633,13 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                 onClick={() => setApprovalFilter("approved")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   approvalFilter === "approved"
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-xs ring-1 ring-emerald-500/40"
+                    ? "bg-success/15 text-success dark:text-success shadow-xs ring-1 ring-success/40"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 }`}
               >
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 <span>Zaakceptowane</span>
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-success/20 text-success dark:text-success">
                   {results.counts.approved}
                 </span>
               </button>
@@ -651,7 +651,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       {/* Pasek masowych operacji */}
       {selectionTotals.length > 0 && (
         <div
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 px-4 shadow-sm motion-safe:animate-slide-in-up"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3 px-4 shadow-sm motion-safe:animate-slide-in-up"
         >
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
             <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -692,7 +692,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                 size="sm"
                 onClick={() => setConfirmBulkPayment(true)}
                 loading={markingPaid}
-                className="rounded-xl text-xs h-8 gap-1.5 font-medium text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 shadow-2xs"
+                className="rounded-xl text-xs h-8 gap-1.5 font-medium text-success dark:text-success border-success/30 hover:bg-success/10 shadow-2xs"
                 title="Oznacz zaznaczone faktury jako opłacone"
               >
                 <Check className="h-3.5 w-3.5" /> Oznacz opłacone
@@ -706,7 +706,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                   size="sm"
                   onClick={() => handleBulkApprove("approved")}
                   loading={approving}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
+                  className="bg-success hover:bg-success/90 text-success-foreground rounded-xl text-xs gap-1.5 h-8 font-semibold shadow-xs"
                 >
                   <Check className="h-3.5 w-3.5" /> Akceptuj FZ
                 </Button>
@@ -736,7 +736,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       )}
 
       {/* Pasek filtrów */}
-      <div className="rounded-2xl border border-border/70 bg-card/70 p-3.5 backdrop-blur-xl shadow-xs">
+      <div className="rounded-xl border border-border/70 bg-card p-3.5  shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-0 basis-full xl:basis-auto xl:min-w-[240px] flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -792,7 +792,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       </div>
 
       {/* Główna tabela dokumentów */}
-      <div data-invoice-density={density} className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
+      <div data-invoice-density={density} className="rounded-xl border border-border/70 bg-card shadow-sm overflow-hidden">
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-2">
             <Filter className="h-3.5 w-3.5 text-primary" />
@@ -855,7 +855,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                   payment:<Badge className={`${payment.color} rounded-lg px-2.5 py-1 text-xs`}><span aria-hidden="true" className={`mr-1.5 size-1.5 shrink-0 rounded-full ${payment.dot}`} />{payment.label}</Badge>,
                   ksef:<KsefStatusBadge invoice={inv} />,
                   currency:<span className="text-xs font-medium">{inv.currency}</span>,
-                  approval:inv.type==='purchase'?<Badge className={isApproved?'border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300':'border border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-300'}>{isApproved?<CheckCircle2 className="mr-1 size-3.5" aria-hidden="true" />:<Clock className="mr-1 size-3.5" aria-hidden="true" />}{isApproved?'Zaakceptowana':'Do akceptacji'}</Badge>:<span className="text-muted-foreground">—</span>,
+                  approval:inv.type==='purchase'?<Badge className={isApproved?'border border-success/25 bg-success/10 text-success dark:text-success':'border border-warning/25 bg-warning/10 text-warning dark:text-warning'}>{isApproved?<CheckCircle2 className="mr-1 size-3.5" aria-hidden="true" />:<Clock className="mr-1 size-3.5" aria-hidden="true" />}{isApproved?'Zaakceptowana':'Do akceptacji'}</Badge>:<span className="text-muted-foreground">—</span>,
                 };
                 return <tr key={inv.id} data-invoice-id={inv.id} data-preview-active={previewInvoice?.id===inv.id||undefined} data-selected={isSelected||undefined} data-new-invoice={highlightedId===inv.id||undefined}
                   onClick={event=>{if(event.currentTarget.contains(event.target as Node)&&!(event.target as HTMLElement).closest('a,button,input,label,[role="menuitem"],[role="menuitemcheckbox"]'))openPreview(event,inv);}} className="ui-invoice-row cursor-pointer transition-colors">

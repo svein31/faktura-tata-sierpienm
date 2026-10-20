@@ -24,7 +24,7 @@ function PasswordStrength({ password }: { password: string }) {
             : 3;
 
   const bars = [1, 2, 3, 4];
-  const colors = ["", "bg-rose-500", "bg-amber-500", "bg-sky-500", "bg-emerald-500"];
+  const colors = ["", "bg-destructive", "bg-warning", "bg-info", "bg-success"];
   const labels = ["", "Słabe", "Wymaga więcej znaków", "Dobre", "Silne"];
 
   if (!password) return null;
@@ -44,12 +44,12 @@ function PasswordStrength({ password }: { password: string }) {
       <p
         className={`text-[10.5px] font-medium ${
           strength >= 4
-            ? "text-emerald-500"
+            ? "text-success"
             : strength >= 3
-              ? "text-sky-500"
+              ? "text-info"
               : strength >= 2
-                ? "text-amber-500"
-                : "text-rose-500"
+                ? "text-warning"
+                : "text-destructive"
         }`}
       >
         {labels[strength]}
@@ -133,8 +133,8 @@ function ResetPasswordForm() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl"
+        transition={{ duration: 0.16, ease: "easeOut" }}
+        className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-2xs"
       >
         <div className="mb-6 flex flex-col items-center text-center">
           <Logo />
@@ -150,7 +150,7 @@ function ResetPasswordForm() {
 
         {success ? (
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success ring-1 ring-success/20">
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <p className="text-sm font-semibold text-foreground">Hasło zostało pomyślnie zmienione!</p>
@@ -165,7 +165,7 @@ function ResetPasswordForm() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             {linkReady && !token && (
-              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-400">
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive dark:text-destructive">
                 Brak tokena resetującego. Otwórz link bezpośrednio z otrzymanej wiadomości e-mail.
               </div>
             )}
@@ -220,8 +220,8 @@ function ResetPasswordForm() {
             </div>
 
             {error && (
-              <div role="alert" className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
+              <div role="alert" className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/8 px-3.5 py-2.5 text-[12.5px] text-destructive dark:text-destructive">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
                 {error}
               </div>
             )}
@@ -245,11 +245,9 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
       <React.Suspense
         fallback={
-          <div className="w-full max-w-sm rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl animate-pulse space-y-4">
+          <div className="w-full max-w-sm rounded-xl border border-border/80 bg-card p-7 shadow-lg  animate-pulse space-y-4">
             <div className="h-8 w-28 bg-muted/60 rounded-xl mx-auto" />
             <div className="h-11 w-full bg-muted/30 rounded-xl mt-6" />
             <div className="h-11 w-full bg-muted/30 rounded-xl mt-3" />

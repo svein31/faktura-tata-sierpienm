@@ -123,7 +123,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
 
           <div className="mt-4 min-w-0 space-y-4 break-words">
             {/* 1. Karta Scoringu Płatniczego */}
-            <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm">
+            <Card className="border-border/60 bg-card p-4  shadow-sm">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Scoring Wiarygodności Płatniczej
@@ -136,11 +136,11 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
               <div className="mt-3 flex min-w-0 items-start gap-3">
                 <div
                   className={cn(
-                    "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl font-black border shadow-inner",
-                    scoreGrade === "A" && "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-                    scoreGrade === "B" && "bg-sky-500/15 text-sky-400 border-sky-500/30",
-                    scoreGrade === "C" && "bg-amber-500/15 text-amber-400 border-amber-500/30",
-                    scoreGrade === "D" && "bg-rose-500/15 text-rose-400 border-rose-500/30"
+                    "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-2xl font-black border shadow-inner",
+                    scoreGrade === "A" && "bg-success/15 text-success border-success/30",
+                    scoreGrade === "B" && "bg-info/15 text-info border-info/30",
+                    scoreGrade === "C" && "bg-warning/15 text-warning border-warning/30",
+                    scoreGrade === "D" && "bg-destructive/15 text-destructive border-destructive/30"
                   )}
                 >
                   {scoreGrade}
@@ -158,7 +158,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
             </Card>
 
             {/* 2. Pasek Limitu Kupieckiego */}
-            <Card className="border-border/60 bg-card/60 p-4 backdrop-blur shadow-sm space-y-3">
+            <Card className="border-border/60 bg-card p-4  shadow-sm space-y-3">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-primary" />
@@ -190,10 +190,10 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                       className={cn(
                         "h-full transition-all duration-500",
                         limitUsagePercent > 90
-                          ? "bg-rose-500"
+                          ? "bg-destructive"
                           : limitUsagePercent > 60
-                          ? "bg-amber-500"
-                          : "bg-emerald-500"
+                          ? "bg-warning"
+                          : "bg-success"
                       )}
                       style={{ width: `${limitUsagePercent}%` }}
                     />
@@ -240,7 +240,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
 
             {/* 3. Podsumowanie Obrotów */}
             <div className="grid gap-3 sm:grid-cols-2">
-              <Card className="border-border/60 bg-card/60 p-3.5 backdrop-blur">
+              <Card className="border-border/60 bg-card p-3.5 ">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Łączny obrót
                 </span>
@@ -252,13 +252,13 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                 </p>
               </Card>
 
-              <Card className="border-border/60 bg-card/60 p-3.5 backdrop-blur">
+              <Card className="border-border/60 bg-card p-3.5 ">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Bieżący dług (nieopłacone)
                 </span>
                 <p className={cn(
                   "mt-1 text-xl font-bold tracking-tight",
-                  unpaidGrossTotal > 0 ? "text-amber-400" : "text-emerald-400"
+                  unpaidGrossTotal > 0 ? "text-warning" : "text-success"
                 )}>
                   {formatMoney(unpaidGrossTotal, "PLN")}
                 </p>
@@ -292,7 +292,7 @@ export function ContractorCrmDrawer({ contractor, onClose }: ContractorCrmDrawer
                   {contractorInvoices.slice(0, 5).map((inv) => (
                     <div
                       key={inv.id}
-                      className="flex min-w-0 flex-col gap-2 rounded-xl sm:flex-row sm:justify-between border border-border/50 bg-card/50 p-3 text-xs hover:border-border transition-colors"
+                      className="flex min-w-0 flex-col gap-2 rounded-xl sm:flex-row sm:justify-between border border-border/50 bg-card p-3 text-xs hover:border-border transition-colors"
                     >
                       <div>
                         <Link prefetch={false} href={`/invoices/${inv.id}`} className="font-semibold text-foreground hover:text-primary">

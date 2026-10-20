@@ -36,7 +36,7 @@ export function BottomNav() {
       aria-label="Nawigacja mobilna"
       className="no-print fixed inset-x-0 bottom-0 z-40 block md:hidden"
     >
-      <div className="border-t border-border/60 bg-background/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl">
+      <div className="border-t border-border/60 bg-background/90 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1 ">
         <div className="flex items-center justify-around">
           {items.map((item) => {
             const active = item.exact
@@ -53,7 +53,7 @@ export function BottomNav() {
                   aria-label="Wystaw nową fakturę"
                 >
                   <div
-                    className="flex h-13 w-13 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background motion-safe:transition-transform group-active:scale-90"
+                    className="flex h-13 w-13 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg ring-4 ring-background motion-safe:transition-transform group-active:scale-90"
                     style={{ width: "3.25rem", height: "3.25rem" }}
                   >
                     <Plus className="h-6 w-6 stroke-[2.5]" />
@@ -70,7 +70,7 @@ export function BottomNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative flex min-h-[44px] min-w-[48px] flex-1 flex-col items-center justify-center py-1 text-center transition-colors active:scale-95",
+                  "relative flex min-h-[44px] min-w-[48px] flex-1 flex-col items-center justify-center py-1 text-center transition-colors active:opacity-90",
                   active
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"

@@ -249,12 +249,12 @@ export default function DemoPage() {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* ── NAWIGACJA DEMO ── */}
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 ">
         <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-3 px-4 py-3 lg:h-16 lg:flex-nowrap lg:justify-between lg:py-0 sm:px-6">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <Logo />
             <span className="rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-              Piaskownica DEMO
+              Demo
             </span>
           </div>
 
@@ -278,7 +278,7 @@ export default function DemoPage() {
       </header>
 
       {/* ── BANER INFORMACYJNY ── */}
-      <div className="border-b border-sky-500/20 bg-sky-500/5 px-4 py-2.5 text-center text-xs text-sky-700 dark:text-sky-300">
+      <div className="border-b border-info/20 bg-info/5 px-4 py-2.5 text-center text-xs text-info dark:text-info">
         <span className="font-semibold">Bezpieczny tryb demonstracyjny:</span> Dane są fikcyjne i
         przetwarzane wyłącznie w Twojej przeglądarce. Żadne faktury nie trafiają do produkcyjnego KSeF.
       </div>
@@ -299,7 +299,7 @@ export default function DemoPage() {
             <Button
               onClick={handleSimulateKsefSend}
               disabled={ksefStatus === "sending" || !validationResult.ok}
-              className="h-10 gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs shadow-md shadow-emerald-600/20"
+              className="h-10 gap-2 font-medium text-sm"
             >
               {ksefStatus === "sending" ? (
                 <>
@@ -341,7 +341,7 @@ export default function DemoPage() {
             <FileCode2 className="h-3.5 w-3.5" />
             <span>2. Struktura XML FA(3)</span>
             <span
-              className={`h-2 w-2 rounded-full ${validationResult.ok ? "bg-emerald-400" : "bg-rose-400"}`}
+              className={`h-2 w-2 rounded-full ${validationResult.ok ? "bg-success" : "bg-destructive"}`}
             />
           </button>
           <button
@@ -356,7 +356,7 @@ export default function DemoPage() {
             <ShieldCheck className="h-3.5 w-3.5" />
             <span>3. Odpowiedź KSeF i UPO</span>
             {ksefStatus === "accepted" && (
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
             )}
           </button>
         </div>
@@ -365,9 +365,9 @@ export default function DemoPage() {
         {activeTab === "form" && (
           <div className="space-y-6">
             {/* Sekcja Sprzedawca & Nabywca */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid min-w-0 grid-cols-1 md:grid-cols-2 gap-6">
               {/* Sprzedawca (stały podmiot demonstracyjny) */}
-              <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+              <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Sprzedawca (Wystawca)
@@ -385,12 +385,12 @@ export default function DemoPage() {
               </Card>
 
               {/* Nabywca (edytowalny) */}
-              <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+              <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Nabywca (Kontrahent)
                   </span>
-                  <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                  <span className="text-[11px] font-medium text-success dark:text-success">
                     Edytowalny
                   </span>
                 </div>
@@ -445,7 +445,7 @@ export default function DemoPage() {
             </div>
 
             {/* Pozycje faktury */}
-            <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+            <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3 mb-4">
                 <h3 className="text-sm font-bold text-foreground">Pozycje towarów i usług</h3>
                 <Button
@@ -458,7 +458,7 @@ export default function DemoPage() {
                 </Button>
               </div>
 
-              <div className="hidden min-w-0 max-w-full overflow-x-auto md:block" role="region" aria-label="Pozycje faktury demonstracyjnej" tabIndex={0}>
+              <div className="relative hidden min-w-0 max-w-full overflow-x-auto md:block" role="region" aria-label="Pozycje faktury demonstracyjnej" tabIndex={0}>
                 <table className="w-full min-w-[760px] text-left text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground text-[11px]">
@@ -544,7 +544,7 @@ export default function DemoPage() {
                               aria-label={`Usuń pozycję: ${line.name}`}
                               onClick={() => removeLine(line.id)}
                               disabled={lines.length <= 1}
-                              className="p-1 rounded text-muted-foreground hover:text-rose-500 disabled:opacity-30"
+                              className="p-1 rounded text-muted-foreground hover:text-destructive disabled:opacity-30"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -603,7 +603,7 @@ export default function DemoPage() {
 
         {/* ── TAB 2: INSPEKTOR XML FA(3) ── */}
         {activeTab === "xml" && (
-          <Card className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm space-y-4">
+          <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-foreground">
@@ -618,8 +618,8 @@ export default function DemoPage() {
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                     validationResult.ok
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
-                      : "bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30"
+                      ? "bg-success/15 text-success dark:text-success border border-success/30"
+                      : "bg-destructive/15 text-destructive dark:text-destructive border border-destructive/30"
                   }`}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -637,9 +637,9 @@ export default function DemoPage() {
         {/* ── TAB 3: SYMULACJA KSEF I UPO ── */}
         {activeTab === "ksef" && (
           <div className="space-y-6">
-            <Card className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+            <Card className="rounded-xl border border-border/80 bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3 border-b border-border/60 pb-4 mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/15 text-success">
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
@@ -656,7 +656,7 @@ export default function DemoPage() {
 
               {ksefNumber ? (
                 <div className="space-y-4">
-                  <p role="status" className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-700 dark:text-sky-300">DEMO — przykładowa odpowiedź, bez rejestracji w KSeF.</p>
+                  <p role="status" className="rounded-lg border border-info/30 bg-info/10 px-3 py-2 text-xs font-medium text-info dark:text-info">DEMO — przykładowa odpowiedź, bez rejestracji w KSeF.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-muted/30 border border-border/60 text-xs">
                     <div>
                       <p className="text-muted-foreground">Przykładowy numer (DEMO):</p>
@@ -664,7 +664,7 @@ export default function DemoPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Przykładowy kod odpowiedzi:</p>
-                      <p className="font-bold text-sm text-emerald-700 dark:text-emerald-400 mt-0.5">
+                      <p className="font-bold text-sm text-success dark:text-success mt-0.5">
                         200 — symulacja przyjęcia dokumentu
                       </p>
                     </div>

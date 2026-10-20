@@ -53,7 +53,7 @@ function Workspace({ companyId }: { companyId: string }) {
   };
   const active = detail?.project.status === "active";
   return <div className="space-y-4">
-    {error && <p role="alert" className="rounded border border-rose-500 p-3">{error} <Button variant="ghost" disabled={busy} onClick={() => work(() => detail ? open(detail.project.id) : list())}>Odśwież</Button></p>}
+    {error && <p role="alert" className="rounded border border-destructive p-3">{error} <Button variant="ghost" disabled={busy} onClick={() => work(() => detail ? open(detail.project.id) : list())}>Odśwież</Button></p>}
     <details className="rounded-xl border p-4"><summary>Nowy projekt</summary><div className="grid gap-3 mt-3 sm:grid-cols-2">
       <label>Nazwa<Input value={name} maxLength={150} onChange={e => setName(e.target.value)} /></label>
       <label>Materiały w wyniku<Select value={basis} onChange={e => setBasis(e.target.value)}><option value="documents">Według dokumentów zakupu</option><option value="consumption">Według zużycia RW/WZ</option></Select></label>

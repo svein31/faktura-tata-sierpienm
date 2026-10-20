@@ -55,7 +55,7 @@ export function ContractorImportWizard() {
         {duplicatedMapping && <p role="alert" className="text-destructive">Jedna kolumna może być przypisana tylko raz.</p>}
         <Button size="sm" variant="outline" disabled={!canPreview || busy} onClick={() => void send("preview")}>Sprawdź import</Button>
       </>}
-      {preview && <div className="space-y-2 border-t pt-2"><p>Gotowe: <b>{preview.ready}</b> · duplikaty: {preview.duplicate} · błędy: {preview.invalid}</p><div className="max-h-44 space-y-1 overflow-y-auto">{preview.results.map(row => <p key={row.line} className="break-words" title={row.reason}><span className={row.status === "ready" ? "text-emerald-600" : "text-amber-600"}>{row.status === "ready" ? "Gotowe" : row.status === "duplicate" ? "Duplikat" : "Błąd"}</span> · {row.line}: {row.name} ({row.nip}) {row.reason}</p>)}</div><Button size="sm" disabled={busy || preview.ready === 0} onClick={() => void send("import")}>Importuj {preview.ready}</Button></div>}
+      {preview && <div className="space-y-2 border-t pt-2"><p>Gotowe: <b>{preview.ready}</b> · duplikaty: {preview.duplicate} · błędy: {preview.invalid}</p><div className="max-h-44 space-y-1 overflow-y-auto">{preview.results.map(row => <p key={row.line} className="break-words" title={row.reason}><span className={row.status === "ready" ? "text-success" : "text-warning"}>{row.status === "ready" ? "Gotowe" : row.status === "duplicate" ? "Duplikat" : "Błąd"}</span> · {row.line}: {row.name} ({row.nip}) {row.reason}</p>)}</div><Button size="sm" disabled={busy || preview.ready === 0} onClick={() => void send("import")}>Importuj {preview.ready}</Button></div>}
       {error && <p role="alert" className="text-destructive">{error}</p>}
     </div>
   </details>;

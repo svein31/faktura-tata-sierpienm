@@ -37,12 +37,12 @@ const TITLES: Array<{ re: RegExp; title: string }> = [
 ];
 
 const ROLE_DISPLAY: Record<string, { label: string; badgeClass: string }> = {
-  owner: { label: "Właściciel", badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
-  accountant: { label: "Księgowa", badgeClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" },
-  employee: { label: "Pracownik", badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
-  admin: { label: "Administrator", badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
-  sales: { label: "Sprzedaż", badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30" },
-  viewer: { label: "Podgląd", badgeClass: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+  owner: { label: "Właściciel", badgeClass: "bg-primary/15 text-primary dark:text-primary border-primary/30" },
+  accountant: { label: "Księgowa", badgeClass: "bg-success/15 text-success dark:text-success border-success/30" },
+  employee: { label: "Pracownik", badgeClass: "bg-info/15 text-info dark:text-info border-info/30" },
+  admin: { label: "Administrator", badgeClass: "bg-primary/15 text-primary dark:text-primary border-primary/30" },
+  sales: { label: "Sprzedaż", badgeClass: "bg-info/15 text-info dark:text-info border-info/30" },
+  viewer: { label: "Podgląd", badgeClass: "bg-warning/15 text-warning dark:text-warning border-warning/30" },
 };
 
 export function Topbar({ onMenu }: { onMenu: () => void }) {
@@ -107,8 +107,8 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     <span className="min-w-0 flex-1">
       <span className="block truncate text-[13px] font-semibold leading-5 text-foreground">{activeCompany.companyName || activeCompany.name || "Moja Firma"}</span>
       <span className="flex items-center gap-1.5 leading-4">
-        <span className="truncate text-[11px] text-muted-foreground">NIP: {activeCompany.nip}</span>
-        <span className={`shrink-0 rounded border px-1 text-[10px] font-semibold ${roleInfo.badgeClass}`}>{roleInfo.label}</span>
+        <span className="truncate text-xs text-muted-foreground">NIP: {activeCompany.nip}</span>
+        <span className={`shrink-0 rounded border px-1 text-xs font-semibold ${roleInfo.badgeClass}`}>{roleInfo.label}</span>
       </span>
     </span>
     {companies.length > 1 && <ChevronDown aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />}
@@ -119,15 +119,15 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       <div className="order-1 flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onMenu}
-          className="flex shrink-0 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted/60 active:scale-95 lg:hidden"
+          className="flex shrink-0 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted/60 active:opacity-90 lg:hidden"
           aria-label="Otwórz menu"
         >
           <Menu className="h-5 w-5" />
         </button>
         <div className="min-w-0 leading-tight">
-          <h1 className="truncate text-[14px] font-semibold tracking-tight text-foreground sm:text-base">
+          <p className="truncate text-sm font-medium tracking-tight text-foreground sm:text-base">
             {title}
-          </h1>
+          </p>
           <p className="hidden text-xs text-muted-foreground sm:block">
             {new Date().toLocaleDateString("pl-PL", {
               weekday: "long",
@@ -147,7 +147,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           </Link>
         ) : <div aria-hidden="true" inert className="invisible min-h-11" /> : companyButton && (companies.length > 1 ? (
           <DropdownMenu trigger={companyButton} align="start" label="Twoje firmy i zespoły" minWidth={280} className="max-w-[calc(100vw-24px)]">
-            <p className="px-3 pb-2 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Twoje firmy i zespoły</p>
+            <p className="px-3 pb-2 pt-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Twoje firmy i zespoły</p>
             {companies.map(c => {
               const isSelected = c.id === activeCompany.id;
               const role = ROLE_DISPLAY[c.currentUserRole || "owner"] || ROLE_DISPLAY.employee;
@@ -179,12 +179,12 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           type="button"
           onClick={handleOpenSearch}
           title="Szukaj lub polecenie (Ctrl+K / ⌘K)"
-          className="flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs sm:min-w-0"
+          className="flex min-h-9 min-w-9 items-center justify-center gap-2 rounded-xl border border-border/60 bg-card px-2.5 py-1.5 text-xs text-muted-foreground hover:border-border hover:text-foreground transition-all shadow-2xs sm:min-w-0"
         >
           <Search aria-hidden="true" className="h-3.5 w-3.5" />
           <span className="sr-only xl:hidden">Szukaj </span>
           <span className="hidden xl:inline">Szukaj...</span>
-          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-foreground dark:text-muted-foreground xl:inline">
+          <kbd className="hidden rounded border border-border/80 bg-muted/60 px-1.5 py-0.5 text-xs font-medium text-foreground dark:text-muted-foreground xl:inline">
             ⌘K
           </kbd>
           <span className="sr-only"> faktur, kontrahentów i poleceń</span>
@@ -195,30 +195,30 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           href="/help"
           prefetch={false}
           title="Instrukcja obsługi"
-          className="hidden h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card/50 text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:scale-95 shadow-2xs sm:flex"
+          className="hidden h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-muted-foreground transition-all hover:border-border hover:bg-muted/40 hover:text-foreground active:opacity-90 shadow-2xs sm:flex"
         >
           <HelpCircle className="h-4 w-4" />
         </Link>
         <div className="hidden sm:block"><ThemeToggle /></div>
 
         {/* Profil użytkownika + wylogowanie */}
-        <div className="ml-1 flex items-center gap-0.5 rounded-xl border border-border/60 bg-card/50 py-1 pl-1 pr-1 shadow-2xs backdrop-blur-md">
+        <div className="ml-1 flex items-center gap-0.5 rounded-xl border border-border/60 bg-card py-1 pl-1 pr-1 shadow-2xs ">
           <Link
             href="/settings/account"
             prefetch={false}
             title="Przejdź do Ustawień Konta"
-            className="hidden items-center gap-2 rounded-lg px-1.5 py-0.5 sm:flex transition-all hover:bg-muted/60 active:scale-95"
+            className="hidden items-center gap-2 rounded-lg px-1.5 py-0.5 sm:flex transition-all hover:bg-muted/60 active:opacity-90"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-emerald-700 text-[10px] font-bold text-white shadow-2xs ring-1 ring-white/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-xs font-medium text-foreground">
               {initials || "?"}
             </div>
-            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-foreground dark:text-muted-foreground 2xl:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
+            {accountTier && <span className="rounded-md border border-border/70 bg-muted/70 px-1.5 py-0.5 text-xs font-semibold text-foreground dark:text-muted-foreground 2xl:hidden">{accountTier === "pro" ? "Pro" : "Free"}</span>}
             <div className="hidden leading-tight 2xl:block text-left">
               <p className="flex max-w-[155px] items-center gap-1 text-[13px] font-semibold text-foreground">
                 <span className="truncate">{user.name}</span>
-                {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-[10px] text-foreground dark:text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
+                {accountTier && <span className="shrink-0 rounded-md border border-border/70 bg-muted/70 px-1 text-xs text-foreground dark:text-muted-foreground">{accountTier === "pro" ? "Pro" : "Free"}</span>}
               </p>
-              <p className="max-w-[140px] truncate text-[11px] text-muted-foreground">
+              <p className="max-w-[140px] truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
             </div>
@@ -227,7 +227,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
             onClick={logout}
             title="Wyloguj się"
             aria-label="Wyloguj się"
-            className="flex min-h-[36px] min-w-[32px] items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-rose-500/10 hover:text-rose-500 active:scale-90"
+            className="flex min-h-[36px] min-w-[32px] items-center justify-center rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-90"
           >
             <LogOut className="h-3.5 w-3.5" />
           </button>

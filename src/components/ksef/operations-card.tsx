@@ -81,7 +81,7 @@ export function KsefOperationsCard() {
 
   if (!companyId) return null;
   const urgent = data?.tasks.filter(task => task.stuck || task.status === "failed" || task.status === "verify_needed") || [];
-  return <section aria-label="Stan KSeF" className="rounded-2xl border bg-card p-4 shadow-sm">
+  return <section aria-label="Stan KSeF" className="rounded-xl border bg-card p-4 shadow-sm">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h2 className="text-sm font-semibold">Stan KSeF <span className="ml-1 text-xs font-normal text-muted-foreground">{data?.environment === "demo" ? "(demo · komunikaty produkcyjne MF)" : data?.environment === "test" ? "(test)" : "(produkcja)"}</span></h2>
       <button type="button" onClick={() => setRefresh(n => n + 1)} className="inline-flex items-center gap-1 text-xs text-primary" aria-label="Odśwież stan KSeF"><RefreshCw className="size-3.5" />Odśwież</button>
@@ -90,9 +90,9 @@ export function KsefOperationsCard() {
     {!data && !error && <p role="status" className="mt-2 text-xs text-muted-foreground">Sprawdzanie stanu…</p>}
     {data && <>
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className={`rounded-lg px-2.5 py-1.5 ${data.official.status === "AVAILABLE" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>{statusLabel[data.official.status] || "MF: brak danych"}</span>
-        <span className={`rounded-lg px-2.5 py-1.5 ${data.certificate.notice === "valid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>{certLabel[data.certificate.notice]}{data.certificate.validTo ? ` · ${new Date(data.certificate.validTo).toLocaleDateString("pl-PL")}` : ""}</span>
-        <span className={`rounded-lg px-2.5 py-1.5 ${urgent.length ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-muted text-muted-foreground"}`}>Do sprawdzenia: {urgent.length}{data.limited ? "+" : ""}</span>
+        <span className={`rounded-lg px-2.5 py-1.5 ${data.official.status === "AVAILABLE" ? "bg-success/10 text-success dark:text-success" : "bg-warning/10 text-warning dark:text-warning"}`}>{statusLabel[data.official.status] || "MF: brak danych"}</span>
+        <span className={`rounded-lg px-2.5 py-1.5 ${data.certificate.notice === "valid" ? "bg-success/10 text-success dark:text-success" : "bg-warning/10 text-warning dark:text-warning"}`}>{certLabel[data.certificate.notice]}{data.certificate.validTo ? ` · ${new Date(data.certificate.validTo).toLocaleDateString("pl-PL")}` : ""}</span>
+        <span className={`rounded-lg px-2.5 py-1.5 ${urgent.length ? "bg-warning/10 text-warning dark:text-warning" : "bg-muted text-muted-foreground"}`}>Do sprawdzenia: {urgent.length}{data.limited ? "+" : ""}</span>
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
         <span>Komunikaty MF: {data.official.status === "UNAVAILABLE" ? "nie udało się pobrać" : data.official.messages.length}</span>

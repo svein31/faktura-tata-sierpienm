@@ -41,7 +41,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
 export function TopicCards({ items }: { items: Pick<Topic, "path" | "title" | "description">[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {items.map(topic => <Link prefetch={false} key={topic.path} href={topic.path} className="group rounded-2xl border border-border/70 bg-card p-5 transition-colors hover:border-primary/60 hover:bg-primary/5">
+      {items.map(topic => <Link prefetch={false} key={topic.path} href={topic.path} className="group rounded-xl border border-border/70 bg-card p-5 transition-colors hover:border-primary/60 hover:bg-primary/5">
         <h3 className="font-semibold group-hover:text-primary">{topic.title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{topic.description}</p>
         <span className="mt-4 inline-block text-sm font-medium text-primary">Zobacz odpowiedź →</span>
@@ -60,7 +60,7 @@ export function PillarPage({ title, description, prefix }: { title: string; desc
       <p className="text-xs font-semibold uppercase tracking-widest text-primary">Praktyczne odpowiedzi</p>
       <h1 className="mt-3 max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">{heading}</h1>
       <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">{description}</p>
-      {copy?.answer && <section className="mt-7 max-w-3xl rounded-2xl border border-primary/30 bg-primary/5 p-5"><h2 className="font-semibold">{prefix === "/poradnik-ksef" ? "Co to jest KSeF 2.0?" : "Krótka odpowiedź"}</h2><p className="mt-3 leading-relaxed">{copy.answer}</p></section>}
+      {copy?.answer && <section className="mt-7 max-w-3xl rounded-xl border border-primary/30 bg-primary/5 p-5"><h2 className="font-semibold">{prefix === "/poradnik-ksef" ? "Co to jest KSeF 2.0?" : "Krótka odpowiedź"}</h2><p className="mt-3 leading-relaxed">{copy.answer}</p></section>}
       {prefix === "/faktury" && <div className="mt-9 max-w-3xl space-y-6"><section><h2 className="text-xl font-semibold">Jakie dane sprawdzić na fakturze VAT?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Sprawdź numer własny, datę wystawienia i sprzedaży, dane sprzedawcy oraz nabywcy, przedmiot sprzedaży, ilość, cenę, właściwą stawkę lub podstawę zwolnienia i kwoty. Zakres szczegółów zależy od typu transakcji. Dla konsumenta nie twórz fikcyjnego NIP, a przy korekcie zachowaj powiązanie z oryginałem.</p></section><section><h2 className="text-xl font-semibold">Przykład danych i kwot</h2><p className="mt-3 leading-relaxed text-muted-foreground">Jedna usługa po 100 zł netto, przy potwierdzonej stawce 23%: VAT 23 zł, brutto 123 zł. Numer FV/10/2026 jest numerem sprzedawcy; numer KSeF powstaje odrębnie po przyjęciu. PDF wizualizuje dokument, a faktura ustrukturyzowana ma postać XML zgodną z FA(3).</p><Link prefetch={false} href="/faktury/jak-wystawic" className="mt-3 block text-primary underline">Instrukcja wystawienia i kontrola danych →</Link></section><section><h2 className="text-xl font-semibold">Który dokument wybrać?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Zwykła faktura, zaliczkowa, końcowa i korygująca opisują różne zdarzenia. Proforma nie dokumentuje podatkowej sprzedaży i nie jest fakturą do KSeF. Sprawdź status oraz charakter transakcji przed wyborem typu.</p><a href="https://ksef.podatki.gov.pl/ksef-news/najczestsze-pytania/" target="_blank" rel="noopener noreferrer" className="mt-3 block text-primary underline">MF: aktualne pytania o faktury i KSeF ↗</a></section></div>}
       {prefix === "/poradnik-ksef" && <div className="mt-9 max-w-3xl space-y-7">
         <section><h2 className="text-xl font-semibold">Kogo dotyczy obowiązek i jakie są wyjątki?</h2><p className="mt-3 leading-relaxed text-muted-foreground">Zakres obowiązku zależy od podatnika i transakcji. Dla JDG sprawdź osobno wystawianie i odbiór faktur. Przejściowa zasada 10 000 zł brutto w 2026 roku dotyczy określonych faktur; po przekroczeniu limitu niższa sprzedaż w następnym miesiącu nie przywraca wyjątku. Nie utożsamiaj limitu z całym przychodem firmy.</p><Link prefetch={false} className="mt-3 block text-primary underline" href="/poradnik-ksef/jdg">Obowiązki JDG i wyjątki →</Link></section>
@@ -100,11 +100,11 @@ export function TopicPage({ topic }: { topic: Topic }) {
       <article aria-labelledby="poradnik-title">
       <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary">Redakcja FakturaProsto · Aktualizacja <time dateTime={dates.modifiedAt}>{dates.modifiedAt}</time></p>
       <h1 id="poradnik-title" className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{topic.title}</h1>
-      <div className="mt-7 rounded-2xl border border-primary/30 bg-primary/5 p-5 sm:p-6">
+      <div className="mt-7 rounded-xl border border-primary/30 bg-primary/5 p-5 sm:p-6">
         <h2 className="text-sm font-bold text-primary">Krótka odpowiedź</h2>
         <p className="mt-2 text-base leading-relaxed">{topic.answer}</p>
       </div>
-      <nav aria-label="Spis treści poradnika" className="mt-7 rounded-2xl border border-border p-5">
+      <nav aria-label="Spis treści poradnika" className="mt-7 rounded-xl border border-border p-5">
         <h2 className="font-semibold">Na tej stronie</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {topic.sections.map((section, index) => <li key={section.title}><a className="text-primary hover:underline" href={`#sekcja-${index + 1}`}>{section.title}</a></li>)}
@@ -121,11 +121,11 @@ export function TopicPage({ topic }: { topic: Topic }) {
             {section.source && <p className="mt-3 text-xs text-muted-foreground">Źródło: <a className="text-primary underline" href={section.source.url} target="_blank" rel="noopener noreferrer">{section.source.title} ↗</a></p>}
           </section>)}
           {topic.comparison && <section id="porownanie" className="min-w-0 scroll-mt-8"><h2 className="text-xl font-semibold">Tabela kryteriów wyboru</h2><p className="mt-2 text-xs text-muted-foreground sm:hidden">Przewiń tabelę w bok, aby zobaczyć wszystkie kryteria.</p><div role="region" aria-label="Porównanie kryteriów wyboru" tabIndex={0} className="mt-3 max-w-full overflow-x-auto rounded-xl focus-visible:outline-2 focus-visible:outline-primary"><table className="w-full min-w-[560px] text-left text-sm"><thead><tr className="border-b"><th scope="col" className="p-3">Kryterium</th><th scope="col" className="p-3">FakturaProsto</th><th scope="col" className="p-3">Druga oferta</th></tr></thead><tbody>{topic.comparison.map(row => <tr key={row.criterion} className="border-b"><th scope="row" className="p-3 align-top">{row.criterion}</th><td className="p-3 align-top">{row.ours}</td><td className="p-3 align-top">{row.theirs}</td></tr>)}</tbody></table></div></section>}
-          <section id="przyklad" className="scroll-mt-8 rounded-2xl border border-border bg-card p-5">
+          <section id="przyklad" className="scroll-mt-8 rounded-xl border border-border bg-card p-5">
             <h2 className="font-semibold">Przykład z wynikiem</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground">{topic.example}</p>
           </section>
-          <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5">
+          <section className="rounded-xl border border-warning/30 bg-warning/5 p-5">
             <h2 className="font-semibold">Kiedy sprawdzić szczegóły?</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{topic.caution}</p>
           </section>
@@ -136,12 +136,12 @@ export function TopicPage({ topic }: { topic: Topic }) {
           </section>
         </div>
         <aside className="min-w-0 space-y-5">
-          <div className="rounded-2xl border border-border/70 bg-card p-5">
+          <div className="rounded-xl border border-border/70 bg-card p-5">
             <h2 className="font-semibold">Przejdź do działania</h2>
             <p className="mt-2 text-sm text-muted-foreground">Zobacz formularz przykładowej faktury bez rejestracji. Demo nie wysyła dokumentów do KSeF.</p>
             <Link prefetch={false} href="/demo" className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Otwórz demo →</Link>
           </div>
-          <nav aria-label="Powiązane tematy" className="rounded-2xl border border-border/70 bg-card p-5">
+          <nav aria-label="Powiązane tematy" className="rounded-xl border border-border/70 bg-card p-5">
             <h2 className="font-semibold">Powiązane tematy</h2>
             <ul className="mt-3 space-y-3 text-sm">{related.map(item => <li key={item.path}><Link prefetch={false} className="text-primary hover:underline" href={item.path}>{item.title} →</Link></li>)}</ul>
           </nav>

@@ -32,7 +32,7 @@ export function ProductDemoVideo() {
           <span className="self-start rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-muted-foreground lg:self-auto">1 min 10 s · Full HD · Polskie napisy</span>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-indigo-400/20 bg-[#0c1122] shadow-xl shadow-indigo-950/10 sm:rounded-3xl">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="relative aspect-video">
             {opened ? (
               <video ref={video} controls playsInline preload="metadata" tabIndex={0} poster={`${media}.webp`} aria-label="Film demonstracyjny FakturaProsto" aria-describedby="product-film-description product-film-disclosure" onError={() => setFailed(true)} className="h-full w-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
@@ -41,19 +41,18 @@ export function ProductDemoVideo() {
                 Twoja przeglądarka nie obsługuje tego filmu. Skorzystaj z linku do pobrania poniżej.
               </video>
             ) : (
-              <button type="button" onClick={() => setOpened(true)} aria-label="Odtwórz film demonstracyjny FakturaProsto, 1 minuta 10 sekund" className="group relative block h-full w-full overflow-hidden text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white">
-                <Image src={`${media}.webp`} alt="FakturaProsto: faktury, podgląd PDF, korekty i terminarz na danych demonstracyjnych" width={1600} height={900} sizes="(max-width: 1200px) 100vw, 1152px" loading="lazy" unoptimized className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.015]" />
-                <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#080b17]/80 via-transparent to-transparent" />
+              <button type="button" onClick={() => setOpened(true)} aria-label="Odtwórz prezentację · 1:10 — film demonstracyjny FakturaProsto" className="group relative block h-full w-full overflow-hidden text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white">
+                <Image src={`${media}.webp`} alt="FakturaProsto: faktury, podgląd PDF, korekty i terminarz na danych demonstracyjnych" width={1600} height={900} sizes="(max-width: 1200px) 100vw, 1152px" loading="lazy" unoptimized className="h-full w-full object-cover" />
                 <span className="absolute inset-0 flex items-center justify-center">
-                  <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full border border-white/40 bg-indigo-600/95 shadow-lg shadow-black/30 transition-colors group-hover:bg-indigo-500 sm:size-20"><Play className="size-6 fill-current sm:size-8" /></span>
+                  <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-sm transition-colors duration-150 group-hover:bg-primary/90 sm:size-16"><Play className="size-6 fill-current" /></span>
                 </span>
-                <span className="absolute inset-x-0 bottom-3 text-center text-xs font-medium sm:bottom-6 sm:text-sm">Odtwórz prezentację · 1:10</span>
+                <span className="absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-card px-3 py-2 text-center text-xs font-medium text-foreground sm:bottom-6 sm:text-sm">Odtwórz prezentację · 1:10</span>
               </button>
             )}
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-white/10 px-4 py-3 text-xs text-slate-300 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-border px-4 py-3 text-xs text-muted-foreground sm:px-6">
             <p id="product-film-disclosure">Dane demonstracyjne · Bez wysyłki do KSeF · Film z muzyką, bez lektora</p>
-            <a href={`${media}.mp4`} download className="inline-flex min-h-11 items-center font-medium text-white underline decoration-white/30 underline-offset-4 hover:decoration-white focus-visible:outline-2 focus-visible:outline-white">Pobierz film</a>
+            <a href={`${media}.mp4`} download className="inline-flex min-h-11 items-center font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground focus-visible:outline-2 focus-visible:outline-primary">Pobierz film</a>
           </div>
         </div>
         {failed && <p role="status" className="mt-3 text-sm text-muted-foreground">Nie udało się odtworzyć filmu. Możesz pobrać go powyżej albo przeczytać opis poniżej.</p>}

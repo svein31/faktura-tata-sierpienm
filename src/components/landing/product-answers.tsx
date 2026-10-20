@@ -49,7 +49,7 @@ export function ProductAnswers() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2 id="product-answers-title" className="text-2xl font-bold tracking-tight sm:text-3xl">Program do faktur online — pytania i odpowiedzi</h2>
         <p className="mt-3 leading-relaxed text-muted-foreground">FakturaProsto pomaga wystawiać faktury online w przeglądarce. Przed założeniem konta poznaj limity, sposób pracy i darmowe demo.</p>
-        <div className="mt-6 divide-y divide-border/60 rounded-2xl border border-border/80 bg-card">
+        <div className="mt-6 divide-y divide-border/60 rounded-xl border border-border/80 bg-card">
           {PRODUCT_ANSWERS.map(item => (
             <details key={item.question} className="group px-5 py-4 sm:px-6">
               <summary className="cursor-pointer rounded-sm py-1 text-sm font-semibold leading-relaxed marker:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-card sm:text-base">{item.question}</summary>

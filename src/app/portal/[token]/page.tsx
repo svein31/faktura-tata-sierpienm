@@ -15,6 +15,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatDate, formatMoney } from "@/lib/format";
+import { Dialog } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import type { Invoice, Offer, InvoiceLine, OfferLine, Currency } from "@/lib/types";
 
 interface PartyInfo {
@@ -125,9 +128,9 @@ export default function PortalDocumentPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
-        <div style={{ textAlign: "center", color: "#64748b" }}>
-          <Clock size={32} style={{ animation: "spin 1s linear infinite", margin: "0 auto 1rem" }} />
+      <div className="grid min-h-screen place-items-center bg-background p-4 font-sans">
+        <div role="status" className="text-center text-sm text-muted-foreground">
+          <Clock aria-hidden="true" className="mx-auto mb-4 size-6 motion-safe:animate-spin" />
           <p>Ładowanie dokumentu...</p>
         </div>
       </div>
@@ -136,11 +139,11 @@ export default function PortalDocumentPage() {
 
   if (error || (!invoice && !offer)) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", padding: "1rem" }}>
-        <div style={{ maxWidth: "420px", textAlign: "center", background: "#ffffff", padding: "2.5rem", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)" }}>
-          <AlertCircle size={48} color="#ef4444" style={{ margin: "0 auto 1rem" }} />
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#1e293b", marginBottom: "0.5rem" }}>Nie znaleziono dokumentu</h2>
-          <p style={{ color: "#64748b", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+      <div className="grid min-h-screen place-items-center bg-background p-4 font-sans">
+        <div className="surface-card max-w-md p-8 text-center">
+          <AlertCircle aria-hidden="true" className="mx-auto mb-4 size-6 text-muted-foreground" />
+          <h1 className="mb-2 text-xl font-semibold text-foreground">Nie znaleziono dokumentu</h1>
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {error || "Link do dokumentu może być nieprawidłowy lub dokument został usunięty."}
           </p>
         </div>
@@ -167,7 +170,7 @@ export default function PortalDocumentPage() {
   const bankName = seller?.bankName;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", padding: "2rem 1rem", fontFamily: "system-ui, -apple-system, sans-serif", overflowWrap: "anywhere" }}>
+    <div className="min-h-screen bg-background px-4 py-8 font-sans text-foreground [overflow-wrap:anywhere]">
       <div style={{ minWidth: 0, maxWidth: "860px", margin: "0 auto" }}>
         
         {offer && <section className="no-print" style={{ background: "white", color: "#0f172a", border: "1px solid #cbd5e1", borderRadius: 12, padding: 20, marginBottom: 20 }}>
@@ -183,53 +186,27 @@ export default function PortalDocumentPage() {
         {/* Pasek akcji u góry */}
         <div className="no-print" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
           <div>
-            <span style={{ fontSize: "0.8125rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
+            <span className="text-xs font-medium text-muted-foreground">
               Portal Kontrahenta • FakturaProsto
             </span>
-            <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#0f172a" }}>
+            <div className="text-xl font-semibold text-foreground">
               {docTitle} {docNumber}
             </div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            <button
+            <Button variant="outline"
               onClick={() => window.print()}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                padding: "0.5rem 1rem",
-                borderRadius: "6px",
-                border: "1px solid #cbd5e1",
-                background: "#ffffff",
-                color: "#1e293b",
-                fontWeight: 500,
-                fontSize: "0.875rem",
-                cursor: "pointer",
-              }}
             >
               <Printer size={16} />
               Drukuj / Pobierz PDF
-            </button>
+            </Button>
             {isInvoice && paymentStatus !== "paid" && (
-              <button
+              <Button
                 onClick={() => setDeclareOpen(true)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "6px",
-                  border: "none",
-                  background: "#0369a1",
-                  color: "#ffffff",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  cursor: "pointer",
-                }}
               >
                 <Calendar size={16} />
                 Zgłoś termin płatności
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -370,8 +347,9 @@ export default function PortalDocumentPage() {
           </div>
 
           {/* Pozycje */}
-          <div style={{ overflowX: "auto", marginBottom: "2rem" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+          <p className="no-print mb-2 text-xs text-slate-600 sm:hidden">Przesuń tabelę w bok, aby zobaczyć wszystkie kolumny.</p>
+          <div className="relative mb-8 overflow-x-auto print:overflow-visible" role="region" aria-label="Pozycje dokumentu" tabIndex={0}>
+            <table className="min-w-[640px] tabular-nums print:min-w-0 [&_td:not(:nth-child(2))]:whitespace-nowrap" style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
               <thead>
                 <tr style={{ background: "#f8fafc", borderBottom: "2px solid #cbd5e1", textAlign: "left", color: "#475569" }}>
                   <th style={{ padding: "0.75rem 0.5rem", width: "40px" }}>Lp.</th>
@@ -422,60 +400,49 @@ export default function PortalDocumentPage() {
         </div>
 
         {/* Modal deklaracji płatności */}
-        {declareOpen && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "1rem" }}>
-            <div style={{ background: "#ffffff", borderRadius: "12px", width: "100%", maxWidth: "440px", padding: "1.75rem", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
-              <h3 style={{ fontSize: "1.125rem", fontWeight: 700, color: "#0f172a", marginBottom: "0.5rem" }}>
-                Zadeklaruj termin płatności
-              </h3>
-              <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.25rem" }}>
-                Poinformuj wystawcę o planowanym terminie realizacji przelewu.
-              </p>
-              <form onSubmit={handleDeclarePayment} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#334155", marginBottom: "0.25rem" }}>
+        <Dialog open={declareOpen} onClose={() => setDeclareOpen(false)} title="Zadeklaruj termin płatności" description="Poinformuj wystawcę o planowanym terminie realizacji przelewu." dismissible={!declaring}>
+              <form onSubmit={handleDeclarePayment} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="portal-payment-date">
                     Planowana data przelewu *
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="portal-payment-date"
                     type="date"
                     value={declaredDate}
                     onChange={(e) => setDeclaredDate(e.target.value)}
                     required
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.875rem" }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#334155", marginBottom: "0.25rem" }}>
+                <div className="space-y-1.5">
+                  <Label htmlFor="portal-payment-note">
                     Wiadomość lub powód (opcjonalnie)
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
+                    id="portal-payment-note"
                     rows={3}
                     placeholder="np. Przelew zlecony w piątkowej sesji elixir..."
                     value={declaredNote}
                     onChange={(e) => setDeclaredNote(e.target.value)}
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "0.875rem", fontFamily: "inherit" }}
                   />
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginTop: "0.5rem" }}>
-                  <button
+                <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setDeclareOpen(false)}
-                    style={{ padding: "0.5rem 1rem", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#ffffff", color: "#475569", fontWeight: 500, fontSize: "0.875rem", cursor: "pointer" }}
                   >
                     Anuluj
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     disabled={declaring}
-                    style={{ padding: "0.5rem 1rem", borderRadius: "6px", border: "none", background: "#0369a1", color: "#ffffff", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer" }}
                   >
                     {declaring ? "Zapisywanie..." : "Wyślij deklarację"}
-                  </button>
+                  </Button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
+        </Dialog>
       </div>
     </div>
   );

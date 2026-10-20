@@ -22,17 +22,17 @@ export function useToast() {
 }
 
 const icons: Record<ToastKind, React.ReactNode> = {
-  success: <CheckCircle2 className="ui-save-confirmed h-4 w-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />,
-  error: <XCircle className="h-4 w-4 text-rose-500" />,
-  info: <Info className="h-4 w-4 text-sky-500" />,
-  warning: <AlertTriangle className="h-4 w-4 text-amber-500" />,
+  success: <CheckCircle2 className="ui-save-confirmed h-4 w-4 text-success dark:text-success" aria-hidden="true" />,
+  error: <XCircle className="h-4 w-4 text-destructive" />,
+  info: <Info className="h-4 w-4 text-info" />,
+  warning: <AlertTriangle className="h-4 w-4 text-warning" />,
 };
 
 const kindStyles: Record<ToastKind, string> = {
-  success: "border-emerald-500/30 bg-card/90 shadow-emerald-500/5",
-  error: "border-rose-500/30 bg-card/90 shadow-rose-500/5",
-  info: "border-sky-500/30 bg-card/90 shadow-sky-500/5",
-  warning: "border-amber-500/30 bg-card/90 shadow-amber-500/5",
+  success: "border-success/30 bg-card ",
+  error: "border-destructive/30 bg-card ",
+  info: "border-info/30 bg-card ",
+  warning: "border-warning/30 bg-card ",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-start gap-3 rounded-2xl border p-3.5 shadow-xl motion-safe:animate-toast-enter ${kindStyles[t.kind]}`}
+              className={`pointer-events-auto flex items-start gap-3 rounded-xl border p-3.5 shadow-lg motion-safe:animate-toast-enter ${kindStyles[t.kind]}`}
             >
               <div className="mt-0.5 shrink-0 rounded-lg p-1 bg-muted/50">{icons[t.kind]}</div>
               <div className="min-w-0">

@@ -75,13 +75,13 @@ export function vatRateLabel(rate: VatRate): string {
 /** Kolor badge'a dla stawki VAT (Tailwind className) */
 export function vatRateBadgeClass(rate: VatRate): string {
   switch (rate) {
-    case "23": return "bg-indigo-500/12 text-indigo-600 dark:text-indigo-400 ring-indigo-500/20";
-    case "8":  return "bg-sky-500/12 text-sky-600 dark:text-sky-400 ring-sky-500/20";
-    case "5":  return "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 ring-emerald-500/20";
-    case "0":  return "bg-slate-500/12 text-slate-500 ring-slate-500/20";
-    case "zw": return "bg-amber-500/12 text-amber-600 dark:text-amber-400 ring-amber-500/20";
-    case "np": return "bg-orange-500/12 text-orange-600 dark:text-orange-400 ring-orange-500/20";
-    case "oo": return "bg-rose-500/12 text-rose-600 dark:text-rose-400 ring-rose-500/20";
+    case "23":
+    case "8":
+    case "5":
+    case "0":
+    case "zw":
+    case "np":
+    case "oo": return "bg-muted text-foreground ring-border";
     default:   return "bg-muted text-muted-foreground ring-border";
   }
 }

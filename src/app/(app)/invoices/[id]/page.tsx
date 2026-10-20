@@ -301,7 +301,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
       {/* Pasek nawigacji i akcji */}
       <div className="no-print flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          {invoice.isOffline && <span className="rounded-md bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">{invoice.qrCodeII ? "Offline · wystawiona" : "Offline · szkic"}{invoice.offlineDeadline ? ` · termin ${new Date(invoice.offlineDeadline).toLocaleDateString("pl-PL")}` : ""}</span>}
+          {invoice.isOffline && <span className="rounded-md bg-warning/10 px-2 py-1 text-xs text-warning dark:text-warning">{invoice.qrCodeII ? "Offline · wystawiona" : "Offline · szkic"}{invoice.offlineDeadline ? ` · termin ${new Date(invoice.offlineDeadline).toLocaleDateString("pl-PL")}` : ""}</span>}
           {invoice.isOffline && invoice.status === "draft" && <Button variant="subtle" size="sm" loading={issuingOffline} onClick={() => setPendingAction("offline")}>Wystaw offline z Kodem II</Button>}
           <Button
             variant="ghost"
@@ -335,7 +335,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             size="sm"
             onClick={() => setEmailModalOpen(true)}
             disabled={Boolean(invoice.isOffline && !invoice.qrCodeII)}
-            className="rounded-xl gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 border-blue-500/30 hover:bg-blue-500/10 shadow-2xs"
+            className="rounded-xl gap-1.5 text-xs font-semibold text-primary dark:text-primary border-primary/30 hover:bg-primary/10 shadow-2xs"
           >
             <Mail className="h-3.5 w-3.5" /> Wyślij e-mailem
           </Button>
@@ -380,7 +380,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
                 size="sm"
                 onClick={() => handleToggleApproval("approved")}
                 loading={approving}
-                className="rounded-xl gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="rounded-xl gap-1.5 text-xs font-semibold bg-success hover:bg-success/90 text-success-foreground"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" /> Zatwierdź dla księgowości
               </Button>
@@ -404,7 +404,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
             size="icon"
             onClick={() => setConfirmDelete(true)}
             aria-label="Usuń fakturę"
-            className="rounded-xl text-muted-foreground hover:text-rose-500 h-9 w-9"
+            className="rounded-xl text-muted-foreground hover:text-destructive h-9 w-9"
           >
             <Trash2 className="h-4 w-4" />
           </Button>)}
@@ -453,17 +453,17 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
           {/* Karta Akceptacji Księgowej dla Faktur Zakupowych */}
       {invoice.type === "purchase" && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="no-print">
-          <Card className={`rounded-3xl border shadow-xs overflow-hidden ${
+          <Card className={`rounded-xl border shadow-xs overflow-hidden ${
             invoice.approvalStatus === "approved"
-              ? "border-emerald-500/30 bg-emerald-500/5"
-              : "border-amber-500/30 bg-amber-500/5"
+              ? "border-success/30 bg-success/5"
+              : "border-warning/30 bg-warning/5"
           }`}>
             <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ring-1 ${
+                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1 ${
                   invoice.approvalStatus === "approved"
-                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-emerald-500/30"
-                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-amber-500/30"
+                    ? "bg-success/15 text-success dark:text-success ring-success/30"
+                    : "bg-warning/15 text-warning dark:text-warning ring-warning/30"
                 }`}>
                   {invoice.approvalStatus === "approved" ? (
                     <CheckCircle2 className="h-6 w-6" />
@@ -506,7 +506,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
                     size="sm"
                     onClick={() => handleToggleApproval("approved")}
                     loading={approving}
-                    className="rounded-xl gap-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="rounded-xl gap-1.5 text-xs font-semibold bg-success hover:bg-success/90 text-success-foreground"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Zatwierdź dokument
@@ -526,19 +526,19 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
 
       {/* Podsumowanie kwot */}
       <div className="no-print grid gap-3 sm:grid-cols-3">
-        <Card className="rounded-2xl border border-border/70 bg-card/70 shadow-xs">
+        <Card className="rounded-xl border border-border/70 bg-card shadow-xs">
           <CardContent className="p-4 text-center">
             <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Wartość Netto</p>
             <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{formatMoney(totals.net, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-border/70 bg-card/70 shadow-xs">
+        <Card className="rounded-xl border border-border/70 bg-card shadow-xs">
           <CardContent className="p-4 text-center">
             <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Podatek VAT</p>
             <p className="mt-1 text-lg font-bold tabular-nums text-foreground">{formatMoney(totals.vat, invoice.currency)}</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-primary/30 bg-primary/5 shadow-xs">
+        <Card className="rounded-xl border border-primary/30 bg-primary/5 shadow-xs">
           <CardContent className="p-4 text-center">
             <p className="text-[11px] font-medium uppercase tracking-wider text-primary">Wartość Brutto</p>
             <p className="mt-1 text-lg font-bold tabular-nums text-primary">{formatMoney(totals.gross, invoice.currency)}</p>

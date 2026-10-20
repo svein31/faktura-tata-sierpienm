@@ -193,18 +193,18 @@ export function SubscriptionCard() {
             className={cn(
               "flex items-start gap-3 rounded-xl border p-4 text-sm",
               bannerMessage.type === "success"
-                ? "border-emerald-500/30 bg-emerald-50/50 text-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300"
+                ? "border-success/25 bg-success/5 text-success"
                 : bannerMessage.type === "pending"
-                  ? "border-blue-500/30 bg-blue-50/50 text-blue-900 dark:bg-blue-950/20 dark:text-blue-300"
-                  : "border-amber-500/30 bg-amber-50/50 text-amber-900 dark:bg-amber-950/20 dark:text-amber-300"
+                  ? "border-primary/25 bg-primary/5 text-primary"
+                  : "border-warning/25 bg-warning/5 text-warning"
             )}
           >
             {bannerMessage.type === "success" ? (
-              <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <ShieldCheck className="h-5 w-5 shrink-0 text-success dark:text-success" />
             ) : bannerMessage.type === "pending" ? (
               <RefreshCw className="h-5 w-5 shrink-0 animate-spin" />
             ) : (
-              <AlertCircle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <AlertCircle className="h-5 w-5 shrink-0 text-warning dark:text-warning" />
             )}
             <div className="flex-1">
               <p className="font-medium">{bannerMessage.text}</p>
@@ -233,11 +233,11 @@ export function SubscriptionCard() {
           <>
             {/* SEKCJA 1: AKTYWNY PLAN PRO */}
             {subscription && isPro && (
-              <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 via-primary/5 to-transparent p-5 space-y-4">
+              <div className="rounded-lg border border-border bg-muted/25 p-5 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-emerald-500" />
+                      <Sparkles className="h-4 w-4 text-success" />
                       <h4 className="font-semibold text-foreground">
                         {subscription.accessSource === "complimentary" ? "Dostęp Pro przyznany" : subscription.plan === "yearly" ? "Plan Roczny (Pro)" : "Plan Miesięczny (Pro)"}
                       </h4>
@@ -277,7 +277,7 @@ export function SubscriptionCard() {
                   )}
 
                   {subscription.cancelAtPeriodEnd && (
-                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <div className="flex items-center gap-2 text-warning dark:text-warning">
                       <AlertCircle className="h-4 w-4" />
                       <span>Subskrypcja zostanie zakończona po upływie bieżącego okresu.</span>
                     </div>
@@ -299,7 +299,7 @@ export function SubscriptionCard() {
                         key={plan.id}
                         onClick={() => setSelectedPlan(plan.id)}
                         className={cn(
-                          "relative flex flex-col justify-between rounded-2xl border p-5 cursor-pointer transition-all duration-200",
+                          "relative flex flex-col justify-between rounded-xl border p-5 cursor-pointer transition-all duration-200",
                           isSelected
                             ? "border-primary bg-primary/[0.03] shadow-sm ring-2 ring-primary/30"
                             : "border-border/70 hover:border-border hover:bg-muted/30"
@@ -343,20 +343,20 @@ export function SubscriptionCard() {
 
                         <ul className="mt-4 space-y-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
                           <li className="flex items-center gap-2">
-                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            <Check className="h-3.5 w-3.5 text-success" />
                             <span>Faktury bez limitu 5 miesięcznie z planu Free</span>
                           </li>
                           <li className="flex items-center gap-2">
-                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            <Check className="h-3.5 w-3.5 text-success" />
                             <span>KSeF, PDF i pozostałe moduły jak w Free</span>
                           </li>
                           <li className="flex items-center gap-2">
-                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            <Check className="h-3.5 w-3.5 text-success" />
                             <span>Integracje wymagają konfiguracji i uprawnień</span>
                           </li>
                           {isYearly && (
                             <li className="flex items-center gap-2 font-medium text-foreground">
-                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                              <Check className="h-3.5 w-3.5 text-success" />
                               <span>25 zł oszczędności wobec 12 opłat miesięcznych</span>
                             </li>
                           )}
@@ -368,7 +368,7 @@ export function SubscriptionCard() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                    <ShieldCheck className="h-4 w-4 text-success" />
                     <span>Bezpieczna płatność Stripe · Karty płatnicze, Apple Pay, Google Pay</span>
                   </div>
 

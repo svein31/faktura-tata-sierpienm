@@ -336,7 +336,7 @@ export default function AccountSettingsPage() {
                         aria-label={showCurrentPass ? "Ukryj aktualne hasło" : "Pokaż aktualne hasło"}
                         type="button"
                         onClick={() => setShowCurrentPass(!showCurrentPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         {showCurrentPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -364,7 +364,7 @@ export default function AccountSettingsPage() {
                         aria-label={showNewPass ? "Ukryj nowe hasło" : "Pokaż nowe hasło"}
                         type="button"
                         onClick={() => setShowNewPass(!showNewPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         {showNewPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -389,7 +389,7 @@ export default function AccountSettingsPage() {
                         aria-label={showConfirmPass ? "Ukryj powtórzone hasło" : "Pokaż powtórzone hasło"}
                         type="button"
                         onClick={() => setShowConfirmPass(!showConfirmPass)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         {showConfirmPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -415,9 +415,9 @@ export default function AccountSettingsPage() {
                     <span
                       className={
                         passScore === 4
-                          ? "text-emerald-600 font-bold"
+                          ? "text-success font-bold"
                           : passScore >= 2
-                          ? "text-amber-600 font-bold"
+                          ? "text-warning font-bold"
                           : "text-muted-foreground"
                       }
                     >
@@ -425,17 +425,17 @@ export default function AccountSettingsPage() {
                     </span>
                   </div>
                   <div className="flex h-2 gap-1 overflow-hidden rounded-full bg-muted">
-                    <div className={`h-full flex-1 rounded-full transition-colors ${passLengthOk ? "bg-emerald-500" : "bg-muted"}`} />
-                    <div className={`h-full flex-1 rounded-full transition-colors ${passNumberOk ? "bg-emerald-500" : "bg-muted"}`} />
-                    <div className={`h-full flex-1 rounded-full transition-colors ${passSpecialOk ? "bg-emerald-500" : "bg-muted"}`} />
-                    <div className={`h-full flex-1 rounded-full transition-colors ${passMatchOk ? "bg-emerald-500" : "bg-muted"}`} />
+                    <div className={`h-full flex-1 rounded-full transition-colors ${passLengthOk ? "bg-success" : "bg-muted"}`} />
+                    <div className={`h-full flex-1 rounded-full transition-colors ${passNumberOk ? "bg-success" : "bg-muted"}`} />
+                    <div className={`h-full flex-1 rounded-full transition-colors ${passSpecialOk ? "bg-success" : "bg-muted"}`} />
+                    <div className={`h-full flex-1 rounded-full transition-colors ${passMatchOk ? "bg-success" : "bg-muted"}`} />
                   </div>
                 </div>
 
                 <div className="divide-y divide-border/60 text-[12px]">
                   <div className="flex items-center gap-2 py-2">
                     {passLengthOk ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
@@ -445,7 +445,7 @@ export default function AccountSettingsPage() {
                   </div>
                   <div className="flex items-center gap-2 py-2">
                     {passNumberOk ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
@@ -455,7 +455,7 @@ export default function AccountSettingsPage() {
                   </div>
                   <div className="flex items-center gap-2 py-2">
                     {passSpecialOk ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
@@ -465,7 +465,7 @@ export default function AccountSettingsPage() {
                   </div>
                   <div className="flex items-center gap-2 py-2">
                     {passMatchOk ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
@@ -829,9 +829,9 @@ export default function AccountSettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Akceptacja regulaminu */}
-                <div className="flex items-center justify-between p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                <div className="flex items-center justify-between p-3 rounded-xl border border-success/20 bg-success/5">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     <div>
                       <div className="text-xs font-semibold">Regulamin serwisu</div>
                       <div className="text-[11px] text-muted-foreground">

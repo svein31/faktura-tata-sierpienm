@@ -37,7 +37,7 @@ export function ViesLookup({ vat, country }: { vat: string; country: string }) {
 
   return <div className="flex flex-wrap items-center gap-2 text-xs">
     <Button type="button" variant="outline" size="sm" disabled={!vat.trim() || loading} onClick={check} className="h-8">{loading ? "Sprawdzanie…" : "Sprawdź w VIES"}</Button>
-    <span role="status" aria-live="polite" className={error ? "text-amber-700 dark:text-amber-300" : result?.valid === false ? "text-rose-700 dark:text-rose-300" : "text-muted-foreground"}>
+    <span role="status" aria-live="polite" className={error ? "text-warning dark:text-warning" : result?.valid === false ? "text-destructive dark:text-destructive" : "text-muted-foreground"}>
       {error || (result ? `${result.valid ? "Aktywny VAT UE" : "Numer nieaktywny w VIES"} · ${result.countryCode}${result.vatNumber} · stan na ${result.requestDate}` : "Wynik nie jest zapisywany ani wymagany do wystawienia faktury.")}
     </span>
   </div>;

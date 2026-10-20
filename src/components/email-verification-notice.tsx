@@ -16,7 +16,7 @@ export function EmailVerificationNotice() {
     } catch { setMessage("Brak połączenia z serwerem. Spróbuj ponownie."); }
     finally { setBusy(false); }
   }
-  return <section className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-slate-900" aria-label="Potwierdzenie adresu e-mail">
+  return <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 text-foreground" aria-label="Potwierdzenie adresu e-mail">
     <p className="break-words font-semibold">Potwierdź adres {user.email}</p>
     <p className="mt-1 text-sm">Możesz przygotowywać faktury i uzupełnić firmę. Wysyłka wiadomości do klientów będzie dostępna po potwierdzeniu adresu linkiem z e-maila.</p>
     {message && <p className="mt-2 text-sm" role="status">{message}</p>}

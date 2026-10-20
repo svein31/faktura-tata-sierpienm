@@ -49,15 +49,13 @@ export default function ForgotPasswordPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
       {/* Glow backgrounds */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
 
       <div className="w-full max-w-sm">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl"
+          transition={{ duration: 0.16, ease: "easeOut" }}
+          className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-2xs"
         >
           <div className="mb-6 flex flex-col items-center text-center">
             <Logo />
@@ -71,7 +69,7 @@ export default function ForgotPasswordPage() {
 
           {sent ? (
             <div className="space-y-5 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-success dark:text-success ring-1 ring-success/20">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <div>
@@ -113,8 +111,8 @@ export default function ForgotPasswordPage() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
+                <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/8 px-3.5 py-2.5 text-[12.5px] text-destructive dark:text-destructive">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
                   {error}
                 </div>
               )}

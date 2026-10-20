@@ -35,14 +35,14 @@ const NAV_ITEMS = [
 function LegalContent({ content }: { content: string }) {
   const lines = content.split("\n").filter((l) => l.trim().length > 0);
   const inline = (value: string) => value.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g).map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index} className="font-semibold text-slate-800 dark:text-slate-200">{part.slice(2, -2)}</strong>;
-    if (part.startsWith("`") && part.endsWith("`")) return <code key={index} className="rounded bg-slate-100 px-1 dark:bg-slate-800">{part.slice(1, -1)}</code>;
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index} className="font-semibold text-foreground dark:text-foreground">{part.slice(2, -2)}</strong>;
+    if (part.startsWith("`") && part.endsWith("`")) return <code key={index} className="rounded bg-muted px-1 dark:bg-muted">{part.slice(1, -1)}</code>;
     if (part.startsWith("*") && part.endsWith("*")) return <em key={index}>{part.slice(1, -1)}</em>;
     return part;
   });
 
   return (
-    <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed print:text-xs print:text-slate-800">
+    <div className="space-y-2 text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed print:text-xs print:text-foreground">
       {lines.map((line, i) => {
         const trimmed = line.trim();
         if (trimmed.startsWith("|")) {
@@ -52,12 +52,12 @@ function LegalContent({ content }: { content: string }) {
           const parseCells = (row: string) => row.trim().replace(/^\||\|$/g, "").split("|").map(cell => cell.trim());
           const [header, divider, ...body] = tableLines;
           if (divider && parseCells(divider).every(cell => /^:?-{3,}:?$/.test(cell))) {
-            return <div key={i} className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700"><table className="w-full min-w-[640px] border-collapse text-left text-xs"><thead className="bg-slate-100 dark:bg-slate-800"><tr>{parseCells(header).map((cell, index) => <th key={index} scope="col" className="border-b p-2 font-semibold">{inline(cell)}</th>)}</tr></thead><tbody>{body.map((row, rowIndex) => <tr key={rowIndex} className="border-t border-slate-200 dark:border-slate-700">{parseCells(row).map((cell, cellIndex) => <td key={cellIndex} className="p-2 align-top">{inline(cell)}</td>)}</tr>)}</tbody></table></div>;
+            return <div key={i} className="overflow-x-auto rounded-lg border border-border dark:border-border"><table className="w-full min-w-[640px] border-collapse text-left text-xs"><thead className="bg-muted dark:bg-muted"><tr>{parseCells(header).map((cell, index) => <th key={index} scope="col" className="border-b p-2 font-semibold">{inline(cell)}</th>)}</tr></thead><tbody>{body.map((row, rowIndex) => <tr key={rowIndex} className="border-t border-border dark:border-border">{parseCells(row).map((cell, cellIndex) => <td key={cellIndex} className="p-2 align-top">{inline(cell)}</td>)}</tr>)}</tbody></table></div>;
           }
           return <p key={i}>{inline(trimmed)}</p>;
         }
-        if (/^---+$/.test(trimmed)) return <hr key={i} className="my-4 border-slate-200 dark:border-slate-800" />;
-        if (/^#{1,6}\s/.test(trimmed)) return <h3 key={i} className="pt-3 font-semibold text-slate-900 dark:text-slate-100">{inline(trimmed.replace(/^#{1,6}\s+/, ""))}</h3>;
+        if (/^---+$/.test(trimmed)) return <hr key={i} className="my-4 border-border dark:border-border" />;
+        if (/^#{1,6}\s/.test(trimmed)) return <h3 key={i} className="pt-3 font-semibold text-foreground dark:text-foreground">{inline(trimmed.replace(/^#{1,6}\s+/, ""))}</h3>;
         const isNumbered = /^\d+\./.test(trimmed);
         const isSubpoint = /^[a-z]\)/.test(trimmed);
         const isBullet = trimmed.startsWith("- ");
@@ -65,7 +65,7 @@ function LegalContent({ content }: { content: string }) {
         return (
           <p
             key={i}
-            className={`${isSubpoint || (isBullet && line.startsWith("  ")) ? "pl-6" : isNumbered || isBullet ? "pl-2" : ""} ${trimmed.startsWith("**") ? "font-medium text-slate-800 dark:text-slate-200" : ""}`}
+            className={`${isSubpoint || (isBullet && line.startsWith("  ")) ? "pl-6" : isNumbered || isBullet ? "pl-2" : ""} ${trimmed.startsWith("**") ? "font-medium text-foreground dark:text-foreground" : ""}`}
           >{isBullet ? <>• {inline(trimmed.slice(2))}</> : inline(trimmed)}</p>
         );
       })}
@@ -117,22 +117,22 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-blue-500 selection:text-white">
+    <div className="legal-document min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
       {/* ── TOP HEADER (Ukryty przy drukowaniu) ── */}
-      <header className="print:hidden sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+      <header className="print:hidden sticky top-0 z-40 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 py-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
             <Link prefetch={false}
               href="/"
-              className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+              className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Powrót do serwisu</span>
             </Link>
-            <span className="hidden sm:inline-block text-slate-300 dark:text-slate-700">|</span>
+            <span className="hidden sm:inline-block text-muted-foreground dark:text-foreground">|</span>
             <div className="flex items-center gap-2">
-              <span className="font-black tracking-tight text-blue-600 dark:text-blue-400">FakturaProsto</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700">
+              <span className="font-semibold tracking-tight text-primary dark:text-primary">FakturaProsto</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground font-medium border border-border dark:border-border">
                 Centrum Prawne
               </span>
             </div>
@@ -143,9 +143,9 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
               variant="outline"
               size="sm"
               onClick={handleOpenCookieSettings}
-              className="hidden md:inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300"
+              className="hidden md:inline-flex items-center gap-1.5 text-xs text-muted-foreground dark:text-muted-foreground"
             >
-              <Sliders className="w-3.5 h-3.5 text-blue-600" />
+              <Sliders className="w-3.5 h-3.5 text-primary" />
               Preferencje cookies
             </Button>
             <Button
@@ -162,7 +162,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
               variant="primary"
               size="sm"
               onClick={handlePrint}
-              className="bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1.5 text-xs shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs"
               title="Drukuj lub zapisz jako PDF"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -172,7 +172,7 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
         </div>
 
         {/* ── SUB-NAV: 5 DOKUMENTÓW PRAWNYCH ── */}
-        <div className="border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-900/50 overflow-x-auto scrollbar-thin">
+        <div className="border-t border-border dark:border-border/60 bg-background/70 dark:bg-card/50 overflow-x-auto scrollbar-thin">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 py-1.5 min-w-max">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
@@ -183,11 +183,11 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
                   href={item.href}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-muted/60 dark:hover:bg-muted"
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-slate-500"}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
                   {item.label}
                 </Link>
               );
@@ -197,28 +197,28 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
       </header>
 
       {/* ── BANER TYTUŁOWY DOKUMENTU ── */}
-      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 sm:py-12 print:py-4 print:border-b-2 print:border-black">
+      <section className="border-b border-border dark:border-border bg-card dark:bg-card py-8 sm:py-12 print:py-4 print:border-b-2 print:border-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">
+            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-primary dark:text-primary mb-2">
               <span className="flex items-center gap-1">
                 <Layers className="w-3.5 h-3.5" />
                 Oficjalny Dokument Serwisu
               </span>
               <span>•</span>
-              <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400 normal-case font-mono">
+              <span className="flex items-center gap-1 text-muted-foreground dark:text-muted-foreground normal-case font-mono">
                 Wersja: {doc.version}
               </span>
               <span>•</span>
-              <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400 normal-case">
+              <span className="flex items-center gap-1 text-muted-foreground dark:text-muted-foreground normal-case">
                 <Calendar className="w-3.5 h-3.5" />
                 Obowiązuje od: {doc.effectiveDate}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white mb-3 print:text-2xl print:text-black">
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-slate-950 dark:text-white mb-3 print:text-2xl print:text-black">
               {doc.title}
             </h1>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed print:text-xs print:text-slate-800">
+            <p className="text-sm sm:text-base text-muted-foreground dark:text-muted-foreground leading-relaxed print:text-xs print:text-foreground">
               {doc.description}
             </p>
           </div>
@@ -230,9 +230,9 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* SPIS TREŚCI (TOC) - Lewa kolumna (desktop) */}
-          <aside className="lg:col-span-4 print:hidden sticky top-36 hidden lg:block bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-thin">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-              <Layers className="w-4 h-4 text-blue-600" />
+          <aside className="lg:col-span-4 print:hidden sticky top-36 hidden lg:block bg-card dark:bg-card p-5 rounded-xl border border-border/80 dark:border-border shadow-sm max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-thin">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground dark:text-muted-foreground mb-4 pb-2 border-b border-border dark:border-border">
+              <Layers className="w-4 h-4 text-primary" />
               Spis treści dokumentu
             </div>
             <nav className="space-y-1 text-xs">
@@ -245,8 +245,8 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
                     onClick={() => setActiveSection(idx)}
                     className={`block py-1.5 px-2.5 rounded-lg transition-colors leading-tight ${
                       isActive
-                        ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-semibold"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-foreground hover:bg-background dark:hover:bg-muted/50"
                     }`}
                   >
                     {sec.title}
@@ -255,22 +255,22 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
               })}
             </nav>
 
-            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-2">
-              <div className="font-semibold text-slate-700 dark:text-slate-300">Operator serwisu:</div>
+            <div className="mt-6 pt-4 border-t border-border dark:border-border text-xs text-muted-foreground dark:text-muted-foreground space-y-2">
+              <div className="font-semibold text-foreground dark:text-muted-foreground">Operator serwisu:</div>
               <div>{OPERATOR_CONFIG.companyName}</div>
-              <div className="text-slate-600 dark:text-slate-400">Kontakt: {OPERATOR_CONFIG.emailContact}</div>
+              <div className="text-muted-foreground dark:text-muted-foreground">Kontakt: {OPERATOR_CONFIG.emailContact}</div>
             </div>
           </aside>
 
           {/* TREŚĆ DOKUMENTU - Prawa kolumna */}
-          <article className="min-w-0 break-words lg:col-span-8 space-y-8 bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm print:shadow-none print:border-none print:p-0 print:space-y-6">
+          <article className="min-w-0 break-words lg:col-span-8 space-y-8 bg-card dark:bg-card p-6 sm:p-10 rounded-xl border border-border/80 dark:border-border shadow-sm print:shadow-none print:border-none print:p-0 print:space-y-6">
             {doc.sections.map((sec, index) => (
               <section
                 key={index}
                 id={sectionIds[index]}
-                className="scroll-mt-36 border-b border-slate-100 dark:border-slate-800 pb-8 last:border-b-0 print:border-b print:pb-4"
+                className="scroll-mt-36 border-b border-border dark:border-border pb-8 last:border-b-0 print:border-b print:pb-4"
               >
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 mb-4 print:text-base print:text-black">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground dark:text-foreground mb-4 print:text-base print:text-black">
                   {sec.title}
                 </h2>
                 <LegalContent content={sec.content} />
@@ -281,25 +281,25 @@ export function LegalPageLayout({ document: doc }: LegalPageLayoutProps) {
       </main>
 
       {/* ── STOPKA STRONY PRAWNEJ ── */}
-      <footer className="print:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 text-xs text-slate-500 dark:text-slate-400">
+      <footer className="print:hidden border-t border-border dark:border-border bg-card dark:bg-card py-8 text-xs text-muted-foreground dark:text-muted-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">{OPERATOR_CONFIG.serviceName}</span> — oficjalny system dokumentacji prawnej i ochrony prywatności.
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+            <span className="font-semibold text-foreground dark:text-muted-foreground">{OPERATOR_CONFIG.serviceName}</span> — oficjalny system dokumentacji prawnej i ochrony prywatności.
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Dokumenty sporządzone zgodnie z RODO (UE 2016/679), Prawem komunikacji elektronicznej (PKE) oraz Ustawą o prawach konsumenta.
             </p>
           </div>
           <div className="flex max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
             <button
               onClick={handleOpenCookieSettings}
-              className="text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+              className="text-primary dark:text-primary hover:underline inline-flex items-center gap-1"
             >
               <Sliders className="w-3 h-3" /> Zmień zgody cookies
             </button>
             <span>•</span>
             <a
               href={`mailto:${OPERATOR_CONFIG.emailPrivacy}`}
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-primary dark:text-primary hover:underline"
             >
               Kontakt IOD / Prywatność
             </a>

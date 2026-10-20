@@ -139,7 +139,7 @@ export function SendInvoiceEmailCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary">
               <Mail className="h-4 w-4" />
             </div>
             <div>
@@ -169,7 +169,7 @@ export function SendInvoiceEmailCard({
         </div>
 
         {lastSentAt && (
-          <div className="mt-2 flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1.5 text-xs text-emerald-700 dark:text-emerald-300">
+          <div className="mt-2 flex items-center gap-1.5 rounded-md bg-success/10 px-2.5 py-1.5 text-xs text-success dark:text-success">
             <Clock className="h-3.5 w-3.5 shrink-0" />
             <span>
               Ostatnia wysyłka: <b>{new Date(lastSentAt).toLocaleString("pl-PL")}</b> na adres:{" "}
@@ -192,7 +192,7 @@ export function SendInvoiceEmailCard({
                   <button
                     type="button"
                     onClick={() => setRecipientEmail(contractor.email || "")}
-                    className="text-[11px] text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-[11px] text-primary hover:underline dark:text-primary"
                   >
                     Użyj e-mail kontrahenta ({contractor.email})
                   </button>
@@ -250,7 +250,7 @@ export function SendInvoiceEmailCard({
             {/* Opcje załączników */}
             <div className="rounded-lg border border-border/80 bg-muted/30 p-3">
               <div className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-blue-500" /> Załączniki do wiadomości:
+                <FileText className="h-3.5 w-3.5 text-primary" /> Załączniki do wiadomości:
               </div>
               <div className="flex flex-wrap gap-4 text-xs">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -258,7 +258,7 @@ export function SendInvoiceEmailCard({
                     type="checkbox"
                     checked={attachPdf}
                     onChange={(e) => setAttachPdf(e.target.checked)}
-                    className="rounded border-input text-blue-600 focus:ring-blue-500 h-4 w-4"
+                    className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                   />
                   <span>Dołącz plik PDF faktury</span>
                 </label>
@@ -268,10 +268,10 @@ export function SendInvoiceEmailCard({
                     type="checkbox"
                     checked={attachXml}
                     onChange={(e) => setAttachXml(e.target.checked)}
-                    className="rounded border-input text-blue-600 focus:ring-blue-500 h-4 w-4"
+                    className="rounded border-input text-primary focus:ring-primary h-4 w-4"
                   />
                   <span className="flex items-center gap-1">
-                    <FileCode2 className="h-3.5 w-3.5 text-amber-500" /> Dołącz plik XML KSeF / FA(3)
+                    <FileCode2 className="h-3.5 w-3.5 text-warning" /> Dołącz plik XML KSeF / FA(3)
                   </span>
                 </label>
               </div>

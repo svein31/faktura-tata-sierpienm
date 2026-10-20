@@ -278,15 +278,15 @@ export default function OffersPage() {
       <SummaryCurrency value={summaryCurrency} currencies={offers.map(o => o.currency)} onChange={setSummaryCurrency} />
       {/* Karty podsumowujące */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-4 bg-card/60 backdrop-blur-md border-border/70">
+        <Card className="p-4 bg-card  border-border/70">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Wszystkie oferty</p>
           <p className="mt-1 text-2xl font-bold text-foreground">{offers.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Łącznie przygotowanych dokumentów</p>
         </Card>
-        <Card className="p-4 bg-emerald-500/5 border-emerald-500/20">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Zaakceptowane / Zrealizowane</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatMoney(totalAcceptedValue, summaryCurrency)}</p>
-          <p className="text-xs text-emerald-700 dark:text-emerald-300/80 mt-1">Potencjał przychodowy zamknięty</p>
+        <Card className="p-4 bg-card border-border/70">
+          <p className="text-xs font-medium text-muted-foreground">Zaakceptowane / Zrealizowane</p>
+          <p className="mt-1 ui-stat-value text-2xl font-semibold">{formatMoney(totalAcceptedValue, summaryCurrency)}</p>
+          <p className="text-xs text-muted-foreground mt-1">Wartość zaakceptowanych ofert</p>
         </Card>
         <Card className="p-4 bg-primary/5 border-primary/20">
           <p className="text-xs font-semibold text-primary uppercase tracking-wider">W toku (w negocjacji)</p>
@@ -296,7 +296,7 @@ export default function OffersPage() {
       </div>
 
       {/* Pasek filtrowania */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/70 p-3.5 backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card p-3.5 ">
         <div className="relative min-w-[240px] flex-1">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -325,7 +325,7 @@ export default function OffersPage() {
       </div>
 
       {/* Lista ofert */}
-      <Card className="overflow-hidden border-border/70 bg-card/70 backdrop-blur-md">
+      <Card className="overflow-hidden border-border/70 bg-card ">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -354,7 +354,7 @@ export default function OffersPage() {
                     </td>
                     <td className="py-3.5 px-4 text-muted-foreground">
                       <p>{formatDate(offer.issueDate)}</p>
-                      <p className={`text-[10.5px] ${isExpired ? "text-rose-700 font-semibold" : ""}`}>
+                      <p className={`text-[10.5px] ${isExpired ? "text-destructive font-semibold" : ""}`}>
                         do: {formatDate(offer.validUntil)} {isExpired ? "(wygasła)" : ""}
                       </p>
                     </td>
@@ -420,7 +420,7 @@ export default function OffersPage() {
                           size="icon"
                           onClick={() => setToDelete(offer.id)}
                           title="Usuń ofertę"
-                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-rose-500"
+                          className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -434,7 +434,7 @@ export default function OffersPage() {
 
           {filtered.length === 0 && !loading && (
             <div className="py-16 text-center space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <FileSpreadsheet className="h-6 w-6" />
               </div>
               <p className="text-sm font-semibold text-foreground">Brak ofert</p>
@@ -578,7 +578,7 @@ export default function OffersPage() {
                       <button
                         type="button"
                         onClick={() => setFormLines(formLines.filter((_, i) => i !== idx))}
-                        className="text-muted-foreground hover:text-rose-500"
+                        className="text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

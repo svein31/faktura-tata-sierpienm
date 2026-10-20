@@ -11,6 +11,34 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     await page.evaluate(() => document.fonts.ready);
   };
   const geometry = locator => locator.evaluate(n => { const b = n.getBoundingClientRect(); return { x:b.x,y:b.y,width:b.width,height:b.height }; });
+  const layoutGeometry = locator => locator.evaluate(n => ({ x:n.offsetLeft,y:n.offsetTop,width:n.offsetWidth,height:n.offsetHeight }));
+  // WebKit can finish scrollIntoView after a 900 ms highlight has ended.
+  // Observe the real transient DOM state before releasing the write response;
+  // keep the original timing and assert the saved ID, check and row geometry.
+  const observeHighlights = () => page.evaluate(() => {
+    window.__uiMotionHighlights?.observer.disconnect();
+    const records = [], seen = new Set();
+    const observer = new MutationObserver(() => {
+      const rows = [...document.querySelectorAll('[data-new-invoice="true"]')].filter(n => n.getClientRects().length > 0);
+      for (const row of rows) {
+        const id = row.getAttribute('data-invoice-id');
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const check = document.querySelector('.ui-save-confirmed');
+        records.push({ id, text:row.textContent, visibleRows:rows.length, check:!!check?.getClientRects().length,
+          geometry:{ x:row.offsetLeft,y:row.offsetTop,width:row.offsetWidth,height:row.offsetHeight } });
+      }
+    });
+    observer.observe(document.body, { subtree:true,childList:true,attributes:true,attributeFilter:['data-new-invoice'] });
+    window.__uiMotionHighlights = { records, observer };
+  });
+  const observedHighlight = async id => {
+    await expect.poll(() => page.evaluate(id => window.__uiMotionHighlights.records.filter(row => row.id === id).length,id)).toBe(1);
+    const record = await page.evaluate(id => window.__uiMotionHighlights.records.find(row => row.id === id),id);
+    assert.equal(record.visibleRows,1,'Exactly one visible row is highlighted');
+    assert.equal(record.check,true,'The successful-save check appears with the highlighted row');
+    return record;
+  };
   const stable = (a,b,message) => { for (const key of Object.keys(a)) assert.ok(Math.abs(a[key]-b[key]) < 1, `${message}: ${key} ${a[key]} -> ${b[key]}`); };
   const gate = () => { let release; const waiting = new Promise(r => { release=r; }); return { waiting, release }; };
   let releaseRequest = () => {};
@@ -90,20 +118,18 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     record('pending save keeps its width/height; failed save never displays success or creates a row');
     fail=false;writeGate=gate();releaseRequest=writeGate.release;
     await confirmSave();
+    await observeHighlights();
     writeGate.release();
     await expect(page).toHaveURL(/\/invoices$/);
     assert.ok(saved?.id);
     await page.locator(`[data-invoice-id="${saved.id}"]:visible`).scrollIntoViewIfNeeded();
-    const row=page.locator('[data-new-invoice="true"]:visible');
-    await expect(row).toHaveCount(1);
+    const highlighted=await observedHighlight(saved.id);
     assert.ok(saved?.id);
-    await expect(row).toContainText(saved.number);
-    await expect(page.locator('.ui-save-confirmed')).toBeVisible();
-    const highlighted=await geometry(row);
+    assert.ok(highlighted.text.includes(saved.number));
     await page.screenshot({path:`${out}/${engine}-created-highlight.png`});
     await expect(page.locator('[data-new-invoice="true"]')).toHaveCount(0);
     const savedRow=page.locator('tr:visible').filter({hasText:saved.number});
-    stable(highlighted,await geometry(savedRow),'Created row after highlight');
+    stable(highlighted.geometry,await layoutGeometry(savedRow),'Created row after highlight');
     assert.equal(posts,2,'One failed attempt and one confirmed write, no duplicate POST');
     await context.unroute('**/api/invoices',writeRoute);
     record('confirmed write shows animated check, highlights exactly the created row, and does not resize it');
@@ -172,20 +198,19 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     const pendingDraft=page.locator('button[aria-busy="true"]:visible').filter({has:page.locator('.ui-save-label')});
     await expect(pendingDraft).toBeDisabled();
     stable({width:draftBefore.width,height:draftBefore.height},await geometry(pendingDraft),'Mobile draft pending geometry');
+    await observeHighlights();
     writeGate.release();
     await expect(page).toHaveURL(/\/invoices$/);
     const newMobileRow=page.locator(`article[data-invoice-id="${saved.id}"]:visible`);
     await expect(newMobileRow).toBeVisible();
     assert.equal(await newMobileRow.getAttribute('data-new-invoice'),null,'Off-screen new card does not spend its highlight');
     await newMobileRow.scrollIntoViewIfNeeded();
-    const mobileRow=page.locator('article[data-new-invoice="true"]:visible');
-    await expect(mobileRow).toHaveCount(1);
-    await expect(page.locator('.ui-save-confirmed')).toBeVisible();
-    const mobileBounds=await geometry(mobileRow);
+    const mobileHighlight=await observedHighlight(saved.id);
+    assert.ok(mobileHighlight.text.includes(saved.number));
     const mobileNumber=saved.number;
     await page.screenshot({path:`${out}/${engine}-mobile-created-highlight.png`});
     await expect(page.locator('[data-new-invoice="true"]')).toHaveCount(0);
-    stable(mobileBounds,await geometry(page.locator('article:visible').filter({hasText:mobileNumber})),'Mobile new invoice geometry');
+    stable(mobileHighlight.geometry,await layoutGeometry(page.locator('article:visible').filter({hasText:mobileNumber})),'Mobile new invoice geometry');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Mobile draft/list fits the viewport');
     await context.unroute('**/api/invoices',writeRoute);
     assert.equal(posts,3,'Failed save, confirmed issue and confirmed mobile draft only');
@@ -196,5 +221,8 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     await page.screenshot({path:`${out}/${engine}-failure.png`});
     await writeFile(`${out}/${engine}-failure.json`,JSON.stringify({error:error.message,text:await page.locator('body').innerText()},null,2));
     throw error;
-  } finally { releaseRequest(); }
+  } finally {
+    releaseRequest();
+    await page.evaluate(() => window.__uiMotionHighlights?.observer.disconnect()).catch(() => {});
+  }
 }

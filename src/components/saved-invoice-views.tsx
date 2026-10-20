@@ -18,6 +18,6 @@ export function SavedInvoiceViews({ companyId, filters, apply }: { companyId: st
       <Button disabled={!prefs.ready || prefs.saving || !name.trim() || views.length >= 20} onClick={async () => { const label = name.trim(); if (await prefs.save([...views.filter(v => v.name !== label), { name: label, filters }])) { setName(""); setSelected(label); } }}>Zapisz filtry</Button>
       {selected && <Button variant="ghost" disabled={prefs.saving} onClick={async () => { if (await prefs.save(views.filter(v => v.name !== selected))) setSelected(""); }}>Usuń widok</Button>}
     </div>
-    {prefs.error && <p role="alert" className="mt-2 text-sm text-rose-500">{prefs.error}</p>}
+    {prefs.error && <p role="alert" className="mt-2 text-sm text-destructive">{prefs.error}</p>}
   </div>;
 }

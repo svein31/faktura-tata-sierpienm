@@ -2,8 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Apple-style shimmer skeleton — subtle, lightweight, text-imitating shapes.
- * Uses a translucent gradient sweep instead of heavy dark blocks.
+ * Neutral loading shapes retain the final layout without decorative sweeps.
  */
 export function Skeleton({
   className,
@@ -12,8 +11,8 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "relative min-w-0 max-w-full overflow-hidden rounded-md bg-muted/40 dark:bg-slate-800/40",
-        "after:absolute after:inset-0 after:-translate-x-full motion-safe:after:animate-[shimmer_2s_ease-in-out_infinite] after:bg-gradient-to-r after:from-transparent after:via-foreground/[0.06] after:to-transparent",
+        "ui-skeleton relative min-w-0 max-w-full overflow-hidden rounded-sm bg-muted",
+        "motion-safe:animate-[skeleton-fade_1.8s_ease-in-out_infinite]",
         className
       )}
       {...props}
@@ -28,7 +27,7 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5">
+        <div key={i} className="rounded-xl border border-border/40 bg-card  p-5">
           <div className="flex items-start justify-between">
             <div className="space-y-2.5">
               <Skeleton className="h-3 w-20 rounded" />
@@ -54,7 +53,7 @@ export function CardSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 space-y-4", className)}>
+    <div className={cn("rounded-xl border border-border/40 bg-card  p-5 space-y-4", className)}>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
         <div className="space-y-1.5">
           <Skeleton className="h-4 w-36" />
@@ -84,7 +83,7 @@ export function TableSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden", className)}>
+    <div className={cn("rounded-xl border border-border/40 bg-card  overflow-hidden", className)}>
       <div className="border-b border-border/30 bg-muted/20 px-4 py-3 flex items-center justify-between">
         <Skeleton className="h-3.5 w-28" />
         <Skeleton className="h-3.5 w-20" />
@@ -131,7 +130,7 @@ export function InvoiceDetailSkeleton() {
         </div>
       </div>
       <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="rounded-2xl border border-border/40 bg-card/60 p-6 space-y-6">
+        <div className="rounded-xl border border-border/40 bg-card p-6 space-y-6">
           <div className="flex min-w-0 flex-wrap justify-between gap-2">
             <Skeleton className="h-10 w-36" />
             <Skeleton className="h-8 w-28" />
@@ -161,7 +160,7 @@ export function SettingsSkeleton() {
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-3.5 w-64" />
       </div>
-      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 space-y-5">
+      <div className="rounded-xl border border-border/40 bg-card  p-6 space-y-5">
         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-2">
@@ -192,7 +191,7 @@ export function ListSkeleton({ count = 6 }: { count?: number }) {
       <Skeleton className="h-9 w-64 rounded-lg" />
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-4 space-y-3">
+          <div key={i} className="rounded-xl border border-border/40 bg-card  p-4 space-y-3">
             <div className="flex items-start gap-3">
               <Skeleton className="h-10 w-10 rounded-lg" />
               <div className="flex-1 space-y-1.5">

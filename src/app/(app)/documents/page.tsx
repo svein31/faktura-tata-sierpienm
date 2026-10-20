@@ -114,8 +114,8 @@ export default function DocumentsPage() {
       <label className="min-w-0 w-full sm:w-auto text-sm">Dodaj PDF, JPG lub PNG (do 3 MB)<input className="block mt-2 min-w-0 w-full max-w-full" type="file" accept="application/pdf,image/jpeg,image/png" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
       <label className="min-w-0 w-full sm:w-auto text-sm">Zrób zdjęcie<input className="block mt-2 min-w-0 w-full max-w-full" type="file" accept="image/jpeg,image/png" capture="environment" disabled={busy || !companyId} onChange={e => { void upload(e.target.files?.[0]); e.target.value = ""; }} /></label>
     </div>
-    {error && <div role="alert" className="rounded-xl border border-rose-500 p-3">{error} <Button variant="ghost" onClick={() => selected ? open(selected.id) : load()}>Odśwież</Button></div>}
-    {message && <p role="status" className="text-sm text-emerald-600">{message}</p>}
+    {error && <div role="alert" className="rounded-xl border border-destructive p-3">{error} <Button variant="ghost" onClick={() => selected ? open(selected.id) : load()}>Odśwież</Button></div>}
+    {message && <p role="status" className="text-sm text-success">{message}</p>}
     <Input aria-label="Szukaj dokumentu" placeholder="Szukaj po nazwie pliku…" value={search} onChange={e => setSearch(e.target.value)} />
     <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
       <div className="space-y-2" aria-busy={loading}>

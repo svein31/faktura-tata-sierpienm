@@ -616,11 +616,14 @@ const config: Config = {
       boxShadow: {
         "2xs": "0 1px 2px hsl(224 45% 4% / 0.04)",
         xs: "0 1px 3px hsl(224 45% 4% / 0.08)",
-        "apple-sm": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 12px 28px -18px hsl(224 45% 4% / 0.18)",
-        "apple-md": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 18px 36px -20px hsl(224 45% 4% / 0.28)",
-        "apple-lg": "inset 0 1px 0 hsl(var(--surface-highlight) / var(--surface-highlight-alpha)), 0 24px 64px -24px hsl(224 45% 4% / 0.4)",
+        "apple-sm": "var(--shadow-surface)",
+        "apple-md": "var(--shadow-popup)",
+        "apple-lg": "var(--shadow-dialog)",
       },
       colors: {
+        success: { DEFAULT: "hsl(var(--success))", foreground: "hsl(var(--success-foreground))" },
+        warning: { DEFAULT: "hsl(var(--warning))", foreground: "hsl(var(--warning-foreground))" },
+        info: { DEFAULT: "hsl(var(--info))", foreground: "hsl(var(--info-foreground))" },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -656,8 +659,8 @@ const config: Config = {
         },
       },
       borderRadius: {
-        "2xl": "16px",
-        xl: "12px",
+        "2xl": "12px",
+        xl: "10px",
         lg: "8px",
         md: "6px",
         sm: "4px",
@@ -673,10 +676,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "SF Pro Display",
-          "SF Pro Text",
+          "var(--font-sans)",
           "Inter",
           "system-ui",
           "Segoe UI",
@@ -700,8 +700,8 @@ const config: Config = {
         },
       },
       animation: {
-        "fade-in": "fade-in 0.25s ease-out",
-        "slide-in-up": "slide-in-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "fade-in": "fade-in 0.16s ease-out",
+        "slide-in-up": "slide-in-up 0.18s ease-out",
       },
     },
   },

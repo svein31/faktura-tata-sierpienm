@@ -208,7 +208,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
         <span className="flex items-center gap-2">
           <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
           Dźwięk (Web Audio)
-          {!audioSupported() && <span className="text-[10.5px] text-amber-600">— brak wsparcia</span>}
+          {!audioSupported() && <span className="text-[10.5px] text-warning">— brak wsparcia</span>}
         </span>
         <input
           type="checkbox"
@@ -222,7 +222,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
       <label className="flex cursor-pointer items-center justify-between gap-2 text-[12.5px]">
         <span className="flex items-center gap-2">
           {perm === "granted" ? (
-            <BellRing className="h-3.5 w-3.5 text-emerald-500" />
+            <BellRing className="h-3.5 w-3.5 text-success" />
           ) : (
             <Bell className="h-3.5 w-3.5 text-muted-foreground" />
           )}
@@ -243,7 +243,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
         </p>
       )}
       {perm === "denied" && (
-        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+        <p className="text-[11px] text-warning dark:text-warning">
           Przeglądarka zablokowała powiadomienia. Odblokuj je w ustawieniach strony (ikona kłódki).
         </p>
       )}
@@ -253,7 +253,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
         </p>
       )}
       {perm === "granted" && (
-        <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+        <p className="text-[11px] text-success dark:text-success">
           Zgoda udzielona. Powiadomienia działają przy otwartej karcie aplikacji.
         </p>
       )}

@@ -89,10 +89,10 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
   }, [items]);
 
   return (
-    <Card className="rounded-2xl border border-border/80 bg-card/90 p-5 shadow-xs">
+    <Card className="rounded-xl border border-border/80 bg-card p-5 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3.5">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-warning/15 text-warning dark:text-warning border border-warning/30">
             <AlertTriangle className="h-4 w-4" />
           </div>
           <div>
@@ -101,7 +101,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
                 Lista faktur wymagających uwagi
               </h2>
               {counts.all > 0 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-warning/20 text-warning dark:text-warning">
                   {counts.all}
                 </span>
               )}
@@ -128,7 +128,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
               type="button"
               onClick={() => setFilter("rejected")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                filter === "rejected" ? "bg-rose-500 text-white font-semibold shadow-2xs" : "text-rose-500 hover:bg-rose-500/10"
+                filter === "rejected" ? "bg-destructive/10 text-destructive font-semibold" : "text-muted-foreground hover:bg-muted"
               }`}
             >
               KSeF Błąd ({counts.rejected})
@@ -139,7 +139,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
               type="button"
               onClick={() => setFilter("overdue")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                filter === "overdue" ? "bg-amber-500 text-white font-semibold shadow-2xs" : "text-amber-500 hover:bg-amber-500/10"
+                filter === "overdue" ? "bg-warning/10 text-warning font-semibold" : "text-muted-foreground hover:bg-muted"
               }`}
             >
               Zaległe ({counts.overdue})
@@ -150,7 +150,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
               type="button"
               onClick={() => setFilter("queued")}
               className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                filter === "queued" ? "bg-sky-500 text-white font-semibold shadow-2xs" : "text-sky-500 hover:bg-sky-500/10"
+                filter === "queued" ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:bg-muted"
               }`}
             >
               Kolejka ({counts.queued})
@@ -182,11 +182,11 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
                   <div
                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
                       type === "rejected"
-                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+                        ? "bg-destructive/15 text-destructive dark:text-destructive"
                         : type === "overdue"
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                        ? "bg-warning/15 text-warning dark:text-warning"
                         : type === "queued"
-                        ? "bg-sky-500/15 text-sky-600 dark:text-sky-400"
+                        ? "bg-info/15 text-info dark:text-info"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -216,11 +216,11 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.2 rounded border ${
                           type === "rejected"
-                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25"
+                            ? "bg-destructive/10 text-destructive dark:text-destructive border-destructive/25"
                             : type === "overdue"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25"
+                            ? "bg-warning/10 text-warning dark:text-warning border-warning/25"
                             : type === "queued"
-                            ? "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/25"
+                            ? "bg-info/10 text-info dark:text-info border-info/25"
                             : "bg-muted text-muted-foreground border-border"
                         }`}
                       >

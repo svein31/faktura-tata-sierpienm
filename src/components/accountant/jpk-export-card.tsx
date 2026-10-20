@@ -203,7 +203,7 @@ export function JpkExportCard({
   };
 
   return (
-    <Card className="border-border/60 bg-card/60 p-5 backdrop-blur shadow-sm space-y-4">
+    <Card className="border-border/60 bg-card p-5  shadow-sm space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/50 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -269,7 +269,7 @@ export function JpkExportCard({
           <p className="mt-1 font-bold text-foreground">
             Koszty netto: {formatMoney(vatSummary.k42_netCosts, "PLN")}
           </p>
-          <p className="text-rose-700 dark:text-rose-400 font-semibold">
+          <p className="text-destructive dark:text-destructive font-semibold">
             VAT odliczony: {formatMoney(vatSummary.k43_vatCosts, "PLN")}
           </p>
         </div>

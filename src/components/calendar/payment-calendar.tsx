@@ -296,18 +296,18 @@ export function PaymentCalendar() {
 
   return (
     <div className="space-y-6">
-      {expensesError && <p role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-sm leading-relaxed text-finance-expense">Nie udało się wczytać kosztów. Odśwież stronę, aby ponowić próbę.</p>}
+      {expensesError && <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3 text-sm leading-relaxed text-destructive">Nie udało się wczytać kosztów. Odśwież stronę, aby ponowić próbę.</p>}
       <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">Podsumowanie obejmuje tylko PLN. Daty podatkowe są ogólne; obowiązki zależą od sposobu rozliczania firmy.</p>
       {/* Pasek podsumowania finansowego */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card data-tone="income" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
-            <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Planowane wpływy</span>
+            <span className="pt-1 text-xs font-medium leading-relaxed">Planowane wpływy</span>
             <div className="finance-icon">
               <TrendingUp className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
           </div>
-          <p className="text-[clamp(1.25rem,11cqi,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-finance-income">
+          <p className="text-[clamp(1.25rem,11cqi,1.625rem)] font-semibold leading-tight tracking-tight tabular-nums text-foreground">
             <AnimatedCounter value={monthStats.totalIncomes} format={(v: number) => `+${formatMoney(v, "PLN").replace(/[\u00a0\u202f]/g, " ")}`} />
           </p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
@@ -317,7 +317,7 @@ export function PaymentCalendar() {
 
         <Card data-tone="expense" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
-            <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Planowane wydatki</span>
+            <span className="pt-1 text-xs font-medium leading-relaxed">Planowane wydatki</span>
             <div className="finance-icon">
               <TrendingDown className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
@@ -332,7 +332,7 @@ export function PaymentCalendar() {
 
         <Card data-tone="balance" className="surface-card-hover @container min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
-            <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Bilans miesiąca</span>
+            <span className="pt-1 text-xs font-medium leading-relaxed">Bilans miesiąca</span>
             <div className="finance-icon">
               <Scale className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
@@ -350,7 +350,7 @@ export function PaymentCalendar() {
 
         <Card data-tone="office" className="surface-card-hover min-w-0 p-5 sm:p-6">
           <div className="mb-4 flex items-start justify-between gap-3 text-muted-foreground">
-            <span className="pt-1 text-xs font-semibold uppercase leading-relaxed tracking-[0.08em]">Termin urzędowy</span>
+            <span className="pt-1 text-xs font-medium leading-relaxed">Termin urzędowy</span>
             <div className="finance-icon">
               <Landmark className="h-[18px] w-[18px]" aria-hidden="true" />
             </div>
@@ -362,9 +362,9 @@ export function PaymentCalendar() {
               </p>
               <p className="mt-2 text-xs font-medium leading-relaxed text-finance-warning">
                 {nextTaxDeadline.diffDays === 0
-                  ? "Dzisiaj jest ostateczny termin!"
+                  ? "Termin upływa dzisiaj"
                   : nextTaxDeadline.diffDays === 1
-                  ? "Jutro (ostatni dzień)!"
+                  ? "Termin upływa jutro"
                   : `Termin za ${nextTaxDeadline.diffDays} dni (${nextTaxDeadline.day}. ${monthNames[month].toLowerCase()})`}
               </p>
             </div>
@@ -381,7 +381,7 @@ export function PaymentCalendar() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         {/* Nawigacja miesiąca */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-xl border border-border/60 bg-card/70 p-1">
+          <div className="flex items-center rounded-xl border border-border/60 bg-card p-1">
             <Button
               variant="ghost"
               size="sm"
@@ -437,7 +437,7 @@ export function PaymentCalendar() {
                 "min-h-10 rounded-lg border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
                 filterType === f.id
                   ? "border-primary/25 bg-primary/10 text-primary"
-                  : "border-border/40 bg-card/60 text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
+                  : "border-border/40 bg-card text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
               )}
             >
               {f.label}
@@ -499,13 +499,12 @@ export function PaymentCalendar() {
                   onKeyDown={(event) => handleDayKeyDown(event, dayNum)}
                   aria-pressed={isSelected}
                   aria-current={isToday ? "date" : undefined}
-                  aria-label={`${dayNum} ${monthNames[month]} ${year}${isToday ? ", dzisiaj" : ""}, wpływy: ${dayInvoices?.length || 0}, wydatki: ${dayExpenses?.length || 0}, terminy urzędowe: ${data?.taxes.length || 0}`}
                   className={cn(
                     "group relative flex !min-h-[84px] !min-w-0 flex-col justify-between rounded-lg border p-1 text-left transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card motion-reduce:transition-none sm:!min-h-[104px] sm:rounded-xl sm:p-2",
                     isSelected
                       ? "border-primary/60 bg-primary/10 ring-1 ring-inset ring-primary/15"
                       : "border-border/40 bg-muted/10 hover:border-border/80 hover:bg-muted/40",
-                    isToday && !isSelected && "border-blue-500/45 bg-blue-500/5"
+                    isToday && !isSelected && "border-primary/45 bg-primary/5"
                   )}
                 >
                   {/* Nagłówek komórki: numer dnia + kropka dzisiejsza */}
@@ -522,6 +521,7 @@ export function PaymentCalendar() {
                     >
                       {dayNum}
                     </span>
+                    <span className="sr-only">{` ${monthNames[month]} ${year}${isToday ? ", dzisiaj" : ""}, wpływy: ${dayInvoices?.length || 0}, wydatki: ${dayExpenses?.length || 0}, terminy urzędowe: ${data?.taxes.length || 0}. `}</span>
 
                     {/* Mini wskaźnik zdarzeń */}
                     <div className="flex flex-wrap justify-end gap-0.5 sm:gap-1" aria-hidden="true">
@@ -541,21 +541,21 @@ export function PaymentCalendar() {
                   <div className="mt-1.5 space-y-1 overflow-hidden">
                     {/* Urzędy */}
                     {hasTaxes && (filterType === "all" || filterType === "taxes") && (
-                      <div className="truncate rounded border border-blue-500/20 bg-blue-500/10 px-1 py-0.5 text-[10px] font-medium text-finance-office sm:text-[11px]">
+                      <div className="truncate rounded border border-primary/20 bg-primary/10 px-1 py-0.5 text-[10px] font-medium text-finance-office sm:text-[11px]">
                         {data?.taxes.map((tax) => tax.title).join(" · ")}
                       </div>
                     )}
 
                     {/* Wpływy */}
                     {hasIncomes && (filterType === "all" || filterType === "incomes" || filterType === "unpaid") && (
-                      <div className="truncate rounded bg-emerald-500/10 px-1 py-0.5 text-[10px] font-medium tabular-nums text-finance-income sm:text-[11px]">
+                      <div className="truncate rounded bg-success/10 px-1 py-0.5 text-[10px] font-medium tabular-nums text-finance-income sm:text-[11px]">
                         {dayIncomeTotal ? `+${formatMoney(dayIncomeTotal, "PLN")}` : "Wpływ"}{hasOtherIncomeCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
 
                     {/* Wydatki */}
                     {hasExpenses && (filterType === "all" || filterType === "expenses" || filterType === "unpaid") && (
-                      <div className="truncate rounded bg-rose-500/10 px-1 py-0.5 text-[10px] font-medium tabular-nums text-finance-expense sm:text-[11px]">
+                      <div className="truncate rounded bg-muted/60 px-1 py-0.5 text-[10px] font-medium tabular-nums text-finance-expense sm:text-[11px]">
                         {dayExpenseTotal ? `-${formatMoney(dayExpenseTotal, "PLN")}` : "Wydatek"}{hasOtherExpenseCurrency ? " + inne waluty" : ""}
                       </div>
                     )}
@@ -607,11 +607,11 @@ export function PaymentCalendar() {
                     {filteredDayTaxes.map((tax) => (
                       <div
                         key={tax.id}
-                        className="rounded-xl border border-blue-500/20 bg-blue-500/[0.06] p-3.5 text-[13px]"
+                        className="rounded-xl border border-primary/20 bg-primary/[0.06] p-3.5 text-[13px]"
                       >
                         <div className="flex flex-wrap items-start justify-between gap-2 font-medium leading-snug text-finance-office">
                           <span>{tax.title}</span>
-                          <Badge tone="outline" className="max-w-full whitespace-normal border-blue-500/25 text-xs leading-relaxed text-finance-office">
+                          <Badge tone="outline" className="max-w-full whitespace-normal border-primary/25 text-xs leading-relaxed text-finance-office">
                             {tax.deadlineText}
                           </Badge>
                         </div>
@@ -649,8 +649,8 @@ export function PaymentCalendar() {
                             <span className={cn(
                               "rounded-md px-2 py-1 text-xs font-medium",
                               inv.paymentStatus === "paid" || inv.status === "paid"
-                                ? "bg-emerald-500/10 text-finance-income"
-                                : "bg-amber-500/10 text-finance-warning"
+                                ? "bg-success/10 text-finance-income"
+                                : "bg-warning/10 text-finance-warning"
                             )}>
                               {inv.paymentStatus === "paid" || inv.status === "paid" ? "Opłacona" : "Do zapłaty"}
                             </span>
@@ -695,8 +695,8 @@ export function PaymentCalendar() {
                             <span className={cn(
                               "rounded-md px-2 py-1 text-xs font-medium",
                               exp.paymentStatus === "paid"
-                                ? "bg-emerald-500/10 text-finance-income"
-                                : "bg-rose-500/10 text-finance-expense"
+                                ? "bg-success/10 text-finance-income"
+                                : "bg-muted/60 text-finance-expense"
                             )}>
                               {exp.paymentStatus === "paid" ? "Opłacone" : "Do zapłaty"}
                             </span>

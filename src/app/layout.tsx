@@ -9,9 +9,7 @@ import { PublicDeferred } from "@/components/public-deferred";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { COOKIE_CONSENT_VISIBILITY_SCRIPT } from "@/lib/cookie-consent";
 
-// Keep the self-hosted Polish subsets available to styles that use --font-sans.
-// The current font-sans utility uses the system stack, so preloading these
-// optional faces would transfer unused assets on every initial navigation.
+// One self-hosted family with Latin and Polish subsets; load each face on demand.
 const interLatin = localFont({
   src: "./fonts/fakturaprosto-sans-latin-variable.woff2",
   display: "swap",

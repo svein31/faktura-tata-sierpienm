@@ -147,9 +147,9 @@ export function NotificationBell() {
         aria-label={`Powiadomienia${unread ? ` (${unread} nieprzeczytanych)` : ""}`}
         className="relative rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       >
-        {unread > 0 ? <BellRing className="h-[18px] w-[18px] text-accent" /> : <Bell className="h-[18px] w-[18px]" />}
+        {unread > 0 ? <BellRing className="h-[18px] w-[18px] text-primary" /> : <Bell className="h-[18px] w-[18px]" />}
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
@@ -163,8 +163,9 @@ export function NotificationBell() {
           role="dialog"
           aria-modal="true"
           aria-label="Powiadomienia"
+          data-state="open"
           tabIndex={-1}
-          className="fixed inset-x-2.5 top-14 mx-auto w-auto max-w-[calc(100vw-20px)] sm:max-w-[380px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[380px] z-50 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 duration-150"
+          className="ui-popup fixed inset-x-2.5 top-14 mx-auto w-auto max-w-[calc(100vw-20px)] sm:max-w-[380px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[380px] z-50 overflow-hidden"
         >
           <NotificationPanelBoundary onClose={() => setOpen(false)}>
           <React.Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Wczytywanie powiadomień…</p>}>

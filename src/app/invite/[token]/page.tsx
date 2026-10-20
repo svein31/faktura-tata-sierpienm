@@ -182,7 +182,7 @@ export default function InviteAcceptPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background via-background to-muted/20 select-none">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       <div className="mb-6 flex items-center gap-2">
         <Logo />
       </div>
@@ -190,11 +190,10 @@ export default function InviteAcceptPage() {
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.16 }}
         className="w-full max-w-md"
       >
-        <Card className="p-6 bg-card border-border/80 shadow-xl rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500" />
+        <Card className="p-6 bg-card border-border/80 shadow-lg rounded-xl relative overflow-hidden">
 
           {loading ? (
             <div role="status" className="py-16 text-center text-xs text-muted-foreground">
@@ -202,7 +201,7 @@ export default function InviteAcceptPage() {
             </div>
           ) : error && !data ? (
             <div className="py-8 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
                 <AlertCircle className="w-6 h-6" />
               </div>
               <div>
@@ -216,7 +215,7 @@ export default function InviteAcceptPage() {
           ) : data ? (
             <div className="space-y-5">
               <div className="text-center space-y-1.5 pb-3 border-b border-border/60">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2">
                   <Users2 className="w-5 h-5" />
                 </div>
                 <h1 className="text-base font-bold text-foreground">Zaproszenie do zespołu</h1>
@@ -241,7 +240,7 @@ export default function InviteAcceptPage() {
               </div>
 
               {error && (
-                <div role="alert" className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
+                <div role="alert" className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive dark:text-destructive text-xs flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
@@ -250,7 +249,7 @@ export default function InviteAcceptPage() {
               {/* SCENARIUSZ A: Zalogowany z innym e-mailem */}
               {user && user.email.toLowerCase() !== data.email.toLowerCase() ? (
                 <div className="space-y-4 text-xs">
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200">
+                  <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-warning dark:text-warning">
                     <p className="font-semibold">Niezgodność adresu e-mail</p>
                     <p className="mt-1 break-words">
                       Jesteś obecnie zalogowany jako <b>{user.email}</b>, natomiast to zaproszenie
@@ -260,7 +259,7 @@ export default function InviteAcceptPage() {
                   <Button
                     onClick={handleLogoutAndRetry}
                     variant="outline"
-                    className="w-full text-xs font-semibold gap-2 text-rose-700 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300"
+                    className="w-full text-xs font-semibold gap-2 text-destructive dark:text-destructive hover:text-destructive dark:hover:text-destructive"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Wyloguj się i dołącz z właściwego konta</span>
@@ -341,7 +340,7 @@ export default function InviteAcceptPage() {
                               <Link prefetch={false} href="/regulamin" target="_blank" className="text-primary font-semibold hover:underline">
                                 Regulaminu serwisu
                               </Link>{" "}
-                              i akceptuję jego postanowienia. <span className="text-rose-500">*</span>
+                              i akceptuję jego postanowienia. <span className="text-destructive">*</span>
                             </span>
                           </label>
                           <p className="text-[10px] text-muted-foreground pl-6">

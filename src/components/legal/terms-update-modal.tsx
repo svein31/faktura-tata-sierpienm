@@ -61,25 +61,25 @@ export function TermsUpdateModal() {
 
   return (
     <Dialog open={needsAcceptance} onClose={() => {}} dismissible={false} title="Aktualizacja Regulaminu serwisu" description={`Wersja ${LEGAL_VERSIONS.terms} — obowiązuje od ${EFFECTIVE_DATE}`} footer={<div className="w-full">        {/* Przycisk */}
-        <div className="rounded-xl p-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800">
+        <div className="rounded-xl p-3 bg-background dark:bg-background/60 border-t border-border dark:border-border">
           <Button
             variant="primary"
             size="sm"
             onClick={handleAccept}
             loading={busy}
             disabled={!accepted || busy}
-            className="w-full h-10 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-10 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {!busy && <CheckCircle2 className="w-4 h-4" />}
             {busy ? "Zapisywanie…" : "Akceptuję zaktualizowany Regulamin"}
           </Button>
-          <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 mt-2">
+          <p className="text-center text-xs text-muted-foreground dark:text-muted-foreground mt-2">
             Akceptacja jest wymagana do kontynuowania korzystania z serwisu.
           </p>
         </div>
 </div>}>
         {/* Treść */}
-        <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+        <div className="space-y-4 text-sm text-muted-foreground dark:text-muted-foreground">
           <p className="leading-relaxed">
             Zaktualizowaliśmy Regulamin świadczenia usług drogą elektroniczną. Prosimy o zapoznanie się z nowym dokumentem przed kontynuowaniem korzystania z serwisu.
           </p>
@@ -88,27 +88,27 @@ export function TermsUpdateModal() {
             <Link prefetch={false}
               href="/regulamin"
               target="_blank"
-              className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+              className="flex items-center gap-2.5 p-3 rounded-xl border border-border dark:border-border hover:bg-background dark:hover:bg-muted/50 transition-colors group"
             >
-              <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+              <FileText className="w-4 h-4 text-primary shrink-0" />
               <div>
-                <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                <span className="text-xs font-semibold text-foreground dark:text-white group-hover:text-primary transition-colors">
                   Regulamin serwisu
                 </span>
-                <p className="text-[11px] text-slate-500">Otwórz w nowej karcie</p>
+                <p className="text-xs text-muted-foreground">Otwórz w nowej karcie</p>
               </div>
             </Link>
             <Link prefetch={false}
               href="/polityka-prywatnosci"
               target="_blank"
-              className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+              className="flex items-center gap-2.5 p-3 rounded-xl border border-border dark:border-border hover:bg-background dark:hover:bg-muted/50 transition-colors group"
             >
-              <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+              <Shield className="w-4 h-4 text-primary shrink-0" />
               <div>
-                <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                <span className="text-xs font-semibold text-foreground dark:text-white group-hover:text-primary transition-colors">
                   Polityka prywatności
                 </span>
-                <p className="text-[11px] text-slate-500">Otwórz w nowej karcie</p>
+                <p className="text-xs text-muted-foreground">Otwórz w nowej karcie</p>
               </div>
             </Link>
           </div>
@@ -119,9 +119,9 @@ export function TermsUpdateModal() {
               type="checkbox"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500/50 shrink-0"
+              className="mt-0.5 h-4 w-4 rounded border-input dark:border-border text-primary focus:ring-primary/50 shrink-0"
             />
-            <span className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+            <span className="text-xs leading-relaxed text-muted-foreground dark:text-muted-foreground group-hover:text-foreground dark:group-hover:text-white transition-colors">
               Zapoznałem/am się z treścią zaktualizowanego{" "}
               <strong>Regulaminu serwisu</strong> i akceptuję jego postanowienia.
             </span>

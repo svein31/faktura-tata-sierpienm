@@ -28,32 +28,32 @@ const ACTION_META: Record<
   invoice_created: {
     label: "Wystawiono fakturę",
     icon: FileText,
-    badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    badgeClass: "bg-success/10 text-success border-success/20",
   },
   invoice_updated: {
     label: "Modyfikacja danych",
     icon: Edit,
-    badgeClass: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    badgeClass: "bg-primary/10 text-primary border-primary/20",
   },
   invoice_deleted: {
     label: "Usunięto szkic",
     icon: AlertCircle,
-    badgeClass: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+    badgeClass: "bg-destructive/10 text-destructive border-destructive/20",
   },
   payment_registered: {
     label: "Zarejestrowano wpłatę",
     icon: CreditCard,
-    badgeClass: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+    badgeClass: "bg-primary/10 text-primary border-primary/20",
   },
   ksef_sent: {
     label: "Przekazano do KSeF",
     icon: Send,
-    badgeClass: "bg-teal-500/10 text-teal-600 border-teal-500/20",
+    badgeClass: "bg-success/10 text-success border-success/20",
   },
   email_sent: {
     label: "Wysłano e-mail",
     icon: Send,
-    badgeClass: "bg-sky-500/10 text-sky-600 border-sky-500/20",
+    badgeClass: "bg-info/10 text-info border-info/20",
   },
 };
 
@@ -92,7 +92,7 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
 
   if (error) {
     return (
-      <Card className="p-6 text-center text-xs text-rose-500 bg-rose-500/5 border-rose-500/20">
+      <Card className="p-6 text-center text-xs text-destructive bg-destructive/5 border-destructive/20">
         <AlertCircle className="w-5 h-5 mx-auto mb-2" />
         {error}
       </Card>
@@ -119,7 +119,7 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
           </h3>
         </div>
         <Badge tone="outline" className="text-[10.5px] gap-1 font-mono text-muted-foreground">
-          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+          <ShieldCheck className="w-3 h-3 text-success" />
           Trwały &amp; niezmienny
         </Badge>
       </div>
@@ -171,11 +171,11 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
                           <span className="font-semibold text-foreground font-sans">
                             {d.label || key}:
                           </span>
-                          <span className="line-through text-rose-500">
+                          <span className="line-through text-destructive">
                             {String(d.old ?? "brak")}
                           </span>
                           <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className="font-bold text-success dark:text-success">
                             {String(d.new ?? "brak")}
                           </span>
                         </div>
@@ -188,7 +188,7 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
                 {log.details && (
                   <div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
                     {log.details.ksefNumber && (
-                      <span>Nr KSeF: <b className="font-mono text-emerald-600 dark:text-emerald-400">{log.details.ksefNumber}</b></span>
+                      <span>Nr KSeF: <b className="font-mono text-success dark:text-success">{log.details.ksefNumber}</b></span>
                     )}
                     {log.details.amount && (
                       <span>Kwota: <b>{log.details.amount} {log.details.currency || "PLN"}</b></span>

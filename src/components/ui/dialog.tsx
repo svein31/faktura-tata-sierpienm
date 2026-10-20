@@ -4,7 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { lockBodyScroll } from "@/lib/overlay-scroll";
 import { containModalFocus } from "@/lib/overlay-focus";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
@@ -36,6 +36,7 @@ export function Dialog({
   dismissible = true,
   hideOnPrint = false,
 }: DialogProps) {
+  const reducedMotion = useReducedMotion();
   const panel = React.useRef<HTMLDivElement>(null);
   const close = React.useRef(onClose);
   const canDismiss = React.useRef(dismissible);
@@ -72,17 +73,17 @@ export function Dialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            transition={{ duration: reducedMotion ? 0 : 0.16 }}
+            className="absolute inset-0 bg-black/45"
             onClick={dismissible ? onClose : undefined}
           />
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            exit={{ opacity: 0, y: reducedMotion ? 0 : 8 }}
+            transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
             className={cn(
-              "relative z-10 flex w-full min-w-0 max-h-full flex-col rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xl backdrop-blur-xl",
+              "relative z-10 flex w-full min-w-0 max-h-full flex-col rounded-xl border border-border bg-card p-5 sm:p-6 shadow-[var(--shadow-dialog)]",
               sizes[size],
               className
             )}
@@ -99,16 +100,16 @@ export function Dialog({
 
             <div className={cn("mb-4 shrink-0", dismissible && "pr-14")}>
               <div className="min-w-0 break-words">
-                {title && <h2 id={titleId} className="text-[16px] font-semibold tracking-tight text-foreground">{title}</h2>}
+                {title && <h2 id={titleId} className="text-base font-semibold tracking-tight text-foreground">{title}</h2>}
                 {description && (
-                  <p id={descriptionId} className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{description}</p>
+                  <p id={descriptionId} className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{description}</p>
                 )}
               </div>
               {dismissible && <button
                 type="button"
                 onClick={onClose}
                 aria-label="Zamknij"
-                className="absolute right-4 top-4 z-20 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-muted/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
               </button>}

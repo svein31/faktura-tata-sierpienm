@@ -53,8 +53,8 @@ export function WarehouseOperations({ companyId, onChange }: { companyId: string
   const selected = active.find(w => w.id === warehouseId);
   return <section className="rounded-xl border p-4 space-y-4">
     <h2 className="font-semibold">Operacje magazynowe</h2>
-    {error && <p role="alert" className="text-sm text-rose-600">{error} <Button variant="ghost" onClick={load}>Odśwież dane</Button></p>}
-    {message && <p role="status" className="text-sm text-emerald-600">{message}</p>}
+    {error && <p role="alert" className="text-sm text-destructive">{error} <Button variant="ghost" onClick={load}>Odśwież dane</Button></p>}
+    {message && <p role="status" className="text-sm text-success">{message}</p>}
     {!state && !error && <p role="status">Wczytywanie uprawnień…</p>}
     {state && !state.canWrite && <p className="text-sm text-muted-foreground">Masz dostęp do podglądu. Zapisy wymagają uprawnienia do wystawiania dokumentów w tej firmie.</p>}
     {state?.canCreate && <details><summary className="cursor-pointer text-sm">Utwórz magazyn firmy</summary><form className="grid md:grid-cols-4 gap-3 mt-3" onSubmit={async e => { e.preventDefault(); if (await command({ action: "createWarehouse", name, code, currency })) { setName(""); setCode(""); } }}>
@@ -113,7 +113,7 @@ function CancelDocuments({ companyId, warehouses, busy, command }: { companyId: 
     <p className="text-xs text-muted-foreground">Anulowanie zapisuje ruchy odwrotne, nie usuwa historii. Para MM jest anulowana razem. Wyświetlane jest do 30 wyników — zawęź wyszukiwanie numerem.</p>
     <label className="block text-sm">Magazyn<Select value={warehouseId} onChange={e => setWarehouseId(e.target.value)} disabled={busy}><option value="">Wybierz magazyn</option>{warehouses.map(w => <option key={w.id} value={w.id}>{w.code}</option>)}</Select></label>
     <Input aria-label="Numer dokumentu do anulowania" placeholder="Numer dokumentu…" value={search} onChange={e => setSearch(e.target.value)} />
-    {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {rows.map(row => <div key={row.id} className="flex flex-wrap items-center justify-between gap-2 border rounded-xl p-2"><span className="text-sm">{row.number}</span><Button variant="ghost" disabled={busy || row.status !== "issued"} onClick={async () => {
       const reason = window.prompt(`Podaj powód anulowania ${row.number}:`);
       if (!reason?.trim()) return;

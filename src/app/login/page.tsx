@@ -100,8 +100,8 @@ function LoginForm() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl"
+        transition={{ duration: 0.16, ease: "easeOut" }}
+        className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-2xs"
       >
         {/* Logo */}
         <div className="mb-7 flex flex-col items-center text-center">
@@ -170,8 +170,8 @@ function LoginForm() {
             <Input id="mfa-code" autoComplete="one-time-code" value={code} onChange={e => setCode(e.target.value)} maxLength={40} autoFocus />
           </div>}
           {error && (
-            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/8 px-3.5 py-2.5 text-[12.5px] text-rose-600 dark:text-rose-400">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
+            <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/8 px-3.5 py-2.5 text-[12.5px] text-destructive dark:text-destructive">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-destructive" />
               {error}
             </div>
           )}
@@ -204,7 +204,7 @@ function LoginForm() {
 
 function LoginFormSkeleton() {
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-border/80 bg-card/90 p-7 shadow-2xl backdrop-blur-xl animate-pulse space-y-4">
+    <div className="w-full max-w-sm rounded-xl border border-border/80 bg-card p-7 shadow-lg  animate-pulse space-y-4">
       <div className="h-8 w-28 bg-muted/60 rounded-xl mx-auto" />
       <div className="h-4 w-44 bg-muted/40 rounded mx-auto mt-3" />
       <div className="h-11 w-full bg-muted/30 rounded-xl mt-6" />
@@ -217,10 +217,6 @@ function LoginFormSkeleton() {
 export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
-      {/* Atmospheric gradients */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/8 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/2 -left-24 h-[300px] w-[300px] -translate-y-1/2 rounded-full bg-violet-500/6 blur-3xl" />
       <Suspense fallback={<LoginFormSkeleton />}>
         <LoginForm />
       </Suspense>

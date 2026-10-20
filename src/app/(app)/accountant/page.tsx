@@ -331,7 +331,7 @@ export default function AccountantPage() {
 
           {selectedCompanyId && <SharedAccountingWorkspace key={`${selectedCompanyId}:${currentMonth}`} companyId={selectedCompanyId} month={currentMonth} />}
           <p className="text-xs text-muted-foreground mt-3">Poniższe wcześniejsze zaznaczenia są Twoją osobistą listą.</p>
-          {checklist.error && <p role="alert" className="text-sm text-rose-500">{checklist.error}</p>}
+          {checklist.error && <p role="alert" className="text-sm text-destructive">{checklist.error}</p>}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
             {[
               {

@@ -52,13 +52,13 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
   return <section className="rounded-xl border p-4 space-y-3 mb-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">Okres {month} · {state ? closed ? "Zamknięty" : "Otwarty" : "Wczytywanie…"}</h2><Button variant="ghost" disabled={busy} onClick={() => load()}>Sprawdź stan miesiąca</Button></div>
     <p className="text-sm text-muted-foreground">Okres według daty wystawienia dokumentu, osobno dla wybranej firmy. Zamknięcie blokuje zmiany dokumentów i listy zadań. Ponowne otwarcie przez właściciela wymaga uzasadnienia.</p>
-    {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {state && <>
       {!closed && <div className="space-y-3">
         <p className="text-sm font-medium">Gotowość miesiąca: {state.readiness.progress.completed}/{state.readiness.progress.total} kontroli zakończonych</p>
         <progress className="h-2 w-full accent-primary" aria-label="Postęp kontroli miesiąca" value={state.readiness.progress.completed} max={state.readiness.progress.total} />
         <ul className="grid gap-2 sm:grid-cols-2">{Object.entries(state.readiness.blockers).map(([key, count]) => <li key={key} className="min-w-0 rounded-lg border p-3 text-sm">
-          <p className={count ? "font-medium text-amber-700 dark:text-amber-400" : "text-muted-foreground"}>{count ? "Do sprawdzenia" : "Gotowe"} · {labels[key] || key}: {count}</p>
+          <p className={count ? "font-medium text-warning dark:text-warning" : "text-muted-foreground"}>{count ? "Do sprawdzenia" : "Gotowe"} · {labels[key] || key}: {count}</p>
           {(state.readiness.details[key] || []).map(item => <Link prefetch={false} key={item.id} href={item.href} className="mt-2 block break-words text-primary underline underline-offset-4">{item.label} →</Link>)}
           {count > (state.readiness.details[key]?.length || 0) && <p className="mt-2 text-xs text-muted-foreground">Lista pokazuje pierwsze 10 dokumentów. Po poprawieniu sprawdź stan ponownie.</p>}
         </li>)}</ul>

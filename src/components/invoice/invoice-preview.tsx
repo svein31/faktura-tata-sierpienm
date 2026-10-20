@@ -75,7 +75,7 @@ export function InvoicePreview({
               <span
                 className={cn(
                   "text-lg font-bold tracking-tight",
-                  accentColor ? "" : "text-gradient"
+                  accentColor ? "" : "text-primary"
                 )}
                 style={accentColor ? { color: accentColor } : undefined}
               >
@@ -121,7 +121,7 @@ export function InvoicePreview({
             </div>
             {(invoice.ksefNumber || invoice.ksef?.number) && (
               <p className="mt-1.5 text-[11px] text-muted-foreground font-mono">
-                Numer w KSeF: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{invoice.ksefNumber || invoice.ksef?.number}</span>
+                Numer w KSeF: <span className="text-success font-medium">{invoice.ksefNumber || invoice.ksef?.number}</span>
               </p>
             )}
           </div>

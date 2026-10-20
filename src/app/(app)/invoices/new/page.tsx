@@ -53,7 +53,7 @@ export default function NewInvoicePage() {
           <Link prefetch={false} className="text-sm text-primary underline" href="/documents">Skrzynka dokumentów</Link>
         </div>
         {!companyId && <p className="mt-2 text-sm">Wybierz firmę, aby dodać dokument.</p>}
-        {uploadError && <p className="mt-2 text-sm text-rose-600" role="alert">{uploadError}</p>}
+        {uploadError && <p className="mt-2 text-sm text-destructive" role="alert">{uploadError}</p>}
       </section>
       <React.Suspense fallback={<InvoiceDetailSkeleton />}>
         <InvoiceCreator key={`${companyId}:${editorSession}`} />

@@ -43,7 +43,7 @@ export function InvoiceQuickPreview({ invoice, contractor, onClose, navigation }
     <Link prefetch={false} href={`/invoices/${encodeURIComponent(invoice.id)}`} className="ui-detail-link">Otwórz szczegóły <ArrowUpRight className="size-4" aria-hidden="true" /></Link>
   </>}>
     <div className="space-y-6">
-      <section aria-label="Wartość i płatność" className="rounded-2xl border border-primary/15 bg-primary/[0.035] p-5">
+      <section aria-label="Wartość i płatność" className="rounded-xl border border-primary/15 bg-primary/[0.035] p-5">
         <div className="flex flex-wrap items-center justify-between gap-3"><span className="text-sm text-muted-foreground">{invoice.isCorrection ? "Zmiana wartości brutto" : "Wartość brutto"}</span><Badge className={status.color}>{status.label}</Badge></div>
         <p className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight tabular-nums">{formatMoney(total.gross, invoice.currency)}</p>
         <dl className="mt-4 grid grid-cols-2 gap-4 border-t border-primary/10 pt-4 text-sm">

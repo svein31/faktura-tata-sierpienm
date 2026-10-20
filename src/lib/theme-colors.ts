@@ -9,9 +9,9 @@ export function contrastRatio(a:string,b:string){const x=luminance(a),y=luminanc
 function blend(a:string,b:string,t:number){const c=channels(a),d=channels(b);return "#"+c.map((v,i)=>Math.round((v+(d[i]-v)*t)*255).toString(16).padStart(2,"0")).join("");}
 function contrastColor(color:string,surfaces:string[],ratio:number,fallback:string){if(surfaces.every(s=>contrastRatio(color,s)>=ratio))return color;for(let i=1;i<=100;i++){const next=blend(color,fallback,i/100);if(surfaces.every(s=>contrastRatio(next,s)>=ratio))return next;}return fallback;}
 export function themePalette(mode:ThemeMode,colors:CustomColors){
- const background=colors.backgrounds[mode]||(mode==="dark"?"#080c14":"#f8f9fc"),foreground=contrastRatio(background,"#000000")>contrastRatio(background,"#ffffff")?"#000000":"#ffffff";
+ const background=colors.backgrounds[mode]||(mode==="dark"?"#151618":"#f6f7f8"),foreground=contrastRatio(background,"#000000")>contrastRatio(background,"#ffffff")?"#000000":"#ffffff";
  const toward=foreground==="#000000"?"#ffffff":"#000000",card=blend(background,toward,.04),muted=blend(background,toward,.09),surfaces=[background,card,muted];
- const primary=contrastColor(colors.accent||(mode==="dark"?"#a5a0ff":"#4f46e5"),surfaces,4.6,foreground),mutedForeground=contrastColor(blend(foreground,background,.3),surfaces,4.6,foreground),border=contrastColor(blend(foreground,background,.65),surfaces,3.1,foreground),destructive=contrastColor("#dc3545",surfaces,4.6,foreground);
+ const primary=contrastColor(colors.accent||(mode==="dark"?"#95b1db":"#4669a8"),surfaces,4.6,foreground),mutedForeground=contrastColor(blend(foreground,background,.3),surfaces,4.6,foreground),border=contrastColor(blend(foreground,background,.65),surfaces,3.1,foreground),destructive=contrastColor("#dc3545",surfaces,4.6,foreground);
  const on=(c:string)=>contrastRatio(c,"#000000")>contrastRatio(c,"#ffffff")?"#000000":"#ffffff";
  return {background,foreground,card,"card-foreground":foreground,popover:card,"popover-foreground":foreground,primary,"primary-foreground":on(primary),secondary:muted,"secondary-foreground":foreground,muted,"muted-foreground":mutedForeground,accent:primary,"accent-foreground":on(primary),destructive,"destructive-foreground":on(destructive),border,input:border,ring:primary};
 }

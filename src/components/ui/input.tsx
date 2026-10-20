@@ -10,8 +10,8 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       type={type}
       ref={ref}
       className={cn(
-        "flex h-10 min-w-0 w-full rounded-xl border border-input bg-card px-3.5 py-2 text-sm leading-5 text-foreground shadow-2xs transition-[border-color,background-color,box-shadow] duration-150 ease-out",
-        "placeholder:text-muted-foreground/70",
+        "flex h-10 min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm leading-5 text-foreground transition-[border-color,background-color,box-shadow] duration-150 ease-out",
+        "placeholder:text-muted-foreground",
         "hover:border-primary/35",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary",
         "aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/20",
@@ -31,8 +31,8 @@ export const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      "flex min-h-[96px] min-w-0 w-full resize-y rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm leading-6 text-foreground shadow-2xs transition-[border-color,background-color,box-shadow] duration-150 ease-out",
-      "placeholder:text-muted-foreground/70",
+      "flex min-h-[96px] min-w-0 w-full resize-y rounded-md border border-input bg-card px-3 py-2.5 text-sm leading-6 text-foreground transition-[border-color,background-color,box-shadow] duration-150 ease-out",
+      "placeholder:text-muted-foreground",
       "hover:border-primary/35",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary",
       "aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/20",

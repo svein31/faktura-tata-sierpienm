@@ -17,7 +17,7 @@ export function AppLoadingSkeleton() {
       <StatsSkeleton count={4} />
 
       {/* Tabela — cienkie linie imitujące wiersze */}
-      <div className="rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
+      <div className="rounded-xl border border-border/40 bg-card  overflow-hidden">
         <div className="border-b border-border/30 bg-muted/20 px-4 py-3 flex items-center justify-between">
           <Skeleton className="h-3.5 w-24" />
           <Skeleton className="h-3.5 w-16" />

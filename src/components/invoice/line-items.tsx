@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Package, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
@@ -119,7 +119,7 @@ export function LineItemsEditor({
       </div>
 
       {/* ── Tabela pozycji ── */}
-      <div className="invoice-line-table overflow-x-auto rounded-2xl border border-border/60 bg-card/70 shadow-sm">
+      <div className="invoice-line-table overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm">
         <table className="w-full min-w-[940px] table-fixed text-[13px]">
           <colgroup>
             <col className="w-9" />
@@ -296,7 +296,7 @@ export function LineItemsEditor({
                       <button
                         onClick={() => onChange(lines.filter((x) => x.id !== line.id))}
                         disabled={disabled}
-                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500 disabled:opacity-40"
+                        className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"
                         aria-label="Usuń pozycję"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -330,7 +330,7 @@ export function LineItemsEditor({
             className="rounded-xl gap-1.5 text-xs text-muted-foreground hover:text-foreground"
             title="Wklej wiele pozycji skopiowanych z arkusza Excel / Google Sheets"
           >
-            📋 Wklej z arkusza / CSV
+            <ClipboardPaste aria-hidden="true" className="h-4 w-4" /> Wklej z arkusza / CSV
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-[13px]">

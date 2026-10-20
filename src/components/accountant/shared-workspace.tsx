@@ -32,7 +32,7 @@ export function SharedAccountingWorkspace({ companyId, month }: { companyId: str
   return <><AccountingPeriodPanel companyId={companyId} month={month} revision={state?.workspace.version || 0} onReadOnly={setReadOnly} /><section className="rounded-xl border p-4 space-y-3">
     <div className="flex justify-between flex-wrap gap-2"><h2 className="font-semibold">Wspólna lista miesiąca · {month}</h2><Button variant="ghost" disabled={busy} onClick={load}>Odśwież wspólną listę</Button></div>
     <p className="text-sm text-muted-foreground">Lista dla właściciela i księgowości wybranej firmy. Zaznaczenie zadań nie zamyka okresu księgowego.</p>
-    {error && <p role="alert" className="text-sm text-rose-600">{error}</p>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {!state && !error && <p role="status">Wczytywanie…</p>}
     {state && <fieldset disabled={readOnly || busy} className="space-y-3">
       <p className="text-sm">Ukończono {state.workspace.items.filter(i => i.done).length}/{state.workspace.items.length} · Brakujące dokumenty: {state.workspace.items.filter(i => i.kind === "missing" && !i.done).length}</p>

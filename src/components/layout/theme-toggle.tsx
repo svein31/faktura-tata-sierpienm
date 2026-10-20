@@ -12,7 +12,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       role="group"
       aria-label="Wygląd aplikacji"
       className={cn(
-        "inline-flex items-center rounded-xl border border-border/70 bg-card/70 p-0.5 shadow-2xs backdrop-blur-md",
+        "inline-flex items-center rounded-xl border border-border/70 bg-card p-0.5 shadow-2xs ",
         className
       )}
     >
@@ -27,7 +27,7 @@ export function ThemeToggle({ className }: { className?: string }) {
             aria-label={t === "light" ? "Jasny" : t === "dark" ? "Ciemny" : "Systemowy"}
             title={t === "light" ? "Jasny" : t === "dark" ? "Ciemny" : "Systemowy"}
             className={cn(
-              "flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-all duration-150 active:scale-90",
+              "flex h-7 w-7 items-center justify-center rounded-lg text-xs transition-all duration-150 active:opacity-90",
               active
                 ? "bg-primary/15 text-primary shadow-xs font-semibold"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
