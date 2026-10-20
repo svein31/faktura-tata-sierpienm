@@ -22,6 +22,7 @@ const { chromium, webkit, expect } = require('@playwright/test');
 const { migrateData } = await import(pathToFileURL(appRoot + '/scripts/migrate-data.mjs'));
 const inherit = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'no_proxy', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME'].filter(k => process.env[k] !== undefined).map(k => [k, process.env[k]]));
 const errors = [], blocked = [];
+const workflowSuite = ['invoice-ux', 'invoice-frontend', 'invoice-frontend-only'].includes(process.env.UI_AUDIT_SUITE);
 let mongo, db, native, browser, server, logs = '';
 await mkdir(out, { recursive: true });
 try {
@@ -40,7 +41,7 @@ try {
   const token = randomBytes(32).toString('base64url');
   await db.session.create({ data: { userId: user.id, sessionToken: 'sha256:' + createHash('sha256').update(token).digest('hex'), authenticatedAt: new Date(), expiresAt: new Date(Date.now() + 86400000) } });
   const today = new Date().toISOString().slice(0, 10), day = new Date();
-  const docs = Array.from({ length: process.env.UI_AUDIT_SUITE === "invoice-ux" ? 70 : 14 }, (_, i) => {
+  const docs = Array.from({ length: workflowSuite ? 70 : 14 }, (_, i) => {
     const cost = i % 4 === 0, net = cost ? 450 + i * 25 : 1200 + i * 160, vat = net * .23;
     const d = new Date(day); d.setUTCDate(Math.max(1, day.getUTCDate() - i * 2));
     const due = new Date(d); due.setUTCDate(d.getUTCDate() + 14);
@@ -48,7 +49,7 @@ try {
   });
   await native.db().collection('Invoice').insertMany(docs);
   let uxFixture;
-  if (process.env.UI_AUDIT_SUITE === 'invoice-ux') {
+  if (workflowSuite) {
     const other = await db.companyProfile.create({data:{userId:user.id,nip:'5250001003',companyName:'Firma B · DEMO',street:'Testowa',buildingNumber:'2',city:'Kraków',postalCode:'30-001',isDefault:false}});
     const examples = [
       {name:'queued',ksefStatus:'queued'},
@@ -98,12 +99,19 @@ try {
     localStorage.setItem('fakturaprosto-theme', 'light');
   }, { userId: user.id, companyId: company.id });
   await context.route('**/*', async route => { const u = new URL(route.request().url()); if (u.origin !== base || (/^\/api\/ksef\//.test(u.pathname) && route.request().method() !== 'GET')) { blocked.push({ origin: u.origin === base ? 'local' : 'external', path: u.pathname }); return route.abort(); } return route.continue(); });
+  if (workflowSuite) await context.route('**/api/ksef/status?**',route=>route.fulfill({status:200,contentType:'application/json',body:'{"success":true}'}));
   await context.addInitScript(() => { window.print = () => {}; window.close = () => {}; });
   const page = await context.newPage();
   page.on('pageerror', e => {errors.push(e.message); console.log('[audit-page-error]',page.url(),e.message);});
   if (uxFixture) {
-    const { auditInvoiceUx } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-ux-browser.mjs'));
-    await auditInvoiceUx({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+    if (process.env.UI_AUDIT_SUITE !== 'invoice-frontend-only') {
+      const { auditInvoiceUx } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-ux-browser.mjs'));
+      await auditInvoiceUx({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+    }
+    if (['invoice-frontend', 'invoice-frontend-only'].includes(process.env.UI_AUDIT_SUITE)) {
+      const { auditInvoiceFrontend } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-frontend-browser.mjs'));
+      await auditInvoiceFrontend({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
+    }
   } else {
     const { auditUiMotion } = await import(pathToFileURL(appRoot + '/scripts/audit/ui-motion-browser.mjs'));
     await auditUiMotion({page,context,base,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});

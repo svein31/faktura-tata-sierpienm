@@ -1,7 +1,8 @@
 "use client";
 import { useInvoiceView } from "@/lib/use-invoice-view";
-import { isKsefUiPending } from "@/lib/ksef/presentation";
+import { isKsefUiPending, ksefPresentation } from "@/lib/ksef/presentation";
 import { KsefStatusBadge } from "@/components/invoice/ksef-status-badge";
+import { invoicePaymentPresentation } from "@/lib/invoice-payment-presentation";
 import { csvCell } from "@/lib/accountant-summary";
 import { useInvoiceSearch } from "@/lib/use-invoice-search";
 import type { InitialInvoiceSearch } from "@/lib/use-invoice-search";
@@ -12,7 +13,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownUp,
-  ChevronDown,
   CloudDownload,
   Copy,
   Download,
@@ -32,8 +32,10 @@ import {
   Clock,
   FileCheck2,
   Repeat,
+  Eye,
+  MoreHorizontal,
 } from "lucide-react";
-import { useAppStore, effectiveStatus, STATUS_META, getContractor } from "@/lib/store";
+import { useAppStore, getContractor } from "@/lib/store";
 import { Card } from "@/components/ui/card";
 import { LoadingReveal } from "@/components/ui/loading-reveal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,6 +58,7 @@ const EmptyState = React.lazy(() => import("@/components/ui/empty-state").then((
 const ConfirmDialog = React.lazy(() => import("@/components/ui/dialog").then((module) => ({ default: module.ConfirmDialog })));
 const SavedInvoiceViews = React.lazy(() => import("@/components/saved-invoice-views").then((module) => ({ default: module.SavedInvoiceViews })));
 const SendInvoiceEmailModal = React.lazy(() => import("@/components/invoice/send-invoice-email-modal").then((module) => ({ default: module.SendInvoiceEmailModal })));
+const InvoiceQuickPreview = React.lazy(() => import("@/components/invoice/invoice-quick-preview").then((module) => ({ default: module.InvoiceQuickPreview })));
 
 const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> = [
   { value: "all", label: "Wszystkie dokumenty" },
@@ -72,8 +75,8 @@ const STATUS_FILTERS: Array<{ value: "all" | EffectiveStatus; label: string }> =
 /** Mount actions on demand in a floating panel, outside the scrolling table. */
 function InvoiceRowActions({ number, children }: { number: string; children: React.ReactNode }) {
   return <DropdownMenu label={`Działania dla faktury ${number}`} align="end" trigger={
-    <Button variant="outline" size="sm" className="h-9 gap-1.5 px-3" aria-label={`Więcej działań dla faktury ${number}`} title="Więcej działań">
-      Więcej <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={`Więcej działań dla faktury ${number}`} title="Więcej działań">
+      <MoreHorizontal aria-hidden="true" className="h-4 w-4" />
     </Button>
   }>{children}</DropdownMenu>;
 }
@@ -116,6 +119,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   const [markingPaid, setMarkingPaid] = React.useState(false);
   const [confirmBulkPayment, setConfirmBulkPayment] = React.useState(false);
   const [selectedForEmail, setSelectedForEmail] = React.useState<Invoice | null>(null);
+  const [previewSelection, setPreviewSelection] = React.useState<{ id: string; key: string } | null>(null);
 
   React.useEffect(() => {
     setShowUnassigned(false); setSelectedIds([]); setToDelete(null); setConfirmKsef(null); setSelectedForEmail(null);
@@ -123,6 +127,17 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter, ...(sortOrder === "date_asc" ? { sort: sortOrder } : {}) }, true, initialSearch);
   const invoices = results.invoices, filtered = invoices;
+  const previewInvoice = previewSelection?.key === results.key ? invoices.find(invoice => invoice.id === previewSelection.id) : undefined;
+  React.useEffect(() => {
+    // Revoked/deleted documents must not reappear if a later refresh restores rows.
+    if (previewSelection && !previewInvoice) setPreviewSelection(null);
+  }, [previewSelection, previewInvoice]);
+  const openPreview = (event: React.MouseEvent, invoice: Invoice) => {
+    // Keep native link behavior for new tabs/windows and ordinary text selection.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || window.getSelection()?.toString()) return;
+    event.preventDefault();
+    setPreviewSelection({id: invoice.id, key: results.key});
+  };
   const highlightedId = useCreatedInvoiceHighlight(showUnassigned ? null : selectedCompanyId, filtered.map(invoice => invoice.id));
   useKsefStatusPolling(invoices, results.reload);
   const permissions = company?.currentUserPermissions;
@@ -136,9 +151,10 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   };
   const canExport = !!selectedCompanyId && !showUnassigned && permissions?.canExport === true;
   const payableSelected = invoices.filter(i => selectedIds.includes(i.id) && i.type === "sale" && !i.isProforma && i.status !== "draft" && i.documentStatus !== "draft" && i.status !== "paid" && i.paymentStatus !== "paid");
-  React.useEffect(() => { setSelectedIds([]); }, [results.key]);
+  React.useEffect(() => { setSelectedIds([]); setPreviewSelection(null); }, [results.key]);
 
   const hasFilters = search.trim() !== "" || statusFilter !== "all" || typeFilter !== "all" || approvalFilter !== "all" || currencyFilter !== "all";
+  const clearFilters = () => updateView({search: "", statusFilter: "all", typeFilter: "all", approvalFilter: "all", currencyFilter: "all"});
 
   const handleBulkApprove = async (status: "approved" | "pending" = "approved") => {
     if (selectedIds.length === 0) return;
@@ -430,23 +446,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2" aria-label="Stronicowanie faktur">
-        <Button variant="subtle" className="order-2 sm:order-1" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
-        <span role="status" className="order-1 min-w-0 basis-full break-words text-sm sm:order-2 sm:basis-auto">Strona {results.page} · {results.total} {results.total === 1 ? "wynik" : results.total % 10 >= 2 && results.total % 10 <= 4 && (results.total % 100 < 12 || results.total % 100 > 14) ? "wyniki" : "wyników"}{results.loading ? " · Ładowanie…" : ""}</span>
-        <Button variant="subtle" className="order-3" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
-        <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
-      </div>
       {results.error && <div role="alert" className="text-destructive">{results.error} <Button onClick={results.reload}>Spróbuj ponownie</Button></div>}
-      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={showUnassigned ? null : selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density }} apply={f => {
-        setSearch(typeof f.search === "string" ? f.search : "");
-        if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
-        if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
-        if (["all", "PLN", "EUR", "USD"].includes(f.currencyFilter)) setCurrencyFilter(f.currencyFilter as typeof currencyFilter);
-        if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
-        if (["date_desc", "date_asc"].includes(f.sortOrder)) updateView({sortOrder: f.sortOrder as typeof sortOrder});
-        if (["comfortable", "compact"].includes(f.density)) updateView({density: f.density as typeof density});
-        setSelectedIds([]);
-      }} /></React.Suspense>}</details>
       <PageHeader
         title="Faktury"
         description="Zarządzaj fakturami sprzedaży (FV) oraz zakupów (FZ) zintegrowanymi z KSeF 2.0."
@@ -476,6 +476,17 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         }
       />
 
+      <details className="rounded-xl border bg-card px-3 pt-2 text-xs" onToggle={(event) => { if (event.currentTarget.open) setSavedViewsOpened(true); }}><summary className="cursor-pointer pb-2 font-medium">Zapisane filtry</summary>{savedViewsOpened && <React.Suspense fallback={<p role="status" className="pb-2 text-muted-foreground">Ładowanie zapisanych filtrów…</p>}><SavedInvoiceViews companyId={showUnassigned ? null : selectedCompanyId} filters={{ search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density }} apply={f => {
+        setSearch(typeof f.search === "string" ? f.search : "");
+        if (["all", "sale", "purchase", "proforma"].includes(f.typeFilter)) setTypeFilter(f.typeFilter as typeof typeFilter);
+        if (["all", "pending", "approved"].includes(f.approvalFilter)) setApprovalFilter(f.approvalFilter as typeof approvalFilter);
+        if (["all", "PLN", "EUR", "USD"].includes(f.currencyFilter)) setCurrencyFilter(f.currencyFilter as typeof currencyFilter);
+        if (["all", "draft", "issued", "paid", "overdue", "ksef_queued", "ksef_sent", "ksef_active", "ksef_rejected"].includes(f.statusFilter)) setStatusFilter(f.statusFilter as typeof statusFilter);
+        if (["date_desc", "date_asc"].includes(f.sortOrder)) updateView({sortOrder: f.sortOrder as typeof sortOrder});
+        if (["comfortable", "compact"].includes(f.density)) updateView({density: f.density as typeof density});
+        setSelectedIds([]);
+      }} /></React.Suspense>}</details>
+
       {/* ── Nowoczesne, profesjonalne zakładki kategorii dokumentów ── */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-border/70 pb-3.5">
@@ -483,6 +494,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-muted/40 border border-border/70 shadow-xs">
             <button
               type="button"
+              aria-pressed={typeFilter === "all"}
               onClick={() => {
                 setTypeFilter("all");
                 setApprovalFilter("all");
@@ -504,6 +516,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
             <button
               type="button"
+              aria-pressed={typeFilter === "sale"}
               onClick={() => {
                 setTypeFilter("sale");
                 setApprovalFilter("all");
@@ -525,6 +538,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
             <button
               type="button"
+              aria-pressed={typeFilter === "purchase"}
               onClick={() => setTypeFilter("purchase")}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
                 typeFilter === "purchase"
@@ -550,6 +564,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             {/* Zakładka Proformy */}
             <button
               type="button"
+              aria-pressed={typeFilter === "proforma"}
               onClick={() => {
                 setTypeFilter("proforma");
                 setApprovalFilter("all");
@@ -580,6 +595,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               </span>
               <button
                 type="button"
+                aria-pressed={approvalFilter === "all"}
                 onClick={() => setApprovalFilter("all")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   approvalFilter === "all"
@@ -591,6 +607,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               </button>
               <button
                 type="button"
+                aria-pressed={approvalFilter === "pending"}
                 onClick={() => setApprovalFilter("pending")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   approvalFilter === "pending"
@@ -606,6 +623,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               </button>
               <button
                 type="button"
+                aria-pressed={approvalFilter === "approved"}
                 onClick={() => setApprovalFilter("approved")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   approvalFilter === "approved"
@@ -713,19 +731,21 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       {/* Pasek filtrów */}
       <div className="rounded-2xl border border-border/70 bg-card/70 p-3.5 backdrop-blur-xl shadow-xs">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative min-w-[240px] flex-1">
+          <div className="relative min-w-0 basis-full xl:basis-auto xl:min-w-[240px] flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
+              aria-label="Szukaj faktur"
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Szukaj: numer, kontrahent, NIP, numer KSeF…"
               className="pl-10 h-10 rounded-xl text-sm"
             />
           </div>
           <Select
+            aria-label="Status dokumentu"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | EffectiveStatus)}
-            className="w-auto min-w-[180px] h-10 rounded-xl text-sm"
+            className="w-full sm:w-[220px] h-10 rounded-xl text-sm"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -734,32 +754,27 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             ))}
           </Select>
           <Select
+            aria-label="Waluta faktury"
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
-            className="w-auto h-10 rounded-xl text-sm"
+            className="w-full sm:w-[160px] h-10 rounded-xl text-sm"
           >
             <option value="all">Waluta (wszystkie)</option>
             <option value="PLN">PLN</option>
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
           </Select>
-          <Select aria-label="Kolejność faktur" value={sortOrder} onChange={event => updateView({sortOrder: event.target.value as typeof sortOrder})} className="w-auto">
+          <Select aria-label="Kolejność faktur" value={sortOrder} onChange={event => updateView({sortOrder: event.target.value as typeof sortOrder})} className="w-full sm:w-[200px]">
             <option value="date_desc">Najnowsze najpierw</option><option value="date_asc">Najstarsze najpierw</option>
           </Select>
-          <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-auto">
+          <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-full sm:w-[180px]">
             <option value="comfortable">Widok wygodny</option><option value="compact">Widok kompaktowy</option>
           </Select>
           {hasFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setSearch("");
-                setStatusFilter("all");
-                setTypeFilter("all");
-                setApprovalFilter("all");
-                setCurrencyFilter("all");
-              }}
+              onClick={clearFilters}
               className="rounded-xl text-xs gap-1 text-muted-foreground hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" /> Wyczyść
@@ -769,13 +784,13 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       </div>
 
       {/* Główna tabela dokumentów */}
-      <div data-invoice-density={density} className="rounded-3xl border border-border/70 bg-card/70 backdrop-blur-xl shadow-sm overflow-hidden">
+      <div data-invoice-density={density} className="rounded-2xl border border-border/70 bg-card shadow-sm overflow-hidden">
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-3 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-2">
             <Filter className="h-3.5 w-3.5 text-primary" />
             Wyniki: <b className="text-foreground">{results.total}</b> · na stronie {filtered.length}
           </span>
-          <span className="hidden items-center gap-1.5 sm:flex font-mono text-[11px]">
+          <span className="hidden items-center gap-1.5 sm:flex text-xs">
             <ArrowDownUp className="h-3 w-3" /> {sortOrder === "date_asc" ? "Najstarsze najpierw" : "Najnowsze najpierw"}
           </span>
         </div>
@@ -784,34 +799,35 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         <div className="divide-y divide-border/50 md:hidden">
           {filtered.map(inv => {
             const contractor = getContractor(contractors, inv.contractorId);
-            const status = STATUS_META[effectiveStatus(inv)];
-            return <article key={inv.id} data-invoice-id={inv.id} data-new-invoice={highlightedId === inv.id || undefined} className="ui-invoice-row p-4 space-y-3">
+            const status = invoicePaymentPresentation(inv);
+            return <article key={inv.id} data-invoice-id={inv.id} data-preview-active={previewInvoice?.id === inv.id || undefined} data-new-invoice={highlightedId === inv.id || undefined} className="ui-invoice-row p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={selectedIds.includes(inv.id)} onChange={e => setSelectedIds(ids => e.target.checked ? [...ids, inv.id] : ids.filter(id => id !== inv.id))} className="mt-2 h-5 w-5 accent-primary" />
                 <div className="min-w-0 flex-1">
-                  <Link prefetch={false} href={`/invoices/${inv.id}`} className="block min-h-11 font-semibold text-primary break-words py-1">{inv.number}</Link>
+                  <Link prefetch={false} href={`/invoices/${inv.id}`} onClick={event => openPreview(event, inv)} aria-haspopup="dialog" className="block min-h-11 font-semibold text-primary break-words py-1">{inv.number}</Link>
                   <p className="text-xs text-muted-foreground break-words">{contractor?.name || "Klient detaliczny"}</p>
                 </div>
                 <span className="shrink-0 text-xs font-medium">{inv.currency}</span>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>{formatDate(inv.issueDate)} · termin {formatDate(inv.dueDate)}</span>
-                <strong className="text-sm text-foreground">{formatMoney(inv.totalGross ?? invoiceTotals(inv).gross, inv.currency)}</strong>
+                <strong className="text-sm tabular-nums text-foreground">{formatMoney(inv.totalGross ?? invoiceTotals(inv).gross, inv.currency)}</strong>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <KsefStatusBadge invoice={inv} />
                 <Badge className={status.color}>{status.label}</Badge>
                 {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
-                <Link prefetch={false} href={`/invoices/${inv.id}`} className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-primary">Szczegóły dokumentu</Link>
+                <Button variant="ghost" onClick={event => openPreview(event, inv)} aria-label={`Podgląd faktury ${inv.number}`}><Eye className="size-4" aria-hidden="true" />Podgląd</Button>
               </div>
             </article>;
           })}
         </div>
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[980px] text-left text-[13px] leading-5">
+        <div className="ui-invoice-scroll hidden md:block" role="region" aria-label="Tabela faktur — przewijana lista" tabIndex={0}>
+          <table className="ui-invoice-table w-full min-w-[880px] text-left text-[13px] leading-5">
+            <caption className="sr-only">Lista faktur. Kliknij numer dokumentu, aby otworzyć szybki podgląd. Akcje są dostępne w menu każdego wiersza.</caption>
             <thead>
               <tr className="border-b border-border/70 text-xs leading-4 font-semibold uppercase tracking-wide text-muted-foreground bg-muted/30">
-                <th className="py-3 px-3 w-8 text-center">
+                <th scope="col" className="py-3 px-3 w-8 text-center">
                   <input
                     type="checkbox"
                     aria-label="Zaznacz wszystkie widoczne faktury"
@@ -826,21 +842,21 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                     className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5"
                   />
                 </th>
-                <th className="py-3 px-3">Numer dokumentu</th>
-                <th className="py-3 px-3">Kontrahent</th>
-                <th className="py-3 px-3">Data</th>
-                <th className="py-3 px-3 text-right">Wartość brutto</th>
-                <th className="py-3 px-3">Płatność</th>
-                <th className="py-3 px-3">Status KSeF</th>
-                <th className="py-3 px-3">Księgowość</th>
-                <th className="py-3 px-4 text-right">Akcje</th>
+                <th scope="col" className="py-3 px-3">Dokument</th>
+                <th scope="col" className="py-3 px-3">Kontrahent</th>
+                <th scope="col" className="py-3 px-3">Daty</th>
+                <th scope="col" className="py-3 px-3 text-right">Brutto</th>
+                <th scope="col" className="py-3 px-3">Płatność</th>
+                <th scope="col" className="py-3 px-3">KSeF</th>
+                <th scope="col" className="hidden py-3 px-3 2xl:table-cell">Księgowość</th>
+                <th scope="col" className="py-3 px-4 text-right">Akcje</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">
               {/* Avoid measuring animated rows in the desktop table hidden on mobile. */}
                 {filtered.map((inv) => {
                   const ctr = getContractor(contractors, inv.contractorId);
-                  const s = effectiveStatus(inv);
+                  const payment = invoicePaymentPresentation(inv);
                   const ksefNum = inv.ksef?.number || inv.ksefNumber;
                   const isSelected = selectedIds.includes(inv.id);
                   const isApproved = inv.approvalStatus === "approved";
@@ -849,8 +865,11 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                     <tr
                       key={inv.id}
                       data-invoice-id={inv.id}
+                      data-preview-active={previewInvoice?.id === inv.id || undefined}
+                      data-selected={isSelected || undefined}
                       data-new-invoice={highlightedId === inv.id || undefined}
-                      className={`ui-invoice-row transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
+                      onClick={event => { if (event.currentTarget.contains(event.target as Node) && !(event.target as HTMLElement).closest('a,button,input,label,[role="menuitem"]')) openPreview(event, inv); }}
+                      className="ui-invoice-row cursor-pointer transition-colors hover:bg-muted/30"
                     >
                       <td className="py-3.5 px-3 text-center">
                         <input
@@ -869,15 +888,15 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <Link prefetch={false} href={`/invoices/${inv.id}`} className="group flex items-center gap-2.5">
+                        <Link prefetch={false} href={`/invoices/${inv.id}`} onClick={event => openPreview(event, inv)} aria-haspopup="dialog" className="group flex items-center gap-2.5 rounded-lg">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
                             <FileText className="h-4 w-4" />
                           </div>
                           <div>
-                            <p className="font-bold text-[13px] text-foreground group-hover:text-primary transition-colors">
+                            <p className="font-semibold text-[13px] text-foreground group-hover:text-primary transition-colors">
                               {inv.number}
                             </p>
-                            <p className="text-[11px] text-muted-foreground font-mono">
+                            <p className="text-xs text-muted-foreground">
                               {inv.isProforma ? "PRO Proforma" : inv.type === "sale" ? "FV Sprzedaż" : "FZ Zakup"} · {inv.currency}
                             </p>
                           </div>
@@ -885,28 +904,26 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <p className="font-medium text-foreground max-w-[180px] truncate">{ctr?.name || "Klient detaliczny"}</p>
-                        <p className="text-[11px] font-mono text-muted-foreground">{ctr?.nip || ""}</p>
+                        <p className="font-medium text-foreground max-w-[170px] truncate" title={ctr?.name || "Klient detaliczny"}>{ctr?.name || "Klient detaliczny"}</p>
+                        <p className="text-xs tabular-nums text-muted-foreground">{ctr?.nip || ""}</p>
                       </td>
 
-                      <td className="py-3.5 px-3 text-muted-foreground">
+                      <td className="py-3.5 px-3 tabular-nums whitespace-nowrap text-muted-foreground">
                         <p>{formatDate(inv.issueDate)}</p>
-                        <p className="text-[10.5px]">termin: {formatDate(inv.dueDate)}</p>
+                        <p className="text-xs">do {formatDate(inv.dueDate)}</p>
                       </td>
 
-                      <td className="py-3.5 px-3 text-right font-bold tabular-nums text-foreground text-[13px]">
+                      <td className="py-3.5 px-3 text-right font-semibold tabular-nums whitespace-nowrap text-foreground text-sm">
                         {formatMoney(
-                          inv.type === "purchase" && inv.ksef && typeof inv.totalGross === "number"
-                            ? inv.totalGross
-                            : invoiceTotals(inv).gross,
+                          inv.totalGross ?? invoiceTotals(inv).gross,
                           inv.currency
                         )}
                       </td>
 
                       <td className="py-3.5 px-3">
-                        <Badge className={`${STATUS_META[s].color} rounded-lg px-2.5 py-0.5 text-[10.5px]`}>
-                          <span className={`h-1.5 w-1.5 rounded-full mr-1.5 ${STATUS_META[s].dot}`} />
-                          {STATUS_META[s].label}
+                        <Badge className={`${payment.color} rounded-lg px-2.5 py-1 text-xs whitespace-nowrap`}>
+                          <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full mr-1.5 ${payment.dot}`} />
+                          {payment.label}
                         </Badge>
                       </td>
 
@@ -915,7 +932,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                       </td>
 
                       {/* Status akceptacji księgowej (na wzór wFirma — Screen 4) */}
-                      <td className="py-3.5 px-3">
+                      <td className="hidden py-3.5 px-3 2xl:table-cell">
                         {inv.type === "purchase" ? (
                           isApproved ? (
                             <span
@@ -939,77 +956,22 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Przycisk akceptacji dla faktur zakupowych (dokładnie jak na screen 4) */}
-                          {inv.type === "purchase" && !isApproved && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSingleApprove(inv.id, "approved")}
-                              title="Zatwierdź dla księgowości"
-                              className="h-8 px-2.5 text-xs text-emerald-700 dark:text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/10 gap-1 rounded-xl font-medium"
-                            >
-                              <Check className="h-3 w-3" /> Akceptuj
-                            </Button>
-                          )}
-
-                          {inv.type === "purchase" && isApproved && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleSingleApprove(inv.id, "pending")}
-                              title="Cofnij zatwierdzenie"
-                              className="h-8 px-2 text-[11px] text-muted-foreground hover:text-foreground rounded-lg"
-                            >
-                              Cofnij
-                            </Button>
-                          )}
-
-                          {/* Konwersja proformy na fakturę VAT */}
-                          {inv.isProforma && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleConvertProformaToVat(inv)}
-                              title="Wystaw Fakturę VAT na podstawie proformy"
-                              className="h-8 px-2 text-xs text-amber-500 dark:text-amber-400 border-amber-500/40 hover:bg-amber-500/10 gap-1 rounded-xl font-medium"
-                            >
-                              <FileCheck2 className="h-3.5 w-3.5" />
-                              <span>Wystaw VAT</span>
-                            </Button>
-                          )}
-
-                          {!ksefNum && inv.type === "sale" && !inv.isProforma && !isKsefUiPending(inv) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setConfirmKsef(inv.id)}
-                              title="Wyślij do KSeF (FA(3))"
-                              className="h-8 w-8 rounded-lg text-primary hover:bg-primary/10"
-                            >
-                              <Send className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setSelectedForEmail(inv)}
-                            title="Wyślij fakturę e-mailem"
-                            className="h-8 w-8 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
-                          >
-                            <Mail className="h-3.5 w-3.5" />
-                          </Button>
-
+                          <Button variant="ghost" size="icon" onClick={event => openPreview(event, inv)} aria-label={`Podgląd faktury ${inv.number}`} title="Szybki podgląd" className="h-9 w-9"><Eye className="size-4" aria-hidden="true" /></Button>
                           {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
-
-                          {(ksefNum || inv.type !== "purchase") && <InvoiceRowActions number={inv.number}>
-                              {ksefNum && <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => handleDownloadUpo(ksefNum)}><Download className="h-4 w-4" /> Pobierz UPO</button>}
-                              {inv.type !== "purchase" && <>
-                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => editInvoice(inv.id)}><Pencil className="h-4 w-4" /> Edytuj</button>
-                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-muted" onClick={() => duplicateInvoice(inv.id)}><Copy className="h-4 w-4" /> Duplikuj</button>
-                                <button type="button" className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-700 dark:text-rose-300 hover:bg-rose-500/10" onClick={() => setToDelete(inv.id)}><Trash2 className="h-4 w-4" /> Usuń</button>
-                              </>}
-                          </InvoiceRowActions>}
+                          <InvoiceRowActions number={inv.number}>
+                            <Link prefetch={false} href={`/invoices/${inv.id}`}><FileText className="size-4" /> Szczegóły dokumentu</Link>
+                            {canApprove && inv.type === "purchase" && <button type="button" onClick={() => handleSingleApprove(inv.id, isApproved ? "pending" : "approved")}><CheckCircle2 className="size-4" />{isApproved ? "Cofnij akceptację" : "Akceptuj dla księgowości"}</button>}
+                            {inv.isProforma && <button type="button" onClick={() => handleConvertProformaToVat(inv)}><FileCheck2 className="size-4" /> Wystaw fakturę VAT</button>}
+                            {canSendKsef && !ksefNum && inv.type === "sale" && !inv.isProforma && inv.status !== "draft" && inv.documentStatus !== "draft" && !isKsefUiPending(inv) && <button type="button" onClick={() => setConfirmKsef(inv.id)}><Send className="size-4" /> Wyślij do KSeF</button>}
+                            <button type="button" onClick={() => setSelectedForEmail(inv)}><Mail className="size-4" /> Wyślij e-mailem</button>
+                            {ksefNum && (inv.hasUpo || inv.upoXml) && <button type="button" onClick={() => handleDownloadUpo(ksefNum)}><Download className="size-4" />{ksefPresentation(inv).simulated ? "Potwierdzenie demo" : "Pobierz UPO"}</button>}
+                            {inv.type !== "purchase" && <>
+                              <button type="button" onClick={() => editInvoice(inv.id)}><Pencil className="size-4" /> Edytuj</button>
+                              <button type="button" onClick={() => duplicateInvoice(inv.id)}><Copy className="size-4" /> Duplikuj</button>
+                              <div role="separator" className="my-1 border-t border-border/60" />
+                              <button type="button" className="text-destructive" onClick={() => setToDelete(inv.id)}><Trash2 className="size-4" /> Usuń</button>
+                            </>}
+                          </InvoiceRowActions>
                         </div>
                       </td>
                     </tr>
@@ -1018,24 +980,25 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             </tbody>
           </table>
 
-          {!results.loading && !results.error && filtered.length === 0 && (
-            <React.Suspense fallback={<p role="status" className="py-14 text-center text-sm text-muted-foreground">Brak faktur spełniających kryteria</p>}>
-            <EmptyState
-              icon={FileText}
-              title="Brak faktur spełniających kryteria"
-              description="Wystaw nową e-Fakturę lub zmień ustawienia filtrów wyszukiwania dokumentów."
-              action={
-                <Button size="sm" onClick={() => { setDraft(null, true); router.push("/invoices/new"); }} className="rounded-xl gap-1.5 font-medium shadow-xs">
-                  <Plus className="h-4 w-4" /> Wystaw fakturę
-                </Button>
-              }
-              className="py-14"
-            />
-            </React.Suspense>
-          )}
         </div>
+        {!results.loading && !results.error && filtered.length === 0 && <React.Suspense fallback={<p role="status" className="py-14 text-center text-sm text-muted-foreground">Ładowanie wskazówek…</p>}>
+          <EmptyState icon={hasFilters ? Search : FileText}
+            title={hasFilters ? "Brak wyników wyszukiwania" : showUnassigned ? "Brak faktur bez przypisanej firmy" : "Tutaj pojawią się Twoje faktury"}
+            description={hasFilters ? "Zmień wpisaną frazę lub wyczyść filtry, aby ponownie zobaczyć dokumenty." : showUnassigned ? "Wróć do wybranej firmy, aby przeglądać jej dokumenty." : "Wystaw pierwszą fakturę. Możesz zacząć od szkicu i wrócić do niego później."}
+            action={hasFilters ? <Button onClick={clearFilters}><X className="size-4" aria-hidden="true" />Wyczyść filtry</Button> : showUnassigned ? <Button onClick={() => setShowUnassigned(false)}>Faktury wybranej firmy</Button> : <Button onClick={() => { setDraft(null, true); router.push("/invoices/new"); }}><Plus className="size-4" aria-hidden="true" />Wystaw pierwszą fakturę</Button>}
+            className="py-16" />
+        </React.Suspense>}
         </LoadingReveal>
       </div>
+
+      <div className="flex flex-wrap items-center gap-2" aria-label="Stronicowanie faktur">
+        <Button variant="subtle" className="order-2 sm:order-1" disabled={results.page === 1 || results.loading} onClick={results.previous}>Poprzednia</Button>
+        <span role="status" className="order-1 min-w-0 basis-full break-words text-sm sm:order-2 sm:basis-auto">Strona {results.page} · {results.total} {results.total === 1 ? "wynik" : results.total % 10 >= 2 && results.total % 10 <= 4 && (results.total % 100 < 12 || results.total % 100 > 14) ? "wyniki" : "wyników"}{results.loading ? " · Ładowanie…" : ""}</span>
+        <Button variant="subtle" className="order-3" disabled={!results.nextCursor || results.loading} onClick={results.next}>Następna</Button>
+        <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
+      </div>
+
+      {previewInvoice && <React.Suspense fallback={<span role="status" className="sr-only">Otwieranie podglądu faktury…</span>}><InvoiceQuickPreview key={previewInvoice.id} invoice={previewInvoice} contractor={getContractor(contractors, previewInvoice.contractorId)} onClose={() => setPreviewSelection(null)} /></React.Suspense>}
 
       {confirmBulkPayment && <React.Suspense fallback={<span role="status" className="sr-only">Ładowanie potwierdzenia…</span>}><ConfirmDialog
         open

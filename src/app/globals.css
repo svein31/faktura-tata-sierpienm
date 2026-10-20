@@ -585,12 +585,15 @@ video {
     align-items: center;
     gap: 10px;
     width: 100%;
-    min-height: 36px;
+    min-height: 40px;
+    min-width: 0;
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 14px;
     line-height: 20px;
     text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
     cursor: pointer;
     transition: background-color 140ms ease, color 140ms ease;
   }
@@ -745,6 +748,11 @@ video {
     background-image: radial-gradient(ellipse at 85% 0%, hsl(var(--primary) / 0.035), transparent 48%);
   }
   .app-shell :where(a, button, summary):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  .app-shell :where(input[type="checkbox"], [role="region"][tabindex="0"]):focus-visible,
+  .ui-side-panel :where(a, button):focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 3px;
   }
@@ -1032,4 +1040,60 @@ iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
 /* Density overrides cell padding utilities; touch layouts keep their full targets. */
 @media (min-width: 768px) {
   [data-invoice-density="compact"] .ui-invoice-row > td { padding-top: 8px; padding-bottom: 8px; }
+}
+
+@layer components {
+  .ui-invoice-scroll {
+    max-height: min(68vh, 720px);
+    overflow: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable;
+    scroll-padding-top: 52px;
+  }
+  .ui-invoice-table { border-collapse: separate; border-spacing: 0; }
+  .ui-invoice-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: hsl(var(--card));
+    border-bottom: 1px solid hsl(var(--border));
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .ui-invoice-table td { border-bottom: 1px solid hsl(var(--border) / 0.45); }
+  .ui-invoice-table tr:last-child td { border-bottom: 0; }
+  .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"]) { background: hsl(var(--primary) / 0.055); }
+  .ui-invoice-row:is([data-selected="true"], [data-preview-active="true"]) > td:first-child { box-shadow: inset 3px 0 hsl(var(--primary)); }
+  .ui-invoice-row:focus-within { background: hsl(var(--primary) / 0.035); }
+
+  .ui-side-overlay { position: fixed; z-index: 70; display: flex; justify-content: flex-end; }
+  .ui-side-backdrop {
+    position: absolute; inset: 0; background: hsl(224 40% 4% / 0.32);
+    animation: ui-side-fade 180ms ease-out both;
+  }
+  .ui-side-panel {
+    position: relative; display: flex; flex-direction: column; width: min(100%, 560px); height: 100%; min-width: 0;
+    border-left: 1px solid hsl(var(--surface-edge)); background: hsl(var(--card)); color: hsl(var(--foreground));
+    box-shadow: -12px 0 56px -16px hsl(224 45% 4% / 0.24);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    animation: ui-side-enter 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .ui-side-footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .ui-side-overlay[data-state="closed"] .ui-side-panel { animation: ui-side-leave 160ms ease-in both; }
+  .ui-side-overlay[data-state="closed"] .ui-side-backdrop { animation: ui-side-fade 160ms ease-in reverse both; }
+  .ui-detail-link {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
+    border-radius: 12px; padding: 10px 16px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+    font-size: 14px; font-weight: 500; line-height: 20px; transition: box-shadow 150ms ease;
+  }
+  .ui-detail-link:hover { box-shadow: 0 3px 12px hsl(var(--primary) / 0.2); }
+  @keyframes ui-side-enter { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes ui-side-leave { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(24px); } }
+  @keyframes ui-side-fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (pointer: coarse) { .ui-menu-item { min-height: 44px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-side-panel, .ui-side-backdrop, .ui-side-overlay[data-state="closed"] :is(.ui-side-panel, .ui-side-backdrop) { animation: none; }
+  }
 }

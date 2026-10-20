@@ -120,9 +120,9 @@ export async function auditUiMotion({ page, context, base, companyId, out, expec
     const listFallback=page.getByRole('status',{name:'Wczytywanie faktur',exact:true});
     await expect(listFallback).toBeVisible();
     assert.equal(await page.locator('tbody tr').count(),0,'Old query rows are not retained under new filters');
-    const placeholderHeight=await listFallback.evaluate(n=>{n.parentElement.dataset.motionQa='results';return n.parentElement.getBoundingClientRect().height;});
+    const placeholderHeight=await listFallback.evaluate(n=>{const reveal=n.closest('.ui-loading-reveal');reveal.dataset.motionQa='results';return reveal.getBoundingClientRect().height;});
     searchGate.release();
-    await expect(page.getByText('Brak faktur spełniających kryteria',{exact:true}).first()).toBeVisible();
+    await expect(page.getByText('Brak wyników wyszukiwania',{exact:true}).first()).toBeVisible();
     await expect(listFallback).toHaveCount(0);
     assert.ok(await page.locator('[data-motion-qa="results"]').evaluate(n=>n.getBoundingClientRect().height)>=placeholderHeight-1);
     await context.unroute('**/api/invoices/search?**',searchRoute);
