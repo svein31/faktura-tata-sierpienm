@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check public site and database, notify on sustained outage
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const title = '[ALERT] FakturaProsto production health';
