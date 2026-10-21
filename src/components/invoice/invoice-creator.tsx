@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useShallow } from "zustand/react/shallow";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -63,10 +65,11 @@ import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
 import { NipLookup } from "./nip-lookup";
 import { ViesLookup } from "./vies-lookup";
-import { CompanyModal } from "@/components/company/company-modal";
-import { ShortcutsModal } from "./shortcuts-modal";
 import { InfoTooltip, HelpTooltip } from "@/components/ui/tooltip";
 import { useInvoiceExports } from "@/lib/invoice-actions";
+
+const CompanyModal = dynamic(() => import("@/components/company/company-modal").then(module => module.CompanyModal), { loading: () => <p role="status">Wczytywanie formularza firmy…</p> });
+const ShortcutsModal = dynamic(() => import("./shortcuts-modal").then(module => module.ShortcutsModal), { loading: () => <p role="status">Wczytywanie skrótów…</p> });
 
 export const DRAFT_KEY = "fakturo_invoice_creator_draft";
 
@@ -219,7 +222,13 @@ type InvoicePayload = Omit<Invoice, "id" | "createdAt"> & { autoNumber?: boolean
 export function InvoiceCreator() {
   const router = useRouter();
   const toast = useToast();
-  const store = useAppStore();
+  const store = useAppStore(useShallow(state => ({
+    contractors: state.contractors, products: state.products, company: state.company, companies: state.companies,
+    draftInvoice: state.draftInvoice, draftInvoiceIsNew: state.draftInvoiceIsNew, ksef: state.ksef,
+    selectedCompanyId: state.selectedCompanyId, addContractor: state.addContractor, addInvoice: state.addInvoice,
+    applyInvoice: state.applyInvoice, fetchCompanies: state.fetchCompanies, setDraft: state.setDraft,
+    setInvoiceKsef: state.setInvoiceKsef, updateInvoice: state.updateInvoice,
+  })));
   const { contractors: allContractors, products: allProducts, company, companies, draftInvoice, draftInvoiceIsNew, ksef } = store;
   const ksefEnv = ksef?.environment ?? "demo";
 
@@ -1080,6 +1089,7 @@ export function InvoiceCreator() {
             <button
               type="button"
               onClick={() => setShortcutsModalOpen(true)}
+              aria-label="Skróty klawiszowe"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
               title="Skróty klawiszowe (Ctrl+S, Ctrl+Enter, Shift+Alt+N...)"
             >
@@ -1955,17 +1965,17 @@ export function InvoiceCreator() {
         <div className="space-y-3 text-sm">{assistant?.issues.length ? assistant.issues.map(issue => <div key={issue.code} className="rounded-lg border p-3"><p className="font-medium">{issue.severity === "error" ? "Popraw przed zatwierdzeniem" : "Sprawdź"} · {issue.message}</p>{issue.href && <a href={issue.href} target="_blank" rel="noopener noreferrer" className="mt-2 block text-primary underline">Otwórz dokument →</a>}</div>) : <p>Nie znaleziono problemów w danych i numeracji. Zweryfikuj podgląd oraz właściwą stawkę VAT.</p>}{assistant?.snapshot !== invoiceSnapshot && <p role="alert">Dane zmieniły się. Zamknij asystenta i sprawdź fakturę ponownie.</p>}</div>
       </Dialog>
       {checkingInvoice && <p role="status" className="text-sm text-muted-foreground">Asystent sprawdza dane i duplikaty…</p>}
-      <CompanyModal
+      {companyModalOpen && <CompanyModal
         open={companyModalOpen}
         onClose={() => setCompanyModalOpen(false)}
         onSaved={(c) => set({ sellerCompanyId: c.id })}
-      />
+      />}
 
       {/* Modal ściągawki skrótów klawiszowych */}
-      <ShortcutsModal
+      {shortcutsModalOpen && <ShortcutsModal
         open={shortcutsModalOpen}
         onClose={() => setShortcutsModalOpen(false)}
-      />
+      />}
     </div>
   );
 }

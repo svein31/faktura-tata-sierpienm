@@ -61,7 +61,7 @@ export function overviewPipeline(companyId: string, today: string, months: strin
           action(draft, "Szkic", "$number", "Dokończ dokument", 3),
         ] } } },
         { $unwind: "$entries" }, { $replaceRoot: { newRoot: "$entries" } },
-        { $sort: { priority: 1, label: 1 } }, { $limit: 8 },
+        { $sort: { priority: 1, label: 1, id: 1 } }, { $limit: 8 },
       ],
       recent: [{ $sort: { _id: -1 } }, { $limit: 5 }, { $project: { _id: 0, id: { $toString: "$_id" }, number: 1, currency: 1, gross: 1, issueDate: 1 } }],
       onboarding: [
@@ -72,7 +72,9 @@ export function overviewPipeline(companyId: string, today: string, months: strin
       totals: [financeMatch, moneyGroup("$currency")],
       months: [financeMatch, { $match: { month: { $in: months } } }, moneyGroup({ month: "$month", currency: "$currency" })],
       rates: [financeMatch, { $unwind: "$lineValues" }, { $group: { _id: { currency: "$currency", rate: "$lineValues.rate" }, value: { $sum: "$lineValues.vat" } } }],
-      contractors: [financeMatch, { $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { gross: -1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
+      // $documentNumber accepts one sort expression. A BSON object preserves
+      // numeric gross ordering and gives equal amounts a deterministic ID tie.
+      contractors: [financeMatch, { $group: { _id: { currency: "$currency", contractorId: "$contractorId" }, count: { $sum: 1 }, gross: { $sum: "$gross" } } }, { $set: { rankKey: { gross: "$gross", contractorId: "$_id.contractorId" } } }, { $setWindowFields: { partitionBy: "$_id.currency", sortBy: { rankKey: -1 }, output: { rank: { $documentNumber: {} } } } }, { $match: { rank: { $lte: 8 } } }],
       status: [financeMatch, { $group: { _id: { $cond: [rejected, "KSeF: odrzucona", { $cond: [{ $or: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$status", "paid"] }] }, "Opłacona", { $cond: [overdue, "Po terminie", "Wystawiona"] }] }] }, value: { $sum: 1 } } }],
     } },
   ] as Prisma.InputJsonObject[];

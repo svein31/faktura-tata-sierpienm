@@ -12,7 +12,7 @@ export const getInitialAppData = cache(async () => {
   if (!user) redirect("/login");
 
   // An unavailable initial read must not prevent the existing client retry path.
-  const bootstrap = await readBootstrapData(user, true).catch(error => {
+  const bootstrap = await readBootstrapData(user, true, { shell: true }).catch(error => {
     reportUnexpectedError(error);
     return null;
   });

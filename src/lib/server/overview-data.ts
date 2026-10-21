@@ -35,15 +35,15 @@ export async function readAuthorizedOverview(user: { id: string }, params: URLSe
   });
   const [raw, reviews, workspaces, queue, unmatchedCount, unmatched] = await Promise.all([
     prisma.invoice.aggregateRaw({ pipeline: overviewPipeline(company.id, today, months) }) as unknown as Promise<OverviewRaw[]>,
-    canExport ? prisma.costReview.findMany({ where: { companyId: company.id, status: "pending" }, select: { id: true, number: true, steps: true, currentStep: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 50 }) : Promise.resolve([]),
-    canExport ? prisma.accountingWorkspace.findMany({ where: { companyId: company.id }, select: { id: true, month: true, items: true }, orderBy: { month: "desc" }, take: 3 }) : Promise.resolve([]),
+    canExport ? prisma.costReview.findMany({ where: { companyId: company.id, status: "pending" }, select: { id: true, number: true, steps: true, currentStep: true, createdAt: true }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 50 }) : Promise.resolve([]),
+    canExport ? prisma.accountingWorkspace.findMany({ where: { companyId: company.id }, select: { id: true, month: true, items: true }, orderBy: [{ month: "desc" }, { id: "desc" }], take: 3 }) : Promise.resolve([]),
     canSendKsef ? prisma.ksefQueueTask.findMany({ where: { invoice: { sellerCompanyId: company.id } }, select: {
       id: true, invoiceId: true, status: true, attempts: true, maxAttempts: true,
       environment: true, updatedAt: true, nextAttemptAt: true,
       invoice: { select: { number: true } },
-    }, orderBy: { updatedAt: "desc" }, take: 20 }) : Promise.resolve([]),
+    }, orderBy: [{ updatedAt: "desc" }, { id: "desc" }], take: 20 }) : Promise.resolve([]),
     pendingBankWhere.then(where => prisma.bankTransaction.count({ where })),
-    pendingBankWhere.then(where => prisma.bankTransaction.findMany({ where, select: { id: true, description: true, amount: true, allocatedAmount: true, matchStatus: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 })),
+    pendingBankWhere.then(where => prisma.bankTransaction.findMany({ where, select: { id: true, description: true, amount: true, allocatedAmount: true, matchStatus: true, currency: true, bookingDate: true }, orderBy: [{ bookingDate: "asc" }, { id: "asc" }], take: 8 })),
   ]);
   const data = raw[0];
   const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0, missingUpo: 0 };
@@ -86,13 +86,13 @@ export async function readAuthorizedOverview(user: { id: string }, params: URLSe
   const previousMonth = months.at(-2)!;
   const totals = (data?.totals || []).map(row => normalizeMoney(row, row._id)).sort((a, b) => a.currency.localeCompare(b.currency));
   return {
-    checkedAt: new Date().toISOString(), counts, actions: actions.sort((a, b) => a.priority - b.priority || a.label.localeCompare(b.label)).slice(0, 8),
+    checkedAt: new Date().toISOString(), counts, actions: actions.sort((a, b) => a.priority - b.priority || a.label.localeCompare(b.label) || a.id.localeCompare(b.id)).slice(0, 8),
     actionTotal: totalActions, currencies: totals.map(row => row.currency), totals,
-    currentMonth: byMonth.get(month) || [], previousMonth: byMonth.get(previousMonth) || [],
-    months: months.map(key => ({ key, values: byMonth.get(key) || [] })),
-    vatByRate: [...rateGroups].map(([currency, rates]) => ({ currency, rates })),
-    statusCounts: (data?.status || []).map(row => ({ name: row._id, value: row.value })),
-    contractors: [...contractors].map(([currency, rows]) => ({ currency, rows })),
+    currentMonth: (byMonth.get(month) || []).sort((a, b) => a.currency.localeCompare(b.currency)), previousMonth: (byMonth.get(previousMonth) || []).sort((a, b) => a.currency.localeCompare(b.currency)),
+    months: months.map(key => ({ key, values: (byMonth.get(key) || []).sort((a, b) => a.currency.localeCompare(b.currency)) })),
+    vatByRate: [...rateGroups].map(([currency, rates]) => ({ currency, rates: rates.sort((a, b) => a.rate.localeCompare(b.rate)) })).sort((a, b) => a.currency.localeCompare(b.currency)),
+    statusCounts: (data?.status || []).map(row => ({ name: row._id, value: row.value })).sort((a, b) => a.name.localeCompare(b.name)),
+    contractors: [...contractors].map(([currency, rows]) => ({ currency, rows: rows.sort((a, b) => b.gross - a.gross || String(a.id ?? "").localeCompare(String(b.id ?? ""))) })).sort((a, b) => a.currency.localeCompare(b.currency)),
     recent: data?.recent || [],
     onboardingDocument: data?.onboarding?.[0] ? { ...data.onboarding[0], companyId: company.id } : null,
     ksefQueue: queue.map(task => ({

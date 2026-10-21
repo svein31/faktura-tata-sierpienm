@@ -46,7 +46,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await page.getByRole('textbox',{name:'Nazwa pozycji 1',exact:true}).fill('UI fractional quantity');
     await page.getByRole('spinbutton',{name:'Ilość pozycji 1',exact:true}).fill('0.004');
     await page.getByRole('spinbutton',{name:'Cena netto pozycji 1',exact:true}).fill('1000');
-    const fractional=await submit(page.getByRole('button',{name:'Szkic',exact:true}),'/api/invoices');
+    const fractional=await submit(page.getByRole('button',{name:'Zapisz szkic',exact:true}),'/api/invoices');
     assert.equal(fractional.invoice.lines[0].quantity,0.004);assert.equal(fractional.invoice.totalNet,4);
     await expect(page).toHaveURL(/invoices$/);checks.push('Invoice creator preserves fractional quantity');
     await page.goto('/invoices/' + fractional.invoice.id);
@@ -121,7 +121,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     await checkPhoneDialog('Fresh invoice form');
     checks.push('Phone new invoice starts a clean form without re-login');
     // Simulate only a returned MF status; no real tax document is transmitted.
-    const pendingInvoice = await db.invoice.create({data:{userId:issuedState.userId,sellerCompanyId:fixture.companyId,contractorId:fixture.contractorId,number:'UI/KSEF/PENDING',type:'sale',status:'ksef_sent',documentStatus:'ready',ksefStatus:'verify_needed',referenceNumber:'UI-EXISTING-REFERENCE',issueDate:'2032-01-03',saleDate:'2032-01-03',dueDate:'2032-01-17',currency:'PLN',lines:issuedState.lines,ksef:{environment:'demo'}}});
+    const pendingInvoice = await db.invoice.create({data:{userId:issuedState.userId,sellerCompanyId:fixture.companyId,contractorId:fixture.contractorId,number:'UI/KSEF/PENDING',type:'sale',status:'ksef_sent',documentStatus:'ready',ksefStatus:'verify_needed',referenceNumber:'UI-EXISTING-REFERENCE',issueDate:'2032-01-03',saleDate:'2032-01-03',dueDate:'2032-01-17',currency:'PLN',lines:issuedState.lines,ksef:{environment:'demo',referenceNumber:'UI-EXISTING-REFERENCE',status:'SENT'}}});
     let statusReads=0,acceptKsef=false;
     await page.route('**/api/ksef/status/'+pendingInvoice.id,async route=>{
       statusReads++;
@@ -130,15 +130,17 @@ export async function auditFeatureControls(page, context, db, fixture) {
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,status:'ACCEPTED',ksefReferenceNumber:'UI-ACCEPTED-KSEF',hasUpo:false})});
     });
     await page.goto('/invoices/'+pendingInvoice.id);
-    await expect(page.getByText('Faktura przekazana do KSeF · oczekuje na wynik',{exact:true})).toBeVisible();
-    await expect(page.getByRole('button',{name:'Oczekiwanie na wynik KSeF',exact:true})).toBeDisabled();
+    const timeline=page.getByRole('region',{name:'Status KSeF',exact:true});
+    await expect(timeline.getByRole('status')).toContainText('Weryfikacja wyniku');
+    await expect(page.getByRole('button',{name:/^Wyślij do KSeF/})).toHaveCount(0);
     acceptKsef=true;
-    await expect(page.getByText('Przyjęta · oczekuje na UPO',{exact:true})).toBeVisible();
+    await expect(timeline.getByRole('status')).toContainText('Numer KSeF nadany. Oczekiwanie na UPO.');
     assert.ok(statusReads>0,'Pending invoice status is read without a manual click');
-    assert.equal(await page.getByText('Przyjęta · UPO pobrane',{exact:true}).count(),0);
-    await expect(page.getByText('Przyjęta · UPO w przygotowaniu',{exact:true})).toBeVisible();
+    await expect(timeline.getByRole('button',{name:'Potwierdzenie demo',exact:true})).toHaveCount(0);
+    await expect(timeline.locator('li[aria-current="step"]')).toContainText('Potwierdzenie demo');
     await db.invoice.update({where:{id:pendingInvoice.id},data:{upoXml:'<UPO/>'}});
-    await expect(page.getByText('Przyjęta · UPO pobrane',{exact:true})).toBeVisible({timeout:15000});
+    await expect(timeline.getByRole('button',{name:'Potwierdzenie demo',exact:true})).toBeVisible({timeout:15000});
+    await expect(timeline.getByRole('button',{name:'Pobierz UPO',exact:true})).toHaveCount(0);
     await page.unroute('**/api/ksef/status/'+pendingInvoice.id);
     await page.getByRole('button',{name:'Edytuj',exact:true}).click();
     await expect(page.getByText(/Daty, pozycje, numer i rachunek są zablokowane/)).toBeVisible();
@@ -269,7 +271,7 @@ export async function auditFeatureControls(page, context, db, fixture) {
     const reversal = await db.bankTransaction.create({data:{userId:beforeIssue.userId,accountId:fixture.companyId,externalId:'ui-reversal-target',bookingDate:beforeIssue.issueDate,amount:beforeIssue.totalGross,currency:beforeIssue.currency,direction:'in',description:'UI reversal receipt',matchSignals:['reversal']}});
     await page.goto('/finances?transactionId='+reversal.id);
     dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Rozlicz transakcję bankową',exact:true})).toBeVisible();
-    await expect(dialog.getByRole('status')).toContainText('To storno wcześniejszej operacji');
+    await expect(dialog.getByRole('status').filter({hasText:'To storno wcześniejszej operacji'})).toBeVisible();
     await expect(dialog.getByRole('button',{name:'Przypisz i zapisz płatność',exact:true})).toBeDisabled();
     await checkPhoneDialog('Reversal warning and disabled payment action');
     page.once('dialog',d=>d.accept());await submit(dialog.getByRole('button',{name:'Pomiń operację',exact:true}),'/api/banking/transactions');

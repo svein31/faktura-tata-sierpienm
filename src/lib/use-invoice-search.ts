@@ -1,11 +1,11 @@
 "use client";
 import * as React from "react";
 import { useAppStore } from "@/lib/store";
-import type { Invoice } from "@/lib/types";
+import type { Contractor, Invoice } from "@/lib/types";
 import { createInvoiceSearchLifecycle } from "@/lib/invoice-search-lifecycle";
-export type InvoiceSearchResult = { invoices: Invoice[]; total: number; counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }; nextCursor: string | null };
+export type InvoiceSearchResult = { invoices: Invoice[]; contractors?: Contractor[]; total: number; counts: { all: number; sale: number; purchase: number; proforma: number; approved: number }; nextCursor: string | null };
 type Result = InvoiceSearchResult;
-export type InitialInvoiceSearch = { url: string; data: Result };
+export type InitialInvoiceSearch = { url: string; data: Result; etag?: string };
 const EMPTY: Result = { invoices: [], total: 0, counts: { all: 0, sale: 0, purchase: 0, proforma: 0, approved: 0 }, nextCursor: null };
 export function useInvoiceSearch(filters: Record<string, string>, enabled = true, initialSearch?: InitialInvoiceSearch) {
   const filterKey = new URLSearchParams(filters).toString();
@@ -19,6 +19,7 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
     mutations,
   });
   const seedValid = React.useRef(Boolean(initialSnapshot.current.search));
+  const validator = React.useRef({ url, etag: initialSnapshot.current.search?.etag });
   const [state, setState] = React.useState<{ url: string; data: Result }>(() => initialSnapshot.current.search ?? { url: "", data: EMPTY });
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(!initialSnapshot.current.search);
@@ -40,6 +41,7 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
     const current = lifecycle.current;
     if (!enabled) { seedValid.current = false; return; }
     if (!current || current.departing) return;
+    if (validator.current.url !== url) validator.current = { url, etag: undefined };
     // Revalidate a matching SSR snapshot immediately without hiding its rows
     // or marking the ready list as loading. RSC history may restore an older
     // payload, so the seed must never replace the authenticated API request.
@@ -60,13 +62,16 @@ export function useInvoiceSearch(filters: Record<string, string>, enabled = true
     previousSearch.current = search;
     const request = () => {
       if (controller.signal.aborted || current.departing) return;
-      fetch(url, { signal: controller.signal }).then(async res => {
+      fetch(url, { signal: controller.signal, cache: "no-store", headers: validator.current.etag ? { "If-None-Match": validator.current.etag } : undefined }).then(async res => {
+        if (res.status === 304 && validator.current.url === url && validator.current.etag) return;
         // History may restore an older authorized SSR payload. An explicit
         // loss of access must remove those rows even if error JSON is invalid.
         if ((res.status === 401 || res.status === 403) && !controller.signal.aborted) {
+          validator.current = { url, etag: undefined };
           setState({ url, data: EMPTY });
         }
         const data = await res.json(); if (!res.ok) throw new Error(data.error || "Nie udało się pobrać faktur.");
+        if (!controller.signal.aborted) validator.current = { url, etag: res.headers?.get("etag") || undefined };
         if (!controller.signal.aborted) setState(current => {
           // Revalidating an unchanged SSR result must not reconcile both
           // invoice layouts again. The complete authorized payload is compared;

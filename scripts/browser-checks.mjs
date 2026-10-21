@@ -5,7 +5,7 @@ import { chromium, expect } from '@playwright/test';
 export async function browserChecks(base, db) {
   const invoiceDate = new Date().toISOString().slice(0, 10);
   const invoiceDueDate = new Date(Date.parse(invoiceDate + 'T00:00:00Z') + 7 * 86400000).toISOString().slice(0, 10);
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
   const context = await browser.newContext({ baseURL: base, viewport: { width: 1280, height: 900 }, extraHTTPHeaders: { Origin: base } });
   context.setDefaultTimeout(15000);
   context.setDefaultNavigationTimeout(30000);
@@ -183,13 +183,17 @@ export async function browserChecks(base, db) {
       return bounds.left >= 0 && bounds.top >= 0 && bounds.right <= innerWidth + 1 && bounds.bottom <= innerHeight + 1;
     }), 'Desktop invoice actions must stay inside the viewport');
     const editAction = rowMenu.getByRole('menuitem', { name: 'Edytuj', exact: true });
+    const detailsAction = rowMenu.getByRole('menuitem', { name: 'Szczegóły dokumentu', exact: true });
+    const emailAction = rowMenu.getByRole('menuitem', { name: 'Wyślij e-mailem', exact: true });
     const duplicateAction = rowMenu.getByRole('menuitem', { name: 'Duplikuj', exact: true });
     const deleteAction = rowMenu.getByRole('menuitem', { name: 'Usuń', exact: true });
-    await expect(editAction).toBeFocused();
+    await expect(detailsAction).toBeFocused();
+    await page.keyboard.press('ArrowDown'); await expect(emailAction).toBeFocused();
+    await page.keyboard.press('ArrowDown'); await expect(editAction).toBeFocused();
     await page.keyboard.press('ArrowDown'); await expect(duplicateAction).toBeFocused();
     await page.keyboard.press('ArrowUp'); await expect(editAction).toBeFocused();
     await page.keyboard.press('End'); await expect(deleteAction).toBeFocused();
-    await page.keyboard.press('Home'); await expect(editAction).toBeFocused();
+    await page.keyboard.press('Home'); await expect(detailsAction).toBeFocused();
     await page.keyboard.press('d'); await expect(duplicateAction).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(rowMenu).toHaveCount(0);
@@ -243,7 +247,7 @@ export async function browserChecks(base, db) {
     for (const route of mobileRoutes) {
       await page.goto(route); await expect(page.locator('main')).toBeVisible();
       await expect(page.getByRole('heading').first()).toBeVisible();
-      if (route === '/invoices') await expect(page.getByRole('link', { name: 'Szczegóły dokumentu' }).first()).toBeVisible();
+      if (route === '/invoices') await expect(page.locator('main [data-invoice-id]:visible a[href^="/invoices/"]').first()).toBeVisible();
       await expect(page.locator('main h1').first()).toBeVisible();
       await waitForRenderedLayout(page);
       const found=await mobileLayoutDefects(page);

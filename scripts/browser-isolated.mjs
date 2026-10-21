@@ -10,6 +10,8 @@ import { migrateData } from './migrate-data.mjs';
 
 // A separate browser regression entrypoint avoids rerunning the complete API suite.
 // Neither the inherited DATABASE_URL nor an external target can be used.
+const args = process.argv.slice(2);
+assert.ok(args.every(arg => arg === '--basic'), 'Only --basic is supported; URLs and database options are forbidden');
 const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 }, instanceOpts: process.platform === 'win32' ? [] : [{ args: ['--nounixsocket'] }] });
 const uri = mongo.getUri('fakturo_browser_integration');
 const db = new PrismaClient({ datasources: { db: { url: uri } } });
@@ -36,7 +38,9 @@ try {
     await new Promise(resolve => setTimeout(resolve, 250));
   }
   assert.ok(ready, 'Isolated browser application must start');
-  process.env.RUN_ALL_MOBILE_CHECKS = '1';
+  // The default retains the complete mobile matrix; --basic mirrors CI's
+  // browserChecks without rerunning the independent HTTP/native audit suite.
+  process.env.RUN_ALL_MOBILE_CHECKS = args.includes('--basic') ? '0' : '1';
   if (process.env.RUN_WEBKIT_CHECKS === undefined) process.env.RUN_WEBKIT_CHECKS = '1';
   if (process.env.RUN_FIREFOX_CHECKS === undefined) process.env.RUN_FIREFOX_CHECKS = '1';
   await browserChecks(base, db);

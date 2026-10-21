@@ -100,7 +100,7 @@ function InvoiceRowsSkeleton() {
 export default function InvoicesClient({ initialSearch }: { initialSearch?: InitialInvoiceSearch }) {
   const router = useRouter();
   const toast = useToast();
-  const contractors = useAppStore((state) => state.contractors);
+  const catalogContractors = useAppStore((state) => state.contractors);
   const setDraft = useAppStore((state) => state.setDraft);
   const deleteInvoice = useAppStore((state) => state.deleteInvoice);
   const company = useAppStore((state) => state.company);
@@ -134,6 +134,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
   const results = useInvoiceSearch({ companyId: showUnassigned || !selectedCompanyId ? "unassigned" : selectedCompanyId, search, status: statusFilter, type: typeFilter, approval: approvalFilter, currency: currencyFilter, ...(sortOrder === "date_asc" ? { sort: sortOrder } : {}) }, true, initialSearch);
   const invoices = results.invoices, filtered = invoices;
+  const contractors = results.contractors ?? catalogContractors;
   const preview = useInvoicePreview(results,()=>toast("error","Dostęp do dokumentów wygasł","Odśwież listę, aby sprawdzić aktualne uprawnienia."));
   const previewInvoice = preview.invoice;
   const selectionTotals = React.useMemo(()=>invoiceSelectionTotals(invoices,selectedIds),[invoices,selectedIds]);
@@ -211,7 +212,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
     for (const inv of eligible) {
       try {
         const { buildFa3Xml } = await import("@/lib/ksef/xmlBuilder");
-        const ctr = getContractor(state.contractors, inv.contractorId);
+        const ctr = getContractor(contractors, inv.contractorId);
         const xml = buildFa3Xml({
           invoice: inv,
           seller: state.company ?? EMPTY_COMPANY,
@@ -377,7 +378,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
     setSendingKsef(true);
     try {
       const state = useAppStore.getState();
-      const ctr = getContractor(state.contractors, inv.contractorId);
+      const ctr = getContractor(contractors, inv.contractorId);
       const { buildFa3Xml } = await import("@/lib/ksef/xmlBuilder");
       const xml = buildFa3Xml({
         invoice: inv,
@@ -910,7 +911,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         <Button variant="subtle" className="order-4" onClick={results.first}>Pierwsza strona</Button>
       </div>
 
-      {previewInvoice && <React.Suspense fallback={<span role="status" className="sr-only">Otwieranie podglądu faktury…</span>}><InvoiceQuickPreview invoice={previewInvoice} contractor={getContractor(contractors, previewInvoice.contractorId)} onClose={preview.close} navigation={{...preview,move:direction=>void preview.move(direction),retry:()=>void preview.retry()}} /></React.Suspense>}
+      {previewInvoice && <React.Suspense fallback={<span role="status" className="sr-only">Otwieranie podglądu faktury…</span>}><InvoiceQuickPreview invoice={previewInvoice} contractor={preview.contractor ?? getContractor(contractors, previewInvoice.contractorId)} onClose={preview.close} navigation={{...preview,move:direction=>void preview.move(direction),retry:()=>void preview.retry()}} /></React.Suspense>}
 
       {confirmBulkPayment && <React.Suspense fallback={<span role="status" className="sr-only">Ładowanie potwierdzenia…</span>}><ConfirmDialog
         open

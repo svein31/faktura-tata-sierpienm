@@ -17,6 +17,7 @@ import type {
 import { todayISO } from "./utils";
 import { companyKsefSettings, resolveSelectedCompany } from "./company-selection";
 import { PURCHASE_INVOICE_READ_ONLY } from "./invoice-policy";
+import { bootstrapUrl, createSingleFlight, type DataMode } from "./data-load-policy";
 
 /**
  * Store = cache UI. Backend (Prisma/SQLite przez API) jest JEDYNYM źródłem
@@ -27,7 +28,8 @@ import { PURCHASE_INVOICE_READ_ONLY } from "./invoice-policy";
 export interface AppState {
   /** true po udanym bootstrapie z backendu. */
   hydrated: boolean;
-  dataMode: "full" | "list";
+  dataMode: DataMode;
+  dataCompanyId: string | null;
   authError: boolean;
 
   company: CompanyProfile | null;
@@ -46,7 +48,7 @@ export interface AppState {
   draftInvoiceIsNew: boolean;
   invoiceEditorSession: number;
 
-  bootstrap: (mode?: "full" | "list") => Promise<void>;
+  bootstrap: (mode?: DataMode, companyId?: string) => Promise<void>;
   /** SWR-style silent revalidation — refreshes data without resetting hydrated. */
   revalidate: () => Promise<void>;
   resetData: () => void;
@@ -100,6 +102,8 @@ export async function apiError(res: Response, fallback: string): Promise<Error> 
 const EMPTY_PREFS: NotificationPrefs = { browserEnabled: false, soundEnabled: true };
 
 export type AppBootstrapData = {
+  dataMode?: DataMode;
+  dataCompanyId?: string;
   company: CompanyProfile | null;
   companies?: CompanyProfile[];
   ksef: KsefSettings | null;
@@ -120,15 +124,23 @@ function bootstrapState(data: AppBootstrapData, selectedId: string | null) {
     contractors: data.contractors, products: data.products, invoices: data.invoices,
     notifications: data.notifications, notificationPrefs: data.notificationPrefs ?? EMPTY_PREFS,
     hydrated: true, authError: false,
+    dataCompanyId: data.dataCompanyId ?? null,
   };
 }
 
 const appStateCreator: StateCreator<AppState> = (set, get) => {
   // Each store owns its request fence, including isolated server renders.
   let dataRequestVersion = 0;
+  const requests = createSingleFlight<{ response: Response; data: AppBootstrapData & { error?: string } }>();
+  const read = (mode: DataMode, companyId?: string) => requests.run(bootstrapUrl(mode, companyId), async () => {
+    const response = await fetch(bootstrapUrl(mode, companyId), { cache: "no-store", signal: AbortSignal.timeout(30000) });
+    const data = await response.json().catch(() => ({}));
+    return { response, data };
+  });
   return ({
   hydrated: false,
   dataMode: "full",
+  dataCompanyId: null,
   authError: false,
 
   company: null,
@@ -148,25 +160,18 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
 
   /* ── Bootstrap ──────────────────────────────────────────────────────── */
 
-  bootstrap: async (mode = "full") => {
+  bootstrap: async (mode = "full", companyId) => {
     const requestVersion = ++dataRequestVersion;
-    const res = await fetch(mode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
+    const { response: res, data } = await read(mode, companyId);
     if (requestVersion !== dataRequestVersion) return;
     if (res.status === 401) {
-      set({ hydrated: true, authError: true });
+      set({ hydrated: true, authError: true, contractors: [], products: [], invoices: [] });
       return;
     }
-    if (!res.ok) throw await apiError(res, "Nie udało się pobrać danych.");
-    const data = (await res.json()) as {
-      company: CompanyProfile | null;
-      companies?: CompanyProfile[];
-      ksef: KsefSettings | null;
-      contractors: Contractor[];
-      products: Product[];
-      invoices: Invoice[];
-      notifications: AppNotification[];
-      notificationPrefs: NotificationPrefs;
-    };
+    if (!res.ok) {
+      if (res.status === 403) set({ company: null, selectedCompanyId: null, contractors: [], products: [], invoices: [], hydrated: false });
+      throw new Error(data.error || "Nie udało się pobrać danych.");
+    }
     if (requestVersion !== dataRequestVersion) return;
     const companies = data.companies ?? (data.company ? [data.company] : []);
     const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
@@ -183,6 +188,7 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
       notificationPrefs: data.notificationPrefs ?? EMPTY_PREFS,
       hydrated: true,
       dataMode: mode,
+      dataCompanyId: companyId ?? null,
       authError: false,
     });
   },
@@ -191,19 +197,13 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
     if (!get().hydrated) return; // bootstrap not done yet
     const requestVersion = ++dataRequestVersion;
     try {
-      const res = await fetch(get().dataMode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
-      if (!res.ok) return; // silently ignore errors during revalidation
-      const data = (await res.json()) as {
-        company: CompanyProfile | null;
-        companies?: CompanyProfile[];
-        ksef: KsefSettings | null;
-        contractors: Contractor[];
-        products: Product[];
-        invoices: Invoice[];
-        notifications: AppNotification[];
-        notificationPrefs: NotificationPrefs;
-      };
+      const { response: res, data } = await read(get().dataMode, get().dataCompanyId ?? undefined);
       if (requestVersion !== dataRequestVersion) return;
+      if (!res.ok) {
+        if (res.status === 401) set({ authError: true, contractors: [], products: [], invoices: [] });
+        if (res.status === 403) set({ company: null, selectedCompanyId: null, contractors: [], products: [], invoices: [], hydrated: false });
+        return;
+      }
       const companies = data.companies ?? (data.company ? [data.company] : []);
       const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId, data.company);
 
@@ -225,9 +225,11 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
 
   resetData: () => {
     dataRequestVersion++;
+    requests.clear();
     set({
       hydrated: false,
       dataMode: "full",
+      dataCompanyId: null,
       authError: false,
       company: null,
       companies: [],
@@ -246,19 +248,20 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
   /* ── Zarządzanie spółkami (Multi-Company) — Optimistic UI ────────────────── */
 
   fetchCompanies: async () => {
-    const res = await fetch(get().dataMode === "list" ? "/api/data?invoiceMode=list" : "/api/data", { cache: "no-store", signal: AbortSignal.timeout(30000) });
-    if (!res.ok) throw await apiError(res, "Nie udało się pobrać listy firm.");
-    const data = (await res.json()) as { companies: CompanyProfile[] };
-    const defaultComp = resolveSelectedCompany(data.companies, get().selectedCompanyId);
+    const { response, data } = await read("shell");
+    if (!response.ok) throw new Error(data.error || "Nie udało się pobrać listy firm.");
+    const companies = data.companies ?? [];
+    const defaultComp = resolveSelectedCompany(companies, get().selectedCompanyId);
     set({
-      companies: data.companies,
+      companies,
       company: defaultComp,
       selectedCompanyId: defaultComp?.id ?? null,
     });
-    return data.companies;
+    return companies;
   },
 
   addCompany: async (c) => {
+    dataRequestVersion++; requests.clear();
     // 0ms Optimistic update
     const previousCompanies = get().companies;
     const previousCompany = get().company;
@@ -402,6 +405,7 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
   },
 
   setDefaultCompanyProfile: async (id) => {
+    dataRequestVersion++; requests.clear();
     // 0ms Optimistic update
     const previousCompanies = get().companies;
     const previousCompany = get().company;
@@ -439,7 +443,10 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
 
   setSelectedCompanyId: (id) => {
     const company = resolveSelectedCompany(get().companies, id);
-    set({ company, selectedCompanyId: company?.id ?? null, ksef: companyKsefSettings(company, get().ksef) });
+    const changed = company?.id !== get().selectedCompanyId;
+    if (changed) { dataRequestVersion++; requests.clear(); }
+    set({ company, selectedCompanyId: company?.id ?? null, ksef: companyKsefSettings(company, get().ksef),
+      ...(changed && get().dataCompanyId ? { contractors: [], products: [], invoices: [] } : {}) });
   },
 
   /* ── Ustawienia ─────────────────────────────────────────────────────── */
@@ -660,8 +667,12 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
   updateInvoice: async (id, patch) => {
     if (get().invoices.find((i) => i.id === id)?.type === 'purchase') throw new Error(PURCHASE_INVOICE_READ_ONLY);
     const previousInvoices = get().invoices;
-    const existing = previousInvoices.find((i) => i.id === id);
+    // Catalog-only route reads deliberately omit the invoice list. An editor
+    // keeps its authorised detail snapshot, including the original version.
+    const existing = previousInvoices.find((i) => i.id === id)
+      ?? (!get().draftInvoiceIsNew && get().draftInvoice?.id === id ? get().draftInvoice : null);
     if (!existing) throw new Error("Nie znaleziono faktury.");
+    if (existing.type === "purchase") throw new Error(PURCHASE_INVOICE_READ_ONLY);
 
     set({
       invoices: previousInvoices.map((i) => (i.id === id ? { ...i, ...patch } : i)),
@@ -797,7 +808,7 @@ const appStateCreator: StateCreator<AppState> = (set, get) => {
 export function createAppStore(initialBootstrap: AppBootstrapData | null = null): StoreApi<AppState> {
   return createStore<AppState>((set, get, api) => ({
     ...appStateCreator(set, get, api),
-    ...(initialBootstrap ? { ...bootstrapState(initialBootstrap, null), dataMode: "list" as const } : {}),
+    ...(initialBootstrap ? { ...bootstrapState(initialBootstrap, null), dataMode: initialBootstrap.dataMode ?? "list" as const } : {}),
   }));
 }
 

@@ -22,7 +22,7 @@ export type Overview = {
   ksefQueue: { id: string; invoiceId: string; number: string; status: string; attempts: number; maxAttempts: number; environment: string; updatedAt: string; nextAttemptAt: string | null; guidance: string }[];
 };
 
-export type OverviewSeed = { companyId: string; months: 6 | 12 | 24; data: Overview };
+export type OverviewSeed = { companyId: string; months: 6 | 12 | 24; data: Overview; etag?: string };
 
 class OverviewRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -43,9 +43,11 @@ export function useOverview(months: 6 | 12 | 24 = 6, initialOverview?: OverviewS
     error: "",
   }));
   const [refresh, setRefresh] = React.useState(0);
+  const validator = React.useRef({ key, etag: seed?.companyId === companyId && seed?.months === months ? seed.etag : undefined });
 
   React.useEffect(() => {
     const controller = new AbortController();
+    if (validator.current.key !== key || refresh > 0) validator.current = { key, etag: undefined };
     setResult(current => ({
       key,
       // Hydrate with the authorized server snapshot, then revalidate in the
@@ -53,8 +55,9 @@ export function useOverview(months: 6 | 12 | 24 = 6, initialOverview?: OverviewS
       data: current.key === key && refresh === 0 && current.data === seed?.data ? current.data : null,
       error: "",
     }));
-    if (companyId) fetch(`/api/overview?companyId=${encodeURIComponent(companyId)}&months=${months}`, { signal: controller.signal, cache: "no-store" })
+    if (companyId) fetch(`/api/overview?companyId=${encodeURIComponent(companyId)}&months=${months}`, { signal: controller.signal, cache: "no-store", headers: validator.current.etag ? { "If-None-Match": validator.current.etag } : undefined })
       .then(async res => {
+        if (res.status === 304 && validator.current.key === key && validator.current.etag) return null;
         if (!res.ok) {
           let message = "Nie udało się pobrać podsumowania.";
           try {
@@ -63,12 +66,15 @@ export function useOverview(months: 6 | 12 | 24 = 6, initialOverview?: OverviewS
           } catch { /* Preserve the HTTP status even when an error body is not JSON. */ }
           throw new OverviewRequestError(message, res.status);
         }
-        return await res.json() as Overview;
+        const data = await res.json() as Overview;
+        if (!controller.signal.aborted) validator.current = { key, etag: res.headers?.get("etag") || undefined };
+        return data;
       })
-      .then(data => { if (!controller.signal.aborted) setResult({ key, data, error: "" }); })
+      .then(data => { if (!controller.signal.aborted && data) setResult({ key, data, error: "" }); })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
         const accessDenied = err instanceof OverviewRequestError && (err.status === 401 || err.status === 403);
+        if (accessDenied) validator.current = { key, etag: undefined };
         setResult(current => ({
           key,
           // A previously authorized seed must disappear after access is revoked.

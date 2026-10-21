@@ -40,7 +40,7 @@ import { formatDateTime, invoiceTotals, formatMoney, round2 } from "@/lib/format
 import { buildFa3Xml } from "@/lib/ksef/xmlBuilder";
 import { SendInvoiceEmailModal } from "@/components/invoice/send-invoice-email-modal";
 import { EMPTY_COMPANY } from "@/lib/types";
-import type { Invoice } from "@/lib/types";
+import type { Contractor, Invoice } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -48,6 +48,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const invoices = useAppStore((s) => s.invoices);
   const [detail, setDetail] = React.useState<Invoice | null>(null);
+  const [detailContractor, setDetailContractor] = React.useState<Contractor | null>(null);
   const invoice = invoices.find((i) => i.id === id && i.detailsLoaded !== false) ?? (detail?.id === id ? detail : null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -67,7 +68,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Nie udało się wczytać dokumentu.");
-        if (!controller.signal.aborted) { setDetail(data.invoice); useAppStore.getState().applyInvoice(data.invoice); }
+        if (!controller.signal.aborted) { setDetail(data.invoice); setDetailContractor(data.contractor ?? null); useAppStore.getState().applyInvoice(data.invoice); }
       } catch (failure) {
         if (!controller.signal.aborted) setError(failure instanceof Error ? failure.message : "Nie udało się wczytać dokumentu.");
       } finally { busy = false; if (!controller.signal.aborted) setLoading(false); }
@@ -103,10 +104,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  return <InvoiceDetailView invoice={invoice} />;
+  return <InvoiceDetailView invoice={invoice} documentContractor={detailContractor} />;
 }
 
-function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
+function InvoiceDetailView({ invoice, documentContractor }: { invoice: Invoice; documentContractor: Contractor | null }) {
   const router = useRouter();
   const toast = useToast();
   useKsefStatusPolling([invoice]);
@@ -157,7 +158,7 @@ function InvoiceDetailView({ invoice }: { invoice: Invoice }) {
     : null;
   const companySafe = matchedCompany ?? company ?? EMPTY_COMPANY;
   const ksefEnv = invoice.ksef?.environment || ksef?.environment || "demo";
-  const contractor = getContractor(contractors, invoice.contractorId);
+  const contractor = documentContractor?.id === invoice.contractorId ? documentContractor : getContractor(contractors, invoice.contractorId);
   const exports = useInvoiceExports(invoice, contractor, companySafe);
   const status = effectiveStatus(invoice);
   const totals = invoiceTotals(invoice);

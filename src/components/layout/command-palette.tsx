@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useAppStore, getContractor } from "@/lib/store";
 import { useInvoiceSearch } from "@/lib/use-invoice-search";
+import { useCatalogSearch } from "@/lib/use-catalog-search";
 import { formatDate, formatMoney, invoiceTotals } from "@/lib/format";
 
 type SearchCategory = "all" | "invoices" | "contractors" | "actions" | "nav";
@@ -54,11 +55,14 @@ interface CommandItem {
 export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
   const toast = useToast();
-  const { contractors, products } = useAppStore();
   const companyId = useAppStore(s => s.selectedCompanyId);
 
   const [query, setQuery] = React.useState("");
-  const { invoices } = useInvoiceSearch({ companyId: companyId || "unassigned", search: query }, open);
+  const invoiceSearch = useInvoiceSearch({ companyId: companyId || "unassigned", search: query }, open);
+  const { invoices } = invoiceSearch;
+  const catalog = useCatalogSearch(query, open);
+  const products = catalog.products;
+  const contractors = React.useMemo(() => [...new Map([...catalog.contractors, ...(invoiceSearch.contractors ?? [])].map(contact => [contact.id, contact])).values()], [catalog.contractors, invoiceSearch.contractors]);
   const [activeCategory, setActiveCategory] = React.useState<SearchCategory>("all");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
@@ -438,7 +442,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyNavigation}
                 placeholder="Szukaj faktury (numer, kwota), kontrahenta (NIP, nazwa), polecenia…"
-                className="min-w-0 flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/70"
+                className="min-w-0 flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
               />
               {query && (
                 <button
@@ -455,9 +459,12 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               </kbd>
             </div>
 
+            {catalog.loading && <p role="status" className="px-4 py-2 text-xs text-muted-foreground">Wyszukiwanie w katalogu firmy…</p>}
+            {catalog.error && <p role="alert" className="px-4 py-2 text-xs text-destructive">{catalog.error} <button type="button" onClick={catalog.reload} className="underline">Spróbuj ponownie</button></p>}
+
             {/* Zakładki / Filtry kategorii */}
             <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/50 bg-card text-xs overflow-x-auto">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mr-1 hidden sm:inline">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline">
                 Filtr:
               </span>
               {[
@@ -491,7 +498,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
               {filtered.length === 0 ? (
                 <div className="py-12 text-center text-xs text-muted-foreground">
                   Nie znaleziono wyników dla &bdquo;<strong className="text-foreground">{query}</strong>&rdquo;.
-                  <p className="mt-1 text-xs text-muted-foreground/80">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Sprawdź numer faktury, fragment NIP lub nazwę kontrahenta.
                   </p>
                 </div>
@@ -542,7 +549,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                                 {item.badge}
                               </span>
                             )}
-                            <span className="text-xs uppercase font-semibold text-muted-foreground/60 tracking-wider">
+                            <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">
                               {item.category}
                             </span>
                           </div>
@@ -569,7 +576,7 @@ export function CommandPalette({ open, onOpenChange: setOpen }: { open: boolean;
                             onClick={(e) => copyNip(e, item.nip!, item.id)}
                             title="Kopiuj NIP"
                             aria-label={`Kopiuj NIP: ${item.nip}`}
-                            className="pointer-events-auto p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            className="pointer-events-auto grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             {copiedId === item.id ? (
                               <Check className="h-3.5 w-3.5 text-success" />

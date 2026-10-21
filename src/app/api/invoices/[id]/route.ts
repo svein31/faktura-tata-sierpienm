@@ -18,6 +18,7 @@ import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source"
 import { round2 } from "@/lib/format";
 import { warsawDate } from "@/lib/scheduling";
 import { recordPilotEvent } from "@/lib/pilot-metrics";
+import { readInvoiceContacts } from "@/lib/server/invoice-contacts";
 
 export const runtime = "nodejs";
 
@@ -80,7 +81,7 @@ export async function GET(_req: Request, { params }: Ctx) {
         environment: last.environment as "demo" | "test" | "production",
       };
     }
-    return json({ invoice });
+    return json({ invoice, contractor: (await readInvoiceContacts(user.id, [invoice]))[0] ?? null });
   } catch (e) {
     return handleApiError(e);
   }

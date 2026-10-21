@@ -72,7 +72,7 @@ export function useInvoicePreview(source: Source, onAccessLost: () => void) {
       if (request.current === controller) {request.current = null;setBusy(false);}
     }
   };
-  return {invoice,open,close,move,busy,error,retry:()=>move(retryDirection),
+  return {invoice,contractor:data?.contractors?.find(contact => contact.id === invoice?.contractorId),open,close,move,busy,error,retry:()=>move(retryDirection),
     position:index+1, count:data?.invoices.length || 0, page:(state?.pageIndex ?? 0)+1,
     hasPrevious: Boolean(invoice && (index>0 || state && state.pageIndex>0)),
     hasNext: Boolean(invoice && data && (index<data.invoices.length-1 || data.nextCursor)),

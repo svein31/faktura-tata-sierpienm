@@ -18,6 +18,10 @@ export async function auditWorkflowEfficiencyBrowser({ page, context, base, db, 
   const ready=async(p,path)=>{await p.goto(base+path,{waitUntil:'domcontentloaded'});await p.waitForFunction(()=>document.documentElement.dataset.uiReady==='true');};
   const scan=async(p,name)=>{
     await p.evaluate(()=>document.fonts.ready);
+    // Form interactions can leave the page at an arbitrary scroll offset, with
+    // a non-focused control half behind the sticky header. Scan the complete
+    // layout from a reproducible top position; keyboard checks stay separate.
+    await p.evaluate(()=>window.scrollTo(0,0));
     await expect.poll(()=>p.locator('[data-app-dialog="true"]').evaluateAll(nodes=>nodes.every(node=>Number(getComputedStyle(node).opacity)===1))).toBe(true);
     await p.waitForTimeout(200);
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),name+' has no page overflow');

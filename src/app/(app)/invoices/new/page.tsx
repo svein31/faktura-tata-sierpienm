@@ -13,6 +13,12 @@ export default function NewInvoicePage() {
   const draft = useAppStore((s) => s.draftInvoice);
   const editorSession = useAppStore(s => s.invoiceEditorSession);
   const companyId = useAppStore((s) => s.selectedCompanyId);
+  const draftIsNew = useAppStore(s => s.draftInvoiceIsNew);
+  React.useEffect(() => {
+    if (!draftIsNew && draft?.sellerCompanyId && draft.sellerCompanyId !== companyId && useAppStore.getState().companies.some(company => company.id === draft.sellerCompanyId)) {
+      useAppStore.getState().setSelectedCompanyId(draft.sellerCompanyId);
+    }
+  }, [draftIsNew, draft?.sellerCompanyId, companyId]);
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState("");
   const uploadPurchase = async (file?: File) => {

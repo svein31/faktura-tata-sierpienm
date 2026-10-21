@@ -1,6 +1,7 @@
 import "server-only";
 
 import { filterCompanyIdsByMfa, catalogWhere } from "@/lib/company-scope";
+import { ApiError } from "@/lib/api";
 import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
 import {
@@ -18,7 +19,7 @@ import type { CompanyProfile, CompanyRole } from "@/lib/types";
 import { invoiceBootstrapScope, readInvoiceSummaries } from "@/lib/invoice-summary";
 
 /** The same authorised bootstrap DTO used by the API and the request-local server render. */
-export async function readBootstrapData(user: { id: string }, listMode: boolean) {
+export async function readBootstrapData(user: { id: string }, listMode: boolean, options: { shell?: boolean; companyId?: string } = {}) {
   // 1. Pobierz członkostwa w zespołach
   const [memberships, initialOwnedCompanies, companySettings, ksef, notifications, prefs] = await Promise.all([
     prisma.companyMember.findMany({
@@ -116,23 +117,25 @@ export async function readBootstrapData(user: { id: string }, listMode: boolean)
   const permitted = new Set(await filterCompanyIdsByMfa(user.id, [...companyMap.keys()]));
   const allCompanies = Array.from(companyMap.values()).filter(c => permitted.has(c.id));
   const accessibleCompanyIds = allCompanies.map((c) => c.id);
+  if (options.companyId && options.companyId !== "unassigned" && !accessibleCompanyIds.includes(options.companyId)) throw new ApiError(403, "Brak dostępu do firmy.");
+  const catalogCompanyIds = options.companyId ? options.companyId === "unassigned" ? [] : [options.companyId] : accessibleCompanyIds;
   // Pobierz powiązane dane (faktury, kontrahenci, produkty itp.)
   const [contractors, products, invoices] = await Promise.all([
-    (async () => {
-      const linkedContacts = accessibleCompanyIds.length ? await prisma.invoice.groupBy({
-        by: ["contractorId"], where: { sellerCompanyId: { in: accessibleCompanyIds } },
+    options.shell ? Promise.resolve([]) : (async () => {
+      const linkedContacts = catalogCompanyIds.length ? await prisma.invoice.groupBy({
+        by: ["contractorId"], where: { sellerCompanyId: { in: catalogCompanyIds } },
       }) : [];
       const linkedContactIds = linkedContacts.map(i => i.contractorId).filter((id): id is string => Boolean(id));
       return prisma.contractor.findMany({
-        where: { OR: [catalogWhere(user.id, accessibleCompanyIds), { id: { in: linkedContactIds }, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] },
+        where: { OR: [catalogWhere(user.id, catalogCompanyIds), { id: { in: linkedContactIds }, OR: [{ companyId: null }, { companyId: { isSet: false } }] }] },
         orderBy: { createdAt: "desc" },
       });
     })(),
-    prisma.product.findMany({
-      where: catalogWhere(user.id, accessibleCompanyIds),
+    options.shell ? Promise.resolve([]) : prisma.product.findMany({
+      where: catalogWhere(user.id, catalogCompanyIds),
       orderBy: { createdAt: "desc" },
     }),
-    listMode ? Promise.resolve([]) : readInvoiceSummaries(prisma, invoiceBootstrapScope(user.id, accessibleCompanyIds)),
+    listMode || options.shell ? Promise.resolve([]) : readInvoiceSummaries(prisma, options.companyId && options.companyId !== "unassigned" ? { sellerCompanyId: { $oid: options.companyId } } : invoiceBootstrapScope(user.id, catalogCompanyIds)),
   ]);
 
   const defaultCompany = allCompanies.find((c) => c.isDefault) ?? allCompanies[0] ?? null;
@@ -146,6 +149,8 @@ export async function readBootstrapData(user: { id: string }, listMode: boolean)
     invoices,
     notifications: notifications.map(notificationToDto),
     notificationPrefs: prefsToDto(prefs),
+    ...(options.shell ? { dataMode: "shell" as const } : {}),
+    ...(options.companyId ? { dataCompanyId: options.companyId } : {}),
   };
 }
 

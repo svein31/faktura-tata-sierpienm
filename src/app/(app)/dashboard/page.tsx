@@ -4,6 +4,7 @@ import { getInitialAppData } from "@/lib/server/app-initial-data";
 import { readAuthorizedOverview } from "@/lib/server/overview-data";
 import type { OverviewSeed } from "@/lib/use-overview";
 import DashboardClient from "./dashboard-client";
+import { privateEtag } from "@/lib/server/private-response";
 
 export default async function DashboardPage() {
   const { user, bootstrap } = await getInitialAppData();
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
     if (company) {
       try {
         const data = await readAuthorizedOverview(user, new URLSearchParams({ companyId: company.id, months: "6" }));
-        initialOverview = { companyId: company.id, months: 6, data };
+        initialOverview = { companyId: company.id, months: 6, data, etag: privateEtag({ ...data, checkedAt: undefined }) };
       } catch (error) {
         reportUnexpectedError(error);
       }

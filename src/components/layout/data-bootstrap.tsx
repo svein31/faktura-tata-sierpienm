@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { AppLoadingSkeleton } from "./app-loading-skeleton";
 import { LoadingReveal } from "@/components/ui/loading-reveal";
+import { dataLoadPolicy } from "@/lib/data-load-policy";
 
 /**
  * Jednorazowy bootstrap danych zalogowanego użytkownika (GET /api/data).
@@ -18,22 +19,27 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   // Ekrany korzystające z własnych zapytań dostają tylko katalogi, bez wszystkich faktur.
-  const fullInvoicePaths = new Set(["/invoices/recurring", "/advances", "/recurring", "/reminders", "/finances", "/calendar", "/settings/companies"]);
-  const mode = fullInvoicePaths.has(pathname) ? "full" : "list";
+  const selectedCompanyId = useAppStore(s => s.selectedCompanyId);
+  const temporaryCompany = selectedCompanyId?.startsWith("temp_") ?? false;
+  const { mode, companyId } = dataLoadPolicy(pathname, selectedCompanyId);
   const dataMode = useAppStore(s => s.dataMode);
+  const dataCompanyId = useAppStore(s => s.dataCompanyId);
+  const ready = dataMode === mode && (temporaryCompany || mode === "shell" || dataCompanyId === (companyId ?? null));
   const hydrated = useAppStore((s) => s.hydrated);
   const authError = useAppStore((s) => s.authError);
 
   const [error, setError] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
   React.useEffect(() => {
+    if (temporaryCompany) return;
     let cancelled = false;
     let retry: ReturnType<typeof setTimeout> | undefined;
     setError(false);
     const boot = async (automaticRetry: boolean) => {
-      if (useAppStore.getState().hydrated && useAppStore.getState().dataMode === mode) return;
+      const state = useAppStore.getState();
+      if (state.hydrated && state.dataMode === mode && (mode === "shell" || state.dataCompanyId === (companyId ?? null))) return;
       try {
-        await useAppStore.getState().bootstrap(mode);
+        await useAppStore.getState().bootstrap(mode, companyId);
       } catch {
         if (cancelled) return;
         if (automaticRetry) retry = setTimeout(() => void boot(false), 2000);
@@ -42,7 +48,7 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     };
     void boot(true);
     return () => { cancelled = true; clearTimeout(retry); };
-  }, [attempt, mode]);
+  }, [attempt, mode, companyId, temporaryCompany]);
 
   // SWR-style: cicha rewalidacja w tle przy powrocie na stronę
   React.useEffect(() => {
@@ -63,12 +69,12 @@ export function DataBootstrap({ children }: { children: React.ReactNode }) {
     }
   }, [authError, router]);
 
-  if ((!hydrated || dataMode !== mode) && error) return (
+  if ((!hydrated || !ready) && error) return (
     <div role="alert" className="rounded-2xl border border-border p-6 space-y-3">
       <h2 className="font-semibold">Nie udało się wczytać danych</h2>
       <p className="text-sm text-muted-foreground">Sprawdź połączenie z internetem i spróbuj ponownie.</p>
       <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setAttempt(n => n + 1)}>Spróbuj ponownie</button>
     </div>
   );
-  return <LoadingReveal key={mode} loading={!hydrated || dataMode !== mode} fallback={<AppLoadingSkeleton />}>{children}</LoadingReveal>;
+  return <LoadingReveal key={mode} loading={!hydrated || !ready} fallback={<AppLoadingSkeleton />}>{children}</LoadingReveal>;
 }

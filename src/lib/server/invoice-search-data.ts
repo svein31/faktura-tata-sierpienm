@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api";
 import { requireCompanyAccess } from "@/lib/permissions";
 import { objectId } from "@/lib/company-scope";
 import { invoiceSearchParams, readInvoiceSearchPage } from "@/lib/invoice-search";
+import { readInvoiceContacts } from "@/lib/server/invoice-contacts";
 
 /** Rechecks current company access, filters and cursor scope for every caller. */
 export async function readAuthorizedInvoiceSearch(user: { id: string }, params: URLSearchParams) {
@@ -25,7 +26,10 @@ export async function readAuthorizedInvoiceSearch(user: { id: string }, params: 
     const comparison = filters.sort === "date_asc" ? "$gt" : "$lt";
     after = [{ $match: { $or: [{ issueDate: { [comparison]: anchor.issueDate } }, { issueDate: anchor.issueDate, _id: { [comparison]: { $oid: anchor.id } } }] } }];
   }
-  return readInvoiceSearchPage(prisma, scope, filters, after);
+  const page = await readInvoiceSearchPage(prisma, scope, filters, after);
+  // At most 30 referenced contacts. Full DTOs preserve export/email actions;
+  // unrelated catalog entries never accompany the initial list.
+  return { ...page, contractors: await readInvoiceContacts(user.id, page.invoices) };
 }
 
 export type InvoiceSearchData = Awaited<ReturnType<typeof readAuthorizedInvoiceSearch>>;

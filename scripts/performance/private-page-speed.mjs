@@ -14,7 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { randomBytes, createHash } from 'node:crypto';
 import { options, numberOption } from './metrics.mjs';
 const args = options();
-const acceptedOptions = ['app-root', 'output', 'runs', 'cpu-rate', 'cold-only', 'diagnostic', 'mongo-binary', 'chromium', 'budget-ms'];
+const acceptedOptions = ['app-root', 'output', 'runs', 'cpu-rate', 'cold-only', 'diagnostic', 'mongo-binary', 'chromium', 'budget-ms', 'catalog-size'];
 assert.ok(Object.keys(args).every(key => acceptedOptions.includes(key)), 'Only isolated fixture options are accepted; remote URLs/databases/credentials are forbidden');
 for (const key of ['cold-only', 'diagnostic'])
     assert.ok(args[key] === undefined || args[key] === true, '--' + key + ' is a flag without a value');
@@ -24,6 +24,7 @@ const repo = resolve(args['app-root'] || process.cwd()), output = resolve(args.o
 const repetitionsCount = numberOption(args.runs, 3, 1, 5, 'runs'), cpuRate = numberOption(args['cpu-rate'], 4, 1, 8, 'cpu-rate');
 const coldOnly = args['cold-only'] === true, diagnostic = args.diagnostic === true;
 const budgetMs = args['budget-ms'] === undefined ? null : numberOption(args['budget-ms'], 4000, 100, 60000, 'budget-ms');
+const catalogSize = numberOption(args['catalog-size'], 0, 0, 5000, 'catalog-size');
 const mongoBinary = args['mongo-binary'] || process.env.MONGOMS_SYSTEM_BINARY;
 const chromiumPath = args.chromium || process.env.CHROMIUM_EXECUTABLE_PATH;
 const require = createRequire(resolve(repo, 'package.json'));
@@ -85,6 +86,15 @@ try {
     const user = await db.user.create({ data: { email: 'speed@example.invalid', name: 'Synthetic speed user', password: 'not-a-real-login-credential', termsAcceptedAt: new Date(), termsAcceptedVersion: legal } });
     const company = await db.companyProfile.create({ data: { userId: user.id, nip: '5260301706', companyName: 'Synthetic speed tenant', isDefault: true } });
     const contractor = await db.contractor.create({ data: { userId: user.id, companyId: company.id, name: 'Synthetic buyer', nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' } } });
+    if (catalogSize) {
+        const second = await db.companyProfile.create({ data: { userId: user.id, nip: '5250001003', companyName: 'Synthetic second tenant', isDefault: false } });
+        for (const tenant of [company, second]) {
+            const now = new Date();
+            await db.contractor.createMany({ data: Array.from({ length: catalogSize }, (_, i) => ({ userId: user.id, companyId: tenant.id, name: `Synthetic customer ${i}`, nip: '5250001003', address: { street: 'Testowa 1', city: 'Warszawa', postal: '00-001', country: 'PL' }, createdAt: now })) });
+            await db.product.createMany({ data: Array.from({ length: catalogSize }, (_, i) => ({ userId: user.id, companyId: tenant.id, name: `Synthetic service ${i}`, unit: 'szt.', netPrice: 100, vatRate: '23' })) });
+        }
+    }
+    report.conditions.catalog = { companies: catalogSize ? 2 : 1, additionalContractorsPerCompany: catalogSize, productsPerCompany: catalogSize };
     await db.subscription.create({ data: { userId: user.id, plan: 'yearly', status: 'active', accessSource: 'complimentary', currentPeriodEnd: new Date(Date.now() + 86400000) } });
     const bearer = randomBytes(32).toString('base64url');
     await db.session.create({ data: { userId: user.id, sessionToken: 'sha256:' + createHash('sha256').update(bearer).digest('hex'), expiresAt: new Date(Date.now() + 86400000) } });
@@ -218,6 +228,7 @@ try {
                 record.blockedRequests = blocked.slice();
                 record.domNavigation = kind === 'cold-entry';
                 record.documentIdentity = currentDocumentIdentity;
+                record.scripts = await page.evaluate(() => performance.getEntriesByType('resource').filter(r => new URL(r.name).pathname.endsWith('.js')).map(r => ({ path: new URL(r.name).pathname, bytes: r.encodedBodySize })));
                 samples.push(record);
                 console.log(JSON.stringify({ kind, route: target, iteration, skeletonMs: record.skeletonMs, readyMs: record.readyMs, controlsReadyMs: record.controlsReadyMs, dataAndControlsReadyMs: record.dataAndControlsReadyMs, api: record.resources.map(r => ({ path: r.path, ttfbMs: round(r.ttfbMs) })), jsErrors: errors.length, blocked: blocked.length }));
                 return record;

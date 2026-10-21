@@ -4,6 +4,7 @@ import { getInitialAppData } from "@/lib/server/app-initial-data";
 import { readAuthorizedInvoiceSearch } from "@/lib/server/invoice-search-data";
 import type { InitialInvoiceSearch } from "@/lib/use-invoice-search";
 import InvoicesClient from "./invoices-client";
+import { privateEtag } from "@/lib/server/private-response";
 
 export default async function InvoicesPage() {
   const { user, bootstrap } = await getInitialAppData();
@@ -24,9 +25,10 @@ export default async function InvoicesPage() {
       cursor: "",
     });
     try {
+      const data = await readAuthorizedInvoiceSearch(user, params);
       initialSearch = {
         url: `/api/invoices/search?${params.toString()}`,
-        data: await readAuthorizedInvoiceSearch(user, params),
+        data, etag: privateEtag(data),
       };
     } catch (error) {
       reportUnexpectedError(error);
