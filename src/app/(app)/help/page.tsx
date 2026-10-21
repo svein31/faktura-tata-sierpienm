@@ -1,4 +1,5 @@
 "use client";
+import { ReportButton } from "@/components/support/report-button";
 import { useAppStore } from "@/lib/store";
 
 import * as React from "react";
@@ -14,11 +15,11 @@ import {
   Briefcase,
   DollarSign,
   Users2,
-  Sparkles,
+  BookOpen,
+  Image,
   Search,
   ArrowRight,
   HelpCircle,
-  Send,
   CreditCard,
   Globe,
   History,
@@ -85,7 +86,7 @@ const HELP_SECTIONS: HelpSection[] = [
       {
         title: "5. Kliknij „Wyślij fakturę e-mailem”",
         description:
-          "Wiadomość zostanie natychmiast wysłana do klienta. System zapisze dokładną datę wysyłki, adresata oraz zaktualizuje historię doręczeń w zakładce dokumentu.",
+          "Sprawdź wynik i historię wysyłki. Przyjęcie wiadomości przez dostawcę poczty nie potwierdza jej doręczenia do skrzynki odbiorcy. Przy niepewnym wyniku najpierw sprawdź historię u dostawcy, zanim wyślesz ponownie.",
       },
       {
         title: "6. Automatyczna wysyłka po KSeF (opcjonalnie)",
@@ -113,7 +114,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "2. Wpisz NIP nabywcy",
-        description: "Po wpisaniu NIP kliknij ikonę lupy – nazwa i adres firmy uzupełnią się natychmiast z bazy GUS REGON.",
+        description: "Po wpisaniu NIP wybierz wyszukiwanie w GUS. Po otrzymaniu wyniku sprawdź nazwę i adres firmy przed zapisem.",
       },
       {
         title: "3. Dodaj pozycje na fakturze",
@@ -148,7 +149,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "2. Odbiór numeru referencyjnego",
-        description: "Ministerstwo przyjmuje dokument i nadaje mu unikalny 36-znakowy Identyfikator KSeF.",
+        description: "Zlecenie trafia do kolejki wysyłki. Sam numer referencyjny sesji nie potwierdza przyjęcia faktury. Zaczekaj na końcowy status dokumentu i numer KSeF.",
       },
       {
         title: "3. Pobranie UPO i kodów QR",
@@ -179,7 +180,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "3. Automatyczne uzupełnienie",
-        description: "Pełna nazwa spółki, adres siedziby, kod pocztowy i miasto zostają uzupełnione w 1 sekundę.",
+        description: "Po otrzymaniu odpowiedzi uzupełniamy dostępne dane z rejestru. Czas zależy od dostępności GUS. Jeśli rejestr nie odpowiada, możesz wpisać dane ręcznie.",
       },
     ],
     quickAction: {
@@ -194,7 +195,7 @@ const HELP_SECTIONS: HelpSection[] = [
     category: "company",
     categoryLabel: "Logo i Wygląd",
     title: "Dodawanie i zmiana Logo firmy na fakturze i w PDF",
-    icon: Sparkles,
+    icon: Image,
     steps: [
       {
         title: "1. Wejdź w Ustawienia Firmy",
@@ -206,7 +207,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "3. Zapisz zmiany",
-        description: "Kliknij „Zapisz firmę”. Twoje logo natychmiast pojawi się w lewym górnym rogu faktury, w plikach PDF oraz w nagłówku e-maili.",
+        description: "Kliknij „Zapisz firmę” i sprawdź podgląd wybranego szablonu. Zmiana profilu nie zmienia wcześniej zapisanych, niezmiennych wersji dokumentów PDF.",
       },
     ],
     quickAction: {
@@ -287,7 +288,7 @@ const HELP_SECTIONS: HelpSection[] = [
       },
       {
         title: "3. Automatyczny bilans podatkowy",
-        description: "Aplikacja natychmiast przeliczy Twój realny zysk netto oraz kwotę podatku VAT do zapłaty w urzędzie skarbowym.",
+        description: "Zestawienia pokazują dane wynikające z zapisanych dokumentów. Szacunki podatków wymagają poprawnej konfiguracji i weryfikacji z księgowością; nie zastępują deklaracji podatkowej.",
       },
     ],
     quickAction: {
@@ -309,8 +310,8 @@ const HELP_SECTIONS: HelpSection[] = [
         description: "W szczegółach faktury możesz w dowolnej chwili zarejestrować wpłatę pełną lub częściową.",
       },
       {
-        title: "2. Import wyciągów (CSV / MT940)",
-        description: "W menu „Finanse & Wyciągi” kliknij „Importuj wyciąg” i wgraj plik z konta bankowego – system sam powiąże wpłaty.",
+        title: "2. Import wyciągów (CSV / MT940 / camt.053)",
+        description: "Wgraj wyciąg CSV, MT940 lub camt.053 XML. Sprawdź rachunek firmy, walutę i proponowane dopasowania. Płatności zapiszą się wyłącznie dla dopasowań, które zatwierdzisz.",
       },
       {
         title: "3. Kontrola płynności",
@@ -666,20 +667,21 @@ export default function HelpPage() {
 
   return (
     <div className="space-y-6 pb-16">
-      <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4 text-sm" aria-label="Pomoc i informacje prawne">{[["/regulamin","Regulamin"],["/polityka-prywatnosci","Prywatność"],["/polityka-cookies","Cookies"],["/powierzenie-danych","Powierzenie danych"],["/podwykonawcy","Podwykonawcy"]].map(([href,label])=><Link prefetch={false} key={href} href={href} className="text-primary underline">{label}</Link>)}<button className="text-primary underline" onClick={()=>window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}>Preferencje cookies</button></div>
+      <div className="flex flex-wrap gap-3 rounded-xl border bg-card p-4 text-sm" role="navigation" aria-label="Pomoc i informacje prawne">{[["/regulamin","Regulamin"],["/polityka-prywatnosci","Prywatność"],["/polityka-cookies","Cookies"],["/powierzenie-danych","Powierzenie danych"],["/podwykonawcy","Podwykonawcy"]].map(([href,label])=><Link prefetch={false} key={href} href={href} className="text-primary underline">{label}</Link>)}<button className="text-primary underline" onClick={()=>window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}>Preferencje cookies</button></div>
       {/* Nagłówek strony */}
       <PageHeader
         title="Instrukcja obsługi FakturaProsto"
         description="Krótki, szczegółowy przewodnik krok po kroku po wszystkich funkcjach systemu fakturowania, KSeF i finansów."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <ReportButton />
             <Button
               variant="outline"
               size="sm"
               onClick={openOnboardingTour}
               className="gap-1.5 shadow-sm text-xs border-border/70"
             >
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <BookOpen className="h-3.5 w-3.5 text-primary" />
               <span>Samouczek onboardingowy</span>
             </Button>
             <Link prefetch={false} href="/invoices/new" onClick={() => useAppStore.getState().setDraft(null, true)}>
@@ -729,146 +731,33 @@ export default function HelpPage() {
         </div>
       </div>
 
-      {/* ── WYRÓŻNIONA KARTA: WYSYŁKA FAKTURY E-MAILEM (W CAŁOŚCI POGRUBIONA CZCIONKA) ── */}
-      {(!search || "wysyłka e-mail mail wyslij fakture poczta".includes(search.toLowerCase())) &&
-        (activeCategory === "all" || activeCategory === "email") && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.16 }}
-            className="surface-card p-5 sm:p-6"
-          >
-
-            <div className="relative z-10 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md ">
-                    <Mail className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-primary dark:text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                        Kluczowa Funkcja • Instrukcja Priorytetowa
-                      </span>
-                    </div>
-                    <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground mt-0.5">
-                      JAK WYSŁAĆ FAKTURĘ E-MAILEM Z SYSTEMU
-                    </h2>
-                  </div>
-                </div>
-
-                <Link prefetch={false} href="/invoices">
-                  <Button size="sm" className="gap-1.5 font-bold bg-primary hover:bg-primary text-primary-foreground shadow-sm">
-                    <Send className="h-3.5 w-3.5" />
-                    <span>Otwórz listę faktur i wyślij</span>
-                  </Button>
-                </Link>
-              </div>
-
-              {/* TEKST INSTRUKCJI W CAŁOŚCI POGRUBIONĄ CZCIONKĄ (WYMÓG UŻYTKOWNIKA) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">1</span>
-                    Wejdź w listę faktur lub szczegóły dokumentu
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    Kliknij ikonę koperty w tabeli faktur LUB wejdź w podgląd faktury i kliknij niebieski przycisk „Wyślij e-mailem”.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">2</span>
-                    Adres klienta uzupełnia się samoczynnie
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    E-mail odbiorcy wstawia się automatycznie z danych kontrahenta. Możesz go w oknie zmienić oraz dodać kopię DW lub ukrytą UDW.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">3</span>
-                    Gotowa, profesjonalna treść z kwotą i kontem
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    Wiadomość sama zawiera kwotę do zapłaty, walutę, termin płatności, Twój numer konta bankowego, numer KSeF oraz stopkę firmy.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">4</span>
-                    Załącznik PDF jest dołączony domyślnie
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    Faktura PDF z kodami QR i statusem generuje się w locie. Możesz też zaznaczyć dołączenie pliku XML FA(3) oraz certyfikatu UPO.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">5</span>
-                    Wysyłka w 0.2 sekundy i pełna historia doręczeń
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    Kliknij „Wyślij fakturę e-mailem”. System zapisze dokładną datę wysyłki i odbiorcę, a w zakładce „Historia wysyłek” widzisz pełny rejestr.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-primary/30 bg-card p-4 shadow-2xs space-y-2">
-                  <p className="font-semibold text-[13px] text-primary dark:text-primary flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[11px] font-semibold">6</span>
-                    Automat po akceptacji przez KSeF
-                  </p>
-                  <p className="font-bold text-[12.5px] leading-relaxed text-foreground">
-                    Włączając opcję „Automatycznie wyślij po KSeF”, system sam wyśle fakturę klientowi, jak tylko Ministerstwo Finansów zatwierdzi dokument.
-                  </p>
-                </div>
-              </div>
-
-              {/* Informacja o zmiennych na Netlify */}
-              <div className="rounded-xl bg-primary/10 border border-primary/20 p-3.5 text-xs text-primary dark:text-primary">
-                <p className="font-semibold text-[12px] uppercase tracking-wide">
-                  Wskazówka: Jak aktywować wysyłkę na Netlify (ta-fax.netlify.app):
-                </p>
-                <p className="font-bold mt-1 text-[11.5px] leading-relaxed">
-                  W panelu Netlify (Site configuration → Environment variables) dodaj zmienne:{" "}
-                  <code className="bg-muted px-1 py-0.5 rounded text-foreground font-medium">RESEND_API_KEY</code> oraz{" "}
-                  <code className="bg-muted px-1 py-0.5 rounded text-foreground font-medium">EMAIL_FROM</code>, a następnie kliknij{" "}
-                  <span className="underline font-semibold">Deploys → Trigger deploy → Deploy site</span>.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
+      {(activeCategory === "all" || activeCategory === "email") && filteredSections.some(section => section.id === "email-send") && <section className="surface-card p-5 sm:p-6" aria-labelledby="email-guide-heading"><div className="flex items-center gap-3"><Mail aria-hidden="true" className="size-5 text-muted-foreground" /><h2 id="email-guide-heading" className="text-base font-semibold">Wysyłanie faktury e-mailem</h2></div><ol className="mt-4 grid gap-4 md:grid-cols-2">{HELP_SECTIONS[0].steps.map(step => <li key={step.title} className="border-l-2 border-border pl-3"><h3 className="text-sm font-medium">{step.title}</h3><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.description}</p></li>)}</ol><div className="mt-5 border-t pt-4"><Link prefetch={false} href="/invoices" className="inline-flex min-h-10 items-center gap-2 text-sm font-medium text-primary">Otwórz listę faktur<ArrowRight aria-hidden="true" className="size-4" /></Link><p className="mt-2 text-xs text-muted-foreground">Jeżeli wysyłka jest niedostępna, skontaktuj się z obsługą. Sprawdź również, czy adres e-mail Twojego konta został potwierdzony.</p></div></section>}
 
       {/* ── LISTA POZOSTAŁYCH INSTRUKCJI (SIATKA KART) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredSections
           .filter((s) => !s.isFeatured)
-          .map((section, idx) => {
+          .map((section) => {
             const Icon = section.icon;
             return (
               <motion.div
                 key={section.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.03 }}
+                transition={{ duration: 0.16 }}
                 className="flex flex-col justify-between rounded-xl border border-border/60 bg-card p-5 shadow-xs hover:border-border transition-all"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-md border bg-muted/30 text-muted-foreground">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                           {section.categoryLabel}
                         </span>
-                        <h3 className="text-[14px] font-bold text-foreground leading-snug">
+                        <h3 className="text-[14px] font-medium text-foreground leading-snug">
                           {section.title}
                         </h3>
                       </div>
@@ -879,7 +768,7 @@ export default function HelpPage() {
                   <div className="space-y-2.5 pt-1">
                     {section.steps.map((step, stepIdx) => (
                       <div key={stepIdx} className="text-xs space-y-0.5 border-l-2 border-primary/20 pl-2.5 py-0.5">
-                        <p className="font-bold text-foreground text-[12px]">{step.title}</p>
+                        <p className="font-medium text-foreground text-[12px]">{step.title}</p>
                         <p className="text-muted-foreground leading-relaxed text-[11.5px]">{step.description}</p>
                       </div>
                     ))}
@@ -906,7 +795,7 @@ export default function HelpPage() {
 
       {filteredSections.length === 0 && (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
-          <HelpCircle className="mx-auto h-8 w-8 text-muted-foreground/60" />
+          <HelpCircle className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-3 text-sm font-semibold text-foreground">Nie znaleziono instrukcji dla „{search}”</p>
           <p className="mt-1 text-xs text-muted-foreground">
             Spróbuj wyszukać np. „mail”, „ksef”, „faktura”, „logo”, „koszt” lub zresetuj filtr.

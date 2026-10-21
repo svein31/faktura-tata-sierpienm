@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ReportButton } from "@/components/support/report-button";
 import Link from "next/link";
 import { Menu, LogOut, Search, HelpCircle, Building2, ChevronDown, Check, Shield } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -191,6 +192,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         </button>
 
         <NotificationBell />
+        <ReportButton compact />
         <Link
           href="/help"
           prefetch={false}

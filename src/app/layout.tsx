@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { DIAGNOSTIC_BOOTSTRAP_SCRIPT } from "@/lib/product-diagnostics";
+import { ClientDiagnostics } from "@/components/client-diagnostics";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -68,10 +70,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pl" suppressHydrationWarning className="dark" style={{ "--font-sans": fontFamily } as React.CSSProperties}>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: DIAGNOSTIC_BOOTSTRAP_SCRIPT }} />
+        <meta name="fakturaprosto-revision" content={process.env.APP_BUILD_REVISION || "unknown"} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: COOKIE_CONSENT_VISIBILITY_SCRIPT }} />
       </head>
       <body className="font-sans bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary min-h-screen">
+        <ClientDiagnostics />
         <ThemeProvider>
           <ToastProvider>
             <SessionProvider deferPublicCheck>

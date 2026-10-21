@@ -76,7 +76,7 @@ export function OnboardingTour({ open: isOpen, onClose }: { open: boolean; onClo
           {TOUR_STEPS.map((item, index) => <span key={item.id} aria-hidden="true" className={cn("h-1 flex-1 rounded-full transition-colors", index <= stepIndex ? "bg-primary" : "bg-muted")} />)}
         </div>
         <div className="mt-6 flex items-start gap-3.5">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary"><Icon aria-hidden="true" className="size-5" /></span>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground"><Icon aria-hidden="true" className="size-5" /></span>
           <div className="min-w-0">
             <h2 className="text-lg font-semibold leading-snug tracking-tight">{step.title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>

@@ -7,7 +7,7 @@ import { COOKIE_CONSENT_NAME, COOKIE_CONSENT_VERSION } from "./cookie-consent";
 export const PILOT_CONSENT_VERSION = COOKIE_CONSENT_VERSION;
 export const PILOT_COOKIE = "fakturo_pilot";
 export const PILOT_RETENTION_MS = 30 * 86400000;
-export const PILOT_EVENTS = ["visit", "register", "first_invoice", "ksef", "pro"] as const;
+export const PILOT_EVENTS = ["visit", "register", "creator_open", "draft_saved", "first_invoice", "ksef", "pro"] as const;
 export type PilotEvent = typeof PILOT_EVENTS[number];
 export type PilotVital = { metric: "TTFB" | "LCP" | "INP" | "CLS"; metricId: string; value: number; pageClass: "public" | "app"; device: "mobile" | "desktop" };
 type Metric = { _id: string; stages?: Partial<Record<PilotEvent, Date>>; createdAt?: Date; expiresAt: Date; revoked?: boolean; vitalFence?: number };

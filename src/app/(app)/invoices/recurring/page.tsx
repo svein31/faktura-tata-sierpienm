@@ -19,7 +19,7 @@ import {
   Mail,
   Send,
   Calendar,
-  Sparkles,
+  Repeat2,
   ExternalLink,
 } from "lucide-react";
 import { useCompanyInvoices } from "@/lib/use-company-invoices";
@@ -248,7 +248,7 @@ export default function RecurringInvoicesPage() {
           <div className="flex items-center justify-between text-muted-foreground mb-1.5">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Automatyzacja</span>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/20">
-              <Sparkles className="h-4 w-4" />
+              <Repeat2 className="h-4 w-4" />
             </div>
           </div>
           <p className="text-lg font-bold tracking-tight text-foreground">

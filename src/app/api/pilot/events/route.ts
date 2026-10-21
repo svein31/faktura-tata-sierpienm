@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   }
   try {
     const body = JSON.parse(raw);
-    if (!body || Object.keys(body).length !== 1 || body.event !== "visit") return response(400);
+    if (!body || Object.keys(body).length !== 1 || !["visit", "creator_open"].includes(body.event)) return response(400);
     const limit = await rateLimitShared(req, { windowMs: 60000, max: 30 }, "pilot-visit");
     if (!limit.allowed) return response(429);
     const secret = process.env.PILOT_METRICS_SECRET!;
@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     const identity = pilotIdentity(existing, secret);
     const value = identity ? existing! : issuePilotCookie(secret);
     await persistPilotEvent(value, "visit");
+    if (body.event === "creator_open") await persistPilotEvent(value, "creator_open");
     const res = response();
     if (!identity) setCookie(res, req, value, PILOT_RETENTION_MS / 1000);
     return res;

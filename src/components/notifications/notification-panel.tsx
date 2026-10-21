@@ -157,7 +157,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
     <div className="max-h-[300px] overflow-y-auto">
       {notifications.length === 0 ? (
         <div className="px-4 py-10 text-center">
-          <Bell className="mx-auto h-8 w-8 text-muted-foreground/40" />
+          <Bell className="mx-auto h-8 w-8 text-muted-foreground" />
           <p className="mt-2 text-[13px] font-medium">Brak powiadomień</p>
           <p className="mt-0.5 text-[12px] text-muted-foreground">
             Nowe faktury zakupowe i statusy KSeF pojawią się tutaj.
@@ -189,7 +189,7 @@ export function NotificationPanel({ notifSupported, handleNew, onClose, busy, se
                 {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
               </span>
               {n.body && <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground break-words">{n.body}</span>}
-              <span className="mt-0.5 block text-[10.5px] text-muted-foreground/70">
+              <span className="mt-0.5 block text-[10.5px] text-muted-foreground">
                 {formatDateTime(n.createdAt)}
               </span>
             </span>

@@ -8,7 +8,7 @@
 
 export const LEGAL_VERSIONS = {
   terms: "1.1.0-2026-10-07",
-  privacy: "1.3.0-2026-10-15",
+  privacy: "1.4.0-2026-10-21",
   cookies: "1.2.0-2026-10-15",
   dpa: "1.1.0-2026-10-07",
   subprocessors: "1.1.0-2026-10-15",
@@ -17,7 +17,7 @@ export const LEGAL_VERSIONS = {
 export const EFFECTIVE_DATE = "7 października 2026 r.";
 export const LEGAL_EFFECTIVE_DATES = {
   terms: EFFECTIVE_DATE,
-  privacy: "15 października 2026 r.",
+  privacy: "21 października 2026 r.",
   cookies: "15 października 2026 r.",
   dpa: EFFECTIVE_DATE,
   subprocessors: "15 października 2026 r.",
@@ -196,11 +196,11 @@ export const COOKIE_INVENTORY: CookieItem[] = [
     type: "cookie",
   },
   {
-    name: "fakturaprosto-theme / fakturo-theme",
+    name: "fakturaprosto-theme / fakturo-theme / fakturaprosto-colors / fakturaprosto:revenue-chart:v1:*",
     category: "essential",
     categoryLabel: "Niezbędne (funkcjonalne)",
     provider: "fakturaprosto.pl (własne)",
-    purpose: "Zapamiętanie wybranego motywu graficznego (ciemny / jasny / systemowy) w celu uniknięcia migotania ekranu.",
+    purpose: "Zapamiętanie wybranego motywu (ciemny / jasny / systemowy), palety kolorów i rodzaju wykresu. Preferencje wykresu są osobne dla konta i firmy w tej przeglądarce.",
     expiry: "Trwałe (do wyczyszczenia pamięci podręcznej)",
     type: "localStorage",
   },

@@ -83,3 +83,9 @@ export function installPilotMetrics(): () => void {
   sync();
   return () => { stopped = true; window.removeEventListener("fakturo-consent-updated", sync); window.removeEventListener("focus", onFocus); window.removeEventListener("online", onFocus); };
 }
+
+/** This measures opening the editor, never successful invoice creation. */
+export async function sendCreatorCheckpoint() {
+  if (!hasPilotClientConsent() || !await ensurePilotVisit() || !hasPilotClientConsent()) return;
+  try { await requestPilot("/api/pilot/events", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: '{"event":"creator_open"}', keepalive: true }); } catch { /* Optional measurement. */ }
+}

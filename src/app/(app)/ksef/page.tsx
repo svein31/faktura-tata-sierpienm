@@ -35,7 +35,7 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
+  FileCheck2,
   XCircle,
 } from "lucide-react";
 import { useAppStore, getContractor } from "@/lib/store";

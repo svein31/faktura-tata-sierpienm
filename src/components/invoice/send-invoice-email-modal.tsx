@@ -418,7 +418,7 @@ export function SendInvoiceEmailModal({
                 {showConfigHelp ? "Zwiń instrukcję" : "Instrukcja dla Netlify (2 minuty)"}
               </button>
             </div>
-            <p className="text-[11.5px] leading-relaxed text-warning/90 dark:text-warning/90">
+            <p className="text-[11.5px] leading-relaxed text-warning dark:text-warning">
               Aplikacja na <b>Netlify</b> działa w środowisku Serverless. Aby wysyłać prawdziwe e-maile, dodaj zmienne w panelu:{" "}
               <b>Site configuration → Environment variables</b>, a następnie kliknij <b>Trigger deploy</b>.
             </p>
@@ -710,7 +710,7 @@ EMAIL_FROM  = "FakturaProsto <faktury@twojadomena.pl>"`}
               </div>
             ) : emailLogs.length === 0 ? (
               <div className="py-12 text-center text-xs text-muted-foreground">
-                <Mail className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
+                <Mail className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                 <p className="font-semibold text-foreground text-sm">Brak historii wysyłek</p>
                 <p className="mt-1">Ten dokument nie był jeszcze wysyłany e-mailem z systemu.</p>
               </div>

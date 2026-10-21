@@ -28,7 +28,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
           <div className="flex items-center gap-1.5">
             <span className="text-[15px] font-bold tracking-tight text-foreground">FakturaProsto</span>
           </div>
-          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground/80">
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">
             VAT &amp; KSeF 2.0
           </p>
         </div>

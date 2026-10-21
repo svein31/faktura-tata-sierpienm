@@ -223,7 +223,7 @@ export default function ContractorsPage() {
                       {c.address.postal} {c.address.city} &middot; {c.address.country}
                     </p>
                     {c.iban && (
-                      <p className="mt-1.5 truncate font-mono text-[10.5px] text-muted-foreground/70">{c.iban}</p>
+                      <p className="mt-1.5 truncate font-mono text-[10.5px] text-muted-foreground">{c.iban}</p>
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1 rounded-b-2xl border-t border-border/60 bg-muted/30 p-2">

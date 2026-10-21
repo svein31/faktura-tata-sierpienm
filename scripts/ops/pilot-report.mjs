@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+import { onboardingGroup, onboardingSummary } from './onboarding-report-core.mjs';
 import { pilotFunnelGroup, pilotFunnelSummary, pilotFieldVitals } from './pilot-report-core.mjs';
 const uri = process.env.PILOT_REPORT_DATABASE_URL;
 if (!uri?.startsWith('mongodb')) { console.error('Set read-only PILOT_REPORT_DATABASE_URL; production access is never inherited from DATABASE_URL.'); process.exit(1); }
@@ -14,6 +15,8 @@ try {
     { $project: { _id: 0 } },
   ], { maxTimeMS: 5000 }).toArray();
   const funnel = pilotFunnelSummary(totals);
+  const [onboardingTotals] = await client.db().collection('PilotMetric').aggregate([{ $match: { revoked: { $ne: true }, createdAt: { $gte: from, $lte: now }, expiresAt: { $gt: now } } }, { $group: onboardingGroup() }], { maxTimeMS: 5000 }).toArray();
+  const onboarding = onboardingSummary(onboardingTotals);
   const samples = new Map(); let totalSamples = 0;
   for await (const row of client.db().collection('PilotVital').find({ createdAt: { $gte: from, $lte: now }, expiresAt: { $gt: now } }, {
     projection: { _id: 0, metric: 1, value: 1, pageClass: 1, device: 1 }, maxTimeMS: 5000, batchSize: 500,
@@ -28,7 +31,7 @@ try {
   }
   const fieldVitals = pilotFieldVitals(samples);
   console.log(JSON.stringify({ event: 'pilot_funnel_report', generatedAt: now.toISOString(), from: from.toISOString(),
-    unit: 'consenting_browser_cohort', fieldVitalsUnit: 'page_metric_samples', retentionDays: 30, ...funnel, fieldVitals,
+    unit: 'consenting_browser_cohort', fieldVitalsUnit: 'page_metric_samples', retentionDays: 30, ...funnel, onboarding, fieldVitals,
     limitations: ['Only opt-in browser cohorts; different devices are separate.', 'KSeF and Pro count confirmed status polling; not every invoice or renewal.',
       'Funnel counts require prior stages in chronological order in this browser cohort; existing accounts without observed registration are excluded from conversion rates.',
       'Pro is a branch after registration and may precede the first invoice. An active Stripe subscription is an entitlement observation, not audited revenue or settlement.',

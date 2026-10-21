@@ -210,7 +210,7 @@ export function AttentionInvoicesCard({ invoices }: { invoices: Invoice[] }) {
                         {invoice.number || "Szkic bez numeru"}
                       </Link>
                       <span className="text-[11px] text-muted-foreground">·</span>
-                      <span className="text-[11px] text-foreground/90 truncate max-w-[160px]">
+                      <span className="text-[11px] text-foreground truncate max-w-[160px]">
                         {contractor?.name || "Kontrahent"}
                       </span>
                       <span

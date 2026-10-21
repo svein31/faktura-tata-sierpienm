@@ -282,7 +282,7 @@ export function LineItemsEditor({
                     {/* Kwota VAT */}
                     <td className="px-2 py-1.5 text-right tabular-nums text-[12px] text-muted-foreground">
                       {vat !== 0 ? formatMoney(vat, currency) : (
-                        <span className="text-[11px] font-medium text-muted-foreground/60">—</span>
+                        <span className="text-[11px] font-medium text-muted-foreground">—</span>
                       )}
                     </td>
 

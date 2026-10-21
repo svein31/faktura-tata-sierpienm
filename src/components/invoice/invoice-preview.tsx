@@ -96,7 +96,7 @@ export function InvoicePreview({
             </p>
 
             {invoice.isCorrection && (
-              <div className="mt-2.5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-900 dark:text-rose-200">
+              <div className="mt-2.5 rounded-lg border border-destructive/30 bg-destructive/8 p-2.5 text-xs text-destructive">
                 <p className="font-bold">Korekta do faktury: {invoice.originalInvoiceNumber || "FA/ORYG"} z dnia {invoice.originalIssueDate || invoice.issueDate}</p>
                 <p className="mt-0.5 text-muted-foreground">Przyczyna: {invoice.correctionReason || "Korekta pozycji faktury"}</p>
                 {invoice.originalKsefNumber && (

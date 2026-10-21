@@ -194,6 +194,7 @@ export async function POST(req: Request) {
     // Response errors cannot retry a transaction that has already committed.
     if (invoice) {
       if (invoice.type === "sale" && !invoice.isProforma && invoice.issuedAt) recordPilotEvent(req, "first_invoice");
+      if (invoice.type === "sale" && invoice.status === "draft") recordPilotEvent(req, "draft_saved");
       return json({ invoice: invoiceToDto(invoice) }, { status: 201 });
     }
     }

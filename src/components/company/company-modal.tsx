@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Check, Download, KeyRound, Loader2, Save, Sparkles, Image as ImageIcon, Upload, X, CreditCard, Plus, Trash2, Globe } from "lucide-react";
+import { Building2, Check, Download, KeyRound, Loader2, Save, Palette, Image as ImageIcon, Upload, X, CreditCard, Plus, Trash2, Globe } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Checkbox, Select } from "@/components/ui/input";
@@ -736,7 +736,7 @@ export function CompanyModal({ open, onClose, initialData, onSaved }: CompanyMod
         <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <Label className="font-semibold text-[13px] flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-primary" /> Kolor akcentu PDF i faktury
+              <Palette className="h-4 w-4 text-muted-foreground" /> Kolor akcentu PDF i faktury
             </Label>
             <span className="text-[11px] text-muted-foreground">Wyróżniki, nagłówki, kwoty</span>
           </div>

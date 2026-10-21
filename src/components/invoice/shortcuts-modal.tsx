@@ -55,7 +55,7 @@ export function ShortcutsModal({ open, onClose }: ShortcutsModalProps) {
                 key={idx}
                 className="flex flex-col gap-2 p-2.5 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border/60 bg-muted/20 text-xs"
               >
-                <span className="text-foreground/90 font-medium">
+                <span className="text-foreground font-medium">
                   {s.description}
                 </span>
 

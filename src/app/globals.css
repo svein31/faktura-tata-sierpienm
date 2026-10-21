@@ -534,13 +534,11 @@ video {
 
   html {
     scroll-behavior: smooth;
-    transition: background-color 160ms ease-out, color 160ms ease-out;
   }
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/25 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "ss02";
-    transition: background-color 160ms ease-out, color 160ms ease-out;
     letter-spacing: -0.012em;
   }
 
@@ -864,7 +862,7 @@ video {
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }
@@ -1027,4 +1025,13 @@ iframe#nl-badge-frame[title="Powered by Netlify"] { display: none !important; }
   @media (prefers-reduced-motion: reduce) {
     .ui-side-panel, .ui-side-backdrop, .ui-side-overlay[data-state="closed"] :is(.ui-side-panel, .ui-side-backdrop) { animation: none; }
   }
+}
+
+@layer base {
+  /* One optical weight for the Lucide set; custom logos and chart SVGs are untouched. */
+  svg.lucide { stroke-width: 1.75; flex-shrink: 0; vertical-align: middle; }
+}
+@layer components {
+  .sidebar-section > svg.lucide, .sidebar-link > svg.lucide { width: 18px; height: 18px; }
+  .finance-icon { border-radius: 6px; background: transparent; color: hsl(var(--muted-foreground)); box-shadow: none; }
 }

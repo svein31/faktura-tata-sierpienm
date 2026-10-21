@@ -17,13 +17,13 @@ import {
 } from "recharts";
 
 export const CHART_COLORS = {
-  indigo: "hsl(var(--primary))",
+  indigo: "hsl(var(--chart-1))",
   emerald: "hsl(var(--success))",
-  sky: "#7189a8",
+  sky: "hsl(var(--chart-3))",
   amber: "hsl(var(--warning))",
   rose: "hsl(var(--destructive))",
-  slate: "#7b8796",
-  violet: "#596b81",
+  slate: "hsl(var(--chart-2))",
+  violet: "hsl(var(--chart-4))",
 };
 
 const axisTick = { fontSize: 11, fill: "hsl(var(--muted-foreground))" };

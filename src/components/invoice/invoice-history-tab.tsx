@@ -102,7 +102,7 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
   if (logs.length === 0) {
     return (
       <Card className="p-8 text-center text-xs text-muted-foreground space-y-2">
-        <ShieldCheck className="w-6 h-6 mx-auto text-muted-foreground/60" />
+        <ShieldCheck className="w-6 h-6 mx-auto text-muted-foreground" />
         <p className="font-semibold text-foreground">Brak wpisów w dzienniku audytu</p>
         <p>Wszystkie przyszłe operacje (edycje, rejestracje wpłat, wysyłka do KSeF) będą trwale rejestrowane.</p>
       </Card>
@@ -148,7 +148,7 @@ export function InvoiceHistoryTab({ invoiceId }: { invoiceId: string }) {
                   <span className="text-[11px] text-muted-foreground">
                     {formatDateTime(log.createdAt)}
                   </span>
-                  <span className="text-muted-foreground/60 text-xs">·</span>
+                  <span className="text-muted-foreground text-xs">·</span>
                   <span className="text-[11px] font-medium text-foreground flex items-center gap-1">
                     <User className="w-3 h-3 text-muted-foreground" />
                     {log.userName || log.userEmail || "System"}

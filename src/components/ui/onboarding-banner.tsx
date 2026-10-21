@@ -59,7 +59,7 @@ export function OnboardingBanner({ savedDocument = null }: { savedDocument?: Onb
   ];
 
   return (
-    <Card className="relative overflow-hidden p-4 sm:p-5" aria-labelledby="first-steps-heading">
+    <Card className="relative overflow-hidden p-4 sm:p-5" role="region" aria-labelledby="first-steps-heading">
       <div className="relative flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground"><ListChecks aria-hidden="true" className="size-5" /></span>
@@ -72,11 +72,12 @@ export function OnboardingBanner({ savedDocument = null }: { savedDocument?: Onb
         <Button variant="ghost" size="icon" onClick={handleDismiss} className="size-11 shrink-0 text-muted-foreground hover:text-foreground" aria-label="Ukryj pierwsze kroki dla tej firmy" title="Ukryj pierwsze kroki"><X aria-hidden="true" className="size-4" /></Button>
       </div>
 
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4"><p className="text-sm text-muted-foreground">Następny krok: <strong className="font-medium text-foreground">{!ready.companyReady ? "sprawdź dane sprzedawcy" : !ready.savedDocument ? "przygotuj pierwszy szkic" : "sprawdź zapisany dokument"}</strong></p>{(ready.companyReady ? ready.canCreate || ready.savedDocument : true) && <Link prefetch={false} href={!ready.companyReady ? "/settings/companies" : documentHref} className="inline-flex min-h-10 items-center gap-2 rounded-md border bg-card px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{!ready.companyReady ? "Uzupełnij dane firmy" : !ready.savedDocument ? "Przygotuj szkic" : "Otwórz dokument"}<ArrowRight aria-hidden="true" className="size-4" /></Link>}</div>
       <ol className="relative mt-5 grid min-w-0 gap-3 md:grid-cols-3">
         {steps.map((step, index) => (
           <li key={step.title} className={cn("flex min-w-0 flex-col rounded-xl border bg-card p-3.5", step.done ? "border-success/20" : "border-border/60")}>
             <div className="flex items-center gap-2.5">
-              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg border", step.done ? "border-success/20 bg-success/8 text-success dark:text-success" : "border-primary/15 bg-primary/8 text-primary")}><step.icon aria-hidden="true" className="size-4" /></span>
+              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg border", step.done ? "border-success/20 bg-success/8 text-success dark:text-success" : "border-border bg-muted/30 text-muted-foreground")}><step.icon aria-hidden="true" className="size-4" /></span>
               <span className="text-[11px] font-medium tabular-nums text-muted-foreground">Krok {index + 1}</span>
               {step.done && <CheckCircle2 aria-label={step.status} className="ml-auto size-4 shrink-0 text-success dark:text-success" />}
             </div>

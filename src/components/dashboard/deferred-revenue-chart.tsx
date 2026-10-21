@@ -1,52 +1,42 @@
 "use client";
 import * as React from "react";
+import { ChartColumn, ChartBar, ChartLine, ChartPie } from "lucide-react";
 import { formatMoney, monthLabel } from "@/lib/format";
 import type { Currency } from "@/lib/types";
 import type { Overview } from "@/lib/use-overview";
+import { REVENUE_CHART_TYPES, revenueChartType, revenueDomain, revenuePie, type RevenueChartType } from "@/lib/revenue-chart";
+import { useSessionUser } from "@/lib/session-context";
+import { useAppStore } from "@/lib/store";
+import { Select } from "@/components/ui/select";
+const ICONS = { column: ChartColumn, bar: ChartBar, line: ChartLine, pie: ChartPie };
 
-/** Monthly points use native SVG without downloading the full reporting runtime. */
+/** Four native SVG views; no reporting-library download on the dashboard. */
 export function DeferredRevenueChart({ months, currency }: { months: Overview["months"]; currency: string }) {
+  const user = useSessionUser(), company = useAppStore(s => s.selectedCompanyId);
+  const key = `fakturaprosto:revenue-chart:v1:${user.id}:${company || "none"}`;
+  const [preference, setPreference] = React.useState<{ key: string; type: RevenueChartType } | null>(null);
+  const type = preference?.key === key ? preference.type : "line";
+  const [field, setField] = React.useState<"net" | "gross">("gross");
   const [focused, setFocused] = React.useState<string | null>(null);
-  const points = months.map((month, index) => {
-    const value = month.values.find(value => value.currency === currency);
-    return { key: month.key, label: monthLabel(month.key), net: value?.net || 0, gross: value?.gross || 0,
-      x: months.length < 2 ? 500 : index * 1000 / (months.length - 1) };
-  });
-  const low = Math.min(0, ...points.flatMap(point => [point.net, point.gross]));
-  const high = Math.max(0, ...points.flatMap(point => [point.net, point.gross]));
-  const range = high - low || 1;
-  const y = (value: number) => 140 - (value - low) / range * 130;
-  const path = (field: "net" | "gross") => points.map((point, index) => `${index ? "L" : "M"}${point.x},${y(point[field])}`).join(" ");
+  React.useEffect(() => { try { setPreference({ key, type: revenueChartType(localStorage.getItem(key)) }); } catch { setPreference({ key, type: "line" }); } }, [key]);
+  const choose = (next: RevenueChartType) => { setPreference({ key, type: next }); setFocused(null); try { localStorage.setItem(key, next); } catch { /* Still works without storage. */ } };
+  const points = months.map(month => { const value = month.values.find(v => v.currency === currency); return { key: month.key, label: monthLabel(month.key), net: value?.net || 0, gross: value?.gross || 0 }; });
+  const { low, high, range } = revenueDomain(points), pie = revenuePie(points, field);
   const selected = points.find(point => point.key === focused);
   const money = (value: number) => formatMoney(value, currency as Currency);
-  return <div className="relative mt-5 h-[210px]" data-revenue-chart="lightweight">
-    <div className="grid h-[160px] grid-cols-[64px_minmax(0,1fr)] gap-2 pr-3">
-      <div aria-hidden="true" className="relative text-right text-xs tabular-nums text-muted-foreground">
-        {[0, 1, 2, 3, 4].map(index => <span key={index} className="absolute right-0 -translate-y-1/2" style={{ top: `${10 + index * 32.5}px` }}>
-          {new Intl.NumberFormat("pl-PL", { notation: "compact", maximumFractionDigits: 1 }).format(high - range * index / 4)}
-        </span>)}
-      </div>
-      <div className="relative min-w-0" onMouseLeave={() => setFocused(null)}>
-        <svg aria-hidden="true" viewBox="0 0 1000 150" preserveAspectRatio="none" className="h-[150px] w-full overflow-visible">
-          {[10, 42.5, 75, 107.5, 140].map(tick => <line key={tick} x1="0" x2="1000" y1={tick} y2={tick} stroke="hsl(var(--border))" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />)}
-          <path d={path("net")} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-          <path d={path("gross")} fill="none" stroke="hsl(var(--chart-2))" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-          {selected && <line x1={selected.x} x2={selected.x} y1="0" y2="150" stroke="hsl(var(--muted-foreground))" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />}
-        </svg>
-        {points.map(point => <button key={point.key} type="button" aria-label={`${point.label}: netto ${money(point.net)}, brutto ${money(point.gross)}`}
-          onMouseEnter={() => setFocused(point.key)} onFocus={() => setFocused(point.key)} onBlur={() => setFocused(null)} onClick={() => setFocused(point.key)}
-          onKeyDown={event => { if (event.key === "Escape") { event.stopPropagation(); setFocused(null); } }}
-          className="absolute top-0 h-[150px] w-6 -translate-x-1/2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          style={{ left: `${point.x / 10}%` }} />)}
-        <div aria-hidden="true" className="flex justify-between gap-1 text-[11px] text-muted-foreground">{points.map(point => <span key={point.key}>{point.label}</span>)}</div>
-      </div>
+  const compact = (value: number) => new Intl.NumberFormat("pl-PL", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+  const x = (index: number) => 30 + (points.length < 2 ? 420 : index * 840 / (points.length - 1));
+  const y = (value: number) => 170 - (value - low) / range * 155;
+  const path = (value: "net" | "gross") => points.map((point, index) => `${index ? "L" : "M"}${x(index)},${y(point[value])}`).join(" ");
+  const focus = (point: typeof points[number]) => ({ onMouseEnter: () => setFocused(point.key), onFocus: () => setFocused(point.key), onBlur: () => setFocused(null), onClick: () => setFocused(point.key), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); setFocused(null); } } });
+  let accumulated = 0;
+  return <div className="relative mt-5 space-y-4" data-revenue-chart="lightweight" data-chart-type={type}>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div role="group" aria-label="Rodzaj wykresu" className="inline-flex max-w-full flex-wrap gap-1 rounded-md border bg-muted/30 p-1">{Object.entries(REVENUE_CHART_TYPES).map(([value, label]) => { const Icon = ICONS[value as RevenueChartType]; return <button key={value} type="button" aria-label={`Wykres ${label.toLocaleLowerCase("pl")}`} title={label} aria-pressed={type === value} onClick={() => choose(value as RevenueChartType)} className={`inline-flex min-h-9 items-center gap-1.5 rounded px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${type === value ? "bg-card text-foreground shadow-xs ring-1 ring-border" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><Icon aria-hidden="true" className="size-4" /><span className="hidden sm:inline">{label}</span></button>; })}</div>{type === "pie" && <div className="w-32"><Select aria-label="Kwoty wykresu kołowego" value={field} onChange={e => setField(e.target.value as "net" | "gross")}><option value="gross">Brutto</option><option value="net">Netto</option></Select></div>}</div>
+    <div className="relative min-h-[230px]" onMouseLeave={() => setFocused(null)}>
+      {type === "pie" ? pie.reason ? <div className="grid min-h-[230px] place-items-center rounded-md border border-dashed p-5 text-center text-sm text-muted-foreground"><p>{pie.reason === "negative" ? "Ten okres zawiera kwoty ujemne. Wykres liniowy lub słupkowy pokaże je bez zniekształcenia." : "Brak dodatnich przychodów w wybranej walucie i okresie."}</p></div> : <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(140px,1fr)]"><svg viewBox="0 0 200 200" aria-hidden="true" className="mx-auto h-[230px] max-w-full">{pie.shares.map((point, index) => { const offset = accumulated; accumulated += point.share; return <circle key={point.key} cx="100" cy="100" r="68" fill="none" stroke={`hsl(var(--chart-${index % 7 + 1}))`} strokeWidth="30" strokeDasharray={`${point.share * 427.2566} 427.2566`} strokeDashoffset={-offset * 427.2566} transform="rotate(-90 100 100)" />; })}<text x="100" y="95" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="10">{field === "gross" ? "Brutto" : "Netto"} · {currency}</text><text x="100" y="114" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="12" fontWeight="600">{compact(pie.total)}</text></svg><ul className="space-y-1">{pie.shares.map((point, index) => <li key={point.key}><button type="button" {...focus(point)} aria-label={`${point.label}: ${money(point[field])}, ${(point.share * 100).toFixed(1)}%`} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="size-2 shrink-0 rounded-sm" style={{ background: `hsl(var(--chart-${index % 7 + 1}))` }} /><span className="flex-1">{point.label}</span><span className="tabular-nums">{(point.share * 100).toFixed(1)}%</span></button></li>)}</ul></div> : type === "bar" ? <div className="space-y-3 py-2">{points.map(point => <div key={point.key} className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-2"><span className="text-xs text-muted-foreground">{point.label}</span><button type="button" {...focus(point)} aria-label={`${point.label}: netto ${money(point.net)}, brutto ${money(point.gross)}`} className="relative h-7 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className="absolute inset-y-0 w-px bg-border" style={{ left: `${-low / range * 100}%` }} />{(["net", "gross"] as const).map((series, i) => <span key={series} className="absolute h-2" style={{ top: `${i * 14 + 2}px`, left: `${(Math.min(0, point[series]) - low) / range * 100}%`, width: `${Math.abs(point[series]) / range * 100}%`, background: `hsl(var(--chart-${i + 1}))` }} />)}</button></div>)}<p className="text-right text-xs text-muted-foreground">{compact(low)} — {compact(high)} {currency}</p></div> : <div className="grid h-[215px] grid-cols-[48px_minmax(0,1fr)] gap-2 pr-3"><div aria-hidden="true" className="relative text-right text-[11px] tabular-nums text-muted-foreground">{[0, 1, 2, 3, 4].map(index => <span key={index} className="absolute right-0 -translate-y-1/2" style={{ top: `${15 + index * 38.75}px` }}>{compact(high - range * index / 4)}</span>)}</div><div className="relative min-w-0"><svg aria-hidden="true" viewBox="0 0 900 190" preserveAspectRatio="none" className="h-[190px] w-full overflow-visible">{[15, 53.75, 92.5, 131.25, 170].map(tick => <line key={tick} x1="0" x2="900" y1={tick} y2={tick} stroke="hsl(var(--border))" vectorEffect="non-scaling-stroke" strokeDasharray="3 3" />)}{low < 0 && <line x1="0" x2="900" y1={y(0)} y2={y(0)} stroke="hsl(var(--muted-foreground))" vectorEffect="non-scaling-stroke" />}{type === "line" ? (["net", "gross"] as const).map((series, i) => <path key={series} d={path(series)} fill="none" stroke={`hsl(var(--chart-${i + 1}))`} strokeWidth="2" vectorEffect="non-scaling-stroke" />) : points.map((point, index) => (["net", "gross"] as const).map((series, i) => { const width = Math.min(32, 340 / Math.max(points.length, 1)); return <rect key={`${point.key}:${series}`} x={x(index) + (i ? 2 : -width - 2)} y={Math.min(y(0), y(point[series]))} width={width} height={Math.abs(y(point[series]) - y(0))} rx="2" fill={`hsl(var(--chart-${i + 1}))`} />; }))}{type === "line" && points.map((point, index) => (["net", "gross"] as const).map((series, i) => <circle key={`${point.key}:${series}`} cx={x(index)} cy={y(point[series])} r="3" fill={`hsl(var(--chart-${i + 1}))`} />))}</svg>{points.map((point, index) => <button key={point.key} type="button" {...focus(point)} aria-label={`${point.label}: netto ${money(point.net)}, brutto ${money(point.gross)}`} className="absolute top-0 h-[190px] w-6 -translate-x-1/2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ left: `${x(index) / 9}%` }} />)}<div aria-hidden="true" className="flex justify-between gap-1 text-[10px] text-muted-foreground">{points.map((point, index) => <span className={points.length > 12 && index % 3 !== 0 ? "hidden" : points.length > 6 && index % 2 !== 0 ? "hidden sm:inline" : ""} key={point.key}>{point.label}</span>)}</div></div></div>}
+      {selected && <div role="status" className="pointer-events-none absolute right-2 top-0 max-w-full rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-[var(--shadow-popup)]"><p className="font-medium">{selected.label}</p><p>Netto: {money(selected.net)}</p><p>Brutto: {money(selected.gross)}</p></div>}
     </div>
-    <div aria-hidden="true" className="mt-4 flex justify-center gap-5 text-xs text-muted-foreground">
-      <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-primary" />Netto</span>
-      <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-[hsl(var(--chart-2))]" />Brutto</span>
-    </div>
-    {selected && <div role="status" className="pointer-events-none absolute right-3 top-0 max-w-full rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-[var(--shadow-popup)]">
-      <p className="font-medium">{selected.label}</p><p>Netto: {money(selected.net)}</p><p>Brutto: {money(selected.gross)}</p>
-    </div>}
+    {type !== "pie" && <div aria-hidden="true" className="flex justify-center gap-5 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-[hsl(var(--chart-1))]" />Netto</span><span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-[hsl(var(--chart-2))]" />Brutto</span></div>}
+    <details className="text-xs"><summary className="cursor-pointer py-2 text-muted-foreground hover:text-foreground">Dane wykresu · {currency}</summary><div className="overflow-x-auto"><table className="w-full text-right tabular-nums"><caption className="sr-only">Przychody miesięczne w {currency}</caption><thead><tr className="border-b"><th scope="col" className="py-2 text-left">Miesiąc</th><th scope="col">Netto</th><th scope="col">Brutto</th></tr></thead><tbody>{points.map(point => <tr key={point.key} className="border-b border-border/50"><th scope="row" className="py-2 text-left font-normal">{point.label}</th><td>{money(point.net)}</td><td>{money(point.gross)}</td></tr>)}</tbody></table></div></details>
   </div>;
 }

@@ -9,5 +9,9 @@ export function reportUnexpectedError(error: unknown) {
   const fingerprint = (hash >>> 0).toString(16);
   const errorCode = error instanceof Prisma.PrismaClientKnownRequestError && typeof error.code === "string" && error.code.length === 5 && /^P\d{4}$/.test(error.code) ? error.code : undefined;
   console.error(JSON.stringify({ event: "application_error", severity: "error", incident, fingerprint, errorCode, timestamp: new Date().toISOString() }));
+  if (typeof window === "undefined") {
+    const sink = (globalThis as unknown as { fakturaprostoErrorSink?: (event: { incident: string; fingerprint: string; errorCode?: string }) => void }).fakturaprostoErrorSink;
+    try { if (!errorCode || !["P2002", "P2025", "P2034"].includes(errorCode)) sink?.({ incident, fingerprint, errorCode }); } catch { /* Diagnostics cannot replace the original result. */ }
+  }
   return incident;
 }

@@ -1,0 +1,14 @@
+[Unit]
+Description=FakturaProsto independent external availability check
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+User=fakturaprosto-monitor
+WorkingDirectory=/opt/fakturaprosto
+EnvironmentFile=/etc/fakturaprosto-monitor.env
+ExecStart=/usr/bin/node scripts/ops/availability-check.mjs
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

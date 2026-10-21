@@ -1,0 +1,9 @@
+[Unit]
+Description=Check FakturaProsto every 5 minutes independently of GitHub and Netlify
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=5min
+RandomizedDelaySec=15s
+Persistent=true
+[Install]
+WantedBy=timers.target

@@ -10,6 +10,7 @@ import { InvoiceDetailSkeleton } from "@/components/ui/skeleton";
 
 export default function NewInvoicePage() {
   const router = useRouter();
+  React.useEffect(() => { void import("@/lib/pilot-client").then(m => m.sendCreatorCheckpoint()).catch(() => {}); }, []);
   const draft = useAppStore((s) => s.draftInvoice);
   const editorSession = useAppStore(s => s.invoiceEditorSession);
   const companyId = useAppStore((s) => s.selectedCompanyId);
@@ -46,10 +47,10 @@ export default function NewInvoicePage() {
     <div>
       <PageHeader
         title="Kreator e-Faktury"
-        description="Wypełnij formularz — podgląd aktualizuje się na żywo w czasie rzeczywistym. Zapisuj, wysyłaj bezpośrednio do KSeF (FA(3)) lub pobieraj PDF/XML."
+        description="Wybierz nabywcę, dodaj pozycje i sprawdź podgląd. Możesz zapisać szkic przed wystawieniem dokumentu."
       />
-      <section className="mb-6 rounded-xl border p-4" aria-label="Faktura zakupowa">
-        <h2 className="font-semibold">Masz fakturę od sprzedawcy?</h2>
+      <details className="mb-6 rounded-lg border p-4" aria-label="Faktura zakupowa">
+        <summary className="cursor-pointer text-sm font-medium">Chcesz dodać fakturę zakupową od sprzedawcy?</summary>
         <p className="mt-1 text-sm text-muted-foreground">Wczytaj PDF, JPG lub PNG (do 3 MB). Sprawdź dane w skrzynce i zatwierdź dokument, aby dodać go do kosztów firmy. Opcjonalny OCR pomaga przepisać dane.</p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <label className="cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium hover:bg-muted">
@@ -60,7 +61,7 @@ export default function NewInvoicePage() {
         </div>
         {!companyId && <p className="mt-2 text-sm">Wybierz firmę, aby dodać dokument.</p>}
         {uploadError && <p className="mt-2 text-sm text-destructive" role="alert">{uploadError}</p>}
-      </section>
+      </details>
       <React.Suspense fallback={<InvoiceDetailSkeleton />}>
         <InvoiceCreator key={`${companyId}:${editorSession}`} />
       </React.Suspense>

@@ -274,13 +274,13 @@ export default function CompaniesSettingsPage() {
                       <CardContent className="flex-1 space-y-3 pb-4 text-[12.5px]">
                         {/* Adres */}
                         <div className="flex items-start gap-2 text-muted-foreground">
-                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           <span className="line-clamp-2">{getFullAddress(company)}</span>
                         </div>
 
                         {/* Konto bankowe */}
                         <div className="flex items-start gap-2 text-muted-foreground">
-                          <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+                          <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           <span className="font-mono text-[11.5px] truncate">
                             {company.bankAccount || "Brak zdefiniowanego IBAN"}
                           </span>

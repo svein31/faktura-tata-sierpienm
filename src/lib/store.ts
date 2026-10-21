@@ -889,13 +889,13 @@ export function nextInvoiceNumber(invoices: Invoice[], type: "sale" | "purchase"
 }
 
 export const STATUS_META: Record<EffectiveStatus, { label: string; color: string; dot: string }> = {
-  draft: { label: "Szkic", color: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border border-zinc-500/20", dot: "bg-zinc-400" },
-  issued: { label: "Wystawiona", color: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20", dot: "bg-sky-500" },
-  overdue: { label: "Przeterminowana", color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20", dot: "bg-rose-500" },
-  paid: { label: "Opłacona", color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
-  ksef_queued: { label: "KSeF: w kolejce", color: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20", dot: "bg-amber-500" },
-  ksef_sent: { label: "Wysłana do KSeF", color: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20", dot: "bg-indigo-500" },
-  ksef_active: { label: "KSeF: aktywna", color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
-  ksef_rejected: { label: "KSeF: odrzucona", color: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20", dot: "bg-rose-500" },
+  draft: { label: "Szkic", color: "bg-muted text-[hsl(var(--status-draft))] border border-border", dot: "bg-[hsl(var(--status-draft))]" },
+  issued: { label: "Wystawiona", color: "bg-info/10 text-info border border-info/20", dot: "bg-info" },
+  overdue: { label: "Przeterminowana", color: "bg-[hsl(var(--status-overdue)/0.08)] text-[hsl(var(--status-overdue))] border border-[hsl(var(--status-overdue)/0.2)]", dot: "bg-[hsl(var(--status-overdue))]" },
+  paid: { label: "Opłacona", color: "bg-[hsl(var(--status-paid)/0.08)] text-[hsl(var(--status-paid))] border border-[hsl(var(--status-paid)/0.2)]", dot: "bg-[hsl(var(--status-paid))]" },
+  ksef_queued: { label: "KSeF: w kolejce", color: "bg-warning/10 text-warning border border-warning/20", dot: "bg-warning" },
+  ksef_sent: { label: "Wysłana do KSeF", color: "bg-info/10 text-info border border-info/20", dot: "bg-info" },
+  ksef_active: { label: "KSeF: aktywna", color: "bg-success/10 text-success border border-success/20", dot: "bg-success" },
+  ksef_rejected: { label: "KSeF: odrzucona", color: "bg-destructive/10 text-destructive border border-destructive/20", dot: "bg-destructive" },
 };
 

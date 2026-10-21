@@ -58,7 +58,7 @@ export default function LandingPage() {
             <Link prefetch={false} href="/demo" className={`group text-primary ${navLinkClass}`}>
               <span className="inline-flex items-baseline gap-2">
                 <span>Demo</span>
-                <span className="text-[11px] font-medium text-primary/90 underline decoration-transparent underline-offset-4 transition-colors group-hover:text-foreground group-hover:decoration-primary/70 group-focus-visible:text-foreground group-focus-visible:decoration-primary/70">
+                <span className="text-[11px] font-medium text-primary underline decoration-transparent underline-offset-4 transition-colors group-hover:text-foreground group-hover:decoration-primary/70 group-focus-visible:text-foreground group-focus-visible:decoration-primary/70">
                   Bez logowania
                 </span>
               </span>
@@ -328,7 +328,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/80 font-mono">01</span>
+              <span className="text-3xl font-extrabold text-primary font-mono">01</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Podaj NIP swojej firmy</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Zarejestruj konto i podaj numer NIP. System automatycznie pobierze dane z bazy REGON
@@ -337,7 +337,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/80 font-mono">02</span>
+              <span className="text-3xl font-extrabold text-primary font-mono">02</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wybierz środowisko KSeF</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Przetestuj wysyłkę w bezpiecznym symulatorze Demo lub na oficjalnej bramce testowej
@@ -346,7 +346,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative rounded-xl border border-border/80 bg-card p-7 shadow-sm">
-              <span className="text-3xl font-extrabold text-primary/80 font-mono">03</span>
+              <span className="text-3xl font-extrabold text-primary font-mono">03</span>
               <h3 className="mt-3 text-base font-bold text-foreground">Wystawiaj i kontroluj stan</h3>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 Wystawiaj faktury, pobieraj UPO, rejestruj wpłaty i przekazuj gotowe zestawienia do
@@ -409,7 +409,7 @@ export default function LandingPage() {
             </div>
           </div>
           {/* Linki prawne */}
-          <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground dark:text-muted-foreground/80">
+          <div className="mt-6 pt-4 border-t border-border/40 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground dark:text-muted-foreground">
             <Link prefetch={false} href="/regulamin" className="hover:text-foreground transition-colors">Regulamin</Link>
             <Link prefetch={false} href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">Polityka prywatności</Link>
             <Link prefetch={false} href="/polityka-cookies" className="hover:text-foreground transition-colors">Cookies</Link>

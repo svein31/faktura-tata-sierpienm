@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
   CreditCard,
   Check,
-  Sparkles,
+  BadgeCheck,
   ExternalLink,
   ShieldCheck,
   AlertCircle,
@@ -237,7 +237,7 @@ export function SubscriptionCard() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-success" />
+                      <BadgeCheck className="h-4 w-4 text-success" />
                       <h4 className="font-semibold text-foreground">
                         {subscription.accessSource === "complimentary" ? "Dostęp Pro przyznany" : subscription.plan === "yearly" ? "Plan Roczny (Pro)" : "Plan Miesięczny (Pro)"}
                       </h4>
@@ -264,7 +264,7 @@ export function SubscriptionCard() {
                 <div className="grid gap-3 pt-2 text-xs sm:grid-cols-2 text-muted-foreground border-t border-border/50">
                   {subscription.currentPeriodEnd && (
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-foreground/70" />
+                      <Calendar className="h-4 w-4 text-foreground" />
                       <span>
                         Koniec bieżącego okresu:{" "}
                         <strong className="text-foreground">
@@ -308,7 +308,7 @@ export function SubscriptionCard() {
                         {plan.badge && (
                           <div className="absolute -top-2.5 right-4">
                             <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-medium text-primary-foreground shadow-xs">
-                              <Sparkles className="h-3 w-3" />
+                              <BadgeCheck className="h-3 w-3" />
                               {plan.badge}
                             </span>
                           </div>
