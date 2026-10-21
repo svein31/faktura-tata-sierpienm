@@ -131,6 +131,9 @@ try {
       const { auditInvoicePower } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-power-browser.mjs'));
       await auditInvoicePower({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
     }
+  } else if (process.env.UI_AUDIT_SUITE === 'launch-polish') {
+    const { auditLaunchPolish } = await import(pathToFileURL(appRoot + '/scripts/audit/launch-polish-browser.mjs'));
+    await auditLaunchPolish({page,context,base,db,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
   } else if (process.env.UI_AUDIT_SUITE === 'catalog-accounting') {
     const { auditCatalogAccounting } = await import(pathToFileURL(appRoot + '/scripts/catalog-accounting-audit.mjs'));
     await auditCatalogAccounting(base, db);

@@ -3,6 +3,7 @@ on:
   push:
     branches: ['codex/**', main]
   pull_request:
+  workflow_dispatch:
 concurrency:
   group: verify-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true

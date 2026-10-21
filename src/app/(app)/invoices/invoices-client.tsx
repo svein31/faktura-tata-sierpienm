@@ -2,7 +2,7 @@
 import { useInvoiceView } from "@/lib/use-invoice-view";
 import { useInvoiceColumns } from "@/lib/use-invoice-columns";
 import { useInvoicePreview } from "@/lib/use-invoice-preview";
-import { INVOICE_COLUMNS, type InvoiceColumnId } from "@/lib/invoice-columns";
+import { INVOICE_COLUMNS, INVOICE_DOCUMENT_WIDTH, INVOICE_ACTIONS_WIDTH, type InvoiceColumnId } from "@/lib/invoice-columns";
 import { invoiceSelectionTotals } from "@/lib/invoice-selection-totals";
 import { InvoiceColumnsMenu } from "@/components/invoice/invoice-columns-menu";
 import { InvoiceSelectionSummary } from "@/components/invoice/invoice-selection-summary";
@@ -113,6 +113,8 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
   const { value: view, update: updateView } = useInvoiceView(showUnassigned ? null : selectedCompanyId);
   const columnSettings = useInvoiceColumns(showUnassigned ? null : selectedCompanyId);
   const activeColumns = INVOICE_COLUMNS.filter(column=>columnSettings.columns.includes(column.id));
+  const flexibleColumn = activeColumns.find(column => column.id === 'contractor')?.id
+    ?? activeColumns.find(column => column.id !== 'payment')?.id;
   const { search, statusFilter, typeFilter, approvalFilter, currencyFilter, sortOrder, density } = view;
   const setSearch = (search: string) => updateView({ search });
   const setStatusFilter = (statusFilter: typeof view.statusFilter) => updateView({ statusFilter });
@@ -738,8 +740,8 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
 
       {/* Pasek filtrów */}
       <div className="rounded-xl border border-border/70 bg-card p-3.5  shadow-xs">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative min-w-0 basis-full xl:basis-auto xl:min-w-[240px] flex-1">
+        <div className="space-y-3">
+          <div className="relative min-w-0">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
@@ -749,11 +751,12 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               className="pl-10 h-10 rounded-xl text-sm"
             />
           </div>
+          <div className="grid grid-cols-1 items-center gap-2.5 sm:grid-cols-2 xl:grid-cols-[minmax(210px,1.15fr)_minmax(184px,1fr)_minmax(200px,1fr)_minmax(184px,1fr)_auto]">
           <Select
             aria-label="Status dokumentu"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | EffectiveStatus)}
-            className="w-full sm:w-[220px] h-10 rounded-xl text-sm"
+            className="w-full h-10 rounded-xl text-sm"
           >
             {STATUS_FILTERS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -765,20 +768,21 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
             aria-label="Waluta faktury"
             value={currencyFilter}
             onChange={(e) => setCurrencyFilter(e.target.value as "all" | "PLN" | "EUR" | "USD")}
-            className="w-full sm:w-[160px] h-10 rounded-xl text-sm"
+            className="w-full h-10 rounded-xl text-sm"
           >
             <option value="all">Waluta (wszystkie)</option>
             <option value="PLN">PLN</option>
             <option value="EUR">EUR</option>
             <option value="USD">USD</option>
           </Select>
-          <Select aria-label="Kolejność faktur" value={sortOrder} onChange={event => updateView({sortOrder: event.target.value as typeof sortOrder})} className="w-full sm:w-[200px]">
+          <Select aria-label="Kolejność faktur" value={sortOrder} onChange={event => updateView({sortOrder: event.target.value as typeof sortOrder})} className="w-full">
             <option value="date_desc">Najnowsze najpierw</option><option value="date_asc">Najstarsze najpierw</option>
           </Select>
-          <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-full sm:w-[180px]">
+          <Select aria-label="Gęstość tabeli" value={density} onChange={event => updateView({density: event.target.value as typeof density})} className="w-full">
             <option value="comfortable">Widok wygodny</option><option value="compact">Widok kompaktowy</option>
           </Select>
           <InvoiceColumnsMenu columns={columnSettings.columns} toggle={columnSettings.toggle} reset={columnSettings.reset} />
+          </div>
           {hasFilters && (
             <Button
               variant="ghost"
@@ -832,9 +836,9 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
           })}
         </div>
         <div className="ui-invoice-scroll hidden md:block" role="region" aria-label="Tabela faktur — przewijana lista" tabIndex={0}>
-          <table className="ui-invoice-table w-full text-left text-[13px] leading-5" style={{minWidth:456+activeColumns.reduce((width,column)=>width+column.width,0)}}>
-            <caption className="sr-only">Lista faktur. Numer dokumentu i akcje pozostają widoczne podczas przewijania. Kliknij numer, aby otworzyć szybki podgląd.</caption>
-            <colgroup><col style={{width:244}} />{activeColumns.map(column=><col key={column.id} style={{width:column.width}} />)}<col style={{width:212}} /></colgroup>
+          <table className="ui-invoice-table w-full text-left text-[13px] leading-5" style={{minWidth:INVOICE_DOCUMENT_WIDTH+INVOICE_ACTIONS_WIDTH+activeColumns.reduce((width,column)=>width+column.width,0), '--invoice-actions-width': `${INVOICE_ACTIONS_WIDTH}px`} as React.CSSProperties}>
+            <caption className="sr-only">Lista faktur. Numer dokumentu, włączona kolumna płatności i akcje pozostają widoczne podczas przewijania. Kliknij numer, aby otworzyć szybki podgląd.</caption>
+            <colgroup><col style={{width:flexibleColumn ? INVOICE_DOCUMENT_WIDTH : undefined}} />{activeColumns.map(column=><col key={column.id} style={{width:column.id === flexibleColumn ? undefined : column.width}} />)}<col style={{width:INVOICE_ACTIONS_WIDTH}} /></colgroup>
             <thead><tr>
               <th scope="col" data-invoice-column="document" className="px-3 py-3"><div className="flex items-center gap-3">
                 <input type="checkbox" aria-label="Zaznacz wszystkie widoczne faktury" ref={element=>{if(element)element.indeterminate=filtered.some(invoice=>selectedIds.includes(invoice.id))&&!filtered.every(invoice=>selectedIds.includes(invoice.id));}}
@@ -853,7 +857,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                   issueDate:<time dateTime={inv.issueDate} className="tabular-nums text-muted-foreground">{formatDate(inv.issueDate)}</time>,
                   dueDate:<time dateTime={inv.dueDate} className="tabular-nums text-muted-foreground">{formatDate(inv.dueDate)}</time>,
                   gross:<span className="whitespace-nowrap text-sm font-semibold tabular-nums">{formatMoney(inv.totalGross??invoiceTotals(inv).gross,inv.currency)}</span>,
-                  payment:<Badge className={`${payment.color} rounded-lg px-2.5 py-1 text-xs`}><span aria-hidden="true" className={`mr-1.5 size-1.5 shrink-0 rounded-full ${payment.dot}`} />{payment.label}</Badge>,
+                  payment:<Badge className={`${payment.color} max-w-full whitespace-normal rounded-lg px-2.5 py-1 text-xs leading-4`}><span aria-hidden="true" className={`size-1.5 shrink-0 rounded-full ${payment.dot}`} />{payment.label}</Badge>,
                   ksef:<KsefStatusBadge invoice={inv} />,
                   currency:<span className="text-xs font-medium">{inv.currency}</span>,
                   approval:inv.type==='purchase'?<Badge className={isApproved?'border border-success/25 bg-success/10 text-success dark:text-success':'border border-warning/25 bg-warning/10 text-warning dark:text-warning'}>{isApproved?<CheckCircle2 className="mr-1 size-3.5" aria-hidden="true" />:<Clock className="mr-1 size-3.5" aria-hidden="true" />}{isApproved?'Zaakceptowana':'Do akceptacji'}</Badge>:<span className="text-muted-foreground">—</span>,
@@ -864,7 +868,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                     <input type="checkbox" aria-label={`Zaznacz fakturę ${inv.number}`} checked={isSelected} onChange={event=>setSelectedIds(ids=>event.target.checked?[...ids,inv.id]:ids.filter(id=>id!==inv.id))} className="size-4 shrink-0 accent-primary" />
                     <Link prefetch={false} href={`/invoices/${inv.id}`} onClick={event=>openPreview(event,inv)} aria-haspopup="dialog" className="group flex min-w-0 flex-1 items-center gap-2.5 rounded-lg">
                       <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileText className="size-3.5" aria-hidden="true" /></span>
-                      <span className="min-w-0 flex-1"><span className="block max-w-36 truncate font-semibold text-foreground group-hover:text-primary" title={inv.number}>{inv.number}</span><span className="block text-xs text-muted-foreground">{inv.isProforma?'PRO Proforma':inv.type==='sale'?'FV Sprzedaż':'FZ Zakup'} · {inv.currency}</span></span>
+                      <span className="min-w-0 flex-1"><span className="block max-w-36 truncate font-semibold text-foreground group-hover:text-primary" title={inv.number}>{inv.number}</span><span className="block text-xs text-muted-foreground">{inv.isProforma?'PRO':inv.type==='sale'?'FV':'FZ'} · {columnSettings.columns.includes('issueDate') ? inv.currency : <time dateTime={inv.issueDate} title="Data wystawienia">{formatDate(inv.issueDate)}</time>}</span></span>
                     </Link>
                   </div></td>
                   {activeColumns.map(column=><td key={column.id} data-invoice-column={column.id} className={`px-3 py-3.5 ${column.id==='gross'?'text-right':''}`}>{cells[column.id]}</td>)}

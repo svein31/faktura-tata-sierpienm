@@ -10,6 +10,7 @@ terminarz. W filmie nie ma transmisji do KSeF, prawdziwych klientów ani płatno
 - `public/media/fakturaprosto-demo.mp4` — 1920 × 1080, 24 kl./s, H.264 + AAC,
   metadane MP4 na początku pliku (`faststart`), około 70 sekund.
 - `public/media/fakturaprosto-demo.webp` — plakat 1600 × 900.
+- `public/media/fakturaprosto-demo-poster.webp` — bieżący jasny plakat odtwarzacza, z aktualnym pulpitem na danych syntetycznych. Sam film pozostaje wcześniejszym nagraniem.
 - `public/media/fakturaprosto-demo.pl.vtt` — polskie napisy WebVTT.
 - `public/media/fakturaprosto-demo.transcript.txt` — pełny opis treści filmu.
 
@@ -46,6 +47,17 @@ Wszystkie procesy i baza tymczasowa są sprzątane po zakończeniu.
 Scenariusz, teksty i czasy znajdują się w `demo-storyboard.json`. Pośrednie
 zrzuty, plansze HTML/PNG, oryginalny WAV, manifesty i arkusz kontrolny trafiają
 do ignorowanego przez Git katalogu `artifacts/product-demo/`.
+
+Bieżący plakat można odtworzyć z potwierdzonego zrzutu pulpitu konta
+syntetycznego (nigdy z dokumentami klienta):
+
+```bash
+CHROMIUM_EXECUTABLE=/usr/bin/chromium node scripts/media/render-product-poster.mjs /sciezka/do/dashboard-light.png
+```
+
+Skrypt używa fontów aplikacji, lokalnego Chromium i kompresji WebP.
+Nowy adres plakatu oddziela go od wcześniejszego materiału oraz pamięci
+podręcznej starej miniatury. Źródło MP4 nadal pojawia się dopiero po kliknięciu.
 
 Renderowanie weryfikuje kodeki, rozdzielczość, długość i limit 12 MiB. Manifest
 zawiera SHA-256 filmu, rewizję aplikacji i wynik kontroli izolacji. Przed

@@ -22,6 +22,7 @@ jobs:
             const url = 'https://fakturaprosto.pl/api/health';
             const failures = [];
             let healthy = false;
+            let deployedRevision = 'unknown';
             for (let attempt = 1; attempt <= 3; attempt++) {
               try {
                 const response = await fetch(url, {
@@ -31,6 +32,7 @@ jobs:
                 const body = await response.json();
                 if (response.status === 200 && body.ok === true && body.db === 'ok') {
                   healthy = true;
+                  deployedRevision = typeof body.revision === 'string' ? body.revision : 'unknown';
                   break;
                 }
                 failures.push(`attempt ${attempt}: HTTP ${response.status}, ok=${body.ok === true}, db=${body.db === 'ok'}`);
@@ -53,6 +55,16 @@ jobs:
                 await github.rest.issues.update({ owner, repo, issue_number: existing.number, state: 'closed' });
               }
               core.info('Production health and database OK');
+              await core.summary
+                .addHeading('Production health monitor')
+                .addTable([
+                  [{ data: 'Check', header: true }, { data: 'Result', header: true }],
+                  ['Checked at UTC', new Date().toISOString()],
+                  ['Production revision', deployedRevision],
+                  ['Application and database', 'HTTP 200; ok=true; db=ok'],
+                ])
+                .addRaw('Read-only availability check. This does not confirm backup restoration, queue processing, external providers or receipt of an alert by a person.')
+                .write();
               return;
             }
             const details = failures.join('\n');

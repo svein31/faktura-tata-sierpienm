@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, Film, Play } from "lucide-react";
 
 const media = "/media/fakturaprosto-demo";
+const poster = "/media/fakturaprosto-demo-poster.webp";
 
 /** No video source or third-party player is loaded before the visitor asks. */
 export function ProductDemoVideo() {
@@ -35,14 +36,14 @@ export function ProductDemoVideo() {
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="relative aspect-video">
             {opened ? (
-              <video ref={video} controls playsInline preload="metadata" tabIndex={0} poster={`${media}.webp`} aria-label="Film demonstracyjny FakturaProsto" aria-describedby="product-film-description product-film-disclosure" onError={() => setFailed(true)} className="h-full w-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
+              <video ref={video} controls playsInline preload="metadata" tabIndex={0} poster={poster} aria-label="Film demonstracyjny FakturaProsto" aria-describedby="product-film-description product-film-disclosure" onError={() => setFailed(true)} className="h-full w-full focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
                 <source src={`${media}.mp4`} type="video/mp4" />
                 <track kind="captions" src={`${media}.pl.vtt`} srcLang="pl" label="Polskie napisy" default />
                 Twoja przeglądarka nie obsługuje tego filmu. Skorzystaj z linku do pobrania poniżej.
               </video>
             ) : (
               <button type="button" onClick={() => setOpened(true)} aria-label="Odtwórz prezentację · 1:10 — film demonstracyjny FakturaProsto" className="group relative block h-full w-full overflow-hidden text-white focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white">
-                <Image src={`${media}.webp`} alt="FakturaProsto: faktury, podgląd PDF, korekty i terminarz na danych demonstracyjnych" width={1600} height={900} sizes="(max-width: 1200px) 100vw, 1152px" loading="lazy" unoptimized className="h-full w-full object-cover" />
+                <Image src={poster} alt="FakturaProsto: aktualny pulpit w jasnym motywie na danych demonstracyjnych" width={1600} height={900} sizes="(max-width: 1200px) 100vw, 1152px" loading="lazy" unoptimized className="h-full w-full object-cover" />
                 <span className="absolute inset-0 flex items-center justify-center">
                   <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-sm transition-colors duration-150 group-hover:bg-primary/90 sm:size-16"><Play className="size-6 fill-current" /></span>
                 </span>

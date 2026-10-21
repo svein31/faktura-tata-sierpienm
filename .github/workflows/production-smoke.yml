@@ -11,14 +11,16 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - name: Wait for production and verify public site, database and authentication
         uses: actions/github-script@v7
         with:
           script: |
             const origin = 'https://fakturaprosto.pl';
-            const deadline = Date.now() + 10 * 60 * 1000;
+            // Netlify may queue a production build behind other deploys.
+            // Match the exact commit without failing a healthy, older release.
+            const deadline = Date.now() + 30 * 60 * 1000;
             let lastFailure = 'Production has not been checked.';
             while (Date.now() < deadline) {
               try {
@@ -74,7 +76,7 @@ jobs:
               }
               await new Promise(resolve => setTimeout(resolve, 20000));
             }
-            core.setFailed('Production did not pass smoke checks within 10 minutes: ' + lastFailure);
+            core.setFailed('Production did not pass smoke checks within 30 minutes: ' + lastFailure);
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
