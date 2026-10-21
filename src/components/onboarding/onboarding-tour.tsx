@@ -72,7 +72,7 @@ export function OnboardingTour({ open: isOpen, onClose }: { open: boolean; onClo
           <p className="font-semibold text-primary">{step.eyebrow}</p>
           <p className="shrink-0 tabular-nums text-muted-foreground" aria-live="polite">Krok {stepIndex + 1} z {TOUR_STEPS.length}</p>
         </div>
-        <div className="mt-3 flex gap-1.5" aria-label={`Strona przewodnika ${stepIndex + 1} z ${TOUR_STEPS.length}`}>
+        <div role="group" className="mt-3 flex gap-1.5" aria-label={`Strona przewodnika ${stepIndex + 1} z ${TOUR_STEPS.length}`}>
           {TOUR_STEPS.map((item, index) => <span key={item.id} aria-hidden="true" className={cn("h-1 flex-1 rounded-full transition-colors", index <= stepIndex ? "bg-primary" : "bg-muted")} />)}
         </div>
         <div className="mt-6 flex items-start gap-3.5">

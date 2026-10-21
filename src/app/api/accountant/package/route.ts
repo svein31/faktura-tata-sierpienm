@@ -8,6 +8,8 @@ import { isAccountingInvoice, csvCell } from "@/lib/accountant-summary";
 import { invoicePdf } from "@/lib/pdf/invoice-print";
 import { zipFiles } from "@/lib/zip";
 import { recordAuditLog } from "@/lib/audit";
+import { appendAccountingCostSources } from "@/lib/accounting-package-sources";
+import { readAccountingHandoff } from "@/lib/accounting-handoff";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(req: Request) {
@@ -36,8 +38,17 @@ export async function GET(req: Request) {
       try { files.push({ name: "pdf/" + stem + ".pdf", data: (await invoicePdf(i.id)).buffer }); }
       catch (e) { if (e instanceof ApiError && e.status === 409) files.push({ name: "pdf/" + stem + "-uwaga.txt", data: e.message }); else throw e; }
     }
+    const originals = await appendAccountingCostSources(prisma, companyId, costs, files);
+    const handoff = await readAccountingHandoff(prisma, companyId, month);
+    files.push({ name: "przygotowanie-miesiaca.txt", data: `Firma: ${access.membership.company.companyName}\nOkres: ${month}\nWygenerowano: ${new Date().toISOString()}\nBrakujące dokumenty zgłoszone na liście: ${handoff.missing.count}\nPliki dodane do skrzynki w tym miesiącu, jeszcze niezatwierdzone: ${handoff.inbox.count}\nDokumenty bez pełnego rozliczenia według statusu płatności: ${handoff.unsettled.count}\nKoszty bez wskazanego źródła: ${handoff.sources.count}\nDołączone oryginały kosztów z pozytywnym wynikiem skanera: ${originals}\n\nSpis plików: zawartosc-paczki.csv. Informacje o każdym koszcie: oryginaly-kosztow.csv.\nPaczka zawiera dane bieżące w chwili odczytu; nie jest niezmiennym zamknięciem okresu. Pobranie nie oznacza przekazania do biura ani złożenia deklaracji. Sprawdź kompletność dokumentów niezależnie od statusu okresu. Nierozliczone płatności są informacją i nie blokują zamknięcia. Pliki bez potwierdzonego wyniku skanera nie są dołączane.\n` });
+    const inventory: unknown[][] = [["Plik", "Rozmiar (bajty)"], ...files.map(file => [file.name, typeof file.data === "string" ? Buffer.byteLength(file.data) : file.data.byteLength])];
+    files.push({ name: "zawartosc-paczki.csv", data: "\uFEFF" + inventory.map(row => row.map(csvCell).join(";")).join("\r\n") });
+    if (files.reduce((sum, file) => sum + (typeof file.data === "string" ? Buffer.byteLength(file.data) : file.data.byteLength), 0) > 30_000_000) throw new ApiError(413, "Paczka przekracza 30 MB. Pobierz zestawienie i oryginały osobno.");
+    // Long-running PDF preparation must not release an export after access has been revoked.
+    const currentAccess = await requireCompanyAccess(user.id, companyId, "canExport");
+    if (!currentAccess.ok) throw new ApiError(currentAccess.status, currentAccess.error);
     const bytes = zipFiles(files);
-    await recordAuditLog({ companyId, userId: user.id, userName: user.name, userEmail: user.email, entityType: "company", entityId: companyId, action: "accounting_package_exported", details: { month, target, invoices: invoices.length, expenses: costs.length } });
+    await recordAuditLog({ companyId, userId: user.id, userName: user.name, userEmail: user.email, entityType: "company", entityId: companyId, action: "accounting_package_exported", details: { month, target, invoices: invoices.length, expenses: costs.length, originals } });
     return new Response(new Uint8Array(bytes), { headers: { "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="ksiegowosc-${month}-${target}.zip"`, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
   } catch (e) { return handleApiError(e); }
 }

@@ -2,6 +2,7 @@ import { auditSeoContracts } from "./seo-contract-audit.mjs";
 import { auditProductSecurity } from './product-security-audit.mjs';
 import { auditWorkflowEfficiency } from './workflow-efficiency-audit.mjs';
 import { auditStartupEfficiency } from './startup-efficiency-audit.mjs';
+import { auditCatalogAccounting } from './catalog-accounting-audit.mjs';
 import { fullFeatureAudit } from './full-feature-audit.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -1127,6 +1128,7 @@ try {
   await auditProductSecurity(base, db);
   await auditWorkflowEfficiency(base, db);
   await auditStartupEfficiency(base, db);
+  await auditCatalogAccounting(base, db);
   if (process.env.SKIP_FEATURE_AUDIT !== '1') await fullFeatureAudit(base, db, {ownerCookie:a.cookie,companyId,otherCookie:b.cookie,otherUserId:b.data.user.id});
   await checkAccountSecurityHttp(base, db);
   await checkInvoiceApprovalHttp(base, db);

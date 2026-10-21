@@ -216,14 +216,14 @@ export default function AccountantPage() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     void checklist.save({ ...checkedItems, packExported: true });
-    toast("success", "Pobrano paczkę", `Paczka księgowa za okres ${currentMonth} pobrana pomyślnie.`);
+    toast("success", "Pobrano zestawienie CSV", `Zestawienie za okres ${currentMonth}. Pobranie nie oznacza wysłania do biura.`);
   };
 
   return (
     <div className="page">
       <PageHeader
         title="Księgowość & Współpraca"
-        description="Miesięczne podsumowania dla biura rachunkowego, bilans podatkowy VAT i dochodu oraz darmowy dostęp dla Twojego zespołu."
+        description="Przygotuj dokumenty miesiąca, sprawdź braki i przekaż zestawienie do biura rachunkowego."
         actions={
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Input
@@ -244,6 +244,7 @@ export default function AccountantPage() {
 
       {loadError && <div role="alert" className="mb-4 rounded-xl border p-4">{loadError} <Button onClick={fetchMonthData}>Spróbuj ponownie</Button></div>}
       <p className="mb-4 text-sm text-muted-foreground">Kwoty w walucie dokumentów: {currency}. Zestawienie nie stanowi wyliczenia zobowiązania podatkowego. Dokumenty bez przypisanej firmy są dostępne w archiwum kosztów.</p>
+      {selectedCompanyId && <div className="mb-6 space-y-4"><SharedAccountingWorkspace key={`${selectedCompanyId}:${currentMonth}`} companyId={selectedCompanyId} month={currentMonth} /></div>}
       {/* Karty bilansu miesięcznego */}
       <div
         style={{
@@ -323,13 +324,12 @@ export default function AccountantPage() {
         <Card style={{ padding: "1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <FileCheck2 size={20} color="var(--primary)" />
-            <h3 style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>Moja lista kontrolna miesiąca</h3>
+            <h3 style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0 }}>Osobista lista kontrolna miesiąca</h3>
           </div>
           <p style={{ fontSize: "0.8125rem", color: "var(--muted)", marginBottom: "1.25rem" }}>
             Kroki przygotowania dokumentów przed wysyłką do biura rachunkowego za okres {currentMonth}:
           </p>
 
-          {selectedCompanyId && <SharedAccountingWorkspace key={`${selectedCompanyId}:${currentMonth}`} companyId={selectedCompanyId} month={currentMonth} />}
           <p className="text-xs text-muted-foreground mt-3">Poniższe wcześniejsze zaznaczenia są Twoją osobistą listą.</p>
           {checklist.error && <p role="alert" className="text-sm text-destructive">{checklist.error}</p>}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
@@ -351,7 +351,7 @@ export default function AccountantPage() {
               },
               {
                 id: "packExported",
-                title: "Pobrano lub wysłano paczkę dokumentów",
+                title: "Przygotowano eksport dla księgowości",
                 desc: "Zestawienie CSV/JPK gotowe dla księgowej.",
               },
             ].map((step) => {
@@ -404,12 +404,14 @@ export default function AccountantPage() {
             <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
               <Input
                 type="email"
+                aria-label="E-mail zapraszanej osoby"
                 placeholder="ksiegowa@biuro-podatkowe.pl"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 required
               />
               <Select
+                aria-label="Rola zapraszanej osoby"
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
               >

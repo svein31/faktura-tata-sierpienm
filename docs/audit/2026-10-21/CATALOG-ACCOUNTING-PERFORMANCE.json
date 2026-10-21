@@ -1,0 +1,2562 @@
+{
+  "nodeVersion": "v24.19.0",
+  "schemaVersion": 1,
+  "diagnostic": false,
+  "coldOnly": false,
+  "at": "2026-10-21T16:07:48.920Z",
+  "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+  "buildRevision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+  "checkoutRevision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+  "buildId": "sH_djlU-gNmUbvjoVFtbJ",
+  "conditions": {
+    "application": "real production Next build; synthetic isolated Mongo replica set; one tenant/300 invoices; no production credentials",
+    "viewport": "390x844, Chromium mobile/touch",
+    "cpuSlowdown": 4,
+    "network": {
+      "latencyMs": 80,
+      "downloadMbps": 10,
+      "uploadMbps": 5
+    },
+    "cold": "new Next process (health-only readiness probe) plus new browser context/cache, each route independently; process startup excluded",
+    "warm": "same browser/store/process: client link to other route then return, with assets cached",
+    "skeleton": "First requestAnimationFrame callback where a main aria-busy skeleton or route status skeleton has a visible DOM layout. This is not a guaranteed paint timestamp: rAF precedes paint and a later long task may delay paint. Use FCP separately.",
+    "ready": "First rAF callback where the data-derived dashboard action section, or all 30 visible-layout invoice detail links without loading status, exist in DOM. Not a guaranteed paint timestamp or completion of optional charts. Server-rendered data may become ready before hydration; controls readiness is measured separately.",
+    "ttfb": "Navigation/Resource Timing requestStart to responseStart; separate unthrottled direct API serial samples",
+    "limits": "Small controlled laboratory sample, no production geography/concurrency/real-user percentile claim; app warm-up, CPU contention and browser emulation affect results. PDF and KSeF endpoints/provider actions excluded.",
+    "controlsReady": "First rAF-visible dashboard refresh button with its natural React onClick prop, or invoice search input with its natural React onChange prop. A hydration signal, not an executed action or a guaranteed paint timestamp. Data-and-controls readiness is the maximum of readyMs and controlsReadyMs.",
+    "observerWork": "Read-only rAF probes scan only pending metrics: data rows stop being inspected after first data-ready, control layout is inspected only once its natural React handler exists, all layout probes stop after data and controls are ready, and a warm route reset starts them again. The first-ready criteria are unchanged. Earlier version-1 runs kept scanning settled rows during hydration; timings across these versions are not directly paired.",
+    "warmHydrationGuard": "Each collection waits for both data and control hydration before continuing. Before warm navigation, the visible Next link must also have its natural React onClick prop. Every warm navigation must preserve a unique document identity; full reloads fail the benchmark. Earlier reports without this guard measured warm navigation after client-rendered data readiness.",
+    "fcp": "Navigation Paint Timing first-contentful-paint, measured separately from DOM skeleton and data readiness; navigation values only apply to cold document entries.",
+    "host": "Browser, application server and MongoDB are co-located. Run without concurrent builds/browser benchmarks. Host limits are recorded separately when available. A laboratory relative comparison, not a real-user loading SLO.",
+    "providerGuard": "Next uses loopback-only.cjs; Chromium uses a non-listening external proxy plus resolver isolation, and CDP Network.setBlockedURLs blocks KSeF/PDF/export-pack requests before navigation. No Playwright routing is installed, so normal HTTP caching remains enabled. Baseline had zero requests matching these additional CDP guards.",
+    "navigationTiming": "Navigation Timing belongs only to cold-entry document navigation. Warm-client records retain the original document navigation entry; use their route ready/skeleton measurements and API Resource Timing separately.",
+    "catalog": {
+      "companies": 2,
+      "additionalContractorsPerCompany": 1000,
+      "productsPerCompany": 1000
+    }
+  },
+  "samples": [
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 526.6,
+      "headingMs": 526.6,
+      "readyMs": 526.6,
+      "controlsReadyMs": 1303.3,
+      "navigation": [
+        {
+          "ttfbMs": 267.30000000074506,
+          "responseMs": 286.5,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 778.6000000014901,
+          "fcpMs": 712
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1303.3,
+      "kind": "cold-entry",
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598872633.6:0.9251352565408126",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 609.4,
+      "headingMs": 609.4,
+      "readyMs": 609.4,
+      "controlsReadyMs": 609.4,
+      "navigation": [
+        {
+          "ttfbMs": 267.30000000074506,
+          "responseMs": 286.5,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 778.6000000014901,
+          "fcpMs": 712
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/pilot/events",
+          "startMs": 149.5,
+          "requestStartMs": 152.30000000074506,
+          "responseStartMs": 159.09999999776483,
+          "ttfbMs": 6.799999997019768,
+          "endMs": 234.5,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 609.4,
+      "kind": "warm-client",
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598872633.6:0.9251352565408126",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 216.1,
+      "headingMs": 216.1,
+      "readyMs": 216.1,
+      "controlsReadyMs": 216.1,
+      "navigation": [
+        {
+          "ttfbMs": 267.30000000074506,
+          "responseMs": 286.5,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 778.6000000014901,
+          "fcpMs": 712
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 216.1,
+      "kind": "warm-client",
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598872633.6:0.9251352565408126",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 444.7,
+      "headingMs": 444.7,
+      "readyMs": 595.1,
+      "controlsReadyMs": 1197.6,
+      "navigation": [
+        {
+          "ttfbMs": 246.40000000223517,
+          "responseMs": 290.70000000298023,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 666.2000000029802,
+          "fcpMs": 592
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1197.6,
+      "kind": "cold-entry",
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598876895:0.42219538601598916",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 562.4,
+      "headingMs": 562.4,
+      "readyMs": 562.4,
+      "controlsReadyMs": 562.4,
+      "navigation": [
+        {
+          "ttfbMs": 246.40000000223517,
+          "responseMs": 290.70000000298023,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 666.2000000029802,
+          "fcpMs": 592
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/pilot/events",
+          "startMs": 172.5,
+          "requestStartMs": 173.89999999850988,
+          "responseStartMs": 182,
+          "ttfbMs": 8.100000001490116,
+          "endMs": 256,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 562.4,
+      "kind": "warm-client",
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598876895:0.42219538601598916",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 179.6,
+      "headingMs": 179.6,
+      "readyMs": 179.6,
+      "controlsReadyMs": 179.6,
+      "navigation": [
+        {
+          "ttfbMs": 246.40000000223517,
+          "responseMs": 290.70000000298023,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 666.2000000029802,
+          "fcpMs": 592
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 179.6,
+      "kind": "warm-client",
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598876895:0.42219538601598916",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 479.7,
+      "headingMs": 567.2,
+      "readyMs": 567.2,
+      "controlsReadyMs": 1268.1,
+      "navigation": [
+        {
+          "ttfbMs": 289.80000000074506,
+          "responseMs": 314,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 780.3000000007451,
+          "fcpMs": 564
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1268.1,
+      "kind": "cold-entry",
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598880938:0.4198758426451945",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 711.9,
+      "headingMs": 711.9,
+      "readyMs": 711.9,
+      "controlsReadyMs": 711.9,
+      "navigation": [
+        {
+          "ttfbMs": 289.80000000074506,
+          "responseMs": 314,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 780.3000000007451,
+          "fcpMs": 564
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/workspace/preferences",
+          "startMs": 59.30000000074506,
+          "requestStartMs": 60.5,
+          "responseStartMs": 91,
+          "ttfbMs": 30.5,
+          "endMs": 143.5,
+          "bytes": 92
+        },
+        {
+          "path": "/api/subscription",
+          "startMs": 63.80000000074506,
+          "requestStartMs": 64.89999999850988,
+          "responseStartMs": 94,
+          "ttfbMs": 29.100000001490116,
+          "endMs": 148.19999999925494,
+          "bytes": 648
+        },
+        {
+          "path": "/api/overview",
+          "startMs": 68.89999999850988,
+          "requestStartMs": 69.69999999925494,
+          "responseStartMs": 114.80000000074506,
+          "ttfbMs": 45.100000001490116,
+          "endMs": 151.59999999776483,
+          "bytes": 0
+        },
+        {
+          "path": "/api/subscription",
+          "startMs": 72.19999999925494,
+          "requestStartMs": 72.80000000074506,
+          "responseStartMs": 100.89999999850988,
+          "ttfbMs": 28.099999997764826,
+          "endMs": 155.19999999925494,
+          "bytes": 648
+        },
+        {
+          "path": "/api/pilot/events",
+          "startMs": 316.80000000074506,
+          "requestStartMs": 318,
+          "responseStartMs": 329.69999999925494,
+          "ttfbMs": 11.699999999254942,
+          "endMs": 400.0999999977648,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 711.9,
+      "kind": "warm-client",
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598880938:0.4198758426451945",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 187.3,
+      "headingMs": 187.3,
+      "readyMs": 187.3,
+      "controlsReadyMs": 187.3,
+      "navigation": [
+        {
+          "ttfbMs": 289.80000000074506,
+          "responseMs": 314,
+          "documentRawBytes": 84534,
+          "documentWireBytes": 18414,
+          "documentTransferBytes": 18714,
+          "dclMs": 780.3000000007451,
+          "fcpMs": 564
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 187.3,
+      "kind": "warm-client",
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598880938:0.4198758426451945",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 468.5,
+      "headingMs": 468.5,
+      "readyMs": 468.5,
+      "controlsReadyMs": 1530.1,
+      "navigation": [
+        {
+          "ttfbMs": 261.0999999977648,
+          "responseMs": 292.80000000074506,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1078.5,
+          "fcpMs": 684
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1530.1,
+      "kind": "cold-entry",
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598885126.4:0.027535702020264896",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 339.4,
+      "headingMs": 339.4,
+      "readyMs": 339.4,
+      "controlsReadyMs": 339.4,
+      "navigation": [
+        {
+          "ttfbMs": 261.0999999977648,
+          "responseMs": 292.80000000074506,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1078.5,
+          "fcpMs": 684
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/pilot/events",
+          "startMs": 141.10000000149012,
+          "requestStartMs": 143.39999999850988,
+          "responseStartMs": 153.39999999850988,
+          "ttfbMs": 10,
+          "endMs": 225.19999999925494,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 339.4,
+      "kind": "warm-client",
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598885126.4:0.027535702020264896",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 386.2,
+      "headingMs": 386.2,
+      "readyMs": 386.2,
+      "controlsReadyMs": 386.2,
+      "navigation": [
+        {
+          "ttfbMs": 261.0999999977648,
+          "responseMs": 292.80000000074506,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1078.5,
+          "fcpMs": 684
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 386.2,
+      "kind": "warm-client",
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598885126.4:0.027535702020264896",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 490.7,
+      "headingMs": 490.7,
+      "readyMs": 660.8,
+      "controlsReadyMs": 1520.5,
+      "navigation": [
+        {
+          "ttfbMs": 296.30000000074506,
+          "responseMs": 324.0999999977648,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1170.5,
+          "fcpMs": 668
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1520.5,
+      "kind": "cold-entry",
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598891000.9:0.9212857137949546",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 344.4,
+      "headingMs": 344.4,
+      "readyMs": 344.4,
+      "controlsReadyMs": 344.4,
+      "navigation": [
+        {
+          "ttfbMs": 296.30000000074506,
+          "responseMs": 324.0999999977648,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1170.5,
+          "fcpMs": 668
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/pilot/events",
+          "startMs": 154.90000000223517,
+          "requestStartMs": 158.80000000074506,
+          "responseStartMs": 168.60000000149012,
+          "ttfbMs": 9.800000000745058,
+          "endMs": 242.40000000223517,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 344.4,
+      "kind": "warm-client",
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598891000.9:0.9212857137949546",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 349.4,
+      "headingMs": 349.4,
+      "readyMs": 349.4,
+      "controlsReadyMs": 349.4,
+      "navigation": [
+        {
+          "ttfbMs": 296.30000000074506,
+          "responseMs": 324.0999999977648,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1170.5,
+          "fcpMs": 668
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 349.4,
+      "kind": "warm-client",
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598891000.9:0.9212857137949546",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 568.5,
+      "headingMs": 568.5,
+      "readyMs": 748,
+      "controlsReadyMs": 1491.7,
+      "navigation": [
+        {
+          "ttfbMs": 302.4000000022352,
+          "responseMs": 353.19999999925494,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1195.8999999985099,
+          "fcpMs": 572
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 1491.7,
+      "kind": "cold-entry",
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": true,
+      "documentIdentity": "1792598896547.2:0.7252194597254976",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        }
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "skeletonMs": null,
+      "shellMs": 352.3,
+      "headingMs": 352.3,
+      "readyMs": 352.3,
+      "controlsReadyMs": 352.3,
+      "navigation": [
+        {
+          "ttfbMs": 302.4000000022352,
+          "responseMs": 353.19999999925494,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1195.8999999985099,
+          "fcpMs": 572
+        }
+      ],
+      "resources": [
+        {
+          "path": "/api/pilot/events",
+          "startMs": 144.29999999701977,
+          "requestStartMs": 148.39999999850988,
+          "responseStartMs": 174.69999999925494,
+          "ttfbMs": 26.300000000745058,
+          "endMs": 232.59999999776483,
+          "bytes": 0
+        }
+      ],
+      "dataAndControlsReadyMs": 352.3,
+      "kind": "warm-client",
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598896547.2:0.7252194597254976",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    },
+    {
+      "route": "/invoices",
+      "skeletonMs": null,
+      "shellMs": 360.5,
+      "headingMs": 360.5,
+      "readyMs": 360.5,
+      "controlsReadyMs": 360.5,
+      "navigation": [
+        {
+          "ttfbMs": 302.4000000022352,
+          "responseMs": 353.19999999925494,
+          "documentRawBytes": 426676,
+          "documentWireBytes": 24529,
+          "documentTransferBytes": 24829,
+          "dclMs": 1195.8999999985099,
+          "fcpMs": 572
+        }
+      ],
+      "resources": [],
+      "dataAndControlsReadyMs": 360.5,
+      "kind": "warm-client",
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "jsErrors": [],
+      "blockedRequests": [],
+      "domNavigation": false,
+      "documentIdentity": "1792598896547.2:0.7252194597254976",
+      "scripts": [
+        {
+          "path": "/_next/static/chunks/webpack-cf2a7658a1971add.js",
+          "bytes": 2252
+        },
+        {
+          "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "bytes": 54364
+        },
+        {
+          "path": "/_next/static/chunks/1255-8dc91b756d944555.js",
+          "bytes": 46332
+        },
+        {
+          "path": "/_next/static/chunks/main-app-1de71e77f771d6dd.js",
+          "bytes": 572
+        },
+        {
+          "path": "/_next/static/chunks/2619-04bc32f026a0d946.js",
+          "bytes": 3406
+        },
+        {
+          "path": "/_next/static/chunks/2563-6d89d1cf746a33a6.js",
+          "bytes": 3156
+        },
+        {
+          "path": "/_next/static/chunks/app/layout-636883a913d9fec3.js",
+          "bytes": 5847
+        },
+        {
+          "path": "/_next/static/chunks/app/page-32786795cf5c379b.js",
+          "bytes": 4474
+        },
+        {
+          "path": "/_next/static/chunks/5284-453ac735d8f30ee8.js",
+          "bytes": 6100
+        },
+        {
+          "path": "/_next/static/chunks/4909-671174a8a49365e1.js",
+          "bytes": 8617
+        },
+        {
+          "path": "/_next/static/chunks/120-908affd353467e95.js",
+          "bytes": 5946
+        },
+        {
+          "path": "/_next/static/chunks/5907-2f64d49368f27722.js",
+          "bytes": 4873
+        },
+        {
+          "path": "/_next/static/chunks/6367-21b419ac901c6081.js",
+          "bytes": 3124
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/error-988529ab8e5c8494.js",
+          "bytes": 754
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/layout-9940916af0aaf7da.js",
+          "bytes": 17838
+        },
+        {
+          "path": "/_next/static/chunks/8300-0e33d2b36f915a0e.js",
+          "bytes": 3126
+        },
+        {
+          "path": "/_next/static/chunks/2599-234ef6b9a1b73604.js",
+          "bytes": 5080
+        },
+        {
+          "path": "/_next/static/chunks/3412-09f99f4dd8c185b7.js",
+          "bytes": 3805
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/invoices/page-401ecb7732397b51.js",
+          "bytes": 18160
+        },
+        {
+          "path": "/_next/static/chunks/4615.9bbc6b98cc29696d.js",
+          "bytes": 287
+        },
+        {
+          "path": "/_next/static/chunks/9202.2c7056a5fcb5b008.js",
+          "bytes": 1164
+        },
+        {
+          "path": "/_next/static/chunks/5755-f9165a9e3a4b5075.js",
+          "bytes": 3215
+        },
+        {
+          "path": "/_next/static/chunks/app/(app)/dashboard/page-b105d771532fc02e.js",
+          "bytes": 11924
+        }
+      ]
+    }
+  ],
+  "backend": [
+    {
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "path": "/api/data",
+      "ttfbMs": 243.5,
+      "responseMs": 256.4,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "path": "/api/overview",
+      "ttfbMs": 24,
+      "responseMs": 24.3,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 1,
+      "coldEntry": "/dashboard",
+      "path": "/api/invoices/search",
+      "ttfbMs": 18,
+      "responseMs": 18.2,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "path": "/api/data",
+      "ttfbMs": 255.8,
+      "responseMs": 261.2,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "path": "/api/overview",
+      "ttfbMs": 81.3,
+      "responseMs": 81.6,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/dashboard",
+      "path": "/api/invoices/search",
+      "ttfbMs": 20.9,
+      "responseMs": 21.1,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "path": "/api/data",
+      "ttfbMs": 183.9,
+      "responseMs": 192,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "path": "/api/overview",
+      "ttfbMs": 38.7,
+      "responseMs": 38.9,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/dashboard",
+      "path": "/api/invoices/search",
+      "ttfbMs": 22.2,
+      "responseMs": 22.4,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "path": "/api/data",
+      "ttfbMs": 207.9,
+      "responseMs": 219.2,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "path": "/api/overview",
+      "ttfbMs": 27,
+      "responseMs": 27.2,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 1,
+      "coldEntry": "/invoices",
+      "path": "/api/invoices/search",
+      "ttfbMs": 18.1,
+      "responseMs": 18.5,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "path": "/api/data",
+      "ttfbMs": 187.6,
+      "responseMs": 195.8,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "path": "/api/overview",
+      "ttfbMs": 25.2,
+      "responseMs": 25.5,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 2,
+      "coldEntry": "/invoices",
+      "path": "/api/invoices/search",
+      "ttfbMs": 20.8,
+      "responseMs": 21.1,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "path": "/api/data",
+      "ttfbMs": 181.5,
+      "responseMs": 186.2,
+      "bytes": 2204931,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "path": "/api/overview",
+      "ttfbMs": 25,
+      "responseMs": 25.3,
+      "bytes": 1941,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    },
+    {
+      "iteration": 3,
+      "coldEntry": "/invoices",
+      "path": "/api/invoices/search",
+      "ttfbMs": 71.8,
+      "responseMs": 72.1,
+      "bytes": 55943,
+      "status": 200,
+      "phase": "serial warm backend probe; no browser throttling"
+    }
+  ],
+  "measurementVersion": 2,
+  "workerChecks": [
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    },
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    },
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    },
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    },
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    },
+    {
+      "revision": "9f12bd59a73b800ed2a5786484263fa150e7b1a8",
+      "db": "ok"
+    }
+  ],
+  "hostLimits": {
+    "cpuQuota": "200000 100000",
+    "memoryLimitBytes": "8589934592"
+  },
+  "browserVersion": "154.0.8037.57",
+  "readinessBudgetMs": 2000,
+  "filterSamples": [
+    {
+      "iteration": 1,
+      "search": "SPEED/001",
+      "readyMs": 518.8,
+      "conditions": "Same CPU/network throttling; actual input, debounce, authorized response and unique rendered result"
+    },
+    {
+      "iteration": 2,
+      "search": "SPEED/001",
+      "readyMs": 476.4,
+      "conditions": "Same CPU/network throttling; actual input, debounce, authorized response and unique rendered result"
+    },
+    {
+      "iteration": 3,
+      "search": "SPEED/001",
+      "readyMs": 488.6,
+      "conditions": "Same CPU/network throttling; actual input, debounce, authorized response and unique rendered result"
+    }
+  ],
+  "summary": {
+    "/dashboard cold-entry": {
+      "skeletonMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "readyMs": {
+        "n": 3,
+        "min": 526.6,
+        "median": 567.2,
+        "max": 595.1
+      },
+      "controlsReadyMs": {
+        "n": 3,
+        "min": 1197.6,
+        "median": 1268.1,
+        "max": 1303.3
+      },
+      "dataAndControlsReadyMs": {
+        "n": 3,
+        "min": 1197.6,
+        "median": 1268.1,
+        "max": 1303.3
+      },
+      "allReadyUnder2500": true,
+      "allDataAndControlsReadyUnder4000": true
+    },
+    "/dashboard warm-client": {
+      "skeletonMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "readyMs": {
+        "n": 6,
+        "min": 179.6,
+        "median": 277.8,
+        "max": 352.3
+      },
+      "controlsReadyMs": {
+        "n": 6,
+        "min": 179.6,
+        "median": 277.8,
+        "max": 352.3
+      },
+      "dataAndControlsReadyMs": {
+        "n": 6,
+        "min": 179.6,
+        "median": 277.8,
+        "max": 352.3
+      },
+      "allReadyUnder2500": true,
+      "allDataAndControlsReadyUnder4000": true
+    },
+    "/invoices cold-entry": {
+      "skeletonMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "readyMs": {
+        "n": 3,
+        "min": 468.5,
+        "median": 660.8,
+        "max": 748
+      },
+      "controlsReadyMs": {
+        "n": 3,
+        "min": 1491.7,
+        "median": 1520.5,
+        "max": 1530.1
+      },
+      "dataAndControlsReadyMs": {
+        "n": 3,
+        "min": 1491.7,
+        "median": 1520.5,
+        "max": 1530.1
+      },
+      "allReadyUnder2500": true,
+      "allDataAndControlsReadyUnder4000": true
+    },
+    "/invoices warm-client": {
+      "skeletonMs": {
+        "n": 0,
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "readyMs": {
+        "n": 6,
+        "min": 349.4,
+        "median": 474.3,
+        "max": 711.9
+      },
+      "controlsReadyMs": {
+        "n": 6,
+        "min": 349.4,
+        "median": 474.3,
+        "max": 711.9
+      },
+      "dataAndControlsReadyMs": {
+        "n": 6,
+        "min": 349.4,
+        "median": 474.3,
+        "max": 711.9
+      },
+      "allReadyUnder2500": true,
+      "allDataAndControlsReadyUnder4000": true
+    }
+  }
+}

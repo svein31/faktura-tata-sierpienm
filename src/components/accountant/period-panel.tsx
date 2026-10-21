@@ -4,9 +4,11 @@ import Link from "next/link";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { AccountingHandoff } from "@/lib/accounting-handoff";
 
 type Summary = { currency: string; salesGross: number; expenseGross: number };
 type State = {
+  handoff: AccountingHandoff;
   period: { status: string; version: number; closedAt: string | null };
   readiness: { canClose: boolean; blockers: Record<string, number>; summary: Summary[]; details: Record<string, { id: string; label: string; href: string }[]>; progress: { completed: number; total: number } };
   events: { id: string; action: string; authorName: string; reason: string; createdAt: string; snapshot: { summary: Summary[] } }[];
@@ -32,7 +34,7 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
         onReadOnly(result.period.status !== "open");
         setError("");
       }
-    } catch (e) { if (mounted.current && ticket === generation.current) { setError(e instanceof Error ? e.message : "Błąd odczytu okresu."); onReadOnly(true); } }
+    } catch (e) { if (mounted.current && ticket === generation.current) { setState(null); setError(e instanceof Error ? e.message : "Błąd odczytu okresu."); onReadOnly(true); } }
   }, [companyId, month, onReadOnly]);
   React.useEffect(() => { mounted.current = true; setState(null); setReason(""); setBusy(false); mutationBusy.current = false; onReadOnly(true); void load(); return () => { mounted.current = false; ++generation.current; }; }, [load, revision]);
   const change = async () => {
@@ -50,20 +52,28 @@ export function AccountingPeriodPanel({ companyId, month, revision, onReadOnly }
   };
   const closed = state?.period.status === "closed";
   return <section className="rounded-xl border p-4 space-y-3 mb-4">
-    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">Okres {month} · {state ? closed ? "Zamknięty" : "Otwarty" : "Wczytywanie…"}</h2><Button variant="ghost" disabled={busy} onClick={() => load()}>Sprawdź stan miesiąca</Button></div>
+    <div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-semibold">Miesiąc do rozliczenia · {month}</h2><p className="mt-1 text-xs text-muted-foreground">Okres: {state ? closed ? "Zamknięty" : "Otwarty" : "Wczytywanie…"}</p></div><Button variant="ghost" disabled={busy} onClick={() => load()}>Sprawdź stan miesiąca</Button></div>
     <p className="text-sm text-muted-foreground">Okres według daty wystawienia dokumentu, osobno dla wybranej firmy. Zamknięcie blokuje zmiany dokumentów i listy zadań. Ponowne otwarcie przez właściciela wymaga uzasadnienia.</p>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {state && <>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Przygotowanie dokumentów miesiąca">{([
+        ["missing", "Brakujące dokumenty", "Zgłoszone na wspólnej liście miesiąca."],
+        ["inbox", "Pliki do opracowania", "Dodane do skrzynki w tym miesiącu; data wystawienia może być inna."],
+        ["unsettled", "Nierozliczone dokumenty", "Według statusu płatności. Nie blokują zamknięcia miesiąca."],
+        ["sources", "Koszty bez wskazanego źródła", "Bez załącznika, skanu lub odwołania KSeF. Sprawdź kompletność."],
+      ] as const).map(([key, title, description]) => <details key={key} className="min-w-0 rounded-lg border p-3"><summary className="cursor-pointer text-sm"><span className="block text-xs font-medium text-muted-foreground">{title}</span><span className="mt-2 block text-2xl font-semibold tabular-nums">{state.handoff[key].count}</span></summary><p className="mt-3 text-xs leading-relaxed text-muted-foreground">{description}</p><ul className="mt-2 space-y-2">{state.handoff[key].items.map(item => <li key={item.id}><Link prefetch={false} href={item.href} className="inline-flex min-h-6 break-words text-xs text-primary underline underline-offset-4">{item.label}</Link></li>)}</ul>{state.handoff[key].count > 10 && <p className="mt-2 text-xs text-muted-foreground">Pokazano pierwsze 10 pozycji.</p>}{!state.handoff[key].count && <p className="mt-2 text-xs text-muted-foreground">Brak pozycji do sprawdzenia w tej grupie.</p>}</details>)}</div>
       {!closed && <div className="space-y-3">
         <p className="text-sm font-medium">Gotowość miesiąca: {state.readiness.progress.completed}/{state.readiness.progress.total} kontroli zakończonych</p>
         <progress className="h-2 w-full accent-primary" aria-label="Postęp kontroli miesiąca" value={state.readiness.progress.completed} max={state.readiness.progress.total} />
-        <ul className="grid gap-2 sm:grid-cols-2">{Object.entries(state.readiness.blockers).map(([key, count]) => <li key={key} className="min-w-0 rounded-lg border p-3 text-sm">
+        <ul className="grid gap-2 sm:grid-cols-2">{Object.entries(state.readiness.blockers).filter(([, count]) => count > 0).map(([key, count]) => <li key={key} className="min-w-0 rounded-lg border p-3 text-sm">
           <p className={count ? "font-medium text-warning dark:text-warning" : "text-muted-foreground"}>{count ? "Do sprawdzenia" : "Gotowe"} · {labels[key] || key}: {count}</p>
           {(state.readiness.details[key] || []).map(item => <Link prefetch={false} key={item.id} href={item.href} className="mt-2 block break-words text-primary underline underline-offset-4">{item.label} →</Link>)}
           {count > (state.readiness.details[key]?.length || 0) && <p className="mt-2 text-xs text-muted-foreground">Lista pokazuje pierwsze 10 dokumentów. Po poprawieniu sprawdź stan ponownie.</p>}
         </li>)}</ul>
+        <details className="rounded-lg border p-3"><summary className="cursor-pointer text-sm font-medium">Kontrole bez uwag ({state.readiness.progress.completed})</summary><ul className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">{Object.entries(state.readiness.blockers).filter(([, count]) => count === 0).map(([key]) => <li key={key}>{labels[key] || key}: 0</li>)}</ul>{state.readiness.progress.completed === 0 && <p className="mt-2 text-xs text-muted-foreground">Najpierw zakończ pozycje do sprawdzenia.</p>}</details>
       </div>}
-      <div className="flex flex-wrap gap-3 text-sm"><Link prefetch={false} href="/documents" className="text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link prefetch={false} href="/finances" className="text-primary underline">Rozlicz płatności →</Link><SensitiveDownload url={`/api/accountant/package?companyId=${companyId}&month=${month}`} scope={companyId + "-" + month} /></div>
+      <div className="rounded-lg border bg-muted/20 p-4"><h3 className="text-sm font-semibold">Przekaż dokumenty księgowości</h3><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Paczka zawiera zestawienie, dostępne XML KSeF i UPO, wizualizacje PDF oraz bezpieczne oryginały kosztów ze skrzynki. Spis zawartości wskazuje pominięte lub brakujące pliki. Pobranie nie oznacza wysłania ani zamknięcia miesiąca.</p><div className="mt-3 flex flex-wrap items-center gap-3 text-sm"><SensitiveDownload url={`/api/accountant/package?companyId=${companyId}&month=${month}`} scope={companyId + "-" + month} /><Link prefetch={false} href={`/accountant/portal?month=${month}`} className="inline-flex min-h-9 items-center text-primary underline">Otwórz pulpit księgowy →</Link><Link prefetch={false} href="/settings/team" className="inline-flex min-h-9 items-center text-primary underline">Dostęp dla księgowej →</Link></div></div>
+      <div className="flex flex-wrap gap-3 text-sm"><Link prefetch={false} href="/documents" className="inline-flex min-h-9 items-center text-primary underline">Sprawdź skrzynkę dokumentów →</Link><Link prefetch={false} href="/finances" className="inline-flex min-h-9 items-center text-primary underline">Rozlicz płatności →</Link></div>
       <p className="text-xs text-muted-foreground">Niezatwierdzone pliki w skrzynce dokumentów nie są jeszcze kosztami. Przed zamknięciem sprawdź kompletność dokumentów; późniejsza akceptacja pliku z tego miesiąca będzie wymagać jego ponownego otwarcia.</p>
       {((closed && state.canReopen) || (!closed && state.canClose)) && <form onSubmit={e => { e.preventDefault(); void change(); }} className="flex flex-wrap items-end gap-2">
         <label className="text-sm grow">Uzasadnienie<Input required maxLength={1000} disabled={busy} value={reason} onChange={e => setReason(e.target.value)} /></label>

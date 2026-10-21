@@ -131,6 +131,11 @@ try {
       const { auditInvoicePower } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-power-browser.mjs'));
       await auditInvoicePower({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
     }
+  } else if (process.env.UI_AUDIT_SUITE === 'catalog-accounting') {
+    const { auditCatalogAccounting } = await import(pathToFileURL(appRoot + '/scripts/catalog-accounting-audit.mjs'));
+    await auditCatalogAccounting(base, db);
+    const { auditCatalogAccountingBrowser } = await import(pathToFileURL(appRoot + '/scripts/audit/catalog-accounting-browser.mjs'));
+    await auditCatalogAccountingBrowser({page,context,base,db,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
   } else if (process.env.UI_AUDIT_SUITE === 'startup-efficiency') {
     const { auditStartupEfficiency } = await import(pathToFileURL(appRoot + '/scripts/startup-efficiency-audit.mjs'));
     await auditStartupEfficiency(base, db);

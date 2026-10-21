@@ -139,12 +139,14 @@ export async function browserChecks(base, db) {
     const dismiss = page.getByRole('button', { name: /Pomiń|Rozumiem|Zakończ/ });
     if (await dismiss.count()) await dismiss.first().click();
     await page.goto('/contractors');
-    await page.locator('summary').filter({ hasText: 'Importuj kontrahentów z CSV' }).click();
+    await page.locator('summary').filter({ hasText: 'Import kontrahentów z CSV lub Excel' }).click();
     await page.locator('input[type="file"]').setInputFiles({ name: 'kontrahenci.csv', mimeType: 'text/csv', buffer: Buffer.from('Nazwa;NIP;Miasto\nNowy CSV;5260301706;Poznań\n') });
     await page.getByRole('button', { name: 'Sprawdź import' }).click();
-    await expect(page.getByRole('button', { name: 'Importuj 1' })).toBeVisible();
-    await page.getByRole('button', { name: 'Importuj 1' }).click();
-    await expect(page.getByText('Nowy CSV').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Importuj kontrahentów (1)', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Importuj kontrahentów (1)', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Wynik sprawdzenia importu' })).toContainText('Dodano: 1');
+    assert.equal(await db.contractor.count({ where: { companyId: company.id, name: 'Nowy CSV' } }), 1);
+    await expect(page.getByText('Nowy CSV', { exact: true }).last()).toBeVisible();
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: 'Do załatwienia' })).toBeVisible();
     await expect(page.getByText('BROWSER/001').first()).toBeVisible();

@@ -17,20 +17,28 @@ export function LoadingReveal({ loading, fallback, children, className }: {
     if (!loading) {
       const element = content.current;
       if (!element) return;
+      let frame = 0;
       const measure = () => { lastContentHeight.current = Math.ceil(element.getBoundingClientRect().height); };
       measure();
-      const observer = new ResizeObserver(measure);
+      const observer = new ResizeObserver(() => {
+        if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure(); });
+      });
       observer.observe(element);
-      return () => observer.disconnect();
+      return () => { observer.disconnect(); cancelAnimationFrame(frame); };
     }
     setLeaving(true);
     const element = placeholder.current;
     if (!element) return;
+    let frame = 0;
     const measure = () => setReservedHeight(Math.max(lastContentHeight.current, Math.ceil(element.getBoundingClientRect().height)));
     measure();
-    const observer = new ResizeObserver(measure);
+    // A min-height update can resize the observed fallback in WebKit. Perform
+    // React/layout writes in the next frame, outside observer delivery.
+    const observer = new ResizeObserver(() => {
+      if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure(); });
+    });
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [loading]);
 
   React.useEffect(() => {

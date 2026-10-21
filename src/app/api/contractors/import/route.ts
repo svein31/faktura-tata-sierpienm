@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { ApiError, handleApiError, json, readJson } from "@/lib/api";
+import { ApiError, handleApiError, json } from "@/lib/api";
+import { readImportJson } from "@/lib/import-request";
 import { companyAccess, fenceCompanyWrite } from "@/lib/company-write";
 import { excludeExisting, validateImportRows } from "@/lib/contractor-import";
 import { recordAuditLog } from "@/lib/audit";
@@ -11,8 +12,7 @@ export async function POST(req: Request) {
   try {
     const user = await getSessionUser();
     if (!user) throw new ApiError(401, "Nieautoryzowany.");
-    if (Number(req.headers.get("content-length") || 0) > 220000) throw new ApiError(413, "Plik importu jest za duży.");
-    const body = await readJson(req);
+    const body = await readImportJson(req);
     if (body.action !== "preview" && body.action !== "import") throw new ApiError(400, "Nieprawidłowe działanie.");
     const { company } = await companyAccess(prisma, user.id, body.companyId, "canIssueInvoices");
     const { values, results } = validateImportRows(body.rows);

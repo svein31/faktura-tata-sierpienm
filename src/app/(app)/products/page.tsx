@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/page-header";
 import { InfoTooltip } from "@/components/ui/tooltip";
 import { formatMoney, vatRateLabel, VAT_RATES } from "@/lib/format";
 import type { Product, VatRate } from "@/lib/types";
+import { CatalogImportWizard } from "@/components/catalog/import-wizard";
 
 interface ProductDraft {
   name: string;
@@ -112,6 +113,8 @@ export default function ProductsPage() {
           </Button>
         }
       />
+
+      <CatalogImportWizard kind="products" />
 
       <div className="relative mb-4 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
