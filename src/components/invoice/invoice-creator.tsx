@@ -8,6 +8,7 @@ import { InvoiceActionBar } from "./invoice-action-bar";
 import { focusInvoiceField } from "@/lib/invoice-form-feedback";
 import { SaveButton } from "@/components/ui/save-button";
 import { useInvoiceCreatedFeedback } from "./invoice-created-feedback";
+import { InvoiceSuggestionsPanel } from "./invoice-suggestions";
 import {
   AlertTriangle,
   AlertOctagon,
@@ -1385,6 +1386,17 @@ export function InvoiceCreator() {
               )}
             </div>
 
+            {!editing && !cloneId && !form.isCorrection && !isPurchase && !form.useNewContractor && !saving && form.sellerCompanyId && <InvoiceSuggestionsPanel
+              key={form.sellerCompanyId} companyId={form.sellerCompanyId} contractorId={form.contractorId} currency={form.currency}
+              onContractor={id => { if (contractors.some(contact => contact.id === id)) set({ contractorId: id, useNewContractor: false }); }}
+              onLine={line => {
+                const blank = form.lines.findIndex(item => !item.name.trim() && item.netPrice === 0 && item.quantity === 1);
+                if (blank < 0 && form.lines.length >= 200) { toast("info", "Limit pozycji", "Faktura może zawierać maksymalnie 200 pozycji."); return; }
+                const value = { ...newLine(), name: line.name, unit: line.unit, netPrice: line.netPrice, vatRate: line.vatRate, quantity: 1 };
+                set({ lines: blank < 0 ? [...form.lines, value] : form.lines.map((item, index) => index === blank ? value : item) });
+              }}
+              onTerms={(method, days) => set({ paymentMethod: method, paymentTermDays: days, dueDate: addDaysISO(form.issueDate || todayISO(), days), dueTouched: false })}
+            />}
             {form.useNewContractor && (
               <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3.5">
                 <div className="flex items-center gap-2 text-[13px] font-semibold">
@@ -1642,7 +1654,7 @@ export function InvoiceCreator() {
               <div className="space-y-1.5">
                 <Label htmlFor="invoice-paymentTermDays">Termin (dni)</Label>
                 <Select id="invoice-paymentTermDays" value={form.paymentTermDays} onChange={(e) => onTermChange(Number(e.target.value))}>
-                  {[7, 14, 21, 30, 45, 60].map((d) => (
+                  {[...new Set([0, 7, 14, 21, 30, 45, 60, form.paymentTermDays])].sort((a, b) => a - b).map((d) => (
                     <option key={d} value={d}>
                       {d} dni
                     </option>

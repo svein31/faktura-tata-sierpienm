@@ -8,6 +8,8 @@ import { overviewPipeline, type OverviewRaw } from "@/lib/overview-aggregate";
 import type { AccountingTask } from "@/lib/accounting-workspace";
 import { DEFAULT_ROLE_PERMISSIONS } from "@/lib/permissions";
 import type { CompanyRole } from "@/lib/types";
+import { bankTransactionScope } from "@/lib/banking/scope";
+import { bankBalance, PENDING_BANK_STATUSES } from "@/lib/banking/allocation";
 
 type Action = { id: string; kind: string; label: string; detail: string; href: string; priority: number };
 type Money = { currency: string; net: number; vat: number; gross: number; count: number };
@@ -23,6 +25,7 @@ export async function readAuthorizedOverview(user: { id: string }, params: URLSe
   const member = await prisma.companyMember.findUnique({ where: { companyId_userId: { companyId: company.id, userId: user.id } } });
   const canExport = role === "owner" || (member?.canExport ?? DEFAULT_ROLE_PERMISSIONS[role as CompanyRole].canExport);
   const canSendKsef = role === "owner" || (member?.canSendKsef ?? DEFAULT_ROLE_PERMISSIONS[role as CompanyRole].canSendKsef);
+  const pendingBankWhere = bankTransactionScope(prisma, company.id).then(scope => ({ ...scope, matchStatus: { in: PENDING_BANK_STATUSES } }));
   const now = new Date();
   const today = now.toISOString().slice(0, 10), month = today.slice(0, 7);
   const months = Array.from({ length: selectedMonths }, (_, index) => {
@@ -39,14 +42,14 @@ export async function readAuthorizedOverview(user: { id: string }, params: URLSe
       environment: true, updatedAt: true, nextAttemptAt: true,
       invoice: { select: { number: true } },
     }, orderBy: { updatedAt: "desc" }, take: 20 }) : Promise.resolve([]),
-    prisma.bankTransaction.count({ where: { OR: [{ accountId: company.id }, { connection: { companyId: company.id } }], matchStatus: { in: ["unmatched", "ambiguous"] } } }),
-    prisma.bankTransaction.findMany({ where: { OR: [{ accountId: company.id }, { connection: { companyId: company.id } }], matchStatus: { in: ["unmatched", "ambiguous"] } }, select: { id: true, description: true, amount: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 }),
+    pendingBankWhere.then(where => prisma.bankTransaction.count({ where })),
+    pendingBankWhere.then(where => prisma.bankTransaction.findMany({ where, select: { id: true, description: true, amount: true, allocatedAmount: true, matchStatus: true, currency: true, bookingDate: true }, orderBy: { bookingDate: "asc" }, take: 8 })),
   ]);
   const data = raw[0];
   const zero = { rejected: 0, uncertain: 0, overdue: 0, drafts: 0, offline: 0, missingUpo: 0 };
   const counts = { ...(data?.counts[0] || zero), reviews: 0, tasks: 0, unmatched: unmatchedCount };
   const actions: Action[] = [...(data?.actions || [])];
-  for (const transaction of unmatched) actions.push({ id: "bank:" + transaction.id, kind: "Bank", label: transaction.description || "Transakcja bankowa", detail: transaction.bookingDate + " · " + transaction.amount.toFixed(2) + " " + transaction.currency, href: "/finances?transactionId=" + transaction.id, priority: 2 });
+  for (const transaction of unmatched) actions.push({ id: "bank:" + transaction.id, kind: "Bank", label: transaction.description || "Transakcja bankowa", detail: transaction.bookingDate + " · do rozliczenia " + bankBalance(transaction).available.toFixed(2) + " " + transaction.currency, href: "/finances?transactionId=" + transaction.id, priority: 2 });
   for (const review of reviews) {
     const steps = Array.isArray(review.steps) ? review.steps as { userId?: string }[] : [];
     if (steps[review.currentStep]?.userId !== user.id) continue;

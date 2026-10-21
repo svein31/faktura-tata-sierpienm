@@ -1573,6 +1573,10 @@ model BankTransaction {
   matchSignals    String[] @default([])
   matchedAt       DateTime?
   paymentRecordId String?  @db.ObjectId
+  /// Explicitly allocated bank amount; null on legacy rows (no monetary backfill).
+  allocatedAmount Float?
+  /// Immutable allocation snapshots: document, amount and payment-record reference.
+  allocations Json?
   /// Kandydaci przy dopasowaniu niejednoznacznym: [{ invoiceId, number, score, signals }]
   matchCandidates Json?
 

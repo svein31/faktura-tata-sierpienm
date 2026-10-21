@@ -47,7 +47,10 @@ export default function FinancesPage() {
   const [bankFormat, setBankFormat] = React.useState("generic");
   const [importing, setImporting] = React.useState(false);
   const [matchedTransactions, setMatchedTransactions] = React.useState<BankStatementTransaction[]>([]);
-  React.useEffect(() => { setImportModalOpen(false); setMatchedTransactions([]); setCsvContent(""); setStep("upload"); }, [selectedCompanyId]);
+  const [approvedRows, setApprovedRows] = React.useState<string[]>([]);
+  const [bankRevision, refreshBank] = React.useReducer(n => n + 1, 0);
+  const importGeneration = React.useRef(0);
+  React.useEffect(() => { ++importGeneration.current; setImporting(false); setImportModalOpen(false); setMatchedTransactions([]); setApprovedRows([]); setCsvContent(""); setStep("upload"); }, [selectedCompanyId]);
   const [step, setStep] = React.useState<"upload" | "preview">("upload");
 
   // Wyliczenie Aging (starzenie należności)
@@ -106,6 +109,7 @@ export default function FinancesPage() {
     }
 
     const importCompanyId = selectedCompanyId;
+    const ticket = ++importGeneration.current;
     setImporting(true);
     try {
       const res = await fetch("/api/banking/import", {
@@ -116,26 +120,31 @@ export default function FinancesPage() {
           bankFormat,
           companyId: selectedCompanyId,
           applyPayments: false,
+          reviewMode: true,
         }),
       });
 
       const data = await res.json();
-      if (useAppStore.getState().selectedCompanyId !== importCompanyId) return;
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId || ticket !== importGeneration.current) return;
       if (res.ok && data.transactions) {
         setMatchedTransactions(data.transactions);
+        setApprovedRows(data.transactions.filter((item: BankStatementTransaction) => item.matchedInvoiceId || item.matchedExpenseId).map((item: BankStatementTransaction) => item.id));
         setStep("preview");
         toast("info", "Rozpoznano transakcje", `Dopasowano ${data.matchedCount} z ${data.rowCount} operacji.`);
       } else {
         toast("error", "Błąd importu", data.error || "Nie udało się sparsować pliku.");
       }
     } catch {
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId || ticket !== importGeneration.current) return;
       toast("error", "Błąd", "Wystąpił problem z połączeniem.");
     } finally {
-      setImporting(false);
+      if (ticket === importGeneration.current) setImporting(false);
     }
   };
 
   const handleApplyPayments = async () => {
+    if (importing || !selectedCompanyId) return;
+    const importCompanyId = selectedCompanyId, ticket = ++importGeneration.current;
     setImporting(true);
     try {
       const res = await fetch("/api/banking/import", {
@@ -146,27 +155,33 @@ export default function FinancesPage() {
           bankFormat,
           companyId: selectedCompanyId,
           applyPayments: true,
+          reviewMode: true,
+          selections: matchedTransactions.filter(item => approvedRows.includes(item.id) && (item.matchedInvoiceId || item.matchedExpenseId)).map(item => ({ transactionId: item.id, documentId: item.matchedInvoiceId || item.matchedExpenseId, documentRevision: item.matchedDocumentRevision, kind: item.matchedInvoiceId ? "invoice" : "expense", amount: Math.abs(item.amount) })),
         }),
       });
 
       const data = await res.json();
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId || ticket !== importGeneration.current) return;
       if (res.ok) {
         toast(
           "success",
-          "Zaksięgowano wpłaty",
+          "Wyciąg zaimportowany",
           `Rozliczono ${data.appliedCount} płatności. Pominięto wcześniej zapisane operacje: ${data.skippedCount || 0}.`
         );
         setImportModalOpen(false);
         setStep("upload");
         setCsvContent("");
+        setApprovedRows([]);
+        refreshBank();
         if (revalidate) revalidate();
       } else {
         toast("error", "Błąd księgowania", data.error || "Nie udało się zaksięgować wpłat.");
       }
     } catch {
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId || ticket !== importGeneration.current) return;
       toast("error", "Błąd", "Wystąpił problem z połączeniem.");
     } finally {
-      setImporting(false);
+      if (ticket === importGeneration.current) setImporting(false);
     }
   };
 
@@ -175,7 +190,9 @@ export default function FinancesPage() {
     if (!file) return;
 
     const reader = new FileReader();
+    const importCompanyId = selectedCompanyId;
     reader.onload = (event) => {
+      if (useAppStore.getState().selectedCompanyId !== importCompanyId) return;
       const text = event.target?.result as string;
       setCsvContent(text);
     };
@@ -347,22 +364,24 @@ export default function FinancesPage() {
       </Card>
 
       <TransferPack />
-      <PendingTransactions />
+      <PendingTransactions refreshKey={bankRevision} />
       {/* Modal importu wyciągu bankowego CSV */}
       <Dialog
         open={importModalOpen}
         onClose={() => {
+          if (importing) return;
           setImportModalOpen(false);
           setStep("upload");
           setCsvContent("");
         }}
         title="Import wyciągu bankowego"
-        description="Wczytaj wyciąg bankowy ze swojego banku, a system automatycznie połączy wpłaty z wystawionymi fakturami."
+        description="Wczytaj wyciąg, sprawdź propozycje i zaznacz płatności, które chcesz zatwierdzić."
+        dismissible={!importing}
         size="lg"
         footer={
           step === "upload" ? (
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <Button variant="ghost" onClick={() => setImportModalOpen(false)}>
+              <Button variant="ghost" disabled={importing} onClick={() => setImportModalOpen(false)}>
                 Anuluj
               </Button>
               <Button onClick={handleParseCsv} loading={importing} className="gap-2 font-semibold">
@@ -371,11 +390,11 @@ export default function FinancesPage() {
             </div>
           ) : (
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <Button variant="ghost" onClick={() => setStep("upload")}>
+              <Button variant="ghost" disabled={importing} onClick={() => setStep("upload")}>
                 ← Wróć do pliku
               </Button>
               <Button onClick={handleApplyPayments} loading={importing} className="gap-2 font-semibold">
-                Zaksięguj dopasowane wpłaty ({matchedTransactions.filter((t) => t.matchedInvoiceId || t.matchedExpenseId).length})
+                {approvedRows.length ? `Importuj i zatwierdź płatności (${approvedRows.length})` : "Importuj bez rozliczania płatności"}
               </Button>
             </div>
           )
@@ -426,6 +445,7 @@ export default function FinancesPage() {
               <table className="w-full min-w-[620px] text-left text-[11.5px]">
                 <thead className="sticky top-0 bg-muted/90 ">
                   <tr className="border-b border-border/60 text-muted-foreground uppercase text-[10px]">
+                    <th className="p-2.5">Zatwierdź</th>
                     <th className="p-2.5">Data</th>
                     <th className="p-2.5">Nadawca & Tytuł</th>
                     <th className="p-2.5 text-right">Kwota</th>
@@ -435,6 +455,7 @@ export default function FinancesPage() {
                 <tbody className="divide-y divide-border/30">
                   {matchedTransactions.map((tx) => (
                     <tr key={tx.id} className="hover:bg-muted/20">
+                      <td className="p-2.5"><input type="checkbox" aria-label={`Zatwierdź dopasowanie operacji ${tx.id}: ${tx.matchedInvoiceNumber || tx.title}`} checked={approvedRows.includes(tx.id)} disabled={importing || !(tx.matchedInvoiceId || tx.matchedExpenseId)} onChange={event => setApprovedRows(previous => event.target.checked ? [...previous, tx.id] : previous.filter(id => id !== tx.id))} className="size-4" /></td>
                       <td className="p-2.5 whitespace-nowrap text-muted-foreground">{tx.date}</td>
                       <td className="p-2.5">
                         <p className="font-semibold text-foreground truncate max-w-[200px]">{tx.senderName || "—"}</p>
@@ -449,7 +470,7 @@ export default function FinancesPage() {
                             <Check className="h-3 w-3" /> {tx.matchedInvoiceNumber}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground text-[10.5px] italic">Brak dopasowania</span>
+                          <span className="text-muted-foreground text-[10.5px]">{tx.reversal ? "Storno · sprawdź z księgowością" : tx.ambiguous ? "Niejednoznaczne · wybierz ręcznie po imporcie" : "Do ręcznego rozliczenia po imporcie"}</span>
                         )}
                       </td>
                     </tr>
@@ -458,7 +479,7 @@ export default function FinancesPage() {
               </table>
             </div>
 
-            <p className="text-muted-foreground">Po potwierdzeniu zapiszesz operacje i rozliczysz jednoznaczne dopasowania. Niejednoznaczne transakcje pozostaną nierozliczone.</p>
+            <p className="text-muted-foreground">Zapiszesz wszystkie operacje, a płatności powstaną wyłącznie dla zaznaczonych dopasowań ({approvedRows.length}). Nadwyżki i pozostałe operacje znajdziesz w sekcji „Transakcje do rozliczenia”.</p>
           </div>
         )}
       </Dialog>

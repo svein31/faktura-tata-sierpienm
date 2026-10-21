@@ -71,7 +71,7 @@ export function Tooltip({
         }}
         aria-label="Informacja"
         aria-describedby={open ? tooltipId : undefined}
-        className="inline-flex cursor-help items-center justify-center rounded p-0.5 text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="inline-flex h-6 w-6 shrink-0 cursor-help items-center justify-center rounded p-0.5 text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {children || <Info className="h-3.5 w-3.5 stroke-[2]" />}
       </button>

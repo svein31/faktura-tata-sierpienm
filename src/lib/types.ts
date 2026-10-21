@@ -545,6 +545,9 @@ export interface Expense {
 }
 
 export interface BankStatementTransaction {
+  matchedDocumentRevision?: string;
+  ambiguous?: boolean;
+  reversal?: boolean;
   currency?: string;
   matchedExpenseId?: string;
   id: string;

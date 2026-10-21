@@ -14,7 +14,7 @@ import { pathToFileURL } from 'node:url';
 import { randomBytes, createHash } from 'node:crypto';
 import { options, numberOption } from './metrics.mjs';
 const args = options();
-const acceptedOptions = ['app-root', 'output', 'runs', 'cpu-rate', 'cold-only', 'diagnostic', 'mongo-binary', 'chromium'];
+const acceptedOptions = ['app-root', 'output', 'runs', 'cpu-rate', 'cold-only', 'diagnostic', 'mongo-binary', 'chromium', 'budget-ms'];
 assert.ok(Object.keys(args).every(key => acceptedOptions.includes(key)), 'Only isolated fixture options are accepted; remote URLs/databases/credentials are forbidden');
 for (const key of ['cold-only', 'diagnostic'])
     assert.ok(args[key] === undefined || args[key] === true, '--' + key + ' is a flag without a value');
@@ -23,6 +23,7 @@ for (const key of ['app-root', 'output', 'mongo-binary', 'chromium'])
 const repo = resolve(args['app-root'] || process.cwd()), output = resolve(args.output || 'artifacts/performance/private-page-speed.json');
 const repetitionsCount = numberOption(args.runs, 3, 1, 5, 'runs'), cpuRate = numberOption(args['cpu-rate'], 4, 1, 8, 'cpu-rate');
 const coldOnly = args['cold-only'] === true, diagnostic = args.diagnostic === true;
+const budgetMs = args['budget-ms'] === undefined ? null : numberOption(args['budget-ms'], 4000, 100, 60000, 'budget-ms');
 const mongoBinary = args['mongo-binary'] || process.env.MONGOMS_SYSTEM_BINARY;
 const chromiumPath = args.chromium || process.env.CHROMIUM_EXECUTABLE_PATH;
 const require = createRequire(resolve(repo, 'package.json'));
@@ -34,7 +35,7 @@ const { migrateData } = await import(pathToFileURL(resolve(repo, 'scripts/migrat
 const inherited = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'TEMP', 'TMP', 'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'no_proxy'].filter(k => process.env[k] !== undefined).map(k => [k, process.env[k]]));
 const round = x => Number(x.toFixed(1));
 let mongo, native, db, browser, server, serverLogs = '';
-const samples = [], backend = [];
+const samples = [], backend = [], filterSamples = [];
 async function stopServer() { if (server && server.exitCode === null) {
     const exited = once(server, 'exit');
     server.kill('SIGTERM');
@@ -49,7 +50,7 @@ assert.equal((await once(revisionCommand, 'exit'))[0], 0, 'Git revision failed')
 const buildConfig=JSON.parse(await readFile(resolve(repo,'.next/required-server-files.json'),'utf8'));
 const buildRevision=buildConfig.config?.env?.APP_BUILD_REVISION;
 assert.match(buildRevision,/^[a-f\d]{40}$/i,'Production build must record APP_BUILD_REVISION');
-const report = { nodeVersion: process.version, schemaVersion: 1, diagnostic, coldOnly, at: new Date().toISOString(), revision: buildRevision, buildRevision, checkoutRevision: revision.trim(), buildId: (await readFile(resolve(repo, '.next/BUILD_ID'), 'utf8')).trim(), conditions: { application: 'real production Next build; synthetic isolated Mongo replica set; one tenant/300 invoices; no production credentials', viewport: '390x844, Chromium mobile/touch', cpuSlowdown: cpuRate, network: { latencyMs: 80, downloadMbps: 10, uploadMbps: 5 }, cold: 'new Next process (health-only readiness probe) plus new browser context/cache, each route independently; process startup excluded', warm: 'same browser/store/process: client link to other route then return, with assets cached', skeleton: 'first rAF-visible skeleton DOM; not a guaranteed paint timestamp', ready: 'first rendered action section (dashboard) or nonloading 30-row result table with detail link (invoices)', ttfb: 'Navigation/Resource Timing requestStart to responseStart; separate unthrottled direct API serial samples', limits: 'Small controlled laboratory sample, no production geography/concurrency/real-user percentile claim; app warm-up, CPU contention and browser emulation affect results. PDF and KSeF endpoints/provider actions excluded.' }, samples, backend };
+const report = { nodeVersion: process.version, schemaVersion: 1, diagnostic, coldOnly, at: new Date().toISOString(), revision: buildRevision, buildRevision, checkoutRevision: revision.trim(), buildId: (await readFile(resolve(repo, '.next/BUILD_ID'), 'utf8')).trim(), conditions: { application: 'real production Next build; synthetic isolated Mongo replica set; one tenant/300 invoices; no production credentials', viewport: '390x844, Chromium mobile/touch', cpuSlowdown: cpuRate, network: { latencyMs: 80, downloadMbps: 10, uploadMbps: 5 }, cold: 'new Next process (health-only readiness probe) plus new browser context/cache, each route independently; process startup excluded', warm: 'same browser/store/process: client link to other route then return, with assets cached', skeleton: 'first rAF-visible skeleton DOM; not a guaranteed paint timestamp', ready: 'first rendered action section (dashboard) or nonloading 30-document responsive list with identity links (invoices)', ttfb: 'Navigation/Resource Timing requestStart to responseStart; separate unthrottled direct API serial samples', limits: 'Small controlled laboratory sample, no production geography/concurrency/real-user percentile claim; app warm-up, CPU contention and browser emulation affect results. PDF and KSeF endpoints/provider actions excluded.' }, samples, backend };
 report.conditions["skeleton"] = "First requestAnimationFrame callback where a main aria-busy skeleton or route status skeleton has a visible DOM layout. This is not a guaranteed paint timestamp: rAF precedes paint and a later long task may delay paint. Use FCP separately.";
 report.conditions["ready"] = "First rAF callback where the data-derived dashboard action section, or all 30 visible-layout invoice detail links without loading status, exist in DOM. Not a guaranteed paint timestamp or completion of optional charts. Server-rendered data may become ready before hydration; controls readiness is measured separately.";
 report.conditions.controlsReady = 'First rAF-visible dashboard refresh button with its natural React onClick prop, or invoice search input with its natural React onChange prop. A hydration signal, not an executed action or a guaranteed paint timestamp. Data-and-controls readiness is the maximum of readyMs and controlsReadyMs.';
@@ -163,11 +164,14 @@ try {
                         if (m.headingMs === null && visible(document.querySelector('main h1')))
                             m.headingMs = t;
                         if (m.readyMs === null) {
-                            const invoiceLinks = m.route === '/invoices'
-                                ? [...document.querySelectorAll('main a')].filter(a => a.textContent.trim() === 'Szczegóły dokumentu' && visible(a))
+                            // Both responsive lists expose document identity. Details
+                            // actions now live in a closed menu; waiting for those
+                            // hidden links would never measure the actual ready list.
+                            const invoiceRows = m.route === '/invoices'
+                                ? [...document.querySelectorAll('main [data-invoice-id]')].filter(visible)
                                 : [];
-                            const ready = m.route === '/dashboard' ? document.querySelector('[aria-label="Sprawy wymagające działania"]') : invoiceLinks.length === 30 ? invoiceLinks[0] : null;
-                            const loading = [...document.querySelectorAll('main [role="status"]')].some(n => n.textContent.includes('Ładowanie…'));
+                            const ready = m.route === '/dashboard' ? document.querySelector('[aria-label="Sprawy wymagające działania"]') : invoiceRows.length === 30 && invoiceRows.every(row => row.querySelector('a[href^="/invoices/"]')) ? invoiceRows[0] : null;
+                            const loading = [...document.querySelectorAll('main .ui-loading-reveal[data-loading="true"]')].some(visible);
                             if (visible(ready) && !loading) m.readyMs = t;
                         }
                         if (m.controlsReadyMs === null) {
@@ -233,6 +237,19 @@ try {
                 assert.ok(res.ok, 'API benchmark failed ' + res.status);
                 backend.push({ iteration, coldEntry: route, path: new URL(path, base).pathname, ttfbMs: round(ttfbMs), responseMs: round(performance.now() - start), bytes: body.byteLength, status: res.status, phase: 'serial warm backend probe; no browser throttling' });
             }
+            if (route === '/invoices' && !coldOnly) {
+                const search = page.getByPlaceholder('Szukaj: numer, kontrahent, NIP, numer KSeF…');
+                await page.evaluate(() => { window.__filterStartedAt = performance.now(); });
+                await search.fill('SPEED/001');
+                await page.waitForFunction(() => {
+                    const rows = [...document.querySelectorAll('main [data-invoice-id]')].filter(row => row.getClientRects().length > 0);
+                    return rows.length === 1 && rows[0].textContent.includes('SPEED/001') && !document.querySelector('main .ui-loading-reveal[data-loading="true"]');
+                }, {}, { timeout: 15000 });
+                const readyMs = round(await page.evaluate(() => performance.now() - window.__filterStartedAt));
+                filterSamples.push({ iteration, search: 'SPEED/001', readyMs, conditions: 'Same CPU/network throttling; actual input, debounce, authorized response and unique rendered result' });
+                await search.fill('');
+                await page.waitForFunction(() => [...document.querySelectorAll('main [data-invoice-id]')].filter(row => row.getClientRects().length > 0).length === 30 && !document.querySelector('main .ui-loading-reveal[data-loading="true"]'));
+            }
             assert.deepEqual(errors, [], 'Private UI JS errors');
             assert.deepEqual(blocked, [], 'Unexpected external/PDF/KSeF request');
             await context.close();
@@ -241,6 +258,8 @@ try {
     const stats = values => { values = values.filter(x => x !== null).sort((a, b) => a - b); return { n: values.length, min: values[0] ?? null, median: values.length ? round((values[Math.floor((values.length - 1) / 2)] + values[Math.ceil((values.length - 1) / 2)]) / 2) : null, max: values.at(-1) ?? null }; };
     assert.equal(samples.length, repetitionsCount * (coldOnly ? 2 : 6), 'Missing route samples');
     assert.equal(backend.length, repetitionsCount * 6, 'Missing backend samples');
+    report.readinessBudgetMs = budgetMs;
+    report.filterSamples = filterSamples;
     report.summary = {};
     for (const route of ['/dashboard', '/invoices'])
         for (const kind of coldOnly ? ['cold-entry'] : ['cold-entry', 'warm-client']) {
@@ -251,6 +270,7 @@ try {
     await writeFile(output, JSON.stringify(report, null, 2) + '\n');
     console.log('Report ' + output);
     console.log(JSON.stringify(report.summary, null, 2));
+    if (budgetMs !== null) assert.ok(samples.every(sample => sample.dataAndControlsReadyMs < budgetMs) && filterSamples.every(sample => sample.readyMs < budgetMs), `Every measured route/filter must have data and interactive controls ready below ${budgetMs} ms; see the saved report`);
 }
 catch (error) {
     console.error('Benchmark failed:', error.message);

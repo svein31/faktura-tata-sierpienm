@@ -131,6 +131,11 @@ try {
       const { auditInvoicePower } = await import(pathToFileURL(appRoot + '/scripts/audit/invoice-power-browser.mjs'));
       await auditInvoicePower({page,context,base,fixture:uxFixture,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
     }
+  } else if (process.env.UI_AUDIT_SUITE === 'workflow-efficiency') {
+    const { auditWorkflowEfficiency } = await import(pathToFileURL(appRoot + '/scripts/workflow-efficiency-audit.mjs'));
+    await auditWorkflowEfficiency(base, db);
+    const { auditWorkflowEfficiencyBrowser } = await import(pathToFileURL(appRoot + '/scripts/audit/workflow-efficiency-browser.mjs'));
+    await auditWorkflowEfficiencyBrowser({page,context,base,db,companyId:company.id,contractorId:buyer.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
   } else {
     const { auditUiMotion } = await import(pathToFileURL(appRoot + '/scripts/audit/ui-motion-browser.mjs'));
     await auditUiMotion({page,context,base,companyId:company.id,out,expect,engine:process.env.MOTION_ENGINE || 'chromium'});
