@@ -35,6 +35,16 @@ export function formatNip(nip: string): string {
   return `${n.slice(0, 3)}-${n.slice(3, 6)}-${n.slice(6, 8)}-${n.slice(8)}`;
 }
 
+/**
+ * Waliduje identyfikator wewnętrzny KSeF (IDWew — typ TNIPIdWew w schemacie FA(3)):
+ * 10-cyfrowy poprawny polski NIP, myślnik oraz 5 cyfr (np. 7811840766-00001).
+ */
+export function isValidIdWewFormat(input: string): boolean {
+  const clean = (input || "").trim();
+  if (!/^[1-9]((\d[1-9])|([1-9]\d))\d{7}-\d{5}$/.test(clean)) return false;
+  return isValidNipFormat(clean.slice(0, 10));
+}
+
 export function isValidRegon(input: string): boolean {
   const r = input.replace(/\s/g, "");
   if (r.length === 9) {
@@ -233,6 +243,9 @@ export function getTaxIdLabel(
   const isBi = language === "PL/EN";
 
   switch (type) {
+    case "id_wew":
+      if (isBi) return "IDWew / Internal ID";
+      return isEn ? "Internal ID (IDWew)" : "IDWew";
     case "vat_eu":
       if (isBi) return "VAT UE / EU VAT";
       return isEn ? "EU VAT" : "VAT UE";

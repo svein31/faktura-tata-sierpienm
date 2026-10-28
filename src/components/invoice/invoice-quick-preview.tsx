@@ -9,6 +9,7 @@ import { KsefStatusBadge } from "./ksef-status-badge";
 import { ksefPresentation } from "@/lib/ksef/presentation";
 import { formatDate, formatMoney, invoiceTotals, round2 } from "@/lib/format";
 import { invoicePaymentPresentation } from "@/lib/invoice-payment-presentation";
+import { podmiot3RoleLabel } from "@/lib/types";
 import type { Contractor, Invoice } from "@/lib/types";
 
 const PAYMENT_LABELS: Record<string, string> = { transfer: "Przelew", cash: "Gotówka", card: "Karta", blik: "BLIK", compensation: "Kompensata" };
@@ -56,6 +57,15 @@ export function InvoiceQuickPreview({ invoice, contractor, onClose, navigation }
       <section aria-label="Kontrahent"><h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{invoice.type === "purchase" ? "Sprzedawca" : "Nabywca"}</h3>
         <p className="mt-2 break-words text-base font-semibold leading-6">{contractor?.name || "Klient detaliczny"}</p>
         {contractor?.nip && <p className="mt-1 text-sm text-muted-foreground">NIP: <span className="tabular-nums">{contractor.nip}</span></p>}
+        {invoice.recipient?.name && (
+          <div className="mt-3 rounded-lg border border-border/70 bg-muted/20 p-2.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Odbiorca (Podmiot3 · {podmiot3RoleLabel(invoice.recipient.role)})</p>
+            <p className="mt-1 break-words text-sm font-medium">{invoice.recipient.name}</p>
+            {(invoice.recipient.taxId || invoice.recipient.nip) && (invoice.recipient.taxIdType || "nip") !== "none" && (
+              <p className="mt-0.5 text-xs text-muted-foreground">ID: <span className="tabular-nums">{invoice.recipient.taxId || invoice.recipient.nip}</span></p>
+            )}
+          </div>
+        )}
       </section>
 
       <section aria-label="Daty i sposób płatności" className="rounded-xl border border-border/70 p-4"><h3 className="mb-4 flex items-center gap-2 text-sm font-semibold"><CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />Daty i płatność</h3>

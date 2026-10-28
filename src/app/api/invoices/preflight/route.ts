@@ -38,7 +38,23 @@ export async function POST(req: Request) {
     if (!Array.isArray(body.lines) || body.lines.length > 200 || body.lines.some(l => !l || typeof l !== "object" || Array.isArray(l))) throw new ApiError(400, "Sprawdź pozycje faktury.");
     const lines = body.lines.map((l, index) => ({ id: str(l.id) || String(index), unit: str(l.unit) || "szt.", name: str(l.name), quantity: l.quantity, netPrice: l.netPrice, vatRate: str(l.vatRate), discount: typeof l.discount === "number" ? l.discount : 0 }));
     const totals = invoiceTotals({ lines: lines.map(normalizeInvoiceLineAmounts) as InvoiceLine[] });
-    const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), originalInvoiceNumber: str(body.originalInvoiceNumber), originalIssueDate: str(body.originalIssueDate), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
+    let recipient: PreflightInput["recipient"] = null;
+    if (body.hasRecipient !== false && body.recipient && typeof body.recipient === "object" && !Array.isArray(body.recipient)) {
+      const rec = body.recipient as Record<string, unknown>;
+      const recAddr = rec.address && typeof rec.address === "object" && !Array.isArray(rec.address) ? (rec.address as Record<string, unknown>) : rec;
+      recipient = {
+        name: str(rec.name),
+        nip: str(rec.nip),
+        taxId: str(rec.taxId || rec.nip),
+        taxIdType: str(rec.taxIdType) || "nip",
+        country: str(recAddr.country) || "PL",
+        street: str(recAddr.street),
+        city: str(recAddr.city),
+        postal: str(recAddr.postal),
+        role: str(rec.role) || "8",
+      };
+    }
+    const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, recipient, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), originalInvoiceNumber: str(body.originalInvoiceNumber), originalIssueDate: str(body.originalIssueDate), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
     const issues = assessInvoice(input);
     const exclude = objectId(body.invoiceId) ? { id: { not: body.invoiceId } } : {};
     if (body.autoNumber !== true) {

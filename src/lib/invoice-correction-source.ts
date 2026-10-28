@@ -22,7 +22,7 @@ export async function resolveInvoiceCorrectionSource(
     select: {
       id: true, userId: true, sellerCompanyId: true, type: true, status: true,
       documentStatus: true, documentKind: true, isProforma: true, currency: true,
-      number: true, issueDate: true, issuedAt: true, ksefNumber: true, ksef: true, lines: true,
+      number: true, issueDate: true, issuedAt: true, ksefNumber: true, ksef: true, lines: true, recipient: true,
     },
   });
   const notFound = () => new ApiError(404, "Nie znaleziono dostępnej faktury do skorygowania.");
@@ -47,5 +47,8 @@ export async function resolveInvoiceCorrectionSource(
     ...body, originalInvoiceId: original.id, originalInvoiceNumber: original.number,
     originalIssueDate: original.issueDate, originalKsefNumber: correctionOriginalKsefNumber(original),
     originalLines: original.lines,
+    ...(body.recipient === undefined && (original as { recipient?: unknown }).recipient !== undefined
+      ? { recipient: (original as { recipient?: unknown }).recipient }
+      : {}),
   };
 }

@@ -1,5 +1,6 @@
 import { formatDate, formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "./format";
 import { invoiceLabels, paymentMethodLabel } from "./i18n";
+import { podmiot3RoleLabel } from "./types";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "./types";
 import { getTaxIdLabel } from "./validation";
 
@@ -90,6 +91,8 @@ export function buildInvoiceHtmlString(
   .party { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; }
   .party h4 { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
   .party.seller h4 { color: #10b981; } .party.buyer h4 { color: ${accentColor}; }
+  .party.recipient { margin-top: 12px; border-color: ${accentColor}40; background: ${accentColor}08; }
+  .party.recipient h4 { color: ${accentColor}; }
   .party p { font-size: 12.5px; line-height: 1.55; color: #374151; }
   .party .muted { color: #6b7280; }
   table { width: 100%; border-collapse: collapse; margin-top: 26px; font-size: 12.5px; }
@@ -153,6 +156,14 @@ export function buildInvoiceHtmlString(
       </p>
     </div>
   </div>
+  ${invoice.type === "sale" && invoice.recipient?.name?.trim() ? `
+  <div class="party recipient">
+    <h4>${esc(L.recipient)} (Podmiot3 — Rola ${esc(invoice.recipient.role || "8")}: ${esc(podmiot3RoleLabel(invoice.recipient.role, lang))})</h4>
+    <p><b>${esc(invoice.recipient.name)}</b><br/>
+      <span class="muted">${esc(invoice.recipient.address?.street ?? "")}<br/>${esc(`${invoice.recipient.address?.postal ?? ""} ${invoice.recipient.address?.city ?? ""}, ${invoice.recipient.address?.country ?? "PL"}`)}</span>
+      ${(invoice.recipient.taxIdType || "nip") !== "none" && (invoice.recipient.taxId || invoice.recipient.nip) ? `<br/>${esc(getTaxIdLabel(invoice.recipient.taxIdType || "nip", invoice.recipient.address?.country || "PL", lang))}: <b>${esc(invoice.recipient.taxId || invoice.recipient.nip)}</b>` : ""}
+    </p>
+  </div>` : ""}
 
   <table>
     <thead><tr>

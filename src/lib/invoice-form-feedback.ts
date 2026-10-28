@@ -2,6 +2,8 @@ export function invoiceFieldElement(field: string): HTMLElement | null {
   const aliases: Record<string,string> = {
     'newContractor.name':'new-name','newContractor.nip':'new-tax-id','newContractor.postal':'new-postal',
     'newContractor.city':'new-city','newContractor.street':'new-street',bankAccountId:'bank-account',
+    'recipient.name':'recipient-name','recipient.taxId':'recipient-tax-id','recipient.postal':'recipient-postal',
+    'recipient.city':'recipient-city','recipient.street':'recipient-street',
   };
   const normalized = field.replace(/\[(\d+)\]/g,'.$1');
   const target = [...document.querySelectorAll<HTMLElement>('[data-invoice-field]')]

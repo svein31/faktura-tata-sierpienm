@@ -4,7 +4,7 @@
  */
 
 import { FA3_NAMESPACE, FA3_SCHEMA_VERSION, FA3_SYSTEM_CODE, FA3_FORM_VARIANT, PAYMENT_METHOD_CODES } from "./constants";
-import type { CompanyProfile, Contractor, Invoice, InvoiceLine, VatRate } from "../types";
+import type { CompanyProfile, Contractor, Invoice, InvoiceLine, InvoiceRecipient, VatRate } from "../types";
 import { lineGross, lineNet, lineVat, round2 } from "../format";
 import { EU_COUNTRIES } from "../validation";
 import { warsawDate } from "../scheduling";
@@ -33,6 +33,7 @@ export interface Fa3BuildOptions {
   invoice: Invoice;
   seller: CompanyProfile;
   buyer?: Contractor | null;
+  recipient?: InvoiceRecipient | null;
   systemInfo?: string;
   generationDate?: Date;
 }
@@ -249,6 +250,56 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
   const buyerPostalCity = `${buyer?.address?.postal || ""} ${buyer?.address?.city || ""}`.trim();
   const buyerName = buyer?.name || "Klient detaliczny";
 
+  // Sekcja Odbiorcy / Podmiotu trzeciego (Podmiot3 — np. jednostka podrzędna JST, Rola 8)
+  const effectiveRecipient = options.recipient !== undefined ? options.recipient : invoice.recipient;
+  const jstFlag = effectiveRecipient?.role === "8" ? "1" : "2";
+  const gvFlag = effectiveRecipient?.role === "10" ? "1" : "2";
+
+  let podmiot3Xml = "";
+  if (effectiveRecipient && effectiveRecipient.name?.trim()) {
+    const recCountry = (effectiveRecipient.address?.country || "PL").toUpperCase();
+    const recTaxType = effectiveRecipient.taxIdType || (effectiveRecipient.nip ? "nip" : "none");
+    const rawRecTaxId = (effectiveRecipient.taxId || effectiveRecipient.nip || "").trim();
+    let recIdXml = "";
+    if (recTaxType === "none" || !rawRecTaxId) {
+      recIdXml = `<BrakID>1</BrakID>`;
+    } else if (recTaxType === "id_wew") {
+      recIdXml = `<IDWew>${esc(rawRecTaxId.replace(/\s+/g, ""))}</IDWew>`;
+    } else if (recTaxType === "vat_eu") {
+      let cleanVat = rawRecTaxId.replace(/[\s-]/g, "").toUpperCase();
+      let prefix = recCountry;
+      if (cleanVat.startsWith(prefix)) {
+        cleanVat = cleanVat.slice(prefix.length);
+      } else if (/^[A-Z]{2}/.test(cleanVat)) {
+        prefix = cleanVat.slice(0, 2);
+        cleanVat = cleanVat.slice(2);
+      }
+      if (prefix === "GR") prefix = "EL";
+      recIdXml = `<KodUE>${esc(prefix)}</KodUE>\n      <NrVatUE>${esc(cleanVat)}</NrVatUE>`;
+    } else if (recTaxType === "tin") {
+      recIdXml = `<KodKraju>${esc(recCountry)}</KodKraju>\n      <NrID>${esc(rawRecTaxId)}</NrID>`;
+    } else {
+      const cleanRecNip = cleanNip(rawRecTaxId);
+      recIdXml = cleanRecNip ? `<NIP>${cleanRecNip}</NIP>` : `<BrakID>1</BrakID>`;
+    }
+
+    const recStreet = (effectiveRecipient.address?.street || "").trim();
+    const recPostalCity = `${effectiveRecipient.address?.postal || ""} ${effectiveRecipient.address?.city || ""}`.trim();
+    const recAdresL1 = recStreet || recPostalCity;
+    const recAdresL2 = recStreet && recPostalCity ? recPostalCity : "";
+    const recAdresXml = recAdresL1
+      ? `\n    <Adres>\n      <KodKraju>${esc(recCountry)}</KodKraju>\n      <AdresL1>${esc(recAdresL1)}</AdresL1>${recAdresL2 ? `\n      <AdresL2>${esc(recAdresL2)}</AdresL2>` : ""}\n    </Adres>`
+      : "";
+    const recEmail = (effectiveRecipient.email || "").trim();
+    const recPhone = (effectiveRecipient.phone || "").trim().slice(0, 16);
+    const recKontaktXml = recEmail || recPhone
+      ? `\n    <DaneKontaktowe>${recEmail ? `\n      <Email>${esc(recEmail)}</Email>` : ""}${recPhone ? `\n      <Telefon>${esc(recPhone)}</Telefon>` : ""}\n    </DaneKontaktowe>`
+      : "";
+    const recRole = /^([1-9]|1[01])$/.test(String(effectiveRecipient.role || "")) ? String(effectiveRecipient.role) : "8";
+
+    podmiot3Xml = `\n  <Podmiot3>\n    <DaneIdentyfikacyjne>\n      ${recIdXml}\n      <Nazwa>${esc(effectiveRecipient.name.trim())}</Nazwa>\n    </DaneIdentyfikacyjne>${recAdresXml}${recKontaktXml}\n    <Rola>${recRole}</Rola>\n  </Podmiot3>\n`;
+  }
+
   // Sekcja Sprzedawcy (Podmiot1)
   const sellerStreet = seller.street || "";
   const sellerPostalCity = `${seller.postal || ""} ${seller.city || ""}`.trim();
@@ -317,9 +368,10 @@ export function buildFa3Xml(options: Fa3BuildOptions): string {
       ${buyer.email ? `<Email>${esc(buyer.email)}</Email>` : ""}
       ${buyer.phone ? `<Telefon>${esc(buyer.phone)}</Telefon>` : ""}
     </DaneKontaktowe>` : ""}
-    <JST>2</JST>
-    <GV>2</GV>
+    <JST>${jstFlag}</JST>
+    <GV>${gvFlag}</GV>
   </Podmiot2>
+${podmiot3Xml}
 
   <Fa>
     <KodWaluty>${esc(invoice.currency || "PLN")}</KodWaluty>
@@ -419,6 +471,32 @@ export function validateFa3Xml(xml: string): Fa3ValidationResult {
 
   if (!trimmed.includes("<Podmiot2>")) {
     issues.push({ severity: "error", path: "/Faktura/Podmiot2", message: "Brak sekcji nabywcy <Podmiot2>." });
+  }
+
+  if (trimmed.includes("<Podmiot3>")) {
+    const podmiot3Match = trimmed.match(/<Podmiot3>([\s\S]*?)<\/Podmiot3>/);
+    const podmiot3Body = podmiot3Match ? podmiot3Match[1] : "";
+    if (!/<Rola>([1-9]|1[01])<\/Rola>/.test(podmiot3Body) && !podmiot3Body.includes("<RolaInna>1</RolaInna>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Podmiot3/Rola",
+        message: "Sekcja <Podmiot3> wymaga wskazania roli podmiotu trzeciego (<Rola> 1–11 lub <RolaInna>).",
+      });
+    }
+    if (podmiot3Body.includes("<Rola>8</Rola>") && !trimmed.includes("<JST>1</JST>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Podmiot2/JST",
+        message: "Gdy <Podmiot3> występuje w roli 8 (JST – odbiorca), w sekcji <Podmiot2> wymagany jest znacznik <JST>1</JST>.",
+      });
+    }
+    if (podmiot3Body.includes("<Rola>10</Rola>") && !trimmed.includes("<GV>1</GV>")) {
+      issues.push({
+        severity: "error",
+        path: "/Faktura/Podmiot2/GV",
+        message: "Gdy <Podmiot3> występuje w roli 10 (członek grupy VAT – odbiorca), w sekcji <Podmiot2> wymagany jest znacznik <GV>1</GV>.",
+      });
+    }
   }
 
   if (!trimmed.includes("<FaWiersz>") && !(trimmed.includes("<RodzajFaktury>ZAL</RodzajFaktury>") && trimmed.includes("<ZamowienieWiersz>"))) {

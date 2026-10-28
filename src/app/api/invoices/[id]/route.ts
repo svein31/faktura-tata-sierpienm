@@ -303,6 +303,7 @@ export async function PUT(req: Request, { params }: Ctx) {
       exchangeRate: "Kurs waluty",
       exchangeRateTable: "Tabela NBP",
       exchangeRateRule: "Podstawa kursu",
+      recipient: "Odbiorca (Podmiot3)",
       notes: "Notatki",
     });
 

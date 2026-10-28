@@ -54,6 +54,7 @@ export function invoiceToJson(invoice: Invoice, company: CompanyProfile): string
         bankName: invoice.bankAccountSnapshot?.bankName ?? company.bankName ?? "",
       },
       contractorId: invoice.contractorId,
+      recipient: invoice.recipient ?? null,
       lines: invoice.lines.map((l) => ({
         name: l.name,
         quantity: l.quantity,

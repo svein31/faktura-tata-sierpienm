@@ -12,7 +12,9 @@ import {
   vatRateLabel,
 } from "@/lib/format";
 import { invoiceLabels, paymentMethodLabel } from "@/lib/i18n";
+import { podmiot3RoleLabel } from "@/lib/types";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
+import { getTaxIdLabel } from "@/lib/validation";
 
 export function InvoicePreview({
   invoice,
@@ -176,6 +178,42 @@ export function InvoicePreview({
           )}
         </div>
       </div>
+
+      {/* Odbiorca / Podmiot3 (np. jednostka podrzędna JST) */}
+      {invoice.type === "sale" && invoice.recipient?.name?.trim() && (
+        <div className="mt-3 rounded-lg border border-primary/25 bg-primary/[0.03] p-3.5">
+          <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              {L.recipient} (Podmiot3)
+            </p>
+            <span className="rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              Rola {invoice.recipient.role || "8"}: {podmiot3RoleLabel(invoice.recipient.role, invoice.language)}
+            </span>
+          </div>
+          <p className="text-[13.5px] font-semibold">{invoice.recipient.name}</p>
+          <p className="mt-0.5 text-[12px] leading-snug text-muted-foreground">
+            {invoice.recipient.address?.street}
+            {(invoice.recipient.address?.postal || invoice.recipient.address?.city) && (
+              <>
+                <br />
+                {invoice.recipient.address?.postal} {invoice.recipient.address?.city}
+              </>
+            )}
+            {invoice.recipient.address?.country && (
+              <>
+                <br />
+                {invoice.recipient.address.country}
+              </>
+            )}
+          </p>
+          {(invoice.recipient.taxIdType || "nip") !== "none" && (invoice.recipient.taxId || invoice.recipient.nip) && (
+            <p className="mt-1.5 text-[12px]">
+              {getTaxIdLabel(invoice.recipient.taxIdType || "nip", invoice.recipient.address?.country || "PL", invoice.language)}:{" "}
+              <span className="font-medium">{invoice.recipient.taxId || invoice.recipient.nip}</span>
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Pozycje */}
       <div className="mt-5 overflow-x-auto" role="region" aria-label="Pozycje podglądu faktury" tabIndex={0}>

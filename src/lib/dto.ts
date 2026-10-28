@@ -24,6 +24,9 @@ import type {
   CompanyProfile,
   Contractor,
   Invoice,
+  InvoiceRecipient,
+  Podmiot3Role,
+  RecipientTaxIdType,
   KsefInfo,
   KsefSettings,
   NotificationPrefs,
@@ -42,6 +45,35 @@ export function addressFrom(v: unknown): Address {
     city: typeof a.city === "string" ? a.city : "",
     postal: typeof a.postal === "string" ? a.postal : "",
     country: typeof a.country === "string" ? a.country : "PL",
+  };
+}
+
+const VALID_PODMIOT3_ROLES = new Set<Podmiot3Role>(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]);
+const VALID_RECIPIENT_TAX_ID_TYPES = new Set<RecipientTaxIdType>(["nip", "id_wew", "vat_eu", "tin", "none"]);
+
+export function recipientFrom(v: unknown): InvoiceRecipient | undefined {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return undefined;
+  const r = v as Record<string, unknown>;
+  const name = typeof r.name === "string" ? r.name.trim() : "";
+  if (!name) return undefined;
+  const roleRaw = typeof r.role === "string" ? r.role.trim() : "8";
+  const role: Podmiot3Role = VALID_PODMIOT3_ROLES.has(roleRaw as Podmiot3Role) ? (roleRaw as Podmiot3Role) : "8";
+  const taxIdTypeRaw = typeof r.taxIdType === "string" ? r.taxIdType.trim() : "nip";
+  const taxIdType: RecipientTaxIdType = VALID_RECIPIENT_TAX_ID_TYPES.has(taxIdTypeRaw as RecipientTaxIdType)
+    ? (taxIdTypeRaw as RecipientTaxIdType)
+    : "nip";
+  const nip = typeof r.nip === "string" && r.nip.trim() ? r.nip.trim() : undefined;
+  const taxId = typeof r.taxId === "string" && r.taxId.trim() ? r.taxId.trim() : nip;
+  return {
+    name,
+    ...(nip ? { nip } : {}),
+    taxIdType,
+    ...(taxId ? { taxId } : {}),
+    address: addressFrom(r.address),
+    role,
+    ...(typeof r.email === "string" && r.email.trim() ? { email: r.email.trim() } : {}),
+    ...(typeof r.phone === "string" && r.phone.trim() ? { phone: r.phone.trim() } : {}),
+    ...(typeof r.contractorId === "string" && r.contractorId.trim() ? { contractorId: r.contractorId.trim() } : {}),
   };
 }
 
@@ -314,6 +346,7 @@ export function invoiceToDto(
     bankAccountSnapshot: (i.bankAccountSnapshot as any) ?? null,
     buyerTaxIdType: (i.buyerTaxIdType as any) ?? null,
     buyerCountry: i.buyerCountry ?? null,
+    recipient: recipientFrom((i as { recipient?: unknown }).recipient),
 
     // Ewidencja JPK_V7 (sekcja 3)
     exemptionBasis: i.exemptionBasis ?? null,

@@ -50,16 +50,19 @@ import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
 import { correctionDifferenceLines } from "@/lib/invoice-correction-lines";
 import { convertToPln, isIsoCalendarDate } from "@/lib/nbp";
 import { currencyNames } from "@/lib/i18n";
-import { isValidNipFormat, normalizeNip, formatNip } from "@/lib/validation";
-import { EMPTY_COMPANY } from "@/lib/types";
+import { isValidNipFormat, isValidIdWewFormat, normalizeNip, formatNip } from "@/lib/validation";
+import { EMPTY_COMPANY, PODMIOT3_ROLE_LABELS } from "@/lib/types";
 import type {
   CompanyProfile,
   Contractor,
   Currency,
   Invoice,
   InvoiceLanguage,
+  InvoiceRecipient,
   InvoiceType,
   PaymentMethod,
+  Podmiot3Role,
+  RecipientTaxIdType,
 } from "@/lib/types";
 import { InvoicePreview } from "./invoice-preview";
 import { LineItemsEditor, newLine } from "./line-items";
@@ -97,7 +100,37 @@ const emptyNewContractor: NewContractorDraft = {
   isVatPayer: true,
 };
 
+interface RecipientDraft {
+  contractorId: string;
+  name: string;
+  taxIdType: RecipientTaxIdType;
+  taxId: string;
+  street: string;
+  city: string;
+  postal: string;
+  country: string;
+  role: Podmiot3Role;
+  email: string;
+  phone: string;
+}
+
+const emptyRecipient: RecipientDraft = {
+  contractorId: "",
+  name: "",
+  taxIdType: "nip",
+  taxId: "",
+  street: "",
+  city: "",
+  postal: "",
+  country: "PL",
+  role: "8",
+  email: "",
+  phone: "",
+};
+
 interface FormState {
+  hasRecipient?: boolean;
+  recipient?: RecipientDraft;
   gtuText?: string;
   proceduresText?: string;
   isSplitPayment?: boolean;
@@ -149,6 +182,22 @@ function formFromInvoice(inv: Invoice, defaultCompanyId: string = ""): FormState
     contractorId: inv.contractorId,
     useNewContractor: false,
     newContractor: emptyNewContractor,
+    hasRecipient: Boolean(inv.recipient?.name),
+    recipient: inv.recipient
+      ? {
+          contractorId: inv.recipient.contractorId ?? "",
+          name: inv.recipient.name ?? "",
+          taxIdType: inv.recipient.taxIdType ?? "nip",
+          taxId: inv.recipient.taxId ?? inv.recipient.nip ?? "",
+          street: inv.recipient.address?.street ?? "",
+          city: inv.recipient.address?.city ?? "",
+          postal: inv.recipient.address?.postal ?? "",
+          country: inv.recipient.address?.country ?? "PL",
+          role: inv.recipient.role ?? "8",
+          email: inv.recipient.email ?? "",
+          phone: inv.recipient.phone ?? "",
+        }
+      : emptyRecipient,
     issueDate: inv.issueDate,
     saleDate: inv.saleDate,
     dueDate: inv.dueDate,
@@ -189,6 +238,8 @@ function freshForm(defaultCompanyId: string = ""): FormState {
     contractorId: "",
     useNewContractor: false,
     newContractor: emptyNewContractor,
+    hasRecipient: false,
+    recipient: emptyRecipient,
     issueDate: today,
     saleDate: today,
     dueDate: addDaysISO(today, 14),
@@ -460,6 +511,16 @@ export function InvoiceCreator() {
           const nested = field.slice("newContractor.".length) as keyof FormState["newContractor"];
           if (field.startsWith("newContractor.") && patch.newContractor?.[nested] !== form.newContractor[nested]) delete next[field];
         }
+        if (key === "hasRecipient" && !patch.hasRecipient) {
+          for (const field of Object.keys(next)) if (field.startsWith("recipient.")) delete next[field];
+        }
+        if (key === "recipient" && patch.recipient) {
+          const prevRec = form.recipient || emptyRecipient;
+          for (const field of Object.keys(next)) {
+            const nested = field.slice("recipient.".length) as keyof RecipientDraft;
+            if (field.startsWith("recipient.") && patch.recipient[nested] !== prevRec[nested]) delete next[field];
+          }
+        }
         if (key === "lines") for (const field of Object.keys(next)) {
           const match = /^lines\.(\d+)\.(name|quantity|netPrice)$/.exec(field);
           if (!match) continue;
@@ -483,6 +544,16 @@ export function InvoiceCreator() {
       if (["tin", "vat_eu"].includes(newContractorTaxIdType) && !form.newContractor.nip.trim()) fields["newContractor.nip"] = "Podaj identyfikator podatkowy nabywcy.";
       for (const [key,label] of [["street","ulicę i numer"],["city","miasto"],["postal","kod pocztowy"]] as const) {
         if (!form.newContractor[key].trim()) fields[`newContractor.${key}`] = `Uzupełnij ${label} w adresie nabywcy.`;
+      }
+    }
+    if (form.type === "sale" && form.hasRecipient) {
+      const rec = form.recipient || emptyRecipient;
+      if (!rec.name.trim()) fields["recipient.name"] = "Wpisz nazwę odbiorcy (Podmiot3).";
+      if (rec.taxIdType === "nip" && !isValidNipFormat(rec.taxId)) fields["recipient.taxId"] = "NIP odbiorcy powinien mieć 10 cyfr i poprawną sumę kontrolną.";
+      if (rec.taxIdType === "id_wew" && !isValidIdWewFormat(rec.taxId.trim())) fields["recipient.taxId"] = "IDWew odbiorcy musi mieć format NIP-5cyfr (np. 7811840766-00001).";
+      if (["tin", "vat_eu"].includes(rec.taxIdType) && !rec.taxId.trim()) fields["recipient.taxId"] = "Podaj identyfikator podatkowy odbiorcy.";
+      for (const [key,label] of [["street","ulicę i numer"],["city","miasto"],["postal","kod pocztowy"]] as const) {
+        if (!rec[key].trim()) fields[`recipient.${key}`] = `Uzupełnij ${label} w adresie odbiorcy.`;
       }
     }
     const noNamedLines = !form.lines.some(line => line.name.trim() && (form.isCorrection ? line.quantity !== 0 : line.quantity > 0));
@@ -623,6 +694,29 @@ export function InvoiceCreator() {
       }
     : selectedContractor;
 
+  const recDraft = form.recipient || emptyRecipient;
+  const effectiveRecipient: InvoiceRecipient | undefined =
+    form.type === "sale" && form.hasRecipient
+      ? {
+          name: recDraft.name.trim(),
+          ...(recDraft.taxIdType === "nip" && recDraft.taxId.trim() ? { nip: normalizeNip(recDraft.taxId) } : {}),
+          taxIdType: recDraft.taxIdType,
+          ...(recDraft.taxIdType !== "none" && recDraft.taxId.trim()
+            ? { taxId: recDraft.taxIdType === "nip" ? normalizeNip(recDraft.taxId) : recDraft.taxId.trim() }
+            : {}),
+          address: {
+            street: recDraft.street.trim(),
+            city: recDraft.city.trim(),
+            postal: recDraft.postal.trim(),
+            country: (recDraft.country.trim() || "PL").toUpperCase(),
+          },
+          role: recDraft.role || "8",
+          ...(recDraft.email.trim() ? { email: recDraft.email.trim() } : {}),
+          ...(recDraft.phone.trim() ? { phone: recDraft.phone.trim().slice(0, 16) } : {}),
+          ...(recDraft.contractorId ? { contractorId: recDraft.contractorId } : {}),
+        }
+      : undefined;
+
   const correctionAfterValues = Boolean(form.isCorrection && form.correctionInput === "after" && form.correctionOriginalLines);
   const documentLines = correctionAfterValues
     ? correctionDifferenceLines(form.correctionOriginalLines!, form.lines)
@@ -637,6 +731,7 @@ export function InvoiceCreator() {
     sellerCompanyId: effectiveSellerCompany.id || undefined,
     sellerCompany: effectiveSellerCompany,
     contractorId: form.contractorId,
+    recipient: effectiveRecipient,
     issueDate: form.issueDate,
     saleDate: form.saleDate,
     dueDate: form.dueDate,
@@ -706,6 +801,20 @@ export function InvoiceCreator() {
       if (!nc.street.trim() || !nc.city.trim() || !nc.postal.trim()) errs.push("Nowy kontrahent: uzupełnij adres.");
     } else if (!form.contractorId) {
       errs.push("Wybierz kontrahenta (lub dodaj nowego).");
+    }
+    if (form.type === "sale" && form.hasRecipient) {
+      const rec = form.recipient || emptyRecipient;
+      if (!rec.name.trim()) errs.push("Odbiorca (Podmiot3): podaj nazwę odbiorcy.");
+      if (rec.taxIdType === "nip" && !isValidNipFormat(rec.taxId)) {
+        errs.push("Odbiorca (Podmiot3): Polski NIP ma nieprawidłową sumę kontrolną.");
+      } else if (rec.taxIdType === "id_wew" && !isValidIdWewFormat(rec.taxId.trim())) {
+        errs.push("Odbiorca (Podmiot3): IDWew KSeF musi mieć format NIP-5cyfr (np. 7811840766-00001).");
+      } else if (["vat_eu", "tin"].includes(rec.taxIdType) && !rec.taxId.trim()) {
+        errs.push("Odbiorca (Podmiot3): podaj identyfikator podatkowy.");
+      }
+      if (!rec.street.trim() || !rec.city.trim() || !rec.postal.trim()) {
+        errs.push("Odbiorca (Podmiot3): uzupełnij ulicę, kod pocztowy i miejscowość.");
+      }
     }
     if (companies.length === 0 && !effectiveSellerCompany?.companyName && !effectiveSellerCompany?.nip) {
       errs.push("Dodaj profil firmy Sprzedawcy (w 'Moje Firmy'), aby Twoje dane pojawiły się na fakturze.");
@@ -823,6 +932,7 @@ export function InvoiceCreator() {
       bankAccountSnapshot: chosenBankAccount ? (chosenBankAccount as any) : undefined,
       buyerTaxIdType: form.useNewContractor ? newContractorTaxIdType : (selectedContractor?.taxIdType || "nip"),
       buyerCountry: form.useNewContractor ? form.newContractor.country : (selectedContractor?.country || "PL"),
+      recipient: form.type === "sale" && form.hasRecipient ? effectiveRecipient : (editing ? null : undefined),
     };
     return base;
   };
@@ -848,7 +958,7 @@ export function InvoiceCreator() {
     if (errors.length) { toast("error", "Popraw dane faktury", errors[0]); return; }
     assistantBusy.current = true; setCheckingInvoice(true);
     try {
-      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, correctionInput: undefined, correctionOriginalLines: undefined, lines: documentLines, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: editing ? draftInvoice?.id : undefined, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType } }) });
+      const response = await fetch("/api/invoices/preflight", { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15000), body: JSON.stringify({ ...form, correctionInput: undefined, correctionOriginalLines: undefined, lines: documentLines, companyId: effectiveSellerCompany.id, number: invoiceNumber, autoNumber: numberMode === "auto", invoiceId: editing ? draftInvoice?.id : undefined, buyer: { ...form.newContractor, taxIdType: newContractorTaxIdType }, recipient: form.type === "sale" && form.hasRecipient ? effectiveRecipient : null }) });
       const result = await response.json();
       if (!response.ok) {
         if (result.fieldErrors && typeof result.fieldErrors === "object") showValidation(Object.values(result.fieldErrors), result.fieldErrors);
@@ -1557,6 +1667,253 @@ export function InvoiceCreator() {
                     />
                   </div>
                 </div>
+              </div>
+            )}
+
+            {form.type === "sale" && (
+              <div className="rounded-lg border border-border/80 bg-muted/15 p-3.5 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <label htmlFor="invoice-hasRecipient" className="flex items-start gap-2.5 cursor-pointer text-[13px] font-semibold">
+                    <input
+                      id="invoice-hasRecipient"
+                      type="checkbox"
+                      checked={Boolean(form.hasRecipient)}
+                      onChange={(e) => set({ hasRecipient: e.target.checked, recipient: form.recipient || emptyRecipient })}
+                      className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                    />
+                    <span>
+                      Dodaj Odbiorcę / Podmiot3 (np. jednostka podrzędna JST — ośrodek, szkoła, urząd)
+                      <span className="block text-[11.5px] font-normal text-muted-foreground mt-0.5">
+                        Wymagane przy fakturowaniu powiatów, gmin i miast na prawach powiatu (Nabywca w Podmiot2 + jednostka odbierająca w Podmiot3).
+                      </span>
+                    </span>
+                  </label>
+                  {form.hasRecipient && (
+                    <Badge tone="outline" className="shrink-0 text-[10px]">
+                      {recDraft.role === "8" ? "JST=1 · Rola 8" : recDraft.role === "10" ? "GV=1 · Rola 10" : `Podmiot3 · Rola ${recDraft.role}`}
+                    </Badge>
+                  )}
+                </div>
+
+                {form.hasRecipient && (
+                  <div className="space-y-3 border-t border-border/70 pt-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-role">Rola Podmiot3 w strukturze FA(3) *</Label>
+                        <Select
+                          id="invoice-recipient-role"
+                          value={recDraft.role}
+                          onChange={(e) => set({ recipient: { ...recDraft, role: e.target.value as Podmiot3Role } })}
+                        >
+                          <option value="8">8 — JST – odbiorca (jednostka podrzędna JST)</option>
+                          <option value="2">2 — Odbiorca (inny niż JST / GV)</option>
+                          <option value="10">10 — Członek grupy VAT – odbiorca</option>
+                          {(Object.entries(PODMIOT3_ROLE_LABELS) as [Podmiot3Role, string][])
+                            .filter(([code]) => !["8", "2", "10"].includes(code))
+                            .map(([code, label]) => (
+                              <option key={code} value={code}>
+                                {code} — {label}
+                              </option>
+                            ))}
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-contractor">Wczytaj dane odbiorcy z bazy (opcjonalnie)</Label>
+                        <Select
+                          id="invoice-recipient-contractor"
+                          value={recDraft.contractorId}
+                          onChange={(e) => {
+                            const cid = e.target.value;
+                            const found = contractors.find((c) => c.id === cid);
+                            if (!found) {
+                              set({ recipient: { ...recDraft, contractorId: "" } });
+                              return;
+                            }
+                            const foundType: RecipientTaxIdType =
+                              found.taxIdType === "vat_eu" || found.taxIdType === "tin" || found.taxIdType === "none"
+                                ? found.taxIdType
+                                : "nip";
+                            set({
+                              recipient: {
+                                ...recDraft,
+                                contractorId: found.id,
+                                name: found.name,
+                                taxIdType: foundType,
+                                taxId: found.taxId || found.nip || "",
+                                street: found.address?.street || "",
+                                city: found.address?.city || "",
+                                postal: found.address?.postal || "",
+                                country: found.country || found.address?.country || "PL",
+                                email: found.email || "",
+                                phone: found.phone || "",
+                              },
+                            });
+                          }}
+                        >
+                          <option value="">— wpisz ręcznie lub wyszukaj w GUS —</option>
+                          {contractors.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name} · {formatNip(c.nip)}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="invoice-recipient-name">Nazwa odbiorcy (Podmiot3) *</Label>
+                      <Input
+                        id="invoice-recipient-name"
+                        aria-invalid={Boolean(fieldErrors["recipient.name"])}
+                        aria-describedby={fieldErrors["recipient.name"] ? "invoice-recipient-name-error" : undefined}
+                        value={recDraft.name}
+                        onChange={(e) => set({ recipient: { ...recDraft, name: e.target.value } })}
+                        placeholder="np. Powiatowy Ośrodek Dokumentacji Geodezyjnej i Kartograficznej"
+                      />
+                      {fieldErrors["recipient.name"] && (
+                        <p id="invoice-recipient-name-error" className="text-xs text-destructive">
+                          {fieldErrors["recipient.name"]}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-tax-type">Typ identyfikatora odbiorcy</Label>
+                        <Select
+                          id="invoice-recipient-tax-type"
+                          value={recDraft.taxIdType}
+                          onChange={(e) => set({ recipient: { ...recDraft, taxIdType: e.target.value as RecipientTaxIdType } })}
+                        >
+                          <option value="nip">NIP (Polski — wyszukiwanie GUS)</option>
+                          <option value="id_wew">IDWew KSeF (format NIP-5cyfr)</option>
+                          <option value="vat_eu">VAT UE</option>
+                          <option value="tin">TIN / Tax ID (Zagraniczny)</option>
+                          <option value="none">Brak identyfikatora (BrakID=1)</option>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-country">Kraj odbiorcy</Label>
+                        <Input
+                          id="invoice-recipient-country"
+                          value={recDraft.country}
+                          onChange={(e) => set({ recipient: { ...recDraft, country: e.target.value } })}
+                          placeholder="PL"
+                        />
+                      </div>
+                    </div>
+
+                    {recDraft.taxIdType !== "none" && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor={recDraft.taxIdType === "nip" ? undefined : "invoice-recipient-tax-id"}>
+                          {recDraft.taxIdType === "nip"
+                            ? "NIP odbiorcy *"
+                            : recDraft.taxIdType === "id_wew"
+                              ? "Identyfikator wewnętrzny KSeF (IDWew) *"
+                              : recDraft.taxIdType === "vat_eu"
+                                ? "Numer VAT UE odbiorcy *"
+                                : "Identyfikator TIN odbiorcy *"}
+                        </Label>
+                        {recDraft.taxIdType === "nip" ? (
+                          <NipLookup
+                            inputId="invoice-recipient-tax-id"
+                            error={fieldErrors["recipient.taxId"]}
+                            nip={recDraft.taxId}
+                            onNipChange={(v) => set({ recipient: { ...recDraft, taxId: v } })}
+                            onFound={(c) =>
+                              set({
+                                recipient: {
+                                  ...recDraft,
+                                  name: c.name,
+                                  taxId: c.nip,
+                                  street: c.address.street,
+                                  city: c.address.city,
+                                  postal: c.address.postal,
+                                  country: c.address.country || "PL",
+                                },
+                              })
+                            }
+                          />
+                        ) : (
+                          <>
+                            <Input
+                              id="invoice-recipient-tax-id"
+                              aria-invalid={Boolean(fieldErrors["recipient.taxId"])}
+                              aria-describedby={fieldErrors["recipient.taxId"] ? "invoice-recipient-tax-id-error" : undefined}
+                              value={recDraft.taxId}
+                              onChange={(e) => set({ recipient: { ...recDraft, taxId: e.target.value } })}
+                              placeholder={
+                                recDraft.taxIdType === "id_wew"
+                                  ? "np. 7811840766-00001"
+                                  : recDraft.taxIdType === "vat_eu"
+                                    ? "np. DE123456789"
+                                    : "np. C0001234567"
+                              }
+                              className="font-mono text-xs"
+                            />
+                            {fieldErrors["recipient.taxId"] && (
+                              <p id="invoice-recipient-tax-id-error" className="text-xs text-destructive">
+                                {fieldErrors["recipient.taxId"]}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-postal">Kod pocztowy odbiorcy *</Label>
+                        <Input
+                          id="invoice-recipient-postal"
+                          aria-invalid={Boolean(fieldErrors["recipient.postal"])}
+                          aria-describedby={fieldErrors["recipient.postal"] ? "invoice-recipient-postal-error" : undefined}
+                          value={recDraft.postal}
+                          onChange={(e) => set({ recipient: { ...recDraft, postal: e.target.value } })}
+                          placeholder="np. 61-302"
+                        />
+                        {fieldErrors["recipient.postal"] && (
+                          <p id="invoice-recipient-postal-error" className="text-xs text-destructive">
+                            {fieldErrors["recipient.postal"]}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="invoice-recipient-city">Miasto odbiorcy *</Label>
+                        <Input
+                          id="invoice-recipient-city"
+                          aria-invalid={Boolean(fieldErrors["recipient.city"])}
+                          aria-describedby={fieldErrors["recipient.city"] ? "invoice-recipient-city-error" : undefined}
+                          value={recDraft.city}
+                          onChange={(e) => set({ recipient: { ...recDraft, city: e.target.value } })}
+                          placeholder="np. Poznań"
+                        />
+                        {fieldErrors["recipient.city"] && (
+                          <p id="invoice-recipient-city-error" className="text-xs text-destructive">
+                            {fieldErrors["recipient.city"]}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="invoice-recipient-street">Ulica i numer odbiorcy *</Label>
+                      <Input
+                        id="invoice-recipient-street"
+                        aria-invalid={Boolean(fieldErrors["recipient.street"])}
+                        aria-describedby={fieldErrors["recipient.street"] ? "invoice-recipient-street-error" : undefined}
+                        value={recDraft.street}
+                        onChange={(e) => set({ recipient: { ...recDraft, street: e.target.value } })}
+                        placeholder="np. ul. Franowo 26"
+                      />
+                      {fieldErrors["recipient.street"] && (
+                        <p id="invoice-recipient-street-error" className="text-xs text-destructive">
+                          {fieldErrors["recipient.street"]}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

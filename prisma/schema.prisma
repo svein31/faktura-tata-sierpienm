@@ -539,6 +539,7 @@ model Invoice {
   bankAccountSnapshot       Json?
   buyerTaxIdType            String?
   buyerCountry              String?
+  recipient                 Json? // Odbiorca / Podmiot3 w KSeF FA(3) (np. jednostka podrzędna JST, Rola 8)
 
   // Pola ewidencji JPK_V7M(3) / JPK_V7K(3) — sekcja 3
   gtuCodes                  String[] @default([]) // GTU_01 … GTU_13

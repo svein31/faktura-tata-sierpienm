@@ -31,7 +31,7 @@ export async function generateRecurringInvoices(now = new Date()) {
         contractorId: template.contractorId, sellerCompanyId: companyId, issueDate: today, saleDate: scheduledDate,
         dueDate: addCalendarDays(today, template.paymentTermDays), paymentTermDays: template.paymentTermDays, paymentMethod: template.paymentMethod,
         currency: template.currency, language: template.language, lines: template.lines, notes: template.notes, isProforma: template.isProforma,
-        bankAccountId: template.bankAccountId, bankAccountSnapshot: template.bankAccountSnapshot, buyerCountry: template.buyerCountry, buyerTaxIdType: template.buyerTaxIdType,
+        bankAccountId: template.bankAccountId, bankAccountSnapshot: template.bankAccountSnapshot, buyerCountry: template.buyerCountry, buyerTaxIdType: template.buyerTaxIdType, recipient: template.recipient,
       }, { contractorOwnedBy: id => contractorForCompany(actorId, id, companyId), companyOwnedBy: async id => id === companyId });
       const settings = template.recurringAutoSend ? await prisma.ksefSettings.findUnique({ where: { userId: actorId } }) : null;
       const actor = await prisma.user.findUniqueOrThrow({ where: { id: actorId }, select: { name: true, email: true } });

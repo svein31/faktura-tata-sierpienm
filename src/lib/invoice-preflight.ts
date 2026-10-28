@@ -1,8 +1,8 @@
 import { isIsoCalendarDate } from "./nbp";
-import { isValidNipFormat } from "./validation";
+import { isValidNipFormat, isValidIdWewFormat } from "./validation";
 import { roundHalfUp } from "./tax/money";
 export type PreflightIssue = { code: string; severity: "error" | "warning"; message: string; href?: string };
-export type PreflightInput = { number: string; issueDate: string; saleDate: string; dueDate: string; currency: string; lines: { name: string; quantity: number; netPrice: number; vatRate: string }[]; buyer: { name: string; nip?: string; country?: string; taxIdType?: string; street?: string; city?: string; postal?: string }; seller: { companyName: string; nip: string; street?: string | null; city?: string | null; postalCode?: string | null }; correction?: boolean; correctionReason?: string; originalInvoiceNumber?: string; originalIssueDate?: string; exemptionBasis?: string; isSplitPayment?: boolean; gross: number };
+export type PreflightInput = { number: string; issueDate: string; saleDate: string; dueDate: string; currency: string; lines: { name: string; quantity: number; netPrice: number; vatRate: string }[]; buyer: { name: string; nip?: string; country?: string; taxIdType?: string; street?: string; city?: string; postal?: string }; recipient?: { name: string; nip?: string; taxId?: string; country?: string; taxIdType?: string; street?: string; city?: string; postal?: string; role?: string } | null; seller: { companyName: string; nip: string; street?: string | null; city?: string | null; postalCode?: string | null }; correction?: boolean; correctionReason?: string; originalInvoiceNumber?: string; originalIssueDate?: string; exemptionBasis?: string; isSplitPayment?: boolean; gross: number };
 export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   const issues: PreflightIssue[] = [];
   const add = (code: string, severity: PreflightIssue["severity"], message: string) => issues.push({ code, severity, message });
@@ -14,6 +14,15 @@ export function assessInvoice(input: PreflightInput): PreflightIssue[] {
   if ((input.buyer.country || "PL") === "PL" && (input.buyer.taxIdType || "nip") === "nip" && !isValidNipFormat(input.buyer.nip || "")) add("buyer.nip", "error", "Polski NIP nabywcy ma nieprawidłową sumę kontrolną.");
   if (!input.seller.street || !input.seller.city || !input.seller.postalCode) add("seller.address", "warning", "Uzupełnij adres sprzedawcy w profilu firmy przed wysyłką do KSeF.");
   if (!input.buyer.street || !input.buyer.city || !input.buyer.postal) add("buyer.address", "warning", "Sprawdź kompletność adresu nabywcy.");
+  if (input.recipient) {
+    if (!input.recipient.name.trim()) add("recipient.name", "error", "Uzupełnij nazwę odbiorcy (Podmiot3).");
+    const recTaxType = input.recipient.taxIdType || "nip";
+    const recTaxId = (input.recipient.taxId || input.recipient.nip || "").trim();
+    if (recTaxType === "nip" && !isValidNipFormat(recTaxId)) add("recipient.nip", "error", "Polski NIP odbiorcy (Podmiot3) ma nieprawidłową sumę kontrolną.");
+    if (recTaxType === "id_wew" && !isValidIdWewFormat(recTaxId)) add("recipient.idWew", "error", "Identyfikator wewnętrzny KSeF (IDWew) odbiorcy musi mieć format NIP-5cyfr.");
+    if (["vat_eu", "tin"].includes(recTaxType) && !recTaxId) add("recipient.taxId", "error", "Podaj identyfikator podatkowy odbiorcy (Podmiot3).");
+    if (!input.recipient.street?.trim() || !input.recipient.city?.trim() || !input.recipient.postal?.trim()) add("recipient.address", "error", "Uzupełnij ulicę, kod pocztowy i miejscowość odbiorcy (Podmiot3).");
+  }
   if (!/^[A-Z]{3}$/.test(input.currency)) add("currency", "error", "Wybierz poprawny kod waluty.");
   if (!Number.isFinite(input.gross) || Math.abs(input.gross) > 1e12) add("totals", "error", "Kwoty przekraczają obsługiwany zakres. Sprawdź ceny i ilości.");
   if (!input.lines.length || input.lines.length > 200) add("lines", "error", "Faktura wymaga od 1 do 200 pozycji.");

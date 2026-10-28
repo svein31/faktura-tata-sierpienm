@@ -12,6 +12,42 @@ export type CompanyRole = "owner" | "admin" | "sales" | "accountant" | "employee
 export type TaxIdType = "nip" | "vat_eu" | "tin" | "other" | "none";
 export type ExchangeRateRule = "art_31a_sale_date" | "art_31a_issue_date" | "art_31a_tax_point" | "manual";
 export type KsefEnv = "demo" | "test" | "production";
+export type RecipientTaxIdType = "nip" | "id_wew" | "vat_eu" | "tin" | "none";
+export type Podmiot3Role = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11";
+
+export const PODMIOT3_ROLE_LABELS: Record<Podmiot3Role, string> = {
+  "1": "Faktor",
+  "2": "Odbiorca",
+  "3": "Podmiot pierwotny",
+  "4": "Dodatkowy nabywca",
+  "5": "Wystawca faktury",
+  "6": "Dokonujący płatności",
+  "7": "JST – wystawca",
+  "8": "JST – odbiorca",
+  "9": "Członek grupy VAT – wystawca",
+  "10": "Członek grupy VAT – odbiorca",
+  "11": "Pracownik",
+};
+
+export function podmiot3RoleLabel(role?: string | null, lang: InvoiceLanguage = "PL"): string {
+  const r = (role && role in PODMIOT3_ROLE_LABELS ? role : "8") as Podmiot3Role;
+  const pl = PODMIOT3_ROLE_LABELS[r];
+  if (lang === "PL") return pl;
+  const enMap: Record<Podmiot3Role, string> = {
+    "1": "Factor",
+    "2": "Recipient",
+    "3": "Original entity",
+    "4": "Additional buyer",
+    "5": "Invoice issuer",
+    "6": "Payer",
+    "7": "Local gov. unit – issuer",
+    "8": "Local gov. unit – recipient (JST)",
+    "9": "VAT group member – issuer",
+    "10": "VAT group member – recipient",
+    "11": "Employee",
+  };
+  return lang === "PL/EN" ? `${pl} / ${enMap[r]}` : enMap[r];
+}
 
 /* ── Sekcja 3: podatki, ZUS, JPK ─────────────────────────────────────────── */
 
@@ -299,6 +335,18 @@ export interface KsefInfo {
   processingDescription?: string;
 }
 
+export interface InvoiceRecipient {
+  name: string;
+  nip?: string;
+  taxIdType?: RecipientTaxIdType;
+  taxId?: string;
+  address: Address;
+  role: Podmiot3Role;
+  email?: string;
+  phone?: string;
+  contractorId?: string;
+}
+
 export interface Invoice {
   exemptionBasis?: string | null;
 
@@ -401,6 +449,7 @@ export interface Invoice {
   bankAccountSnapshot?: Partial<CompanyBankAccount> | null;
   buyerTaxIdType?: TaxIdType | null;
   buyerCountry?: string | null;
+  recipient?: InvoiceRecipient | null;
   // Ewidencja JPK_V7 (sekcja 3)
   gtuCodes?: GtuCode[];
   jpkProcedures?: JpkSaleProcedure[];

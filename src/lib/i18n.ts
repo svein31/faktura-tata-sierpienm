@@ -10,6 +10,7 @@ export interface InvoiceLabels {
   dueDate: string;
   seller: string;
   buyer: string;
+  recipient: string;
   nip: string;
   regon: string;
   item: string;
@@ -46,6 +47,7 @@ export const invoiceLabels: Record<InvoiceLanguage, InvoiceLabels> = {
     dueDate: "Termin płatności",
     seller: "Sprzedawca",
     buyer: "Nabywca",
+    recipient: "Odbiorca",
     nip: "NIP",
     regon: "REGON",
     item: "Nazwa towaru / usługi",
@@ -80,6 +82,7 @@ export const invoiceLabels: Record<InvoiceLanguage, InvoiceLabels> = {
     dueDate: "Due date",
     seller: "Seller",
     buyer: "Buyer",
+    recipient: "Recipient",
     nip: "Tax ID (NIP)",
     regon: "REGON",
     item: "Item / service",
@@ -114,6 +117,7 @@ export const invoiceLabels: Record<InvoiceLanguage, InvoiceLabels> = {
     dueDate: "Termin płatności / Payment due",
     seller: "Sprzedawca / Seller",
     buyer: "Nabywca / Buyer",
+    recipient: "Odbiorca / Recipient",
     nip: "NIP / Tax ID",
     regon: "REGON",
     item: "Nazwa towaru lub usługi / Description of goods or services",

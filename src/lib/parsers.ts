@@ -8,11 +8,11 @@ import { normalizeInvoiceLineAmounts } from "./invoice-input";
  */
 
 import { ApiError, FieldError, cleanStr, num } from "./api";
-import { normalizeNip, isValidNipFormat, validateTaxId } from "./validation";
+import { normalizeNip, isValidNipFormat, isValidIdWewFormat, validateTaxId } from "./validation";
 import type { Prisma } from "@prisma/client";
 import { getEffectiveNbpRate, convertToPln, isIsoCalendarDate } from "./nbp";
 import { invoiceTotals, VAT_RATES as UI_VAT_RATES } from "./format";
-import type { ExchangeRateRule, InvoiceLine } from "./types";
+import type { ExchangeRateRule, InvoiceLine, InvoiceRecipient, Podmiot3Role, RecipientTaxIdType } from "./types";
 import type { Address } from "./types";
 import { normalizeLogoUrl } from "./pdf/logo-safety";
 
@@ -96,6 +96,83 @@ const STATUSES = ["draft", "issued", "sent", "paid", "ksef_sent", "ksef_active"]
 const CURRENCIES = ["PLN", "EUR", "USD"] as const;
 const LANGUAGES = ["PL", "EN", "PL/EN"] as const;
 const PAYMENT_METHODS = ["transfer", "cash", "card", "blik", "compensation"] as const;
+const PODMIOT3_ROLES: readonly Podmiot3Role[] = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+const RECIPIENT_TAX_ID_TYPES: readonly RecipientTaxIdType[] = ["nip", "id_wew", "vat_eu", "tin", "none"];
+
+function parseRecipient(v: unknown): InvoiceRecipient | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v !== "object" || Array.isArray(v)) {
+    throw new FieldError("recipient", "Nieprawidłowe dane odbiorcy (Podmiot3).");
+  }
+  const r = v as Record<string, unknown>;
+  const name = cleanStr(r.name, 512, "recipient.name");
+  if (!name) throw new FieldError("recipient.name", "Podaj nazwę odbiorcy (Podmiot3).");
+
+  const roleRaw = cleanStr(r.role, 4, "recipient.role") || "8";
+  if (!PODMIOT3_ROLES.includes(roleRaw as Podmiot3Role)) {
+    throw new FieldError("recipient.role", "Wybierz poprawną rolę Podmiot3 w KSeF (1–11).");
+  }
+  const role = roleRaw as Podmiot3Role;
+
+  const taxIdTypeRaw = cleanStr(r.taxIdType, 20, "recipient.taxIdType") || "nip";
+  if (!RECIPIENT_TAX_ID_TYPES.includes(taxIdTypeRaw as RecipientTaxIdType)) {
+    throw new FieldError("recipient.taxIdType", "Nieprawidłowy typ identyfikatora odbiorcy.");
+  }
+  const taxIdType = taxIdTypeRaw as RecipientTaxIdType;
+
+  const addrSrc =
+    r.address && typeof r.address === "object" && !Array.isArray(r.address)
+      ? (r.address as Record<string, unknown>)
+      : r;
+  const street = cleanStr(addrSrc.street, 250, "recipient.street");
+  const city = cleanStr(addrSrc.city, 120, "recipient.city");
+  const postal = cleanStr(addrSrc.postal, 20, "recipient.postal");
+  const country = (cleanStr(addrSrc.country, 10, "recipient.country") || "PL").toUpperCase();
+  if (!street) throw new FieldError("recipient.street", "Podaj ulicę i numer w adresie odbiorcy.");
+  if (!postal) throw new FieldError("recipient.postal", "Podaj kod pocztowy odbiorcy.");
+  if (!city) throw new FieldError("recipient.city", "Podaj miejscowość odbiorcy.");
+
+  const rawTaxId = cleanStr(r.taxId ?? r.nip, 50, "recipient.taxId");
+  let nip: string | undefined;
+  let taxId: string | undefined;
+  if (taxIdType === "nip") {
+    const norm = normalizeNip(rawTaxId);
+    if (!isValidNipFormat(norm)) {
+      throw new FieldError("recipient.taxId", "Polski NIP odbiorcy musi składać się z 10 cyfr i mieć poprawną sumę kontrolną.");
+    }
+    nip = norm;
+    taxId = norm;
+  } else if (taxIdType === "id_wew") {
+    const normIdWew = rawTaxId.replace(/\s+/g, "");
+    if (!isValidIdWewFormat(normIdWew)) {
+      throw new FieldError("recipient.taxId", "Identyfikator wewnętrzny KSeF (IDWew) musi mieć format NIP-5cyfr (np. 7811840766-00001).");
+    }
+    taxId = normIdWew;
+  } else if (taxIdType === "vat_eu" || taxIdType === "tin") {
+    const validated = validateTaxId(rawTaxId, taxIdType, country);
+    if (!validated.valid) {
+      throw new FieldError("recipient.taxId", validated.reason || "Nieprawidłowy identyfikator podatkowy odbiorcy.");
+    }
+    taxId = validated.displayValue || validated.normalized;
+  }
+
+  const email = cleanStr(r.email, 200, "recipient.email") || undefined;
+  const phone = cleanStr(r.phone, 16, "recipient.phone") || undefined;
+  const contractorId = cleanStr(r.contractorId, 100, "recipient.contractorId") || undefined;
+
+  return {
+    name,
+    ...(nip ? { nip } : {}),
+    taxIdType,
+    ...(taxId ? { taxId } : {}),
+    address: { street, city, postal, country },
+    role,
+    ...(email ? { email } : {}),
+    ...(phone ? { phone } : {}),
+    ...(contractorId ? { contractorId } : {}),
+  };
+}
 
 interface Line {
   id?: string;
@@ -322,6 +399,7 @@ export async function parseInvoiceBody(
   const bankAccountSnapshot = body.bankAccountSnapshot ? (body.bankAccountSnapshot as unknown as Prisma.InputJsonValue) : undefined;
   const buyerTaxIdType = cleanStr(body.buyerTaxIdType, 20, "buyerTaxIdType") || null;
   const buyerCountry = cleanStr(body.buyerCountry, 10, "buyerCountry") || null;
+  const recipient = parseRecipient(body.recipient);
   const paymentStatus = cleanStr(body.paymentStatus, 20, "paymentStatus") || (status === "paid" ? "paid" : "unpaid");
   if (!["unpaid", "partially_paid", "paid", "overdue"].includes(paymentStatus)) throw new FieldError("paymentStatus", "Nieprawidłowy status płatności.");
   if (body.paidAmount !== undefined && body.paidAmount !== null && (typeof body.paidAmount !== "number" || !Number.isFinite(body.paidAmount) || body.paidAmount < 0 || body.paidAmount > 1e12)) throw new FieldError("paidAmount", "Nieprawidłowa kwota wpłat.");
@@ -391,6 +469,7 @@ export async function parseInvoiceBody(
     bankAccountSnapshot,
     buyerTaxIdType,
     buyerCountry,
+    recipient: recipient === undefined ? undefined : (recipient as unknown as Prisma.InputJsonValue | null),
     ...taxFields,
     ksef: undefined,
   };

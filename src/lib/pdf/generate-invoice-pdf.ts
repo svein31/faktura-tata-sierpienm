@@ -4,6 +4,7 @@ import path from "node:path";
 import { PDFDocument, rgb } from "pdf-lib";
 import { formatMoney, invoiceTotals, lineGross, lineNet, lineVat, vatRateLabel } from "../format";
 import { invoiceLabels, paymentMethodLabel } from "../i18n";
+import { podmiot3RoleLabel } from "../types";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "../types";
 import { buildKsefVerificationUrl, generateQrPngBuffer } from "../ksef";
 import { getTaxIdLabel } from "../validation";
@@ -275,6 +276,41 @@ export async function generateInvoicePdfBuffer(
     rows.forEach((text, index) => page.drawText(text, { x: x + 12, y: y - 34 - index * 12, size: 8.5, font: index === 0 ? fontBold : fontRegular, color: darkColor }));
   }
   y -= partyHeight - 90;
+  // Sekcja Odbiorcy / Podmiot3 (np. jednostka podrzędna JST — Rola 8)
+  if (invoice.type === "sale" && invoice.recipient?.name?.trim()) {
+    const recBoxWidth = width - 104;
+    const recLang = invoice.language || "PL";
+    const recRoleText = podmiot3RoleLabel(invoice.recipient.role, recLang);
+    const recHeader = `${cleanText(L.recipient).toUpperCase()} (PODMIOT3 - ROLA ${cleanText(invoice.recipient.role || "8")}: ${cleanText(recRoleText)})`;
+    const recTaxType = invoice.recipient.taxIdType || "nip";
+    const recTaxLabel = getTaxIdLabel(recTaxType, invoice.recipient.address?.country || "PL", recLang);
+    const recTaxVal = recTaxType === "none" ? "" : (invoice.recipient.taxId || invoice.recipient.nip || "");
+    const recAddrStr = [
+      invoice.recipient.address?.street,
+      `${invoice.recipient.address?.postal || ""} ${invoice.recipient.address?.city || ""}`.trim(),
+    ].filter(Boolean).join(", ");
+    const recMeta = [recTaxVal ? `${recTaxLabel}: ${recTaxVal}` : null, recAddrStr || null].filter(Boolean).join("  |  ");
+    const recRows = [
+      ...wrap(invoice.recipient.name, recBoxWidth, 9, true),
+      ...(recMeta ? wrap(recMeta, recBoxWidth, 8.5) : []),
+    ];
+    const recHeight = 32 + recRows.length * 12;
+    const recTop = y - 93;
+    page.drawRectangle({
+      x: 40,
+      y: recTop - recHeight,
+      width: width - 80,
+      height: recHeight,
+      color: lightBg,
+      borderColor,
+      borderWidth: 1,
+    });
+    page.drawText(recHeader, { x: 52, y: recTop - 14, size: 8, font: fontBold, color: primaryColor, maxWidth: recBoxWidth });
+    recRows.forEach((text, index) =>
+      page.drawText(text, { x: 52, y: recTop - 28 - index * 12, size: 8.5, font: index === 0 ? fontBold : fontRegular, color: darkColor })
+    );
+    y -= recHeight + 8;
+  }
   // Baner faktury korygującej (jeśli dotyczy)
   if (invoice.isCorrection) {
     page.drawRectangle({

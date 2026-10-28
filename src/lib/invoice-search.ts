@@ -78,7 +78,7 @@ export function invoiceSearchPipeline(
   if (filters.search) {
     selection.push(invoiceContractorSearchLookup());
     const regex = { $regex: literalRegex(filters.search), $options: "i" };
-    selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name", "searchContractor.nip"].map(field => ({ [field]: regex })) } });
+    selection.push({ $match: { $or: ["number", "notes", "contractorId", "ksef.number", "ksefNumber", "searchContractor.name", "searchContractor.nip", "recipient.name", "recipient.nip", "recipient.taxId"].map(field => ({ [field]: regex })) } });
   }
   return [
     { $match: scope },
