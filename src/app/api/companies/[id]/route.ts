@@ -95,6 +95,18 @@ export async function PUT(req: Request, { params }: Ctx) {
     const updated = await prisma.$transaction(async tx => {
       if (data.isDefault && !existing.isDefault) await tx.companyProfile.updateMany({ where: { userId: user.id }, data: { isDefault: false } });
       const company = await tx.companyProfile.update({ where: { id: existing.id }, data });
+      if (data.bankAccount !== undefined) {
+        if (data.bankAccount) {
+          await tx.companyBankAccount?.updateMany({
+            where: { companyId: existing.id, accountName: "Konto podstawowe", bankName: "Rachunek bieżący" },
+            data: { accountNumber: data.bankAccount, beneficiaryName: company.companyName },
+          });
+        } else {
+          await tx.companyBankAccount?.deleteMany({
+            where: { companyId: existing.id, accountName: "Konto podstawowe", bankName: "Rachunek bieżący" },
+          });
+        }
+      }
       const { diff } = buildFieldDiff(existing, company, { companyName: "Nazwa", nip: "NIP", street: "Ulica", city: "Miasto", postalCode: "Kod pocztowy", ksefToken: "Token KSeF", isDefault: "Firma domyślna" });
       await recordAuditLog({ client: tx, companyId: company.id, userId: user.id, userName: user.name, userEmail: user.email,
         action: "company_updated", entityType: "company", entityId: company.id, diff });

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, LoaderCircle } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, LoaderCircle, Printer } from "lucide-react";
 import { SidePanel } from "@/components/ui/side-panel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { ksefPresentation } from "@/lib/ksef/presentation";
 import { formatDate, formatMoney, invoiceTotals, round2 } from "@/lib/format";
 import { invoicePaymentPresentation } from "@/lib/invoice-payment-presentation";
 import { podmiot3RoleLabel } from "@/lib/types";
+import { correctionLineLabel } from "@/lib/invoice-correction-chain";
 import type { Contractor, Invoice } from "@/lib/types";
 
 const PAYMENT_LABELS: Record<string, string> = { transfer: "Przelew", cash: "Gotówka", card: "Karta", blik: "BLIK", compensation: "Kompensata" };
@@ -41,6 +42,7 @@ export function InvoiceQuickPreview({ invoice, contractor, onClose, navigation }
     {navigation.error&&<div role="alert" className="mt-3 text-xs leading-5 text-destructive">{navigation.error}<button type="button" onClick={navigation.retry} className="mt-1 block rounded font-medium underline underline-offset-4">Spróbuj ponownie</button></div>}
   </div>} footer={<>
     <Button variant="ghost" onClick={onClose}>Wróć do listy</Button>
+    <a href={`/api/invoices/${encodeURIComponent(invoice.id)}/pdf`} target="_blank" rel="noopener noreferrer" className="ui-detail-link"><Printer className="size-4" aria-hidden="true" /> Pobierz / drukuj PDF</a>
     <Link prefetch={false} href={`/invoices/${encodeURIComponent(invoice.id)}`} className="ui-detail-link">Otwórz szczegóły <ArrowUpRight className="size-4" aria-hidden="true" /></Link>
   </>}>
     <div className="space-y-6">
@@ -80,7 +82,7 @@ export function InvoiceQuickPreview({ invoice, contractor, onClose, navigation }
       </section>
 
       <section aria-label="Pozycje w podglądzie"><h3 className="flex items-center gap-2 text-sm font-semibold"><FileText className="size-4 text-muted-foreground" aria-hidden="true" />Pozycje <span className="ml-auto text-xs font-normal text-muted-foreground">{invoice.lines.length}</span></h3>
-        <ol className="mt-3 divide-y divide-border/60">{invoice.lines.slice(0, 5).map((line,index) => <li key={line.id || index} className="flex items-start gap-3 py-3 text-sm"><span className="mt-0.5 text-xs tabular-nums text-muted-foreground">{index + 1}.</span><div className="min-w-0"><p className="break-words font-medium leading-6">{line.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{line.quantity.toLocaleString('pl-PL')} {line.unit} · {formatMoney(line.netPrice, invoice.currency)} netto / jedn.</p></div></li>)}</ol>
+        <ol className="mt-3 divide-y divide-border/60">{invoice.lines.slice(0, 5).map((line,index) => <li key={line.id || index} className="flex items-start gap-3 py-3 text-sm"><span className="mt-0.5 text-xs tabular-nums text-muted-foreground">{index + 1}.</span><div className="min-w-0"><p className="break-words font-medium leading-6">{line.name}{invoice.isCorrection && correctionLineLabel(line) ? <span className="ml-1.5 text-xs font-normal text-muted-foreground">({correctionLineLabel(line)})</span> : null}</p><p className="mt-0.5 text-xs text-muted-foreground">{line.quantity.toLocaleString('pl-PL')} {line.unit} · {formatMoney(line.netPrice, invoice.currency)} netto / jedn.</p></div></li>)}</ol>
         {invoice.lines.length > 5 && <p className="mt-2 text-xs text-muted-foreground">Pozostałe pozycje ({invoice.lines.length - 5}) znajdziesz w szczegółach dokumentu.</p>}
       </section>
       {invoice.isCorrection && invoice.originalInvoiceNumber && <p className="rounded-xl bg-muted/40 p-3 text-sm leading-6">Korekta do: <strong>{invoice.originalInvoiceNumber}</strong>{invoice.correctionReason && <span className="mt-1 block break-words text-muted-foreground">{invoice.correctionReason}</span>}</p>}

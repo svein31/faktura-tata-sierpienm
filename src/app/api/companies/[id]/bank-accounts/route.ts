@@ -6,7 +6,7 @@ import { requireCompanyAccess } from "@/lib/permissions";
 import { companyBankAccountToDto } from "@/lib/dto";
 import { validateAccountNumber, isValidSwiftBic } from "@/lib/banking/validation";
 import { recordAuditLog } from "@/lib/audit";
-import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
+import { accountConflictsWithAnotherCompany, isStaleMigratedBankAccount } from "@/lib/company-bank-account-scope";
 import { companyWriteAccess } from "@/lib/company-write";
 
 export const runtime = "nodejs";
@@ -49,10 +49,10 @@ export async function GET(_req: Request, { params }: Ctx) {
     });
 
     const profiles = await prisma.companyProfile.findMany({
-      where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true },
+      where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true, bankAccounts: { select: { accountNumber: true, accountName: true, bankName: true } } },
     });
     return json({ accounts: accounts.filter(account =>
-      !accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName),
+      !isStaleMigratedBankAccount(account, profiles.find(p => p.id === companyId)?.bankAccount) && !accountConflictsWithAnotherCompany(companyId, account.accountNumber, profiles, account.beneficiaryName),
     ).map(companyBankAccountToDto) });
   } catch (e) {
     return handleApiError(e);
@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: Ctx) {
       return json({ error: accountValidation.error || "Nieprawidłowy format numeru rachunku." }, { status: 400 });
     }
     const profiles = await prisma.companyProfile.findMany({
-      where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true },
+      where: { userId: access.membership.company.userId }, select: { id: true, bankAccount: true, companyName: true, bankAccounts: { select: { accountNumber: true, accountName: true, bankName: true } } },
     });
     if (accountConflictsWithAnotherCompany(companyId, accountValidation.normalized, profiles, beneficiaryName)) {
       return json({ error: "Ten rachunek jest już głównym kontem innej firmy. Przypisz właściwy rachunek do tej firmy." }, { status: 409 });

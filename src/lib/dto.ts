@@ -304,6 +304,7 @@ export function invoiceToDto(
     payments: mappedPayments,
     version: i.version ?? 1,
     isCorrection: i.isCorrection ?? false,
+    issuedAt: i.issuedAt instanceof Date ? i.issuedAt.toISOString() : (typeof i.issuedAt === "string" ? i.issuedAt : null),
     correctionReason: i.correctionReason ?? undefined,
     originalInvoiceId: i.originalInvoiceId ?? undefined,
     originalInvoiceNumber: i.originalInvoiceNumber ?? undefined,

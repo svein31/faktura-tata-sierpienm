@@ -13,7 +13,7 @@ export const INVOICE_COLUMNS = [
 ] as const;
 export type InvoiceColumnId = typeof INVOICE_COLUMNS[number]["id"];
 export const INVOICE_DOCUMENT_WIDTH = 216;
-export const INVOICE_ACTIONS_WIDTH = 176;
+export const INVOICE_ACTIONS_WIDTH = 212;
 export const DEFAULT_INVOICE_COLUMNS: InvoiceColumnId[] = INVOICE_COLUMNS.filter(column => column.defaultVisible).map(column => column.id);
 export function normalizeInvoiceColumns(value: unknown): InvoiceColumnId[] {
   if (!Array.isArray(value)) return [...DEFAULT_INVOICE_COLUMNS];

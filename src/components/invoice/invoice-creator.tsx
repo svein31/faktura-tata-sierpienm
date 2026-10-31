@@ -39,7 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/toast";
 import { useAppStore } from "@/lib/store";
 import { DEFAULT_INVOICE_PATTERN, INVOICE_NUMBER_PRESETS, invoicePatternFromExample, invoicePrefix, parseInvoicePattern } from "@/lib/invoice-numbering";
-import { accountConflictsWithAnotherCompany, normalizedBankAccount } from "@/lib/company-bank-account-scope";
+import { accountConflictsWithAnotherCompany, isStaleMigratedBankAccount, normalizedBankAccount } from "@/lib/company-bank-account-scope";
 import { defaultCompanyBankAccount } from "@/lib/company-default-bank-account";
 import { correctionOriginalKsefNumber, isCorrectableInvoiceSource } from "@/lib/invoice-correction-eligibility";
 import { getContractor } from "@/lib/store";
@@ -48,6 +48,7 @@ import { formatMoney, invoiceTotals, round2 } from "@/lib/format";
 import { roundHalfUp } from "@/lib/tax/money";
 import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
 import { correctionDifferenceLines } from "@/lib/invoice-correction-lines";
+import { editableCorrectionTargetLines } from "@/lib/invoice-correction-chain";
 import { convertToPln, isIsoCalendarDate } from "@/lib/nbp";
 import { currencyNames } from "@/lib/i18n";
 import { isValidNipFormat, isValidIdWewFormat, normalizeNip, formatNip } from "@/lib/validation";
@@ -57,6 +58,7 @@ import type {
   Contractor,
   Currency,
   Invoice,
+  InvoiceCorrectionContext,
   InvoiceLanguage,
   InvoiceRecipient,
   InvoiceType,
@@ -315,6 +317,7 @@ export function InvoiceCreator() {
   );
   const [newContractorTaxIdType, setNewContractorTaxIdType] = React.useState<"nip" | "vat_eu" | "tin" | "none">("nip");
   const [shortcutsModalOpen, setShortcutsModalOpen] = React.useState(false);
+  const [correctionContext, setCorrectionContext] = React.useState<InvoiceCorrectionContext | null>(null);
 
   // Multi-tab conflict listener
   React.useEffect(() => {
@@ -354,15 +357,37 @@ export function InvoiceCreator() {
     setCloneLoading(true); setCloneError("");
     void (async () => {
       try {
-        const response = await fetch(`/api/invoices/${encodeURIComponent(cloneId)}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
+        const response = await fetch(`/api/invoices/${encodeURIComponent(cloneId)}${correctionId ? "?correction=1" : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]) });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Nie udało się wczytać faktury do sklonowania.");
         if (controller.signal.aborted) return;
-        const src: Invoice = data.invoice;
+        const rawSrc: Invoice = data.invoice;
+        const corrCtx: InvoiceCorrectionContext | null = correctionId && data.correction?.rootInvoice ? data.correction : null;
+        const src: Invoice = corrCtx ? corrCtx.rootInvoice : rawSrc;
         if (correctionId && (!isCorrectableInvoiceSource(src) || src.sellerCompanyId !== defaultCompany.id)) throw new Error("Otwórz wystawioną zwykłą fakturę sprzedaży w jej firmie, aby przygotować korektę.");
         clonedFrom.current = cloneKey;
-        const useAfterValues = Boolean(correctionId && !src.isCorrection);
-        const originalLines = src.lines.map((line, index) => ({ ...line, id: `source-${index}` }));
+        const useAfterValues = Boolean(correctionId);
+        const originalLines = corrCtx
+          ? corrCtx.effectiveLines
+          : src.lines.map((line, index) => ({ ...line, id: line.id || `source-${index}` }));
+        const initialLines = correctionId
+          ? editableCorrectionTargetLines(originalLines, src.lines)
+          : src.lines.map((line, index) => ({ ...line, id: line.id || `clone-${index}` }));
+        setCorrectionContext(corrCtx);
+        if (src.sellerCompanyId === defaultCompany.id) {
+          const validOwnAccounts = (defaultCompany.bankAccounts || []).filter(
+            acc => acc.companyId === defaultCompany.id &&
+              !isStaleMigratedBankAccount(acc, defaultCompany.bankAccount) &&
+              !accountConflictsWithAnotherCompany(defaultCompany.id, acc.accountNumber, companies, acc.beneficiaryName)
+          );
+          const snapNum = normalizedBankAccount(src.bankAccountSnapshot?.accountNumber);
+          const byId = src.bankAccountId ? validOwnAccounts.find(a => a.id === src.bankAccountId) : undefined;
+          const byNum = !byId && snapNum ? validOwnAccounts.find(a => normalizedBankAccount(a.accountNumber) === snapNum) : undefined;
+          if (byId) setSelectedBankAccountId(byId.id);
+          else if (byNum) setSelectedBankAccountId(byNum.id);
+          else if (snapNum && defaultCompany.bankAccount && normalizedBankAccount(defaultCompany.bankAccount) === snapNum) setSelectedBankAccountId("primary");
+          else setSelectedBankAccountId("auto");
+        }
         setForm({
           ...formFromInvoice(src, defaultCompany.id),
           sellerCompanyId: defaultCompany.id,
@@ -376,7 +401,7 @@ export function InvoiceCreator() {
           originalKsefNumber: correctionId ? correctionOriginalKsefNumber(src) || "" : "",
           correctionInput: useAfterValues ? "after" : undefined,
           correctionOriginalLines: useAfterValues ? originalLines : undefined,
-          lines: useAfterValues ? originalLines.map(line => ({ ...line })) : src.lines.map(line => ({ ...line, quantity: correctionId ? 0 : line.quantity })),
+          lines: initialLines,
           isProforma: correctionId ? false : src.isProforma,
           isRecurring: correctionId ? false : src.isRecurring,
           recurringAutoSend: correctionId ? false : src.recurringAutoSend,
@@ -386,13 +411,56 @@ export function InvoiceCreator() {
           dueDate: addDaysISO(todayISO(), src.paymentTermDays || 14),
           dueTouched: false,
         });
-        toast("info", correctionId ? "Przygotowano korektę" : "Sklonowano dane faktury", correctionId ? `Popraw pozycje faktury ${src.number}. Różnicę obliczymy automatycznie; oryginał pozostaje bez zmian.` : `Utworzono nowy dokument na wzór ${src.number}`);
+        if (correctionId && corrCtx && corrCtx.effectiveGross < 0) {
+          toast("info", "Wykryto nadkorektę na fakturze", `Aktualne saldo ${src.number} po wcześniejszych korektach wynosi ${formatMoney(corrCtx.effectiveGross, src.currency)}. Pozycje ustawiono na 0 — korekta wyrówna saldo o +${formatMoney(Math.abs(corrCtx.effectiveGross), src.currency)}.`);
+        } else if (correctionId && corrCtx && corrCtx.priorCorrections.length > 0) {
+          toast("info", "Przygotowano kolejną korektę", `Uwzględniono ${corrCtx.priorCorrections.length} wcześniejsze korekty do ${src.number} (aktualne saldo przed korektą: ${formatMoney(corrCtx.effectiveGross, src.currency)}).`);
+        } else {
+          toast("info", correctionId ? "Przygotowano korektę" : "Sklonowano dane faktury", correctionId ? `Popraw pozycje faktury ${src.number}. Różnicę obliczymy automatycznie; oryginał pozostaje bez zmian.` : `Utworzono nowy dokument na wzór ${src.number}`);
+        }
       } catch (failure) {
         if (!controller.signal.aborted) setCloneError(failure instanceof Error ? failure.message : "Nie udało się sklonować faktury.");
       } finally { if (!controller.signal.aborted) setCloneLoading(false); }
     })();
     return () => controller.abort();
-  }, [cloneId, correctionId, cloneAttempt, defaultCompany.id]);
+  }, [cloneId, correctionId, cloneAttempt, defaultCompany, companies, toast]);
+
+  // Hydrate full correction chain when editing an existing unsent correction (`Edytuj`)
+  const hydratedEditCorrectionRef = React.useRef("");
+  React.useEffect(() => {
+    if (cloneId || !draftInvoice || draftInvoiceIsNew || !draftInvoice.isCorrection || !draftInvoice.originalInvoiceId) return;
+    if (draftInvoice.ksefNumber || draftInvoice.ksef?.number) return;
+    if (hydratedEditCorrectionRef.current === draftInvoice.id) return;
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const res = await fetch(`/api/invoices/${encodeURIComponent(draftInvoice.id)}?correction=1&excludeSelf=1`, {
+          cache: "no-store",
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (controller.signal.aborted || !data.correction?.rootInvoice) return;
+        const corr: InvoiceCorrectionContext = data.correction;
+        hydratedEditCorrectionRef.current = draftInvoice.id;
+        setCorrectionContext(corr);
+        const targetLines = editableCorrectionTargetLines(corr.effectiveLines, corr.rootInvoice.lines, draftInvoice.lines);
+        setForm(prev => ({
+          ...prev,
+          originalInvoiceId: corr.rootInvoice.id,
+          originalInvoiceNumber: corr.rootInvoice.number,
+          originalIssueDate: corr.rootInvoice.issueDate,
+          originalKsefNumber: correctionOriginalKsefNumber(corr.rootInvoice) || "",
+          correctionInput: "after",
+          correctionOriginalLines: corr.effectiveLines,
+          lines: targetLines,
+        }));
+      } catch {
+        /* fallback to stored lines if offline */
+      }
+    })();
+    return () => controller.abort();
+  }, [cloneId, draftInvoice, draftInvoiceIsNew]);
 
   // NBP rate fetcher zgodny z art. 31a ust. 1 i 2
   const fetchNbpRate = React.useCallback(async (curr: string, issueDate: string, saleDate: string) => {
@@ -581,6 +649,7 @@ export function InvoiceCreator() {
     if (messages.length) requestAnimationFrame(() => focusInvoiceField(first || "validation-summary"));
   };
 
+  const prevSelectedCompanyId = React.useRef<string | null>(store.selectedCompanyId);
   // Synchronizacja firmy domyślnej po załadowaniu danych
   React.useEffect(() => {
     if (!form.sellerCompanyId && defaultCompany.id) {
@@ -589,7 +658,9 @@ export function InvoiceCreator() {
   }, [form.sellerCompanyId, defaultCompany.id]);
 
   React.useEffect(() => {
-    if ((!draftInvoice || draftInvoiceIsNew) && store.selectedCompanyId) {
+    const switchedCompany = Boolean(prevSelectedCompanyId.current && store.selectedCompanyId && prevSelectedCompanyId.current !== store.selectedCompanyId);
+    prevSelectedCompanyId.current = store.selectedCompanyId;
+    if ((!draftInvoice || draftInvoiceIsNew) && store.selectedCompanyId && switchedCompany) {
       setForm((f) => f.sellerCompanyId && f.sellerCompanyId !== store.selectedCompanyId
         ? freshForm(store.selectedCompanyId!) : { ...f, sellerCompanyId: store.selectedCompanyId! });
       setSelectedBankAccountId("auto");
@@ -600,10 +671,16 @@ export function InvoiceCreator() {
 
   const effectiveSellerCompany: CompanyProfile = defaultCompany ?? EMPTY_COMPANY;
   const companyAccounts = React.useMemo(() => (effectiveSellerCompany.bankAccounts || []).filter(
-    account => account.companyId === effectiveSellerCompany.id && !accountConflictsWithAnotherCompany(effectiveSellerCompany.id, account.accountNumber, companies, account.beneficiaryName),
-  ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.id, companies]);
+    account => account.companyId === effectiveSellerCompany.id && !isStaleMigratedBankAccount(account, effectiveSellerCompany.bankAccount) && !accountConflictsWithAnotherCompany(effectiveSellerCompany.id, account.accountNumber, companies, account.beneficiaryName),
+  ), [effectiveSellerCompany.bankAccounts, effectiveSellerCompany.bankAccount, effectiveSellerCompany.id, companies]);
+
   const defaultBankAccount = defaultCompanyBankAccount(effectiveSellerCompany.id, companyAccounts, form.currency, Boolean(effectiveSellerCompany.bankAccount));
-  const savedBankAccount = draftInvoice?.sellerCompanyId === effectiveSellerCompany.id ? draftInvoice.bankAccountSnapshot : null;
+  const rawSavedBankAccount = draftInvoice?.sellerCompanyId === effectiveSellerCompany.id ? draftInvoice.bankAccountSnapshot : null;
+  const savedBankAccount = rawSavedBankAccount &&
+    !isStaleMigratedBankAccount(rawSavedBankAccount, effectiveSellerCompany.bankAccount) &&
+    !accountConflictsWithAnotherCompany(effectiveSellerCompany.id, rawSavedBankAccount.accountNumber || "", companies, rawSavedBankAccount.beneficiaryName)
+    ? rawSavedBankAccount
+    : null;
   const primaryBankAccount = effectiveSellerCompany.bankAccount ? { companyId: effectiveSellerCompany.id, accountNumber: effectiveSellerCompany.bankAccount, accountName: "Główny rachunek profilu firmy", beneficiaryName: effectiveSellerCompany.companyName, currency: "PLN", bankName: effectiveSellerCompany.bankName || "" } : null;
   const chosenBankAccount = selectedBankAccountId === "saved" ? savedBankAccount
     : selectedBankAccountId === "auto" ? defaultBankAccount || primaryBankAccount
@@ -616,8 +693,9 @@ export function InvoiceCreator() {
   }, [effectiveSellerCompany.id, effectiveSellerCompany.invoiceNumberPattern]);
 
   React.useEffect(() => {
-    if (!["auto", "primary", "saved"].includes(selectedBankAccountId) && !companyAccounts.some(account => account.id === selectedBankAccountId)) setSelectedBankAccountId("auto");
-  }, [selectedBankAccountId, companyAccounts]);
+    if ((selectedBankAccountId === "saved" && !savedBankAccount) || (!["auto", "primary", "saved"].includes(selectedBankAccountId) && !companyAccounts.some(account => account.id === selectedBankAccountId))) setSelectedBankAccountId("auto");
+  }, [selectedBankAccountId, companyAccounts, savedBankAccount]);
+
 
   const saveNumberPattern = async () => {
     try {
@@ -643,6 +721,7 @@ export function InvoiceCreator() {
   };
 
   const editing = !!draftInvoice && !draftInvoiceIsNew;
+  const canSaveAsDraft = !editing || (draftInvoice?.status === "draft" && !draftInvoice?.issuedAt);
   const numberDate = form.issueDate || todayISO();
   const numberPrefix = invoicePrefix(form.type, form.isCorrection, form.isProforma);
   const numberKey = `${effectiveSellerCompany.id}:${effectiveSellerCompany.invoiceNumberPattern}:${numberDate}:${numberPrefix}`;
@@ -998,6 +1077,10 @@ export function InvoiceCreator() {
   };
 
   const handleSaveDraft = async () => {
+    if (!canSaveAsDraft) {
+      await handleSave();
+      return;
+    }
     if (mutationBusy.current) return;
     const errs = validate();
     if (errs.length) {
@@ -1056,7 +1139,7 @@ export function InvoiceCreator() {
       setForm(previous => ({ ...previous, number: saved.number, contractorId: saved.contractorId, useNewContractor: false }));
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
       const xmlRes = await import("@/lib/xml");
-      const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany);
+      const xml = xmlRes.buildFaVatXml(saved, effectiveSellerCompany, effectiveContractor);
       const res = await fetch("/api/ksef/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1270,7 +1353,33 @@ export function InvoiceCreator() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm">{correctionAfterValues ? "Wpisz prawidłowe wartości po korekcie. System sam obliczy różnicę i zapisze osobną fakturę korygującą z numerem KSeF oryginału (jeśli został nadany). Oryginalna faktura pozostaje bez zmian." : <>Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</>}</p>
+              <p className="text-sm">{correctionAfterValues ? "Wpisz prawidłowe wartości po korekcie. System sam obliczy różnicę względem aktualnego salda (po uwzględnieniu wszystkich wcześniejszych korekt) i wystawi korektę do faktury głównej z jej numerem KSeF. Oryginalna faktura pozostaje bez zmian." : <>Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</>}</p>
+              {correctionContext && (correctionContext.priorCorrections.length > 0 || correctionContext.effectiveGross < 0) && (
+                <div className="rounded-lg border border-border bg-card p-3 text-xs space-y-2">
+                  <p className="font-semibold text-foreground">Łańcuch dokumentów uwzględniony w obliczeniach:</p>
+                  <ul className="space-y-1 tabular-nums">
+                    <li className="flex flex-wrap items-center justify-between gap-2">
+                      <span>Faktura pierwotna <b>{correctionContext.rootInvoice.number}</b> ({correctionContext.rootInvoice.issueDate})</span>
+                      <span className="font-semibold">{formatMoney(correctionContext.originalGross, form.currency)}</span>
+                    </li>
+                    {correctionContext.priorCorrections.map((c) => (
+                      <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-muted-foreground">
+                        <span>Wcześniejsza korekta <b>{c.number}</b> ({c.issueDate}) · {c.ksefAccepted ? "Przyjęta w KSeF" : "Zapisana"}</span>
+                        <span className="font-medium">{formatMoney(c.totalGross, form.currency)}</span>
+                      </li>
+                    ))}
+                    <li className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-1.5 font-semibold text-foreground">
+                      <span>Aktualne saldo przed tą korektą:</span>
+                      <span className={correctionContext.effectiveGross < 0 ? "text-destructive" : ""}>{formatMoney(correctionContext.effectiveGross, form.currency)}</span>
+                    </li>
+                  </ul>
+                  {correctionContext.effectiveGross < 0 && (
+                    <p className="rounded-md border border-warning/40 bg-warning/10 p-2 text-[11.5px] text-foreground">
+                      <b>Wykryto nadkorektę poniżej zera ({formatMoney(correctionContext.effectiveGross, form.currency)}):</b> Wcześniejsze korekty odjęły więcej niż wynosiło pozostałe saldo faktury. Pozostawienie ilości po korekcie na <b>0</b> wystawi korektę wyrównującą na <b>+{formatMoney(Math.abs(correctionContext.effectiveGross), form.currency)}</b>, dzięki czemu łączne saldo faktury i wszystkich korekt w KSeF wyniesie dokładnie <b>0,00 {form.currency}</b>.
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label htmlFor="invoice-correctionReason" className="text-destructive dark:text-destructive font-semibold">
                   Przyczyna korekty (pole wymagane w schemacie FA(3)) *
@@ -1939,7 +2048,12 @@ export function InvoiceCreator() {
               products={products}
             />
             {correctionAfterValues && <div className="mt-4 space-y-3 border-t border-border pt-4">
-              <p className="text-sm text-muted-foreground">Ustaw ilość na 0 lub usuń wiersz, aby skorygować całą pozycję. Możesz zmienić cenę, ilość, VAT lub dodać pozycję.</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">Ustaw ilość na 0 lub usuń wiersz, aby skorygować całą pozycję. Możesz zmienić cenę, ilość, VAT lub dodać pozycję.</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => set({ lines: form.lines.map(l => ({ ...l, quantity: 0 })) })}>
+                  Wyzeruj wszystkie pozycje (stan końcowy 0,00)
+                </Button>
+              </div>
               <dl className="grid gap-3 sm:grid-cols-3" aria-label="Podsumowanie korekty">
                 <div className="rounded-xl border border-border p-3"><dt className="text-xs text-muted-foreground">Przed korektą brutto</dt><dd className="mt-1 font-semibold tabular-nums">{formatMoney(invoiceTotals({ lines: form.correctionOriginalLines! }).gross, form.currency)}</dd></div>
                 <div className="rounded-xl border border-border p-3"><dt className="text-xs text-muted-foreground">Po korekcie brutto</dt><dd className="mt-1 font-semibold tabular-nums">{formatMoney(invoiceTotals({ lines: form.lines.map(normalizeInvoiceLineAmounts) }).gross, form.currency)}</dd></div>
@@ -2312,7 +2426,7 @@ export function InvoiceCreator() {
       </div>
 
       <InvoiceActionBar summary={<><span className="text-xs text-muted-foreground">{form.isCorrection ? "Kwota korekty brutto" : "Razem brutto"}</span><strong className="mt-0.5 block text-lg font-semibold tabular-nums">{formatMoney(totals.gross, form.currency)}</strong></>}>
-        <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}><Save className="size-4" />Zapisz szkic</SaveButton>
+        {canSaveAsDraft && <SaveButton onClick={handleSaveDraft} variant="outline" pending={saving === "draft"} disabled={Boolean(saving) || checkingInvoice}><Save className="size-4" />Zapisz szkic</SaveButton>}
         {!form.isOffline && <SaveButton onClick={() => void checkBeforeAction("save")} pending={saving === "save"} disabled={Boolean(saving) || checkingInvoice}><Save className="size-4" />{form.isCorrection ? "Zapisz korektę" : form.isProforma ? "Zapisz proformę" : "Zapisz fakturę"}</SaveButton>}
         {!isPurchase && !form.isOffline && !isKsefRegistered && !form.isProforma && <Button onClick={() => void checkBeforeAction("ksef")} loading={saving === "ksef"} disabled={Boolean(saving) || checkingInvoice} variant="subtle"><Send className="size-4" />Wystaw i wyślij do KSeF</Button>}
       </InvoiceActionBar>

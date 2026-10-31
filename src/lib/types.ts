@@ -463,7 +463,29 @@ export interface Invoice {
   // CRM / e-commerce (sekcje 5–6)
   sourceChannel?: string | null;
   appliedDiscountPercent?: number | null;
+  issuedAt?: string | null;
+  bookedAt?: string | null;
   createdAt: string;
+}
+
+export interface PriorCorrectionSummary {
+  id: string;
+  number: string;
+  issueDate: string;
+  totalNet: number;
+  totalVat: number;
+  totalGross: number;
+  ksefNumber: string | null;
+  ksefAccepted: boolean;
+  status: string;
+}
+
+export interface InvoiceCorrectionContext {
+  rootInvoice: Invoice;
+  effectiveLines: InvoiceLine[];
+  originalGross: number;
+  effectiveGross: number;
+  priorCorrections: PriorCorrectionSummary[];
 }
 
 export interface InvoiceEmailLog {

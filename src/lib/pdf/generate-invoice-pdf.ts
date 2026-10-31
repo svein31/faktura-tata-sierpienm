@@ -8,6 +8,7 @@ import { podmiot3RoleLabel } from "../types";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "../types";
 import { buildKsefVerificationUrl, generateQrPngBuffer } from "../ksef";
 import { getTaxIdLabel } from "../validation";
+import { correctionLineLabel } from "../invoice-correction-chain";
 import { DEFAULT_PRINT_CONFIG, type PrintConfig } from "./print-config";
 import { remoteLogo } from "./remote-logo";
 import { decodeLogoDataUrl, normalizeLogoUrl, validateLogoBytes } from "./logo-safety";
@@ -386,7 +387,8 @@ export async function generateInvoicePdfBuffer(
   };
   // Preserve every character of long names and continue across pages.
   invoice.lines.forEach((line, idx) => {
-    const nameLines = wrap(line.name, 173, 8.5, true);
+    const corrTag = invoice.isCorrection ? correctionLineLabel(line) : null;
+    const nameLines = wrap(corrTag ? `${line.name} [${corrTag}]` : line.name, 173, 8.5, true);
     let offset = 0;
     while (offset < nameLines.length) {
       if (y < 100) { newPage(); tableHeader(); }

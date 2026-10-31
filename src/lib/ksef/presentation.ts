@@ -11,7 +11,8 @@ export function ksefPresentation(invoice: Invoice) {
   const environment = invoice.ksef?.environmentRecorded === false ? invoice.ksefProcessing?.environment : invoice.ksef?.environment || invoice.ksefProcessing?.environment;
   const simulated = environment === "demo";
   const excluded = Boolean(invoice.isProforma || invoice.documentStatus === "cancelled");
-  const label = excluded ? "Nie dotyczy KSeF" : progress.accepted ? "Przyjęta" : rejected ? "Odrzucona" : verify ? "Weryfikacja wyniku" : queued ? "W kolejce" : sent ? "Wysłana" : "Zapisana";
+  const isLocalDraft = !excluded && !progress.accepted && !rejected && !verify && !queued && !sent && invoice.status === "draft";
+  const label = excluded ? "Nie dotyczy KSeF" : progress.accepted ? "Przyjęta" : rejected ? "Odrzucona" : verify ? "Weryfikacja wyniku" : queued ? "W kolejce" : sent ? "Wysłana" : isLocalDraft ? "Szkic" : "Zapisana";
   const detail = excluded ? "Ten dokument nie jest przeznaczony do wysyłki w KSeF." : progress.accepted
     ? progress.hasUpo ? simulated ? "Potwierdzenie demo dostępne." : "Potwierdzenie odbioru dostępne." : "Numer KSeF nadany. Oczekiwanie na UPO."
     : rejected ? "Sprawdź komunikat odrzucenia, popraw wskazane dane i ponów wysyłkę dopiero po ich weryfikacji."
@@ -19,10 +20,11 @@ export function ksefPresentation(invoice: Invoice) {
     : queued ? "Dokument oczekuje na przetworzenie. Status aktualizuje się automatycznie."
     : sent ? "Oczekiwanie na wynik przetwarzania. Wysłanie dokumentu nie oznacza jeszcze jego przyjęcia."
     : invoice.isOffline ? "Dokument w trybie offline. Sprawdź wymagania i termin przesłania przed wysyłką."
-    : "Dokument zapisany w aplikacji. Nie ma jeszcze potwierdzenia przyjęcia w KSeF.";
+    : isLocalDraft ? "Szkic roboczy zapisany wyłącznie lokalnie — nie został wystawiony ani wysłany do KSeF."
+    : "Dokument zapisany lokalnie w aplikacji — nie został jeszcze wysłany do KSeF.";
   const transmissionKnown = Boolean(invoice.referenceNumber || invoice.ksef?.referenceNumber || invoice.sentAt || invoice.ksef?.sentAt);
   const steps: { id: string; label: string; description: string; state: StepState; timestamp?: string | null }[] = [
-    {id:"saved",label:"Zapisana",description:"Dokument jest w aplikacji",state:"completed",timestamp:invoice.createdAt},
+    {id:"saved",label:isLocalDraft ? "Szkic" : "Zapisana",description:isLocalDraft ? "Szkic roboczy w aplikacji" : "Dokument jest w aplikacji",state:"completed",timestamp:invoice.createdAt},
     {id:"queued",label:"W kolejce",description:"Oczekiwanie na przetworzenie",state:progress.accepted || rejected || sent || verify ? "completed" : queued ? "current" : "pending"},
     {id:"sent",label:"Wysłana",description:"Przekazanie do KSeF",state:progress.accepted || rejected && transmissionKnown ? "completed" : sent || verify ? "current" : "pending",timestamp:invoice.sentAt || invoice.ksef?.sentAt},
     {id:"accepted",label:"Przyjęta",description:simulated ? "Symulowane przyjęcie" : "Numer KSeF potwierdzony",state:progress.accepted ? "completed" : rejected ? "error" : "pending",timestamp:progress.accepted ? invoice.ksefAcceptedAt : undefined},

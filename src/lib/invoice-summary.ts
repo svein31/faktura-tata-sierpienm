@@ -2,7 +2,7 @@ import { Prisma, type Invoice as DbInvoice, type PrismaClient } from "@prisma/cl
 import { invoiceToDto } from "./dto";
 
 type SummaryClient = Pick<PrismaClient, "invoice">;
-const dateFields = ["createdAt", "updatedAt", "sentAt", "approvedAt", "offlineDeadline", "lastPaymentReminderSentAt", "autoKsefEmailSentAt"];
+const dateFields = ["createdAt", "updatedAt", "issuedAt", "bookedAt", "sentAt", "approvedAt", "offlineDeadline", "lastPaymentReminderSentAt", "autoKsefEmailSentAt"];
 const objectIdFields = ["userId", "sellerCompanyId", "bookedBy", "costReviewId", "recurringUserId", "ksefSessionId", "stockDocumentId"];
 // aggregateRaw does not apply Prisma's missing-field defaults. Reuse generated metadata
 // so legacy documents behave exactly like findMany, including explicit null vs missing.

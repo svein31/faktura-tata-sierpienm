@@ -4,14 +4,15 @@
 
 import { formatDate } from "./format";
 import { invoiceLabels } from "./i18n";
-import type { CompanyProfile, Invoice } from "./types";
+import type { CompanyProfile, Contractor, Invoice } from "./types";
 import { invoiceTotals, lineGross, lineNet, lineVat } from "./format";
 import { buildFa3Xml } from "./ksef/xmlBuilder";
 
-export function buildFaVatXml(invoice: Invoice, company: CompanyProfile): string {
+export function buildFaVatXml(invoice: Invoice, company: CompanyProfile, buyer?: Contractor): string {
   return buildFa3Xml({
     invoice,
     seller: company,
+    buyer,
   });
 }
 

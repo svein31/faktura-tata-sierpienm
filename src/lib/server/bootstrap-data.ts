@@ -2,7 +2,7 @@ import "server-only";
 
 import { filterCompanyIdsByMfa, catalogWhere } from "@/lib/company-scope";
 import { ApiError } from "@/lib/api";
-import { accountConflictsWithAnotherCompany } from "@/lib/company-bank-account-scope";
+import { accountConflictsWithAnotherCompany, isStaleMigratedBankAccount } from "@/lib/company-bank-account-scope";
 import { prisma } from "@/lib/db";
 import {
   companyBankAccountToDto,
@@ -92,7 +92,7 @@ export async function readBootstrapData(user: { id: string }, listMode: boolean,
   const profiles = [...ownedCompanies, ...memberships.map(m => m.company).filter(Boolean)];
   const scopedAccounts = (company: typeof ownedCompanies[number]) =>
     (company.bankAccounts || [])
-      .filter(account => !accountConflictsWithAnotherCompany(company.id, account.accountNumber, profiles, account.beneficiaryName))
+      .filter(account => !isStaleMigratedBankAccount(account, company.bankAccount) && !accountConflictsWithAnotherCompany(company.id, account.accountNumber, profiles, account.beneficiaryName))
       .map(companyBankAccountToDto);
 
   for (const oc of ownedCompanies) {

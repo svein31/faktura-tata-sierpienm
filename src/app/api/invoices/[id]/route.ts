@@ -14,7 +14,8 @@ import { companyWriteAccess } from "@/lib/company-write";
 import { buildFieldDiff, recordAuditLog } from "@/lib/audit";
 import { claimInvoiceQuota } from "@/lib/invoice-quota";
 import { invoiceNumberScope } from "@/lib/invoice-number-scope";
-import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
+import { invoiceCorrectionContext, resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
+import { correctionOriginalKsefNumber } from "@/lib/invoice-correction-eligibility";
 import { round2 } from "@/lib/format";
 import { warsawDate } from "@/lib/scheduling";
 import { recordPilotEvent } from "@/lib/pilot-metrics";
@@ -81,10 +82,43 @@ export async function GET(_req: Request, { params }: Ctx) {
         environment: last.environment as "demo" | "test" | "production",
       };
     }
-    return json({ invoice, contractor: (await readInvoiceContacts(user.id, [invoice]))[0] ?? null });
+    return json({ invoice, contractor: (await readInvoiceContacts(user.id, [invoice]))[0] ?? null, ...(await correctionPayload(_req, result.invoice, user.id)) });
   } catch (e) {
     return handleApiError(e);
   }
+}
+
+/**
+ * `?correction=1`: the editor of a new correction receives the main invoice
+ * (also when „Koryguj” was clicked on an existing correction) together with the
+ * state after all earlier corrections, so a subsequent correction starts from
+ * the current amount instead of the original one.
+ */
+async function correctionPayload(req: Request, source: { id: string; isCorrection?: boolean | null; originalInvoiceId?: string | null; sellerCompanyId: string | null }, userId: string) {
+  let wanted = false;
+  let excludeSelf = false;
+  try {
+    const sp = new URL(req.url).searchParams;
+    wanted = sp.get("correction") === "1";
+    excludeSelf = sp.get("excludeSelf") === "1";
+  } catch {
+    wanted = false;
+  }
+  if (!wanted) return {};
+  let root = source.isCorrection && source.originalInvoiceId ? (await getInvoiceWithAccess(source.originalInvoiceId, userId))?.invoice ?? null : null;
+  for (let depth = 0; root?.isCorrection && root.originalInvoiceId && depth < 10; depth++) {
+    const parent = (await getInvoiceWithAccess(root.originalInvoiceId, userId))?.invoice;
+    if (!parent) break;
+    root = parent;
+  }
+  const rootInvoice = root && root.sellerCompanyId === source.sellerCompanyId ? root : source.isCorrection ? null : source;
+  if (!rootInvoice) return { correction: null };
+  const context = await invoiceCorrectionContext(
+    prisma,
+    rootInvoice as Parameters<typeof invoiceCorrectionContext>[1],
+    excludeSelf ? source.id : undefined,
+  );
+  return { correction: { rootInvoice: invoiceToDto(rootInvoice as Parameters<typeof invoiceToDto>[0]), ...context } };
 }
 
 /** PUT /api/invoices/[id] — aktualizacja z blokadą współbieżności i audytem. */
@@ -332,7 +366,7 @@ export async function PUT(req: Request, { params }: Ctx) {
   }
 }
 
-/** DELETE /api/invoices/[id] — usunięcie (dopuszczalne tylko dla szkiców). */
+/** DELETE /api/invoices/[id] — usunięcie szkiców oraz niewysłanych lokalnych dokumentów. */
 export async function DELETE(_req: Request, { params }: Ctx) {
   try {
     const user = await getApiSessionUser();
@@ -350,26 +384,52 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     if (existing.documentKind === "advance" || existing.documentKind === "final" || (existing.isProforma && await prisma.invoiceSettlement.count({where:{sourceId:existing.id}}))) throw new ApiError(409,"Dokument rozliczenia lub powiązana proforma są zablokowane przed edycją i usunięciem.");
 
     // Uprawnienia
+    const deletePermission = existing.isCorrection ? "canCreateCorrections" : "canIssueInvoices";
     if (existing.sellerCompanyId) {
-      const access = await requireCompanyAccess(user.id, existing.sellerCompanyId, "canIssueInvoices");
-        if (!access.ok) throw new ApiError(access.status, access.error);
+      const access = await requireCompanyAccess(user.id, existing.sellerCompanyId, deletePermission);
+      if (!access.ok) throw new ApiError(access.status, access.error);
     }
 
-    // Ochrona integralności księgowej: zabronione usuwanie wystawionych dokumentów
+    const ksefNum = correctionOriginalKsefNumber(existing);
+    if (ksefNum) {
+      throw new ApiError(400, `Faktura posiada zarejestrowany numer KSeF (${ksefNum}) i nie może zostać usunięta. Aby dokonać korekty lub wyzerowania, wystaw fakturę korygującą.`);
+    }
+
+    // Ochrona integralności księgowej: blokujemy usunięcie dokumentów wysłanych, opłaconych,
+    // powiązanych z korektą lub cofniętych nieprawidłowo do szkicu po wystawieniu.
     const isDraft = existing.status === "draft" && existing.documentStatus === "draft";
-    if (existing.issuedAt || (!isDraft && !existing.isProforma)) {
-      throw new ApiError(
-        400,
-        `Faktura ${existing.number} została już wystawiona lub przekazana do obiegu gospodarczego. Zgodnie z przepisami ustawy o VAT nie można jej usunąć. Aby dokonać korekty lub anulowania, wystaw fakturę korygującą.`
-      );
+    if (isDraft && existing.issuedAt) {
+      throw new ApiError(400, `Faktura ${existing.number} została już wcześniej wystawiona i nie może zostać usunięta jako szkic.`);
     }
-
-    if (existing.ksefNumber) {
-      throw new ApiError(400, `Faktura posiada zarejestrowany numer KSeF (${existing.ksefNumber}) i nie może zostać usunięta.`);
+    if (!isDraft && !existing.isProforma) {
+      const hasPayments = Number(existing.paidAmount ?? 0) > 0 || (existing.payments?.length ?? 0) > 0 || existing.status === "paid";
+      if (hasPayments) {
+        throw new ApiError(400, `Faktura ${existing.number} posiada zarejestrowane wpłaty i nie może zostać usunięta.`);
+      }
+      const childCorrections = typeof prisma.invoice.count === "function"
+        ? await prisma.invoice.count({ where: { originalInvoiceId: existing.id } })
+        : 0;
+      if (childCorrections > 0) {
+        throw new ApiError(400, `Do faktury ${existing.number} powiązano już fakturę korygującą — nie można jej usunąć.`);
+      }
+      const wasDispatched = Boolean(
+        existing.sentAt ||
+        existing.referenceNumber ||
+        existing.qrCodeII ||
+        existing.status === "sent" ||
+        existing.status === "ksef_sent" ||
+        existing.status === "ksef_active"
+      );
+      if (wasDispatched) {
+        throw new ApiError(
+          400,
+          `Faktura ${existing.number} została już wysłana do kontrahenta lub KSeF. Zgodnie z przepisami ustawy o VAT wystaw fakturę korygującą.`
+        );
+      }
     }
 
     await prisma.$transaction(async tx => {
-    if (existing.sellerCompanyId) await companyWriteAccess(tx, user.id, existing.sellerCompanyId, "canIssueInvoices");
+    if (existing.sellerCompanyId) await companyWriteAccess(tx, user.id, existing.sellerCompanyId, deletePermission);
     if (!existing.sellerCompanyId) {
       const actor = await tx.user.findUnique({ where: { id: user.id }, select: { role: true } });
       if (!actor || !["owner", "accountant"].includes(actor.role)) throw new ApiError(403, "Brak uprawnienia do zmiany faktury.");
@@ -381,9 +441,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
     });
     if (!claimed.count) throw new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane.");
     await tx.invoice.delete({ where: { id: existing.id } });
-    if (isDraft) {
-      await tx.invoiceNumberClaim.deleteMany({ where: { id: `${existing.sellerCompanyId || existing.userId}:${existing.number}` } });
-    }
+    await tx.invoiceNumberClaim?.deleteMany({ where: { id: `${existing.sellerCompanyId || existing.userId}:${existing.number}` } });
 
     // Zapis w audycie
     await recordAuditLog({
@@ -396,7 +454,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       action: "invoice_deleted",
       entityType: "invoice",
       entityId: existing.id,
-      description: `Usunięto szkic faktury ${existing.number}`,
+      description: isDraft ? `Usunięto szkic faktury ${existing.number}` : `Usunięto niewysłany dokument ${existing.number}`,
       details: {
         number: existing.number,
         currency: existing.currency,

@@ -3,6 +3,7 @@ import { invoiceLabels, paymentMethodLabel } from "./i18n";
 import { podmiot3RoleLabel } from "./types";
 import type { CompanyProfile, Contractor, Invoice, CompanyBankAccount } from "./types";
 import { getTaxIdLabel } from "./validation";
+import { correctionLineLabel } from "./invoice-correction-chain";
 
 function esc(s: string | number | undefined | null): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -50,20 +51,29 @@ export function buildInvoiceHtmlString(
   // Snapshot rachunku bankowego jeśli został przypisany
   const bankSnapshot = invoice.bankAccountSnapshot as (CompanyBankAccount & { bankName?: string }) | undefined;
 
+  const docTitle = invoice.isCorrection
+    ? (lang === "EN" ? "Correction Invoice" : lang === "PL/EN" ? "Faktura korygująca / Correction Invoice" : "Faktura korygująca")
+    : invoice.isProforma
+      ? (lang === "EN" ? "Proforma Invoice" : lang === "PL/EN" ? "Faktura Proforma / Proforma Invoice" : "Faktura Proforma")
+      : invoice.type === "purchase"
+        ? L.purchaseDoc
+        : L.saleDoc;
+
   const rows = invoice.lines
-    .map(
-      (line, i) => `
+    .map((line, i) => {
+      const corrLabel = invoice.isCorrection ? correctionLineLabel(line) : null;
+      return `
       <tr>
         <td class="c">${i + 1}</td>
-        <td><b>${esc(line.name)}</b></td>
+        <td><b>${esc(line.name)}</b>${corrLabel ? `<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-top:2px;">${esc(corrLabel)}</div>` : ""}</td>
         <td class="c">${line.quantity}</td>
         <td class="c muted">${esc(line.unit)}</td>
         <td class="r">${formatMoney(lineNet(line), invoice.currency)}</td>
         <td class="c">${vatRateLabel(line.vatRate)}</td>
         <td class="r">${formatMoney(lineVat(line), invoice.currency)}</td>
         <td class="r">${formatMoney(lineGross(line), invoice.currency)}</td>
-      </tr>`
-    )
+      </tr>`;
+    })
     .join("");
 
   const isForeignCurrency = invoice.currency && invoice.currency !== "PLN";
@@ -81,7 +91,7 @@ export function buildInvoiceHtmlString(
   body { font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #f4f5f7; padding: 32px 16px; }
   .page { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 12px 32px -12px rgba(0,0,0,.12); padding: 40px 44px; }
   .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #eef0f3; padding-bottom: 18px; gap: 16px; flex-wrap: wrap; }
-  .doc-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: ${accentColor}; }
+  .doc-title { font-size: 22px; font-weight: 800; letter-spacing: -.02em; color: ${invoice.isCorrection ? "#b91c1c" : accentColor}; }
   .meta { margin-top: 8px; font-size: 13px; color: #6b7280; }
   .meta b { color: #111827; }
   .dates { margin-top: 12px; display: flex; gap: 24px; font-size: 12.5px; flex-wrap: wrap; }
@@ -95,6 +105,7 @@ export function buildInvoiceHtmlString(
   .party.recipient h4 { color: ${accentColor}; }
   .party p { font-size: 12.5px; line-height: 1.55; color: #374151; }
   .party .muted { color: #6b7280; }
+  .corr-box { margin-top: 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #7f1d1d; }
   table { width: 100%; border-collapse: collapse; margin-top: 26px; font-size: 12.5px; }
   th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #6b7280; padding: 8px; border-bottom: 1px solid #e5e7eb; }
   td { padding: 9px 8px; border-bottom: 1px solid #eef0f3; }
@@ -120,7 +131,7 @@ export function buildInvoiceHtmlString(
         </div>
       ` : ""}
       <div>
-        <div class="doc-title">${invoice.type === "purchase" ? esc(L.purchaseDoc) : esc(L.saleDoc)}</div>
+        <div class="doc-title">${esc(docTitle)}</div>
         <div class="meta">${esc(L.invoiceNo)}: <b>${esc(invoice.number)}</b></div>
         <div class="dates">
           <span>${esc(L.issueDate)}: <b>${formatDate(invoice.issueDate)}</b></span>
@@ -164,6 +175,11 @@ export function buildInvoiceHtmlString(
       ${(invoice.recipient.taxIdType || "nip") !== "none" && (invoice.recipient.taxId || invoice.recipient.nip) ? `<br/>${esc(getTaxIdLabel(invoice.recipient.taxIdType || "nip", invoice.recipient.address?.country || "PL", lang))}: <b>${esc(invoice.recipient.taxId || invoice.recipient.nip)}</b>` : ""}
     </p>
   </div>` : ""}
+  ${invoice.isCorrection ? `
+  <div class="corr-box">
+    <b>KOREKTA DO FAKTURY NR: ${esc(invoice.originalInvoiceNumber || "—")} z dnia ${esc(invoice.originalIssueDate || "—")}</b><br/>
+    Przyczyna korekty: ${esc(invoice.correctionReason || "Korekta pozycji faktury")}${invoice.originalKsefNumber ? ` · Nr KSeF faktury korygowanej: <b>${esc(invoice.originalKsefNumber)}</b>` : ""}
+  </div>` : ""}
 
   <table>
     <thead><tr>
@@ -173,13 +189,14 @@ export function buildInvoiceHtmlString(
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
+  ${invoice.isCorrection ? `<div style="margin-top:8px;font-size:11px;color:#6b7280;">Zgodnie ze strukturą logiczną KSeF FA(3) wykazano wyłącznie pozycje korygowane (stan przed korektą oraz stan po korekcie). Pozostałe pozycje faktury pierwotnej bez zmian pozostają w mocy.</div>` : ""}
 
   <div class="totals-wrap">
     <div class="totals">
       <div class="row"><span>${esc(L.totalNet)}</span><span>${formatMoney(t.net, invoice.currency)}</span></div>
       <div class="row"><span>${esc(L.totalVat)}</span><span>${formatMoney(t.vat, invoice.currency)}</span></div>
       <div class="row gross"><span>${esc(L.totalGross)}</span><span>${formatMoney(t.gross, invoice.currency)}</span></div>
-      <div class="pay"><span>${esc(L.toPay)}</span><span>${formatMoney(t.gross, invoice.currency)}</span></div>
+      <div class="pay"><span>${esc(invoice.isCorrection ? "Kwota korekty" : L.toPay)}</span><span>${formatMoney(t.gross, invoice.currency)}</span></div>
     </div>
   </div>
 

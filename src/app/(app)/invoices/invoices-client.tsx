@@ -27,6 +27,7 @@ import {
   Filter,
   Mail,
   Pencil,
+  Printer,
   Plus,
   Search,
   Send,
@@ -311,6 +312,45 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
     toast("success", "Wyeksportowano faktury", `Pobrano zestawienie CSV z ${selectedInvoices.length} dokumentami.`);
   };
 
+  const openInvoicePdf = (id: string) => {
+    window.open(`/api/invoices/${encodeURIComponent(id)}/pdf`, "_blank", "noopener,noreferrer");
+  };
+
+  const [downloadingBulkPdf, setDownloadingBulkPdf] = React.useState(false);
+  const handleBulkPrintPdf = async () => {
+    const selectedInvoices = filtered.filter((i) => selectedIds.includes(i.id));
+    if (selectedInvoices.length === 0) return;
+    if (selectedInvoices.length === 1) {
+      openInvoicePdf(selectedInvoices[0].id);
+      return;
+    }
+    setDownloadingBulkPdf(true);
+    let ok = 0;
+    try {
+      for (const inv of selectedInvoices.slice(0, 20)) {
+        const res = await fetch(`/api/invoices/${encodeURIComponent(inv.id)}/pdf`);
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${(inv.number || inv.id).replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        ok += 1;
+      }
+      if (ok > 0) {
+        toast("success", "Pobrano pliki PDF", `Zapisano ${ok} plików PDF zaznaczonych dokumentów.`);
+      } else {
+        toast("error", "Błąd pobierania PDF", "Nie udało się pobrać plików PDF.");
+      }
+    } finally {
+      setDownloadingBulkPdf(false);
+    }
+  };
+
   const handleBulkMarkPaid = async () => {
     if (!canRecordPayments || !payableSelected.length) return;
     setMarkingPaid(true);
@@ -339,9 +379,28 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
     if (!inv || inv.type === "purchase") return;
     const copy: Invoice = {
       ...inv,
+      ksefNumber: null,
       number: "",
       status: "draft",
       ksef: undefined,
+      ksefStatus: "none",
+      ksefAcceptedAt: null,
+      referenceNumber: null,
+      upoXml: null,
+      hasUpo: false,
+      ksefXml: null,
+      ksefProcessing: undefined,
+      sentAt: null,
+      issuedAt: null,
+      bookedAt: null,
+      documentStatus: "draft",
+      paidAmount: 0,
+      paymentStatus: "unpaid",
+      payments: undefined,
+      qrCodeI: undefined,
+      qrCodeII: undefined,
+      shareToken: undefined,
+      version: undefined,
       createdAt: new Date().toISOString(),
     };
     delete (copy as Partial<Invoice>).id;
@@ -364,12 +423,31 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
       saleDate: new Date().toISOString().slice(0, 10),
       dueDate: new Date(Date.now() + (proforma.paymentTermDays || 14) * 86400000).toISOString().slice(0, 10),
       ksef: undefined,
+      ksefStatus: "none",
+      ksefAcceptedAt: null,
+      referenceNumber: null,
+      upoXml: null,
+      hasUpo: false,
+      ksefXml: null,
+      ksefProcessing: undefined,
+      sentAt: null,
+      issuedAt: null,
+      bookedAt: null,
+      documentStatus: "draft",
+      paidAmount: 0,
+      paymentStatus: "unpaid",
+      payments: undefined,
+      qrCodeI: undefined,
+      qrCodeII: undefined,
+      shareToken: undefined,
+      version: undefined,
       ksefNumber: null,
       createdAt: new Date().toISOString(),
     };
     delete (copy as Partial<Invoice>).id;
-    setDraft(copy, false);
+
     router.push("/invoices/new");
+    setDraft(copy, true);
     toast("info", "Konwersja proformy", `Tworzenie faktury VAT na podstawie proformy ${proforma.number}.`);
   };
 
@@ -677,6 +755,18 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
               </Button>
             )}
 
+            {/* Drukuj / Pobierz PDF */}
+            <Button
+              variant="outline"
+              size="sm"
+              loading={downloadingBulkPdf}
+              onClick={() => void handleBulkPrintPdf()}
+              className="rounded-xl text-xs h-8 gap-1.5 font-medium shadow-2xs"
+              title="Otwórz lub pobierz oficjalne wydruki PDF zaznaczonych dokumentów"
+            >
+              <Printer className="h-3.5 w-3.5" /> {selectedIds.length === 1 ? "Drukuj / PDF" : "Pobierz PDF"}
+            </Button>
+
             {/* Eksport CSV */}
             {canExport && <Button
               variant="outline"
@@ -830,6 +920,7 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                 <KsefStatusBadge invoice={inv} />
                 <Badge className={status.color}>{status.label}</Badge>
                 {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
+                <Button variant="ghost" onClick={() => openInvoicePdf(inv.id)} aria-label={`Drukuj lub pobierz PDF faktury ${inv.number}`}><Printer className="size-4" aria-hidden="true" />PDF</Button>
                 <Button variant="ghost" onClick={event => openPreview(event, inv)} aria-label={`Podgląd faktury ${inv.number}`}><Eye className="size-4" aria-hidden="true" />Podgląd</Button>
               </div>
             </article>;
@@ -875,9 +966,11 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                       <td data-invoice-column="actions" className="py-3.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button variant="ghost" size="icon" onClick={event => openPreview(event, inv)} aria-label={`Podgląd faktury ${inv.number}`} title="Szybki podgląd" className="h-9 w-9"><Eye className="size-4" aria-hidden="true" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => openInvoicePdf(inv.id)} aria-label={`Drukuj lub pobierz PDF faktury ${inv.number}`} title="Drukuj / Pobierz PDF" className="h-9 w-9"><Printer className="size-4" aria-hidden="true" /></Button>
                           {canCreateCorrections && isCorrectableInvoiceSource(inv) && <button type="button" className="invoice-correction-action" onClick={() => createCorrection(inv)} aria-label={`Koryguj fakturę ${inv.number}`}><FilePenLine />Koryguj</button>}
                           <InvoiceRowActions number={inv.number}>
                             <Link prefetch={false} href={`/invoices/${inv.id}`}><FileText className="size-4" /> Szczegóły dokumentu</Link>
+                            <button type="button" onClick={() => openInvoicePdf(inv.id)}><Printer className="size-4" /> Drukuj / Pobierz PDF</button>
                             {canApprove && inv.type === "purchase" && <button type="button" onClick={() => handleSingleApprove(inv.id, isApproved ? "pending" : "approved")}><CheckCircle2 className="size-4" />{isApproved ? "Cofnij akceptację" : "Akceptuj dla księgowości"}</button>}
                             {inv.isProforma && <button type="button" onClick={() => handleConvertProformaToVat(inv)}><FileCheck2 className="size-4" /> Wystaw fakturę VAT</button>}
                             {canSendKsef && !ksefNum && inv.type === "sale" && !inv.isProforma && inv.status !== "draft" && inv.documentStatus !== "draft" && !isKsefUiPending(inv) && <button type="button" onClick={() => setConfirmKsef(inv.id)}><Send className="size-4" /> Wyślij do KSeF</button>}
@@ -886,8 +979,10 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
                             {inv.type !== "purchase" && <>
                               <button type="button" onClick={() => editInvoice(inv.id)}><Pencil className="size-4" /> Edytuj</button>
                               <button type="button" onClick={() => duplicateInvoice(inv.id)}><Copy className="size-4" /> Duplikuj</button>
-                              <div role="separator" className="my-1 border-t border-border/60" />
-                              <button type="button" className="text-destructive" onClick={() => setToDelete(inv.id)}><Trash2 className="size-4" /> Usuń</button>
+                              {!ksefNum && <div role="separator" className="my-1 border-t border-border/60" />}
+                              {!ksefNum && <>
+                                  <button type="button" className="text-destructive" onClick={() => setToDelete(inv.id)}><Trash2 className="size-4" /> Usuń</button>
+                              </>}
                             </>}
                           </InvoiceRowActions>
                         </div>
@@ -932,7 +1027,12 @@ export default function InvoicesClient({ initialSearch }: { initialSearch?: Init
         onConfirm={() => {
           if (toDelete) {
             void deleteInvoice(toDelete)
-              .then(() => toast("success", "Usunięto fakturę"))
+              .then(() => {
+                setSelectedIds((ids) => ids.filter((x) => x !== toDelete));
+                if (previewInvoice?.id === toDelete) preview.close();
+                results.reload();
+                toast("success", "Usunięto dokument");
+              })
               .catch((e: Error) => toast("error", "Nie udało się usunąć", e.message));
           }
         }}

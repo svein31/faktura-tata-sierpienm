@@ -15,6 +15,7 @@ import { invoiceLabels, paymentMethodLabel } from "@/lib/i18n";
 import { podmiot3RoleLabel } from "@/lib/types";
 import type { CompanyProfile, Contractor, Invoice } from "@/lib/types";
 import { getTaxIdLabel } from "@/lib/validation";
+import { correctionLineLabel } from "@/lib/invoice-correction-chain";
 
 export function InvoicePreview({
   invoice,
@@ -234,7 +235,14 @@ export function InvoicePreview({
             {invoice.lines.map((line, i) => (
               <tr key={line.id} className="border-b border-border/60">
                 <td className="py-2 pr-2 text-muted-foreground">{i + 1}</td>
-                <td className="py-2 pr-2 font-medium">{line.name}</td>
+                <td className="py-2 pr-2 font-medium">
+                  {line.name}
+                  {invoice.isCorrection && correctionLineLabel(line) && (
+                    <span className="mt-0.5 block text-[10.5px] font-normal uppercase tracking-wide text-muted-foreground">
+                      {correctionLineLabel(line)}
+                    </span>
+                  )}
+                </td>
                 <td className="py-2 pr-2 text-center">{line.quantity}</td>
                 <td className="py-2 pr-2 text-center text-muted-foreground">{line.unit}</td>
                 <td className="py-2 pr-2 text-right tabular-nums">{formatMoney(lineNet(line), invoice.currency)}</td>
@@ -245,6 +253,11 @@ export function InvoicePreview({
             ))}
           </tbody>
         </table>
+        {invoice.isCorrection && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Zgodnie ze strukturą logiczną KSeF FA(3) na fakturze korygującej wykazywane są pozycje korygowane (stan przed korektą oraz stan po korekcie). Pozostałe pozycje faktury pierwotnej bez zmian pozostają w mocy.
+          </p>
+        )}
       </div>
 
       {/* Sumy */}
