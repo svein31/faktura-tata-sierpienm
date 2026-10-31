@@ -57,9 +57,8 @@ export async function POST(req: Request) {
     if (autoNumber) {
       if (!companyId || !/^[a-f0-9]{24}$/i.test(companyId)) throw new ApiError(400, "Wybierz firmę wystawiającą fakturę.");
       const seller = await prisma.companyProfile.findUnique({ where: { id: companyId }, select: { invoiceNumberPattern: true } });
-      number = await nextPersistedInvoiceNumber(prisma, companyId, seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN,
-        String(body.issueDate || ""),
-        invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true));
+      try { number = await nextPersistedInvoiceNumber(prisma, companyId, seller?.invoiceNumberPattern || DEFAULT_INVOICE_PATTERN, String(body.issueDate || ""), invoicePrefix(String(body.type), body.isCorrection === true, body.isProforma === true)); }
+      catch (numErr) { throw new ApiError(400, numErr instanceof Error ? numErr.message : "Sprawdź wzór numeracji i datę wystawienia."); }
     }
     const parsed = await buildData(number);
     if (parsed.status === "paid" || (parsed.paidAmount ?? 0) > 0 || ["paid", "partially_paid"].includes(parsed.paymentStatus))

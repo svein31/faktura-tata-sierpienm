@@ -906,6 +906,9 @@ export function InvoiceCreator() {
     if (form.lines.some((l) => !Number.isFinite(l.quantity) || Math.abs(l.quantity) > 1e9 || !Number.isFinite(l.netPrice) || l.netPrice > 1e9)) errs.push("Sprawdź zakres ilości i cen pozycji.");
     if (validLines.length > 200 || documentLines.length > 200) errs.push(form.isCorrection ? "Dokument korekty może zawierać najwyżej 200 pozycji różnicowych. Zmniejsz liczbę zmienianych pozycji." : "Faktura może zawierać najwyżej 200 pozycji.");
     if (validLines.some(l => roundHalfUp(l.quantity, 6) === 0)) errs.push("Ilość wymaga najwyżej sześciu miejsc po przecinku.");
+    if (form.isCorrection && correctionContext && correctionContext.originalGross > 0 && round2(correctionContext.effectiveGross + totals.gross) < 0) {
+      errs.push(`Łączna wartość korekt przekracza wartość faktury (saldo po korekcie: ${formatMoney(round2(correctionContext.effectiveGross + totals.gross), form.currency)}). Faktura nie może zejść poniżej 0,00.`);
+    }
 
     // Walidacja kursu walutowego dla walut obcych (art. 31a ustawy o VAT)
     if (form.currency !== "PLN") {
@@ -1354,9 +1357,9 @@ export function InvoiceCreator() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm">{correctionAfterValues ? "Wpisz prawidłowe wartości po korekcie. System sam obliczy różnicę względem aktualnego salda (po uwzględnieniu wszystkich wcześniejszych korekt) i wystawi korektę do faktury głównej z jej numerem KSeF. Oryginalna faktura pozostaje bez zmian." : <>Wpisz różnice względem oryginału: ujemna ilość zmniejsza wartość, dodatnia ją zwiększa. Aby zmienić cenę, dodaj pozycję z ujemną ilością i starą ceną oraz dodatnią z nową ceną. Oryginalna faktura pozostaje bez zmian.</>}</p>
-              {correctionContext && (correctionContext.priorCorrections.length > 0 || correctionContext.effectiveGross < 0) && (
+              {correctionContext && (correctionContext.priorCorrections.length > 0 || correctionContext.effectiveGross < 0 || (correctionContext.unsentCorrections?.length ?? 0) > 0) && (
                 <div className="rounded-lg border border-border bg-card p-3 text-xs space-y-2">
-                  <p className="font-semibold text-foreground">Łańcuch dokumentów uwzględniony w obliczeniach:</p>
+                  <p className="font-semibold text-foreground">Łańcuch dokumentów w obiegu KSeF uwzględniony w obliczeniach:</p>
                   <ul className="space-y-1 tabular-nums">
                     <li className="flex flex-wrap items-center justify-between gap-2">
                       <span>Faktura pierwotna <b>{correctionContext.rootInvoice.number}</b> ({correctionContext.rootInvoice.issueDate})</span>
@@ -1364,18 +1367,23 @@ export function InvoiceCreator() {
                     </li>
                     {correctionContext.priorCorrections.map((c) => (
                       <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-muted-foreground">
-                        <span>Wcześniejsza korekta <b>{c.number}</b> ({c.issueDate}) · {c.ksefAccepted ? "Przyjęta w KSeF" : "Zapisana"}</span>
+                        <span>Wcześniejsza korekta <b>{c.number}</b> ({c.issueDate}) · {c.ksefAccepted ? "Przyjęta w KSeF" : "W obiegu"}</span>
                         <span className="font-medium">{formatMoney(c.totalGross, form.currency)}</span>
                       </li>
                     ))}
                     <li className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-1.5 font-semibold text-foreground">
-                      <span>Aktualne saldo przed tą korektą:</span>
+                      <span>Aktualne saldo w obiegu przed tą korektą:</span>
                       <span className={correctionContext.effectiveGross < 0 ? "text-destructive" : ""}>{formatMoney(correctionContext.effectiveGross, form.currency)}</span>
                     </li>
                   </ul>
                   {correctionContext.effectiveGross < 0 && (
                     <p className="rounded-md border border-warning/40 bg-warning/10 p-2 text-[11.5px] text-foreground">
-                      <b>Wykryto nadkorektę poniżej zera ({formatMoney(correctionContext.effectiveGross, form.currency)}):</b> Wcześniejsze korekty odjęły więcej niż wynosiło pozostałe saldo faktury. Pozostawienie ilości po korekcie na <b>0</b> wystawi korektę wyrównującą na <b>+{formatMoney(Math.abs(correctionContext.effectiveGross), form.currency)}</b>, dzięki czemu łączne saldo faktury i wszystkich korekt w KSeF wyniesie dokładnie <b>0,00 {form.currency}</b>.
+                      <b>Wykryto nadkorektę poniżej zera ({formatMoney(correctionContext.effectiveGross, form.currency)}):</b> Wcześniejsze korekty w KSeF odjęły więcej niż wynosiło pozostałe saldo faktury. Pozostawienie ilości po korekcie na <b>0</b> wystawi korektę wyrównującą na <b>+{formatMoney(Math.abs(correctionContext.effectiveGross), form.currency)}</b>, dzięki czemu łączne saldo faktury i wszystkich korekt w KSeF wyniesie dokładnie <b>0,00 {form.currency}</b>.
+                    </p>
+                  )}
+                  {(correctionContext.unsentCorrections?.length ?? 0) > 0 && (
+                    <p className="rounded-md border border-primary/30 bg-primary/5 p-2 text-[11.5px] text-foreground">
+                      <b>Pominięto lokalne niewysłane korekty ({correctionContext.unsentCorrections!.map(u => u.number).join(", ")}):</b> Te dokumenty mają status „Zapisana” i <b>nie są w obiegu KSeF</b>, więc nie wpływają na powyższe saldo. Aby użyć numeru {correctionContext.unsentCorrections![0].number}, usuń lub edytuj niewysłany dokument na <Link prefetch={false} href="/invoices" className="font-semibold text-primary underline">liście faktur</Link>.
                     </p>
                   )}
                 </div>
@@ -2049,7 +2057,7 @@ export function InvoiceCreator() {
             />
             {correctionAfterValues && <div className="mt-4 space-y-3 border-t border-border pt-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm text-muted-foreground">Ustaw ilość na 0 lub usuń wiersz, aby skorygować całą pozycję. Możesz zmienić cenę, ilość, VAT lub dodać pozycję.</p>
+                <p className="text-sm text-muted-foreground">Ustaw ilość lub cenę na 0 albo usuń wiersz, aby wyzerować pozycję. Możesz wpisać cenę netto lub brutto — kwoty przeliczają się w obie strony.</p>
                 <Button type="button" variant="outline" size="sm" onClick={() => set({ lines: form.lines.map(l => ({ ...l, quantity: 0 })) })}>
                   Wyzeruj wszystkie pozycje (stan końcowy 0,00)
                 </Button>

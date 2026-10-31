@@ -30,7 +30,14 @@ export function correctionDifferenceLines(before: InvoiceLine[], after: InvoiceL
     remaining.delete(line.id);
     if (replacement && same(line, replacement)) return;
     if (line.quantity !== 0) result.push({ ...line, id: `correction-before-${index}`, quantity: -line.quantity });
-    if (replacement) result.push({ ...replacement, id: `correction-after-${index}` });
+    const zeroedByPrice = Boolean(
+      replacement &&
+      line.netPrice > 0 &&
+      replacement.netPrice === 0 &&
+      !replacement.settlementNet &&
+      !replacement.settlementVat,
+    );
+    if (replacement && !zeroedByPrice) result.push({ ...replacement, id: `correction-after-${index}` });
   });
   for (const [index, line] of [...remaining.values()].entries()) result.push({ ...line, id: `correction-new-${index}` });
   // A formal correction can leave every amount unchanged. Keep a zero-sum

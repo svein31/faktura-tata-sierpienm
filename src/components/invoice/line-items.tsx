@@ -20,7 +20,7 @@ import { VAT_RATES } from "@/lib/format";
 import type { Currency, InvoiceLine, Product, VatRate } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
+import { normalizeInvoiceLineAmounts, unitGrossFromNet, unitNetFromGross } from "@/lib/invoice-input";
 import { parseInvoiceSpreadsheet } from "@/lib/invoice-spreadsheet";
 
 import { Dialog } from "@/components/ui/dialog";
@@ -53,6 +53,7 @@ export function LineItemsEditor({
 }) {
   const [pasteModalOpen, setPasteModalOpen] = React.useState(false);
   const [pastedText, setPastedText] = React.useState("");
+  const [editingPrice, setEditingPrice] = React.useState<{ id: string; field: "net" | "gross"; raw: string } | null>(null);
   const pasted = React.useMemo(() => {
     try { return { lines: parseInvoiceSpreadsheet(pastedText, correction), error: "" }; }
     catch (error) { return { lines: [] as InvoiceLine[], error: error instanceof Error ? error.message : "Sprawdź arkusz." }; }
@@ -62,9 +63,30 @@ export function LineItemsEditor({
   const update = (id: string, patch: Partial<InvoiceLine>) =>
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
+  const handleNetInput = (item: InvoiceLine, raw: string) => {
+    setEditingPrice({ id: item.id, field: "net", raw });
+    const parsed = raw.trim() === "" ? 0 : Number(raw.replace(",", "."));
+    if (Number.isFinite(parsed)) update(item.id, { netPrice: round2(parsed) });
+  };
+
+  const handleGrossInput = (item: InvoiceLine, raw: string) => {
+    setEditingPrice({ id: item.id, field: "gross", raw });
+    const parsed = raw.trim() === "" ? 0 : Number(raw.replace(",", "."));
+    if (Number.isFinite(parsed)) update(item.id, { netPrice: unitNetFromGross(parsed, item.vatRate) });
+  };
+
+  const handleVatChange = (item: InvoiceLine, nextRate: VatRate) => {
+    setEditingPrice(curr => (curr?.id === item.id ? null : curr));
+    update(item.id, { vatRate: nextRate });
+  };
+
+  const clearEditingFor = (id: string) =>
+    setEditingPrice(curr => (curr?.id === id ? null : curr));
+
   const applyProduct = (id: string, productId: string) => {
     const p = products.find((x) => x.id === productId);
     if (!p) return;
+    clearEditingFor(id);
     onChange(
       lines.map((l) =>
         l.id === id
@@ -83,6 +105,7 @@ export function LineItemsEditor({
       const order: Record<string, number> = { "23": 0, "8": 1, "5": 2, "0": 3, zw: 4, np: 5, oo: 6 };
       return (order[a] ?? 9) - (order[b] ?? 9);
     });
+  void vatGroups;
 
   // Actually compute per-rate net totals
   const netByRate: Partial<Record<VatRate, number>> = {};
@@ -93,43 +116,55 @@ export function LineItemsEditor({
   return (
     <div className="space-y-4 invoice-line-editor">
       <div className="space-y-3 invoice-line-cards" data-mobile-line-editor>
-        {lines.map((item, index) => (
-          <div key={item.id} className="min-w-0 space-y-3 rounded-xl border bg-card p-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold">Pozycja {index + 1}</h3>
-              <Button type="button" size="icon" variant="ghost" aria-label={"Usuń pozycję " + (index + 1)} disabled={disabled} onClick={() => onChange(lines.filter(other => other.id !== item.id))}><Trash2 className="h-4 w-4" /></Button>
+        {lines.map((item, index) => {
+          const displayedNet = editingPrice?.id === item.id && editingPrice.field === "net"
+            ? editingPrice.raw
+            : item.netPrice;
+          const displayedGross = editingPrice?.id === item.id && editingPrice.field === "gross"
+            ? editingPrice.raw
+            : unitGrossFromNet(item.netPrice, item.vatRate);
+          return (
+            <div key={item.id} className="min-w-0 space-y-3 rounded-xl border bg-card p-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">Pozycja {index + 1}</h3>
+                <Button type="button" size="icon" variant="ghost" aria-label={"Usuń pozycję " + (index + 1)} disabled={disabled} onClick={() => onChange(lines.filter(other => other.id !== item.id))}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+              <label className="block space-y-1 text-xs font-medium">Nazwa towaru / usługi
+                <Textarea aria-label={"Nazwa pozycji " + (index + 1)} data-invoice-field={`lines.${index}.name`} aria-invalid={Boolean(errors[`lines.${index}.name`])} aria-describedby={errors[`lines.${index}.name`] ? `invoice-line-mobile-${index}-name-error` : undefined} value={item.name} disabled={disabled} onChange={event => update(item.id, {name:event.target.value})} rows={2} />{errors[`lines.${index}.name`] && <span id={`invoice-line-mobile-${index}-name-error`} className="block text-xs text-destructive">{errors[`lines.${index}.name`]}</span>}
+              </label>
+              {products.length > 0 && <Select aria-label={"Produkt z katalogu dla pozycji " + (index + 1)} value="" disabled={disabled} onChange={event => event.target.value && applyProduct(item.id, event.target.value)}><option value="">Wstaw z katalogu…</option>{products.map(product => <option key={product.id} value={product.id}>{product.name}</option>)}</Select>}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} data-invoice-field={`lines.${index}.quantity`} aria-invalid={Boolean(errors[`lines.${index}.quantity`])} aria-describedby={errors[`lines.${index}.quantity`] ? `invoice-line-mobile-${index}-quantity-error` : undefined} type="number" inputMode="decimal" min={correction ? undefined : 0} step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} />{errors[`lines.${index}.quantity`] && <span id={`invoice-line-mobile-${index}-quantity-error`} className="block text-xs text-destructive">{errors[`lines.${index}.quantity`]}</span>}</label>
+                <label className="min-w-0 space-y-1 text-xs font-medium">Jednostka<Input aria-label={"Jednostka pozycji " + (index + 1)} value={item.unit} disabled={disabled} onChange={event => update(item.id, {unit:event.target.value})} /></label>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} data-invoice-field={`lines.${index}.netPrice`} aria-invalid={Boolean(errors[`lines.${index}.netPrice`])} aria-describedby={errors[`lines.${index}.netPrice`] ? `invoice-line-mobile-${index}-netPrice-error` : undefined} type="number" inputMode="decimal" min="0" step="0.01" value={displayedNet} disabled={disabled} onChange={event => handleNetInput(item, event.target.value)} onBlur={() => clearEditingFor(item.id)} />{errors[`lines.${index}.netPrice`] && <span id={`invoice-line-mobile-${index}-netPrice-error`} className="block text-xs text-destructive">{errors[`lines.${index}.netPrice`]}</span>}</label>
+                <label className="min-w-0 space-y-1 text-xs font-medium">Cena brutto<Input aria-label={"Cena brutto pozycji " + (index + 1)} data-invoice-field={`lines.${index}.grossPrice`} type="number" inputMode="decimal" min="0" step="0.01" value={displayedGross} disabled={disabled} onChange={event => handleGrossInput(item, event.target.value)} onBlur={() => clearEditingFor(item.id)} /></label>
+                <label className="min-w-0 space-y-1 text-xs font-medium">Stawka VAT<Select aria-label={"VAT pozycji " + (index + 1)} value={item.vatRate} disabled={disabled} onChange={event => handleVatChange(item, event.target.value as VatRate)}>{VAT_RATES.map(rate => <option key={rate} value={rate}>{vatRateLabel(rate)}</option>)}</Select></label>
+              </div>
+              <dl className="grid grid-cols-1 gap-1 break-words border-t pt-3 text-xs">
+                <div className="flex flex-wrap justify-between gap-1"><dt>Netto</dt><dd>{formatMoney(lineNet(item),currency)}</dd></div>
+                <div className="flex flex-wrap justify-between gap-1"><dt>VAT</dt><dd>{formatMoney(lineVat(item),currency)}</dd></div>
+                <div className="flex flex-wrap justify-between gap-1 font-semibold"><dt>Brutto</dt><dd>{formatMoney(lineGross(item),currency)}</dd></div>
+              </dl>
             </div>
-            <label className="block space-y-1 text-xs font-medium">Nazwa towaru / usługi
-              <Textarea aria-label={"Nazwa pozycji " + (index + 1)} data-invoice-field={`lines.${index}.name`} aria-invalid={Boolean(errors[`lines.${index}.name`])} aria-describedby={errors[`lines.${index}.name`] ? `invoice-line-mobile-${index}-name-error` : undefined} value={item.name} disabled={disabled} onChange={event => update(item.id, {name:event.target.value})} rows={2} />{errors[`lines.${index}.name`] && <span id={`invoice-line-mobile-${index}-name-error`} className="block text-xs text-destructive">{errors[`lines.${index}.name`]}</span>}
-            </label>
-            {products.length > 0 && <Select aria-label={"Produkt z katalogu dla pozycji " + (index + 1)} value="" disabled={disabled} onChange={event => event.target.value && applyProduct(item.id, event.target.value)}><option value="">Wstaw z katalogu…</option>{products.map(product => <option key={product.id} value={product.id}>{product.name}</option>)}</Select>}
-            <div className="grid grid-cols-2 gap-3">
-              <label className="min-w-0 space-y-1 text-xs font-medium">Ilość<Input aria-label={"Ilość pozycji " + (index + 1)} data-invoice-field={`lines.${index}.quantity`} aria-invalid={Boolean(errors[`lines.${index}.quantity`])} aria-describedby={errors[`lines.${index}.quantity`] ? `invoice-line-mobile-${index}-quantity-error` : undefined} type="number" inputMode="decimal" min={correction ? undefined : 0} step="any" value={item.quantity} disabled={disabled} onChange={event => update(item.id, {quantity:Number(event.target.value) || 0})} />{errors[`lines.${index}.quantity`] && <span id={`invoice-line-mobile-${index}-quantity-error`} className="block text-xs text-destructive">{errors[`lines.${index}.quantity`]}</span>}</label>
-              <label className="min-w-0 space-y-1 text-xs font-medium">Jednostka<Input aria-label={"Jednostka pozycji " + (index + 1)} value={item.unit} disabled={disabled} onChange={event => update(item.id, {unit:event.target.value})} /></label>
-              <label className="min-w-0 space-y-1 text-xs font-medium">Cena netto<Input aria-label={"Cena netto pozycji " + (index + 1)} data-invoice-field={`lines.${index}.netPrice`} aria-invalid={Boolean(errors[`lines.${index}.netPrice`])} aria-describedby={errors[`lines.${index}.netPrice`] ? `invoice-line-mobile-${index}-netPrice-error` : undefined} type="number" inputMode="decimal" min="0" step="0.01" value={item.netPrice} disabled={disabled} onChange={event => update(item.id, {netPrice:Number(event.target.value) || 0})} />{errors[`lines.${index}.netPrice`] && <span id={`invoice-line-mobile-${index}-netPrice-error`} className="block text-xs text-destructive">{errors[`lines.${index}.netPrice`]}</span>}</label>
-              <label className="min-w-0 space-y-1 text-xs font-medium">Stawka VAT<Select aria-label={"VAT pozycji " + (index + 1)} value={item.vatRate} disabled={disabled} onChange={event => update(item.id, {vatRate:event.target.value as VatRate})}>{VAT_RATES.map(rate => <option key={rate} value={rate}>{vatRateLabel(rate)}</option>)}</Select></label>
-            </div>
-            <dl className="grid grid-cols-1 gap-1 break-words border-t pt-3 text-xs">
-              <div className="flex flex-wrap justify-between gap-1"><dt>Netto</dt><dd>{formatMoney(lineNet(item),currency)}</dd></div>
-              <div className="flex flex-wrap justify-between gap-1"><dt>VAT</dt><dd>{formatMoney(lineVat(item),currency)}</dd></div>
-              <div className="flex flex-wrap justify-between gap-1 font-semibold"><dt>Brutto</dt><dd>{formatMoney(lineGross(item),currency)}</dd></div>
-            </dl>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── Tabela pozycji ── */}
       <div className="invoice-line-table overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm">
-        <table className="w-full min-w-[940px] table-fixed text-[13px]">
+        <table className="w-full min-w-[1040px] table-fixed text-[13px]">
           <colgroup>
             <col className="w-9" />
             <col />
             <col className="w-20" />
             <col className="w-20" />
             <col className="w-28" />
+            <col className="w-28" />
             <col className="w-20" />
             <col className="w-28" />
-            <col className="w-28" />
+            <col className="w-24" />
             <col className="w-28" />
             <col className="w-9" />
           </colgroup>
@@ -140,6 +175,7 @@ export function LineItemsEditor({
               <th className="px-2 py-2.5 text-right">Ilość</th>
               <th className="px-2 py-2.5 w-16">J.m.</th>
               <th className="px-2 py-2.5 text-right">Cena netto</th>
+              <th className="px-2 py-2.5 text-right">Cena brutto</th>
               <th className="px-2 py-2.5 w-20 text-center">VAT</th>
               <th className="px-2 py-2.5 w-28 text-right">Wart. netto</th>
               <th className="px-2 py-2.5 w-24 text-right">Kwota VAT</th>
@@ -150,7 +186,7 @@ export function LineItemsEditor({
           <tbody>
             {lines.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-10 text-center">
+                <td colSpan={11} className="px-4 py-10 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
                       <Package className="h-5 w-5 opacity-50" />
@@ -165,6 +201,12 @@ export function LineItemsEditor({
                 const net = lineNet(line);
                 const vat = lineVat(line);
                 const gross = lineGross(line);
+                const displayedNet = editingPrice?.id === line.id && editingPrice.field === "net"
+                  ? editingPrice.raw
+                  : line.netPrice;
+                const displayedGross = editingPrice?.id === line.id && editingPrice.field === "gross"
+                  ? editingPrice.raw
+                  : unitGrossFromNet(line.netPrice, line.vatRate);
                 return (
                   <motion.tr
                     key={line.id}
@@ -238,14 +280,31 @@ export function LineItemsEditor({
                     {/* Cena netto */}
                     <td className="px-2 py-1.5">
                       <Input data-invoice-field={`lines.${i}.netPrice`} aria-invalid={Boolean(errors[`lines.${i}.netPrice`])} aria-describedby={errors[`lines.${i}.netPrice`] ? `invoice-line-table-${i}-netPrice-error` : undefined}
+                        aria-label={"Cena netto pozycji " + (i + 1)}
                         type="number"
                         min={0}
                         step="0.01"
-                        value={line.netPrice}
-                        onChange={(e) => update(line.id, { netPrice: Number(e.target.value) || 0 })}
+                        value={displayedNet}
+                        onChange={(e) => handleNetInput(line, e.target.value)}
+                        onBlur={() => clearEditingFor(line.id)}
                         disabled={disabled}
-                        className="h-8 text-right text-[12.5px]"
+                        className="h-8 text-right text-[12.5px] tabular-nums"
                       />{errors[`lines.${i}.netPrice`] && <span id={`invoice-line-table-${i}-netPrice-error`} className="block text-xs text-destructive">{errors[`lines.${i}.netPrice`]}</span>}
+                    </td>
+
+                    {/* Cena brutto */}
+                    <td className="px-2 py-1.5">
+                      <Input data-invoice-field={`lines.${i}.grossPrice`}
+                        aria-label={"Cena brutto pozycji " + (i + 1)}
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={displayedGross}
+                        onChange={(e) => handleGrossInput(line, e.target.value)}
+                        onBlur={() => clearEditingFor(line.id)}
+                        disabled={disabled}
+                        className="h-8 text-right text-[12.5px] tabular-nums"
+                      />
                     </td>
 
                     {/* Stawka VAT */}
@@ -253,7 +312,7 @@ export function LineItemsEditor({
                       <div className="flex flex-col items-center gap-1">
                         <Select
                           value={line.vatRate}
-                          onChange={(e) => update(line.id, { vatRate: e.target.value as VatRate })}
+                          onChange={(e) => handleVatChange(line, e.target.value as VatRate)}
                           disabled={disabled}
                           className="h-8 text-center text-[12px]"
                         >

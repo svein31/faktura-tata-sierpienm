@@ -322,3 +322,178 @@ test('ksefPresentation distinguishes local draft ("Szkic") from issued unsent do
   assert.equal(ksefPresentation({ type: 'sale', status: 'draft' }).label, 'Szkic');
   assert.equal(ksefPresentation({ type: 'sale', status: 'issued' }).label, 'Zapisana');
 });
+
+test('exact ENERVIO production chain (renamed KOR 01 row + 0,00 PLN rows in KOR 02 + unsent KOR 03) produces 2-row +12 295,03 PLN FA(3) balancing correction', async () => {
+  const { buildFa3Xml, validateFa3Xml } = require('../../src/lib/ksef/xmlBuilder.ts');
+  const originalLoad = Module._load;
+  Module._load = function (request, parent, main) {
+    if (request === '@/lib/permissions') {
+      return { requireCompanyAccess: async () => ({ ok: true }) };
+    }
+    return originalLoad.call(this, request, parent, main);
+  };
+  try {
+    const sourceModPath = path.join(root, 'src/lib/invoice-correction-source.ts');
+    delete require.cache[sourceModPath];
+    const { invoiceCorrectionContext } = require(sourceModPath);
+
+    const actor = 'a'.repeat(24);
+    const company = 'b'.repeat(24);
+    const fv01Id = '6abe2978bb3b6afc2e08681b';
+    const kor01Id = '2'.repeat(24);
+    const kor02Id = '3'.repeat(24);
+    const kor03UnsentId = '4'.repeat(24);
+
+    const realFv01Lines = [
+      { name: 'Przygotowanie ROOŚ dla obiektu Leszkowice/Pęcław', quantity: 1, unit: 'szt.', netPrice: 49980, vatRate: '23' },
+      { name: 'Złożenie dokumentacji środowiskowej do gminy', quantity: 1, unit: 'szt.', netPrice: 27950, vatRate: '23' },
+    ];
+    const realKor01Lines = [
+      { name: 'Przygotowanie ROOŚ dla obiektu Leszkowice/Pęcław', quantity: -1, unit: 'szt.', netPrice: 49980, vatRate: '23' },
+      { name: 'Przygotowanie ROOŚ dla obiektu Leszkowice/Pęcław - płatność 80%', quantity: 1, unit: 'szt.', netPrice: 39984.04, vatRate: '23' },
+    ];
+    const realKor02Lines = [
+      { name: 'Przygotowanie ROOŚ dla obiektu Leszkowice/Pęcław', quantity: -1, unit: 'szt.', netPrice: 49980, vatRate: '23' },
+      { name: 'Przygotowanie ROOŚ dla obiektu Leszkowice/Pęcław', quantity: 1, unit: 'szt.', netPrice: 0, vatRate: '23' },
+      { name: 'Złożenie dokumentacji środowiskowej do gminy', quantity: -1, unit: 'szt.', netPrice: 27950, vatRate: '23' },
+      { name: 'Złożenie dokumentacji środowiskowej do gminy', quantity: 1, unit: 'szt.', netPrice: 0, vatRate: '23' },
+    ];
+
+    const records = new Map([
+      [fv01Id, {
+        id: fv01Id, userId: actor, sellerCompanyId: company, type: 'sale', status: 'issued', documentStatus: 'issued',
+        documentKind: 'standard', isProforma: false, currency: 'PLN', number: 'FV 01/10/2026', issueDate: '2026-10-01',
+        ksefNumber: '7011253524-20261001-519CDDC00000-92', totalGross: 95853.9, lines: realFv01Lines, isCorrection: false, originalInvoiceId: null,
+      }],
+      [kor01Id, {
+        id: kor01Id, userId: actor, sellerCompanyId: company, type: 'sale', status: 'issued', documentStatus: 'issued',
+        documentKind: 'standard', isProforma: false, currency: 'PLN', number: 'KOR 01/10/2026', issueDate: '2026-10-19',
+        createdAt: new Date('2026-10-19T10:00:00Z'), ksefNumber: '7011253524-20261019-644A7C400006-1C', ksefStatus: 'accepted',
+        totalNet: -9995.96, totalVat: -2299.07, totalGross: -12295.03, lines: realKor01Lines, isCorrection: true, originalInvoiceId: fv01Id,
+      }],
+      [kor02Id, {
+        id: kor02Id, userId: actor, sellerCompanyId: company, type: 'sale', status: 'issued', documentStatus: 'issued',
+        documentKind: 'standard', isProforma: false, currency: 'PLN', number: 'KOR 02/10/2026', issueDate: '2026-10-19',
+        createdAt: new Date('2026-10-31T18:00:00Z'), ksefNumber: '7011253524-20261031-8928BE800002-44', ksefStatus: 'accepted',
+        totalNet: -77930, totalVat: -17923.9, totalGross: -95853.9, lines: realKor02Lines, isCorrection: true, originalInvoiceId: fv01Id,
+      }],
+      [kor03UnsentId, {
+        id: kor03UnsentId, userId: actor, sellerCompanyId: company, type: 'sale', status: 'issued', documentStatus: 'issued',
+        documentKind: 'standard', isProforma: false, currency: 'PLN', number: 'KOR 03/10/2026', issueDate: '2026-10-31',
+        createdAt: new Date('2026-10-31T18:30:00Z'), ksefNumber: null, ksefStatus: null, referenceNumber: null,
+        totalNet: -67934.04, totalVat: -15624.83, totalGross: -83558.87, lines: [], isCorrection: true, originalInvoiceId: fv01Id,
+      }],
+    ]);
+
+    const db = {
+      invoice: {
+        findUnique: async ({ where }) => records.get(where.id) || null,
+        findMany: async () => Array.from(records.values()),
+      },
+    };
+
+    // Even when creating a brand-new correction (no currentId), unsent local KOR 03 is NOT in KSeF circulation!
+    const ctx = await invoiceCorrectionContext(db, records.get(fv01Id));
+    assert.equal(ctx.priorCorrections.length, 2);
+    assert.equal(ctx.unsentCorrections.length, 1);
+    assert.equal(ctx.unsentCorrections[0].number, 'KOR 03/10/2026');
+    assert.equal(ctx.effectiveGross, -12295.03);
+
+    const targetLines = editableCorrectionTargetLines(ctx.effectiveLines, realFv01Lines);
+    const kor03BalancingLines = correctionDifferenceLines(ctx.effectiveLines, targetLines);
+    assert.equal(kor03BalancingLines.length, 2, '0,00 PLN rows from KOR 02 must not create extra ghost rows on KOR 03');
+    const kor03Totals = invoiceTotals({ lines: kor03BalancingLines });
+    assert.equal(kor03Totals.net, 9995.96);
+    assert.equal(kor03Totals.vat, 2299.07);
+    assert.equal(kor03Totals.gross, 12295.03);
+
+    // Validate generated FA(3) XML for KSeF submission
+    const xml = buildFa3Xml({
+      invoice: {
+        id: 'newkor03',
+        number: 'KOR 03/10/2026',
+        type: 'sale',
+        status: 'issued',
+        currency: 'PLN',
+        language: 'PL',
+        issueDate: '2026-10-31',
+        saleDate: '2026-10-31',
+        dueDate: '2026-11-14',
+        paymentMethod: 'transfer',
+        paymentTermDays: 14,
+        contractorId: 'ctr1',
+        isCorrection: true,
+        correctionReason: 'Korekta błędnie wystawionej korekty KOR 02/10/2026',
+        originalInvoiceNumber: 'FV 01/10/2026',
+        originalIssueDate: '2026-10-01',
+        originalKsefNumber: '7011253524-20261001-519CDDC00000-92',
+        lines: kor03BalancingLines,
+        createdAt: '2026-10-31T21:00:00Z',
+      },
+      seller: {
+        id: company,
+        userId: actor,
+        companyName: 'ENERVIO SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ',
+        nip: '7011253524',
+        street: 'Czapliniecka 60',
+        postal: '97-400',
+        city: 'Bełchatów',
+        country: 'PL',
+        bankAccount: '91109017530000000161990007',
+        isDefault: true,
+        createdAt: '',
+        updatedAt: '',
+      },
+      buyer: {
+        id: 'ctr1',
+        name: 'GALIA GREEN POWER SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ',
+        nip: '7011195376',
+        address: { street: 'Poznańska 37', postal: '00-689', city: 'Warszawa', country: 'PL' },
+        isVatPayer: true,
+        createdAt: '',
+      },
+    });
+    const validation = validateFa3Xml(xml);
+    assert.equal(validation.ok, true, JSON.stringify(validation.issues));
+    assert.ok(xml.includes('<P_15>12295.03</P_15>'));
+    assert.ok(xml.includes('<NrKSeFFaKorygowanej>7011253524-20261001-519CDDC00000-92</NrKSeFFaKorygowanej>'));
+  } finally {
+    Module._load = originalLoad;
+  }
+});
+
+test('setting Cena netto = 0 on existing positive positions zeroes them without doubling 2 rows into 4', () => {
+  const before = [
+    { id: '1', name: 'Przygotowanie ROOŚ', quantity: 1, unit: 'szt.', netPrice: 49980, vatRate: '23' },
+    { id: '2', name: 'Złożenie dokumentacji', quantity: 1, unit: 'szt.', netPrice: 27950, vatRate: '23' },
+  ];
+  const afterWithZeroPrice = before.map(line => ({ ...line, netPrice: 0 }));
+  const delta = correctionDifferenceLines(before, afterWithZeroPrice);
+  assert.equal(delta.length, 2);
+  assert.equal(invoiceTotals({ lines: delta }).gross, -95853.9);
+});
+
+test('correction invoices themselves do not expose Koryguj action, while root sales invoices do', () => {
+  const { isCorrectableInvoiceSource } = require('../../src/lib/invoice-correction-eligibility.ts');
+  const rootIssued = { type: 'sale', status: 'issued', documentStatus: 'issued', isProforma: false, isCorrection: false, ksefNumber: '7011253524-ROOT' };
+  const korIssued = { ...rootIssued, isCorrection: true, ksefNumber: '7011253524-KOR1' };
+  const korLocal = { ...rootIssued, isCorrection: true, ksefNumber: null };
+  assert.equal(isCorrectableInvoiceSource(rootIssued), true);
+  assert.equal(isCorrectableInvoiceSource(korIssued), false);
+  assert.equal(isCorrectableInvoiceSource(korLocal), false);
+});
+
+test('two-way Netto <-> Brutto unit price helpers convert accurately across VAT rates', () => {
+  const { unitGrossFromNet, unitNetFromGross } = require('../../src/lib/invoice-input.ts');
+  for (const [net, gross, rate] of [
+    [49980, 61475.4, '23'],
+    [27950, 34378.5, '23'],
+    [39984.04, 49180.37, '23'],
+    [9995.96, 12295.03, '23'],
+    [100, 108, '8'],
+    [250, 250, 'zw'],
+  ]) {
+    assert.equal(unitGrossFromNet(net, rate), gross);
+    assert.equal(unitNetFromGross(gross, rate), net);
+  }
+});

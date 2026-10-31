@@ -42,7 +42,7 @@ export function applyCorrectionLines(base: ChainLine[], ...corrections: ChainLin
   const usedIds = new Set<string>();
   return order
     .map(key => merged.get(key)!)
-    .filter(line => line.quantity !== 0)
+    .filter(line => line.quantity !== 0 && !(Number(line.netPrice) === 0 && !line.settlementNet && !line.settlementVat))
     .map((line, index) => {
       const candidate = line.id && !line.id.startsWith("correction-") ? line.id : "";
       let id = candidate && !usedIds.has(candidate) ? candidate : `source-${index}`;

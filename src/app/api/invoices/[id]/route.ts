@@ -406,11 +406,13 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       if (hasPayments) {
         throw new ApiError(400, `Faktura ${existing.number} posiada zarejestrowane wpłaty i nie może zostać usunięta.`);
       }
-      const childCorrections = typeof prisma.invoice.count === "function"
-        ? await prisma.invoice.count({ where: { originalInvoiceId: existing.id } })
-        : 0;
-      if (childCorrections > 0) {
-        throw new ApiError(400, `Do faktury ${existing.number} powiązano już fakturę korygującą — nie można jej usunąć.`);
+      if (!existing.isCorrection) {
+        const childCorrections = typeof prisma.invoice.count === "function"
+          ? await prisma.invoice.count({ where: { originalInvoiceId: existing.id, status: { not: "cancelled" } } })
+          : 0;
+        if (childCorrections > 0) {
+          throw new ApiError(400, `Do faktury ${existing.number} powiązano już fakturę korygującą — nie można jej usunąć.`);
+        }
       }
       const wasDispatched = Boolean(
         existing.sentAt ||
@@ -440,8 +442,20 @@ export async function DELETE(_req: Request, { params }: Ctx) {
       data: { version: (existing.version || 1) + 1 },
     });
     if (!claimed.count) throw new ApiError(409, "Dokument zmienił się podczas zapisu. Odśwież dane.");
+    if (existing.isCorrection && existing.originalInvoiceId && typeof tx.invoice.updateMany === "function") {
+      await tx.invoice.updateMany({
+        where: { originalInvoiceId: existing.id },
+        data: { originalInvoiceId: existing.originalInvoiceId },
+      });
+    }
+    await tx.invoicePrintVersion?.deleteMany({ where: { invoiceId: existing.id } });
+    await tx.invoicePrintContext?.deleteMany({ where: { id: existing.id } });
     await tx.invoice.delete({ where: { id: existing.id } });
-    await tx.invoiceNumberClaim?.deleteMany({ where: { id: `${existing.sellerCompanyId || existing.userId}:${existing.number}` } });
+    const claimIds = [`${existing.sellerCompanyId || existing.userId}:${existing.number}`];
+    if (existing.sellerCompanyId) claimIds.push(`${existing.userId}:${existing.number}`);
+    await tx.invoiceNumberClaim?.deleteMany({
+      where: { OR: [{ id: { in: claimIds } }, { invoiceId: existing.id }] },
+    });
 
     // Zapis w audycie
     await recordAuditLog({

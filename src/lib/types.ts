@@ -486,6 +486,7 @@ export interface InvoiceCorrectionContext {
   originalGross: number;
   effectiveGross: number;
   priorCorrections: PriorCorrectionSummary[];
+  unsentCorrections?: PriorCorrectionSummary[];
 }
 
 export interface InvoiceEmailLog {

@@ -7,6 +7,7 @@ export interface InvoiceCorrectionEligibilitySource {
   documentStatus?: string | null;
   documentKind?: string | null;
   isProforma?: boolean | null;
+  isCorrection?: boolean | null;
   issuedAt?: Date | string | null;
   ksefNumber?: unknown;
   ksef?: unknown;
@@ -22,9 +23,9 @@ export function correctionOriginalKsefNumber(source: InvoiceCorrectionEligibilit
   return null;
 }
 
-/** Accepted originals may retain stale draft fields; genuine drafts stay editable. */
+/** Accepted originals may retain stale draft fields; genuine drafts stay editable. Corrections themselves are not corrected. */
 export function isCorrectableInvoiceSource(source: InvoiceCorrectionEligibilitySource): boolean {
-  if (source.type !== "sale" || source.isProforma || source.status === "cancelled" || source.documentStatus === "cancelled" ||
+  if (source.isCorrection || source.type !== "sale" || source.isProforma || source.status === "cancelled" || source.documentStatus === "cancelled" ||
     source.documentKind === "advance" || source.documentKind === "final") return false;
   if (correctionOriginalKsefNumber(source)) return true;
   if (source.status === "draft") return false;

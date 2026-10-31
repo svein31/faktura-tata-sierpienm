@@ -400,7 +400,7 @@ function InvoiceDetailView({ invoice, documentContractor }: { invoice: Invoice; 
             </Button>
           )}
 
-          {invoice.type !== "purchase" && (<Button
+          {invoice.type !== "purchase" && !ksefNum && (<Button
             variant="ghost"
             size="icon"
             onClick={() => setConfirmDelete(true)}

@@ -30,8 +30,37 @@ async function findRootSource(db: CorrectionDb, sourceId: string) {
   return source;
 }
 
-/** Earlier corrections of the same root invoice, oldest first, without the edited document. */
-export async function priorCorrectionsOf(db: CorrectionDb, root: { id: string; sellerCompanyId: string | null }, currentId?: string) {
+/**
+ * When the root invoice is registered in KSeF, only corrections that have entered
+ * KSeF circulation (accepted KSeF number, active KSeF transmission, or signed KSeF offline)
+ * alter its legal KSeF balance. Locally saved unsent corrections ("Zapisana") do not.
+ */
+function isCorrectionInChain(
+  row: {
+    id: string;
+    isCorrection?: boolean | null;
+    status?: string | null;
+    documentStatus?: string | null;
+    ksefStatus?: string | null;
+    ksefNumber?: unknown;
+    ksef?: unknown;
+    referenceNumber?: string | null;
+    isOffline?: boolean | null;
+    qrCodeII?: string | null;
+    lines: unknown;
+  },
+  rootHasKsef: boolean,
+): boolean {
+  if (!isActiveCorrection(row)) return false;
+  if (!rootHasKsef) return true;
+  if (correctionOriginalKsefNumber(row)) return true;
+  if (typeof row.referenceNumber === "string" && row.referenceNumber.trim()) return true;
+  if (row.isOffline && row.qrCodeII) return true;
+  const ks = String(row.ksefStatus || "").toLowerCase();
+  return ["queued", "sending", "sent", "verify_needed", "accepted", "active"].includes(ks);
+}
+
+async function queryRelatedCorrections(db: CorrectionDb, root: { id: string; sellerCompanyId: string | null }, currentId?: string) {
   if (typeof db.invoice.findMany !== "function") return [];
   const rows = await db.invoice.findMany({
     where: { originalInvoiceId: root.id, isCorrection: true, ...(currentId ? { id: { not: currentId } } : {}) },
@@ -39,6 +68,7 @@ export async function priorCorrectionsOf(db: CorrectionDb, root: { id: string; s
       id: true, number: true, issueDate: true, createdAt: true, status: true, documentStatus: true,
       sellerCompanyId: true, isCorrection: true, originalInvoiceId: true, lines: true,
       totalNet: true, totalVat: true, totalGross: true, ksefStatus: true, ksefNumber: true, ksef: true,
+      referenceNumber: true, isOffline: true, qrCodeII: true,
     },
     orderBy: [{ issueDate: "asc" }, { createdAt: "asc" }],
   });
@@ -47,29 +77,50 @@ export async function priorCorrectionsOf(db: CorrectionDb, root: { id: string; s
     row.id !== currentId &&
     row.originalInvoiceId === root.id &&
     row.isCorrection === true &&
-    row.sellerCompanyId === root.sellerCompanyId &&
-    isActiveCorrection(row)
+    row.sellerCompanyId === root.sellerCompanyId
   );
 }
 
+/** Earlier corrections of the same root invoice, oldest first, without the edited document. */
+export async function priorCorrectionsOf(
+  db: CorrectionDb,
+  root: { id: string; sellerCompanyId: string | null; ksefNumber?: unknown; ksef?: unknown },
+  currentId?: string,
+) {
+  const rootHasKsef = Boolean(correctionOriginalKsefNumber(root));
+  const candidates = await queryRelatedCorrections(db, root, currentId);
+  return candidates.filter(row => isCorrectionInChain(row, rootHasKsef));
+}
+
 /** Summary used by the correction editor: original, earlier corrections and the current state. */
-export async function invoiceCorrectionContext(db: CorrectionDb, root: { id: string; sellerCompanyId: string | null; lines: unknown; totalGross?: number | null }, currentId?: string) {
-  const prior = await priorCorrectionsOf(db, root, currentId);
+export async function invoiceCorrectionContext(
+  db: CorrectionDb,
+  root: { id: string; sellerCompanyId: string | null; lines: unknown; totalGross?: number | null; ksefNumber?: unknown; ksef?: unknown },
+  currentId?: string,
+) {
+  const rootHasKsef = Boolean(correctionOriginalKsefNumber(root));
+  const candidates = await queryRelatedCorrections(db, root, currentId);
+  const prior = candidates.filter(row => isCorrectionInChain(row, rootHasKsef));
+  const unsent = rootHasKsef
+    ? candidates.filter(row => isActiveCorrection(row) && !isCorrectionInChain(row, true))
+    : [];
   const effectiveLines = effectiveCorrectionLines(root.lines, prior);
   const originalGross = round2(root.totalGross ?? 0);
   const effectiveGross = round2(prior.reduce((sum, row) => sum + (row.totalGross ?? 0), originalGross));
+  const toSummary = (row: (typeof candidates)[number]) => {
+    const ksefNumber = correctionOriginalKsefNumber(row);
+    return {
+      id: row.id, number: row.number, issueDate: row.issueDate,
+      totalNet: row.totalNet ?? 0, totalVat: row.totalVat ?? 0, totalGross: row.totalGross ?? 0,
+      ksefNumber, ksefAccepted: Boolean(ksefNumber), status: row.status,
+    };
+  };
   return {
     effectiveLines,
     originalGross,
     effectiveGross,
-    priorCorrections: prior.map(row => {
-      const ksefNumber = correctionOriginalKsefNumber(row);
-      return {
-        id: row.id, number: row.number, issueDate: row.issueDate,
-        totalNet: row.totalNet ?? 0, totalVat: row.totalVat ?? 0, totalGross: row.totalGross ?? 0,
-        ksefNumber, ksefAccepted: Boolean(ksefNumber), status: row.status,
-      };
-    }),
+    priorCorrections: prior.map(toSummary),
+    unsentCorrections: unsent.map(toSummary),
   };
 }
 

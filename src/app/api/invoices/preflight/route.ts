@@ -7,7 +7,7 @@ import { assessInvoice, type PreflightInput } from "@/lib/invoice-preflight";
 import { invoiceTotals } from "@/lib/format";
 import type { InvoiceLine } from "@/lib/types";
 import { normalizeInvoiceLineAmounts } from "@/lib/invoice-input";
-import { resolveInvoiceCorrectionSource } from "@/lib/invoice-correction-source";
+import { resolveInvoiceCorrectionSource, invoiceCorrectionContext } from "@/lib/invoice-correction-source";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
   try {
@@ -56,6 +56,16 @@ export async function POST(req: Request) {
     }
     const input: PreflightInput = { number: str(body.number), issueDate: str(body.issueDate), saleDate: str(body.saleDate), dueDate: str(body.dueDate), currency: str(body.currency), lines, buyer, recipient, seller, correction: body.isCorrection === true, correctionReason: str(body.correctionReason), originalInvoiceNumber: str(body.originalInvoiceNumber), originalIssueDate: str(body.originalIssueDate), exemptionBasis: str(body.exemptionBasis), isSplitPayment: body.isSplitPayment === true, gross: totals.gross };
     const issues = assessInvoice(input);
+    if (input.correction && objectId(body.originalInvoiceId)) {
+      const rootInv = await prisma.invoice.findFirst({ where: { id: body.originalInvoiceId, sellerCompanyId: company.id } });
+      if (rootInv) {
+        const ctx = await invoiceCorrectionContext(prisma, rootInv, objectId(body.invoiceId) ? body.invoiceId : undefined);
+        const afterGross = Math.round((ctx.effectiveGross + totals.gross) * 100) / 100;
+        if (ctx.originalGross > 0 && afterGross < 0) {
+          issues.push({ code: "correction.belowZero", severity: "error", message: `Łączna wartość korekt przekracza wartość faktury (saldo po korekcie: ${afterGross.toFixed(2)} ${input.currency}). Faktura nie może zejść poniżej 0,00.` });
+        }
+      }
+    }
     const exclude = objectId(body.invoiceId) ? { id: { not: body.invoiceId } } : {};
     if (body.autoNumber !== true) {
       const duplicate = await prisma.invoice.findFirst({ where: { sellerCompanyId: company.id, number: input.number, ...exclude }, select: { id: true, number: true } });
